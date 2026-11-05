@@ -53,6 +53,14 @@ struct NoteView: View {
         .onChange(of: store.editing) { _, editing in if editing { loadDraft() } else { flush() } }
         .onDisappear { flush() }
         .toolbar {
+            ToolbarItemGroup(placement: .navigation) {
+                Button { store.goBack() } label: { Label("Back", systemImage: "chevron.left") }
+                    .disabled(store.backStack.isEmpty)
+                    .help(store.backStack.last.map { "Back to \($0.note.title) (⌘[)" } ?? "Back (⌘[)")
+                Button { store.goForward() } label: { Label("Forward", systemImage: "chevron.right") }
+                    .disabled(store.forwardStack.isEmpty)
+                    .help(store.forwardStack.last.map { "Forward to \($0.note.title) (⌘])" } ?? "Forward (⌘])")
+            }
             ToolbarItemGroup {
                 Picker("Mode", selection: $store.editing) {
                     Label("Reading", systemImage: "book").tag(false)

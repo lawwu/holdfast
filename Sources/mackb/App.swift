@@ -30,6 +30,9 @@ struct MacKBApp: App {
                 Button("Choose Vault…") { store.chooseVault() }
             }
             CommandMenu("Note") {
+                Button("Back") { store.goBack() }.keyboardShortcut("[").disabled(store.backStack.isEmpty)
+                Button("Forward") { store.goForward() }.keyboardShortcut("]").disabled(store.forwardStack.isEmpty)
+                Divider()
                 Button("Quick Open…") { store.showQuickOpen = true }.keyboardShortcut("o")
                 Button("New Note") { store.createNote(near: store.opened?.note) }.keyboardShortcut("n", modifiers: [.command, .shift])
                 Button(store.editing ? "Reading View" : "Editing View") { store.editing.toggle() }.keyboardShortcut("e")
@@ -103,7 +106,11 @@ final class Store: ObservableObject {
     @Published var warning: String?
     @Published var busy: String?
     @Published var error: String?
-    @Published var opened: Opened?
+    @Published var opened: Opened? { didSet { recordNavigation(from: oldValue) } }
+    /// Notes visited before and after the one open, for Back and Forward (⌘[ ⌘]).
+    @Published private(set) var backStack: [Opened] = []
+    @Published private(set) var forwardStack: [Opened] = []
+    private var navigating = false
     @Published var searchText = ""
     @Published var results: [Chunk] = []
     @Published var backend: Backend = .mlx {
@@ -555,6 +562,38 @@ final class Store: ObservableObject {
         sources = []
         results = []
         reload()
+    }
+
+    // MARK: note history
+
+    /// Opening a different note (a link, a citation, Quick Open, the file tree)
+    /// pushes the one being left; Back and Forward walk that history.
+    private func recordNavigation(from old: Opened?) {
+        guard !navigating, let old, old.note.path != opened?.note.path else { return }
+        backStack.append(old)
+        if backStack.count > 100 { backStack.removeFirst() }
+        forwardStack.removeAll()
+    }
+
+    /// The latest copy of a note from history (it may have been edited since).
+    private func current(_ o: Opened) -> Opened {
+        Opened(note: notes.first { $0.path == o.note.path } ?? o.note, anchor: o.anchor)
+    }
+
+    func goBack() {
+        guard let prev = backStack.popLast() else { return }
+        navigating = true
+        if let cur = opened { forwardStack.append(cur) }
+        opened = current(prev)
+        navigating = false
+    }
+
+    func goForward() {
+        guard let next = forwardStack.popLast() else { return }
+        navigating = true
+        if let cur = opened { backStack.append(cur) }
+        opened = current(next)
+        navigating = false
     }
 
     // MARK: inbox
