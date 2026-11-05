@@ -60,6 +60,69 @@ enum Config {
     static let presencePenalty = 1.5
 }
 
+/// Answer models offered in Settings: MLX conversions on Hugging Face whose
+/// architectures MLX Swift supports (checked 2026-11-05). Sizes are the repo
+/// download; memory in use is about the same plus a few GB of context.
+struct MLXModelSpec: Identifiable, Hashable {
+    let repo: String
+    let name: String
+    let detail: String
+    let sizeGB: Double
+    let blurb: String
+    var id: String { repo }
+
+    static let shortList = [
+        MLXModelSpec(repo: "mlx-community/Qwen3.8-27B-4bit", name: "Qwen 3.8 27B", detail: "4-bit", sizeGB: 16.1,
+                     blurb: "Recommended. 98% on the case-report eval at ~11 tok/s."),
+        MLXModelSpec(repo: "mlx-community/Qwen3.8-27B-8bit", name: "Qwen 3.8 27B", detail: "8-bit", sizeGB: 29.5,
+                     blurb: "Same model at higher precision; about half the speed."),
+        MLXModelSpec(repo: "mlx-community/gemma-4-26b-a4b-it-4bit", name: "Gemma 4 26B A4B", detail: "4-bit · MoE", sizeGB: 15.4,
+                     blurb: "Google's mixture-of-experts: ~4B active, so much faster. Not yet evaluated."),
+        MLXModelSpec(repo: "mlx-community/Qwen3.5-9B-4bit", name: "Qwen 3.5 9B", detail: "4-bit", sizeGB: 6.0,
+                     blurb: "Small and quick; for Macs with 16 GB. Not yet evaluated."),
+    ]
+    static let fallback = shortList[0]
+    static func find(_ repo: String) -> MLXModelSpec? { shortList.first { $0.repo == repo } }
+}
+
+enum TranscriptionModel: String, CaseIterable, Identifiable {
+    case parakeetV3 = "parakeet-v3", parakeetV2 = "parakeet-v2"
+    var id: String { rawValue }
+    var name: String { self == .parakeetV3 ? "Parakeet v3" : "Parakeet v2" }
+    var blurb: String {
+        self == .parakeetV3 ? "Multilingual (25 European languages). Recommended."
+            : "English only. Use it if your recordings are all English."
+    }
+    /// FluidAudio's CoreML model folder, to tell whether it's downloaded.
+    var folder: URL {
+        FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Application Support/FluidAudio/Models")
+            .appendingPathComponent(self == .parakeetV3 ? "parakeet-tdt-0.6b-v3" : "parakeet-tdt-0.6b-v2")
+    }
+}
+
+/// Choices made in the app's Settings window (UserDefaults). The CLI runs
+/// under its own defaults domain, so it keeps the defaults unless told otherwise.
+enum Prefs {
+    static var mlxRepo: String {
+        get { UserDefaults.standard.string(forKey: "mlxRepo") ?? MLXModelSpec.fallback.repo }
+        set { UserDefaults.standard.set(newValue, forKey: "mlxRepo") }
+    }
+    static var rerankerOn: Bool {
+        get { UserDefaults.standard.object(forKey: "rerankerOn") as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: "rerankerOn") }
+    }
+    static var transcription: TranscriptionModel {
+        get { UserDefaults.standard.string(forKey: "transcription").flatMap(TranscriptionModel.init) ?? .parakeetV3 }
+        set { UserDefaults.standard.set(newValue.rawValue, forKey: "transcription") }
+    }
+    /// Where the app downloads MLX models (directly, not via the HF cache, so
+    /// nothing is stored twice).
+    static var modelsDir: URL {
+        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/MacKB/models")
+    }
+}
+
 func ensureVault() throws {
     for d in [Config.sourcesDir, Config.memoryDir, Config.inboxDir, Config.mediaDir] {
         try FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)

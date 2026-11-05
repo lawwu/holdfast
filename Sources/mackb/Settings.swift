@@ -1,39 +1,18 @@
 import AppKit
 import SwiftUI
 
-/// Settings window (⌘,): choose the answer model and see the on-device
-/// models retrieval and transcription use.
+/// Settings window (⌘,): the answer model (MLX short list or Ollama), the
+/// search reranker, the transcription model, and the vault.
 struct SettingsView: View {
     var body: some View {
         TabView {
-            ModelSettings()
-                .tabItem { Label("Models", systemImage: "cpu") }
-            VaultSettings()
-                .tabItem { Label("Vault", systemImage: "folder") }
+            AnswerSettings().tabItem { Label("Answer", systemImage: "sparkles") }
+            SearchSettings().tabItem { Label("Search", systemImage: "magnifyingglass") }
+            TranscriptionSettings().tabItem { Label("Transcription", systemImage: "waveform") }
+            VaultSettings().tabItem { Label("Vault", systemImage: "folder") }
         }
-        .frame(width: 560)
+        .frame(width: 580)
         .tint(Theme.accent)
-    }
-}
-
-// MARK: - Models
-
-/// What each answer backend is, measured on the synthetic case-report eval
-/// (eval/results, 2026-11-05) on this Mac.
-extension Backend {
-    var title: String { self == .mlx ? "Qwen 3.8 27B · 4-bit" : "Qwen 3.8 27B · 8-bit" }
-    var runtime: String { self == .mlx ? "MLX, inside the app" : "Ollama server on this Mac" }
-    var facts: [(String, String)] {
-        switch self {
-        case .mlx: return [("memorychip", "~16 GB"), ("gauge.with.dots.needle.67percent", "~11 tok/s"), ("checkmark.seal", "98% on the eval")]
-        case .ollama: return [("memorychip", "~28 GB"), ("gauge.with.dots.needle.67percent", "~5 tok/s"), ("checkmark.seal", "78% on the eval*")]
-        }
-    }
-    var note: String {
-        switch self {
-        case .mlx: return "Recommended. Twice as fast, half the memory; nothing else to run."
-        case .ollama: return "Needs the Ollama server running. *Measured before the retrieval fixes."
-        }
     }
 }
 
@@ -41,129 +20,62 @@ enum ModelStatus: Equatable {
     case checking, ready(String), missing(String)
 }
 
-struct ModelSettings: View {
-    @EnvironmentObject var store: Store
-    @State private var mlxStatus: ModelStatus = .checking
-    @State private var ollamaStatus: ModelStatus = .checking
-    @State private var mlxLoaded = MLXBackend.isLoaded
+// MARK: - Building blocks
 
+struct SettingsHeader: View {
+    var title: String
+    var subtitle: String
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Answer model").font(.headline)
-                Text("Writes answers from the passages retrieval finds. Takes effect on the next question.")
-                    .font(.callout).foregroundStyle(.secondary)
-            }
-            HStack(alignment: .top, spacing: 12) {
-                ForEach(Backend.allCases) { b in
-                    BackendCard(backend: b, selected: store.backend == b,
-                                status: b == .mlx ? mlxStatus : ollamaStatus) {
-                        store.backend = b
-                        UserDefaults.standard.set(b.rawValue, forKey: "backend")
-                    }
-                }
-            }
-            if mlxLoaded && store.backend == .ollama {
-                HStack(spacing: 10) {
-                    Image(systemName: "memorychip").foregroundStyle(.orange)
-                    Text("The MLX model is still in memory (~16 GB).").font(.callout)
-                    Spacer()
-                    Button("Unload") {
-                        MLXBackend.unload()
-                        mlxLoaded = false
-                    }
-                    .disabled(store.busy != nil)
-                }
-                .padding(10)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.orange.opacity(0.1)))
-            }
-
-            Divider()
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Always on this Mac").font(.headline)
-                Text("Retrieval and transcription models. These are fixed for now.")
-                    .font(.callout).foregroundStyle(.secondary)
-            }
-            VStack(spacing: 0) {
-                FixedModelRow(icon: "point.3.connected.trianglepath.dotted", name: "Qwen3-Embedding 0.6B",
-                              role: "Finds passages by meaning", present: Config.embedModelDir != nil)
-                Divider().padding(.leading, 40)
-                FixedModelRow(icon: "arrow.up.arrow.down", name: "Qwen3-Reranker 0.6B · 4-bit",
-                              role: "Ranks the candidates; declines when nothing fits", present: Reranker.modelDir != nil)
-                Divider().padding(.leading, 40)
-                FixedModelRow(icon: "waveform", name: "Parakeet v3",
-                              role: "Transcribes recordings (downloads on first use)", present: nil)
-            }
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.card))
-            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Color.primary.opacity(0.08)))
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title).font(.headline)
+            Text(subtitle).font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
-        .padding(24)
-        .task { await checkStatus() }
-    }
-
-    func checkStatus() async {
-        mlxLoaded = MLXBackend.isLoaded
-        if let dir = MLXBackend.modelDir {
-            mlxStatus = mlxLoaded ? .ready("Loaded") : .ready(dir.path.contains("models--") ? "Downloaded" : "Found")
-        } else {
-            mlxStatus = .missing("Not downloaded")
-        }
-        var req = URLRequest(url: Config.ollamaURL.appendingPathComponent("api/tags"))
-        req.timeoutInterval = 2
-        guard let (data, _) = try? await URLSession.shared.data(for: req),
-              let j = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let models = j["models"] as? [[String: Any]] else {
-            ollamaStatus = .missing("Ollama not running")
-            return
-        }
-        let names = models.compactMap { $0["name"] as? String }
-        ollamaStatus = names.contains(where: { $0.hasPrefix(Config.llmModel) })
-            ? .ready("Installed") : .missing("\(Config.llmModel) not installed")
     }
 }
 
-struct BackendCard: View {
-    var backend: Backend
+/// A selectable row with a radio mark; `trailing` holds status or a button.
+struct ChoiceRow<Trailing: View>: View {
     var selected: Bool
-    var status: ModelStatus
+    var enabled = true
+    var title: String
+    var tag: String?
+    var subtitle: String
     var action: () -> Void
+    @ViewBuilder var trailing: Trailing
     @State private var hover = false
 
     var body: some View {
-        Button(action: action) {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .top) {
-                    Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                        .font(.title3)
-                        .foregroundStyle(selected ? AnyShapeStyle(Theme.gradient) : AnyShapeStyle(Color.secondary.opacity(0.5)))
-                    Spacer()
-                    StatusBadge(status: status)
+        HStack(alignment: .center, spacing: 12) {
+            Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                .font(.title3)
+                .foregroundStyle(selected ? AnyShapeStyle(Theme.gradient) : AnyShapeStyle(Color.secondary.opacity(enabled ? 0.5 : 0.25)))
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(title).font(.callout.weight(.semibold))
+                    if let tag { Pill(text: tag) }
                 }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(backend.title).font(.callout.weight(.semibold))
-                    Text(backend.runtime).font(.caption).foregroundStyle(.secondary)
-                }
-                VStack(alignment: .leading, spacing: 4) {
-                    ForEach(backend.facts, id: \.1) { icon, text in
-                        Label(text, systemImage: icon).labelStyle(TightLabel())
-                    }
-                }
-                .font(.caption).foregroundStyle(.secondary)
-                Text(backend.note).font(.caption2).foregroundStyle(.tertiary)
-                    .fixedSize(horizontal: false, vertical: true)
+                Text(subtitle).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(14)
-            .background(RoundedRectangle(cornerRadius: Theme.radius, style: .continuous)
-                .fill(selected ? Theme.accent.opacity(0.07) : Theme.card))
-            .overlay(RoundedRectangle(cornerRadius: Theme.radius, style: .continuous)
-                .strokeBorder(selected ? Theme.accent.opacity(0.7) : Color.primary.opacity(hover ? 0.2 : 0.1),
-                              lineWidth: selected ? 1.5 : 1))
-            .contentShape(Rectangle())
+            .opacity(enabled ? 1 : 0.6)
+            Spacer(minLength: 8)
+            trailing
         }
-        .buttonStyle(.plain)
+        .padding(.horizontal, 12).padding(.vertical, 10)
+        .background(RoundedRectangle(cornerRadius: 10, style: .continuous)
+            .fill(selected ? Theme.accent.opacity(0.08) : (hover && enabled ? Color.primary.opacity(0.04) : .clear)))
+        .contentShape(Rectangle())
+        .onTapGesture { if enabled { action() } }
         .onHover { hover = $0 }
+    }
+}
+
+struct GroupBox2<Content: View>: View {
+    @ViewBuilder var content: Content
+    var body: some View {
+        VStack(spacing: 2) { content }
+            .padding(4)
+            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.card))
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color.primary.opacity(0.08)))
     }
 }
 
@@ -171,35 +83,147 @@ struct StatusBadge: View {
     var status: ModelStatus
     var body: some View {
         switch status {
-        case .checking:
-            ProgressView().controlSize(.mini)
-        case .ready(let s):
-            Pill(text: s, icon: "checkmark", color: .green)
-        case .missing(let s):
-            Pill(text: s, icon: "exclamationmark.triangle", color: .orange)
+        case .checking: ProgressView().controlSize(.mini)
+        case .ready(let s): Pill(text: s, icon: "checkmark", color: .green)
+        case .missing(let s): Pill(text: s, icon: "exclamationmark.triangle", color: .orange)
         }
     }
 }
 
-struct FixedModelRow: View {
-    var icon: String
-    var name: String
-    var role: String
-    var present: Bool?
+// MARK: - Answer
+
+struct AnswerSettings: View {
+    @EnvironmentObject var store: Store
+    @State private var ollamaStatus: ModelStatus = .checking
+    @State private var tick = 0  // re-read load state after Unload
+
+    let ramGB = Double(ProcessInfo.processInfo.physicalMemory) / 1_073_741_824
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon).foregroundStyle(Theme.accent).frame(width: 18)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(name).font(.callout.weight(.medium))
-                Text(role).font(.caption).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 16) {
+            SettingsHeader(title: "Answer model",
+                           subtitle: "Runs on this Mac with MLX and writes answers from the passages search finds. Takes effect on the next question.")
+            GroupBox2 {
+                ForEach(MLXModelSpec.shortList) { spec in mlxRow(spec) }
             }
-            Spacer()
-            if let present {
-                StatusBadge(status: present ? .ready("Ready") : .missing("Not downloaded"))
+            HStack(spacing: 6) {
+                Image(systemName: "memorychip")
+                Text(String(format: "This Mac has %.0f GB of memory. Models download from Hugging Face (mlx-community).", ramGB))
+            }
+            .font(.caption).foregroundStyle(.secondary)
+
+            SettingsHeader(title: "Other runtime", subtitle: "For comparison; needs the Ollama server running.")
+            GroupBox2 {
+                ChoiceRow(selected: store.backend == .ollama, title: "Qwen 3.8 27B", tag: "8-bit · Ollama",
+                          subtitle: "~28 GB, ~5 tok/s. Measured 78% before the retrieval fixes.",
+                          action: { store.backend = .ollama }) {
+                    StatusBadge(status: ollamaStatus)
+                }
+            }
+            let _ = tick
+            if MLXBackend.isLoaded && store.backend == .ollama {
+                HStack(spacing: 10) {
+                    Image(systemName: "memorychip").foregroundStyle(.orange)
+                    Text("\(MLXModelSpec.find(MLXBackend.loadedRepo ?? "")?.name ?? "The MLX model") is still in memory.").font(.callout)
+                    Spacer()
+                    Button("Unload") { MLXBackend.unload(); tick += 1 }.disabled(store.busy != nil)
+                }
+                .padding(10)
+                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.orange.opacity(0.1)))
             }
         }
-        .padding(.horizontal, 12).padding(.vertical, 9)
+        .padding(24)
+        .task { ollamaStatus = await checkOllama() }
+    }
+
+    @ViewBuilder func mlxRow(_ spec: MLXModelSpec) -> some View {
+        let downloaded = store.isDownloaded(spec.repo)
+        let tooBig = spec.sizeGB > ramGB * 0.75
+        ChoiceRow(selected: store.backend == .mlx && store.mlxRepo == spec.repo, enabled: downloaded,
+                  title: spec.name, tag: "\(spec.detail) · \(String(format: "%.0f", spec.sizeGB)) GB",
+                  subtitle: tooBig ? "Too large for this Mac's memory." : (store.downloadErrors[spec.repo].map { "Download failed: \($0)" } ?? spec.blurb),
+                  action: { store.selectMLX(spec.repo) }) {
+            if let f = store.downloads[spec.repo] {
+                HStack(spacing: 6) {
+                    ProgressView(value: f).frame(width: 70)
+                    Text(String(format: "%.0f%%", f * 100)).font(.caption).monospacedDigit().foregroundStyle(.secondary)
+                }
+            } else if downloaded {
+                StatusBadge(status: .ready(MLXBackend.loadedRepo == spec.repo ? "Loaded" : "Downloaded"))
+            } else {
+                Button("Download") { store.download(spec) }
+                    .controlSize(.small)
+                    .disabled(tooBig)
+                    .help("Download \(String(format: "%.1f", spec.sizeGB)) GB from huggingface.co/\(spec.repo)")
+            }
+        }
+    }
+
+    func checkOllama() async -> ModelStatus {
+        var req = URLRequest(url: Config.ollamaURL.appendingPathComponent("api/tags"))
+        req.timeoutInterval = 2
+        guard let (data, _) = try? await URLSession.shared.data(for: req),
+              let j = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let models = j["models"] as? [[String: Any]] else { return .missing("Not running") }
+        let names = models.compactMap { $0["name"] as? String }
+        return names.contains(where: { $0.hasPrefix(Config.llmModel) }) ? .ready("Installed") : .missing("Model not installed")
+    }
+}
+
+// MARK: - Search
+
+struct SearchSettings: View {
+    @EnvironmentObject var store: Store
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            SettingsHeader(title: "Embedding model",
+                           subtitle: "Finds passages by meaning, alongside keyword search. Changing it means re-indexing, so it's fixed for now.")
+            GroupBox2 {
+                ChoiceRow(selected: true, title: "Qwen3-Embedding 0.6B", tag: "MLX",
+                          subtitle: "Multilingual, 1024 dimensions.", action: {}) {
+                    StatusBadge(status: Config.embedModelDir != nil ? .ready("Ready") : .missing("Not downloaded"))
+                }
+            }
+            SettingsHeader(title: "Reranker",
+                           subtitle: "Reads the 60 best candidates against the question and keeps only the relevant ones.")
+            GroupBox2 {
+                ChoiceRow(selected: store.rerankerOn, title: "Qwen3-Reranker 0.6B", tag: "4-bit · MLX",
+                          subtitle: "Recommended. Lifted the eval from 79% to 98%, and declines questions the notes can't answer.",
+                          action: { store.rerankerOn = true }) {
+                    StatusBadge(status: Reranker.modelDir != nil ? .ready("Ready") : .missing("Not downloaded"))
+                }
+                ChoiceRow(selected: !store.rerankerOn, title: "Off", tag: nil,
+                          subtitle: "Keyword + meaning only. Faster, but weaker passages and no \"not in your notes\" answer.",
+                          action: { store.rerankerOn = false }) { EmptyView() }
+            }
+        }
+        .padding(24)
+    }
+}
+
+// MARK: - Transcription
+
+struct TranscriptionSettings: View {
+    @EnvironmentObject var store: Store
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            SettingsHeader(title: "Transcription model",
+                           subtitle: "Turns recordings and videos without captions into timestamped transcripts, on the Neural Engine. Applies to the next import.")
+            GroupBox2 {
+                ForEach(TranscriptionModel.allCases) { m in
+                    let present = FileManager.default.fileExists(atPath: m.folder.path)
+                    ChoiceRow(selected: store.transcription == m, title: m.name, tag: "0.6B · CoreML",
+                              subtitle: m.blurb, action: { store.transcription = m }) {
+                        StatusBadge(status: present ? .ready("Downloaded") : .missing("Downloads on first use"))
+                    }
+                }
+            }
+            Text("Measured here: Parakeet v3 transcribes at about 140× real time (an hour of audio in under 30 seconds).")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+        .padding(24)
     }
 }
 
@@ -209,12 +233,9 @@ struct VaultSettings: View {
     @EnvironmentObject var store: Store
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Vault").font(.headline)
-                Text("A folder of plain Markdown notes. It can be an Obsidian vault; the search index is a cache inside it.")
-                    .font(.callout).foregroundStyle(.secondary)
-            }
+        VStack(alignment: .leading, spacing: 16) {
+            SettingsHeader(title: "Vault",
+                           subtitle: "A folder of plain Markdown notes. It can be an Obsidian vault; the search index and question history live in its hidden .mackb folder.")
             HStack(spacing: 12) {
                 Image(systemName: "folder.fill").font(.title2).foregroundStyle(Theme.accent)
                 VStack(alignment: .leading, spacing: 2) {
@@ -230,7 +251,8 @@ struct VaultSettings: View {
             .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Color.primary.opacity(0.08)))
             HStack(spacing: 16) {
                 Label("\(store.notes.count) notes", systemImage: "doc.on.doc")
-                Label("\(store.indexCounts.chunks) passages indexed", systemImage: "text.alignleft")
+                Label("\(store.indexCounts.chunks) passages", systemImage: "text.alignleft")
+                Label("\(store.history.count) questions", systemImage: "clock.arrow.circlepath")
                 Spacer()
                 Button("Rebuild Index") { store.rebuildIndex() }.disabled(store.busy != nil)
             }

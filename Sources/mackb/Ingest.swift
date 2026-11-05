@@ -167,7 +167,7 @@ func ingestFolder(_ root: URL, tags: [String]) throws -> (ok: Int, skipped: Int,
     return (ok, skipped, failed)
 }
 
-// MARK: - Audio (FluidAudio Parakeet v3, in-process on the Neural Engine)
+// MARK: - Audio (FluidAudio Parakeet v3 or v2 per Settings, in-process on the Neural Engine)
 
 func transcribeAudio(_ url: URL) async throws -> (segments: [Segment], duration: Double, seconds: Double) {
     let wav = Config.mediaDir.appendingPathComponent(UUID().uuidString + ".wav")
@@ -175,8 +175,9 @@ func transcribeAudio(_ url: URL) async throws -> (segments: [Segment], duration:
     _ = try run("/opt/homebrew/bin/ffmpeg", ["-nostdin", "-loglevel", "error", "-y", "-i", url.path, "-ac", "1", "-ar", "16000", wav.path])
     defer { try? FileManager.default.removeItem(at: wav) }
 
-    log("loading Parakeet v3 (first run downloads the CoreML model)…")
-    let models = try await AsrModels.downloadAndLoad(version: .v3)
+    let choice = Prefs.transcription
+    log("loading \(choice.name) (first run downloads the CoreML model)…")
+    let models = try await AsrModels.downloadAndLoad(version: choice == .parakeetV2 ? .v2 : .v3)
     let asr = AsrManager(config: .default)
     try await asr.loadModels(models)
     var state = TdtDecoderState.make()

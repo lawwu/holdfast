@@ -132,6 +132,7 @@ struct RootView: View {
                 case .ask: AskView()
                 case .library: LibraryView()
                 case .inbox: InboxView()
+                case .history: HistoryView()
                 }
             }
             .background(Theme.canvas)
@@ -322,6 +323,29 @@ struct AskHero: View {
                     ForEach(suggestions, id: \.1) { icon, q in SuggestionCard(icon: icon, text: q) { store.askSuggested(q) } }
                 }
                 .frame(maxWidth: 560)
+                if !store.history.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text("RECENT").font(.caption.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
+                            Spacer()
+                            Button("See all") { store.pane = .history }.buttonStyle(.link).font(.caption)
+                        }
+                        ForEach(store.history.prefix(3)) { e in
+                            Button { store.openHistory(e) } label: {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "clock.arrow.circlepath").foregroundStyle(.secondary).font(.caption)
+                                    Text(e.question).font(.callout).lineLimit(1).foregroundStyle(.primary)
+                                    Spacer()
+                                    Text(e.date, format: .relative(presentation: .named)).font(.caption).foregroundStyle(.tertiary)
+                                }
+                                .padding(.vertical, 4).contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .frame(maxWidth: 560)
+                    .padding(.top, 6)
+                }
                 Spacer(minLength: 20)
             }
             .padding(24)
@@ -418,7 +442,7 @@ struct AnswerCard: View {
                     Label(String(format: "%.1f tok/s", s.tokPerSec), systemImage: "gauge.with.dots.needle.67percent")
                     Label(String(format: "%.0f s", s.seconds), systemImage: "clock")
                     Spacer()
-                    Label(store.backend.short, systemImage: "cpu")
+                    Label(store.history.first { $0.id == store.currentHistoryId }?.model ?? store.modelLabel, systemImage: "cpu")
                 }
                 .labelStyle(TightLabel())
                 .font(.caption).foregroundStyle(.secondary)
@@ -547,16 +571,22 @@ struct Composer: View {
 
             HStack {
                 Menu {
-                    Picker("Model", selection: $store.backend) {
-                        ForEach(Backend.allCases) { b in
-                            Text("\(b.short) — \(b.detail)").tag(b)
+                    Section("On this Mac (MLX)") {
+                        ForEach(MLXModelSpec.shortList.filter { store.isDownloaded($0.repo) }) { spec in
+                            Toggle("\(spec.name) · \(spec.detail)", isOn: Binding(
+                                get: { store.backend == .mlx && store.mlxRepo == spec.repo },
+                                set: { if $0 { store.selectMLX(spec.repo) } }))
                         }
                     }
-                    .pickerStyle(.inline)
+                    Section("Ollama") {
+                        Toggle("Qwen 3.8 27B · 8-bit", isOn: Binding(
+                            get: { store.backend == .ollama },
+                            set: { if $0 { store.backend = .ollama } }))
+                    }
                     Divider()
-                    SettingsLink { Text("Model Settings…") }
+                    SettingsLink { Text("More Models…") }
                 } label: {
-                    Label(store.backend.short, systemImage: "cpu")
+                    Label(store.modelLabel, systemImage: "cpu")
                 }
                 .menuStyle(.borderlessButton)
                 .fixedSize()
@@ -648,12 +678,13 @@ struct SectionTitle: View {
 
 struct SearchField: View {
     @Binding var text: String
-    var onSubmit: () -> Void
+    var placeholder = "Search by keyword or meaning…"
+    var onSubmit: () -> Void = {}
     @FocusState private var focused: Bool
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-            TextField("Search by keyword or meaning…", text: $text)
+            TextField(placeholder, text: $text)
                 .textFieldStyle(.plain)
                 .focused($focused)
                 .onSubmit(onSubmit)
@@ -1032,6 +1063,103 @@ struct MarkdownBlocks: View {
                         .font(.system(size: 14)).lineSpacing(3)
                 }
             }
+        }
+    }
+}
+
+// MARK: - History
+
+struct HistoryView: View {
+    @EnvironmentObject var store: Store
+
+    var filtered: [HistoryEntry] { store.history.filter { $0.matches(store.historySearch) } }
+
+    /// Entries grouped under Today / Yesterday / the date, newest first.
+    var groups: [(String, [HistoryEntry])] {
+        let cal = Calendar.current
+        var out: [(String, [HistoryEntry])] = []
+        for e in filtered {
+            let label = cal.isDateInToday(e.date) ? "Today"
+                : cal.isDateInYesterday(e.date) ? "Yesterday"
+                : e.date.formatted(.dateTime.weekday(.wide).month(.wide).day().year())
+            if out.last?.0 == label { out[out.count - 1].1.append(e) } else { out.append((label, [e])) }
+        }
+        return out
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            SearchField(text: $store.historySearch, placeholder: "Search past questions and answers…")
+                .padding(.horizontal, 20).padding(.top, 16).padding(.bottom, 10)
+            if store.history.isEmpty {
+                EmptyState(icon: "clock.arrow.circlepath", title: "No questions yet",
+                           message: "Every question you ask is saved here with its answer and sources, in this vault.")
+            } else if filtered.isEmpty {
+                EmptyState(icon: "magnifyingglass", title: "No matches",
+                           message: "Nothing in your past questions, answers or source titles matches \u{201C}\(store.historySearch)\u{201D}.")
+            } else {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 8) {
+                        ForEach(groups, id: \.0) { label, entries in
+                            SectionTitle(title: label, count: entries.count)
+                            ForEach(entries) { e in HistoryRow(entry: e) }
+                        }
+                    }
+                    .padding(.horizontal, 20).padding(.bottom, 20)
+                }
+            }
+        }
+        .navigationTitle("History")
+    }
+}
+
+struct HistoryRow: View {
+    @EnvironmentObject var store: Store
+    var entry: HistoryEntry
+    @State private var hover = false
+
+    var preview: String {
+        entry.answer
+            .replacingOccurrences(of: #"\[\d+\]"#, with: "", options: .regularExpression)
+            .replacingOccurrences(of: #"[*#_`]"#, with: "", options: .regularExpression)
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespaces)
+    }
+
+    var body: some View {
+        let selected = store.currentHistoryId == entry.id
+        Button { store.openHistory(entry) } label: {
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(entry.question).font(.callout.weight(.semibold)).lineLimit(2)
+                    Spacer(minLength: 8)
+                    Text(entry.date, format: .dateTime.hour().minute()).font(.caption).foregroundStyle(.tertiary)
+                }
+                Text(preview).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                HStack(spacing: 12) {
+                    Label("\(entry.sources.count) sources", systemImage: "text.quote")
+                    Label(entry.model, systemImage: "cpu")
+                }
+                .labelStyle(TightLabel())
+                .font(.caption2).foregroundStyle(.tertiary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(selected ? Theme.accent.opacity(0.1) : (hover ? Color.primary.opacity(0.04) : Theme.card)))
+            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(selected ? Theme.accent.opacity(0.45) : Color.primary.opacity(0.07)))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hover = $0 }
+        .contextMenu {
+            Button("Copy Answer") {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(entry.answer, forType: .string)
+            }
+            Divider()
+            Button("Delete", role: .destructive) { store.deleteHistory(entry) }
         }
     }
 }
