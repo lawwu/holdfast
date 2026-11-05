@@ -240,7 +240,7 @@ struct Sidebar: View {
                     AppMark(size: 30)
                     VStack(alignment: .leading, spacing: 1) {
                         Text("MacKB").font(.system(size: 14, weight: .semibold)).foregroundStyle(.primary)
-                        Text("Agent memory, on your Mac").font(.system(size: 10.5)).foregroundStyle(.secondary)
+                        Text("A private second brain").font(.system(size: 10.5)).foregroundStyle(.secondary)
                     }
                 }
                 .textCase(nil)
