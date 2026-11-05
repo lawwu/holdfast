@@ -57,6 +57,12 @@ func tidy(_ text: String) -> String {
                 l = "- " + l.dropFirst(b.count).trimmingCharacters(in: .whitespaces)
                 break
             }
+            // Plain text loses Word heading styles. A short standalone line ending in "?"
+            // is a form prompt (the case report form is 16 of them): make it a heading,
+            // so chunks and citations land on the question being answered.
+            if l.hasSuffix("?"), l.count < 200, !l.hasPrefix("- "), !l.hasPrefix("\"") {
+                l = "## " + l
+            }
             return l
         }
         .joined(separator: "\n")
@@ -80,6 +86,12 @@ func ingestDocument(_ url: URL, root: URL?, tags: [String]) throws -> Note {
     if isMD, let h1 = body.split(separator: "\n").first(where: { $0.hasPrefix("# ") }) {
         title = String(h1.dropFirst(2))
     } else if !isMD {
+        // A short first line ("Case Report — D.M. — Session 1") is a better title than the file name.
+        if let first = body.split(separator: "\n").first.map(String.init), first.count >= 6, first.count <= 90,
+           !first.hasPrefix("## "), !first.hasSuffix(".") {
+            title = first
+            body = String(body.dropFirst(first.count)).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
         body = "# \(title)\n\n" + body
     }
     // Folder path under the import root becomes the note's folder and a topic tag.

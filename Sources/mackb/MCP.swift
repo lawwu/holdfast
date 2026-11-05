@@ -86,7 +86,7 @@ final class MCPServer {
             guard let n = findNote(a["id"] as? String ?? "") else { return text("No note with that id.", isError: true) }
             return text(try String(contentsOf: n.path, encoding: .utf8))
         case "ask":
-            let ans = try await ask(a["question"] as? String ?? "", embedder: await getEmbedder())
+            let ans = try await ask(a["question"] as? String ?? "", embedder: await getEmbedder(), llm: try await makeBackend())
             return text(ans.text + "\n" + formatSources(ans))
         case "remember":
             let tags = a["tags"] as? [String] ?? []

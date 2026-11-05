@@ -19,10 +19,18 @@ struct Answer {
     var retrievalSeconds: Double
 }
 
+/// Collects streamed tokens from a @Sendable callback.
+final class TextBox: @unchecked Sendable {
+    private let lock = NSLock()
+    private var buf = ""
+    func append(_ s: String) { lock.lock(); buf += s; lock.unlock() }
+    var text: String { lock.lock(); defer { lock.unlock() }; return buf }
+}
+
 func citation(_ c: Chunk) -> String { "[[\(c.noteId)#\(c.anchor)]]" }
 
 func ask(_ question: String, embedder: Embedder?, llm: LLMBackend = OllamaBackend(),
-         stream: ((String) -> Void)? = nil) async throws -> Answer {
+         stream: (@Sendable (String) -> Void)? = nil) async throws -> Answer {
     let t0 = Date()
     let hits = try await search(question, embedder: embedder, limit: Config.contextChunks)
     let rt = Date().timeIntervalSince(t0)
@@ -35,12 +43,12 @@ func ask(_ question: String, embedder: Embedder?, llm: LLMBackend = OllamaBacken
         ctx += "[\(i + 1)] (\(c.title) — \(c.anchor))\n\(c.text)\n\n"
     }
     let user = "Passages:\n\n\(ctx)Question: \(question)"
-    var text = ""
+    let box = TextBox()
     let stats = try await llm.chat(system: askSystemPrompt, user: user) { tok in
-        text += tok
+        box.append(tok)
         stream?(tok)
     }
-    return Answer(text: text, sources: hits, stats: stats, retrievalSeconds: rt)
+    return Answer(text: box.text, sources: hits, stats: stats, retrievalSeconds: rt)
 }
 
 func formatSources(_ a: Answer) -> String {

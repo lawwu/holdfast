@@ -6,7 +6,8 @@ with citations. Everything runs on the Mac, because case material is confidentia
 Nothing is sent to a cloud service.
 
 This is the Phase 0–3 proof of concept from the Mac KB plan (`a notes repo`,
-`projects/202611_mac-kb/`). It's a command-line tool. A SwiftUI app comes later.
+`projects/202611_mac-kb/`). One binary is the CLI, the MCP server and a SwiftUI
+window: `mackb app`, or `scripts/make_app.sh` → `build/MacKB.app`.
 
 ## What it does
 
@@ -18,6 +19,8 @@ This is the Phase 0–3 proof of concept from the Mac KB plan (`a notes repo`,
 | `mackb index` | Chunks each note on headings and timestamps; SQLite FTS5 + **Qwen3-Embedding-0.6B** vectors (in-process, MLX Swift). Only changed notes are re-indexed |
 | `mackb search "…"` | Keyword (BM25) and vector results merged with reciprocal rank fusion |
 | `mackb ask "…"` | The top 8 passages go to **Qwen 3.8 27B** (Ollama, thinking off). The answer cites `[n]`, and each source prints as `[[note#anchor]]` |
+| `mackb app` | The window: Ask (cited answers; click a source to open it), Library (browse and search), Inbox (approve or reject agent memories), and a reader that jumps to the cited section |
+| `mackb eval` | Scores Q&A against a question set; see `eval/README.md` |
 | `mackb mcp` | MCP server: `search`, `get_note`, `ask`, `remember`, `list_inbox` |
 | `mackb inbox / approve / reject` | Memories that agents propose wait here for approval. Each one is checked for full names, emails and phone numbers first |
 
@@ -36,8 +39,8 @@ xcodebuild -scheme mac-kb -destination 'platform=macOS' -configuration Release \
 ln -sf "$PWD/.build/xcode/Build/Products/Release/mackb" ~/.local/bin/mackb
 ```
 
-It also needs Ollama with a Qwen model (`MACKB_LLM`), plus `ffmpeg` and `yt-dlp`
-for audio and URLs.
+The LLM is `MACKB_BACKEND=mlx` (Qwen 3.8 27B 4-bit loaded in-process from the
+Hugging Face cache, `MACKB_MLX_REPO`) or `ollama` (`MACKB_LLM`). Audio and URLs also need `ffmpeg` and `yt-dlp`.
 
 ## Use from Claude Code
 
@@ -62,8 +65,8 @@ Qwen would be faster still.
 
 ## Not done yet
 
-- SwiftUI app (three panes, audio player synced to the transcript, clickable citations)
-- An in-process Qwen 27B through MLX (`LLMBackend` is ready for it); a reranker; sqlite-vec
+- Retrieval fixes from the eval (a reranker, one passage per section, "first session" → Session 1); sqlite-vec
+- Faster prompt reading on MLX (prompt caching, MTP)
 - Batched embeddings (currently one passage at a time); a background job queue
 - Case-report templates (ACBC structure: data gathering, problem, hope, plan, homework)
   so questions can filter by section
