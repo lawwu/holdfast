@@ -15,6 +15,10 @@ struct MacKBApp: App {
                 .frame(minWidth: 1120, minHeight: 700)
         }
         .windowToolbarStyle(.unified)
+
+        Settings {
+            SettingsView().environmentObject(store)
+        }
         .commands {
             CommandGroup(replacing: .newItem) {}
             CommandMenu("Vault") {
