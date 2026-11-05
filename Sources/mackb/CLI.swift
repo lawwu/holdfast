@@ -8,7 +8,8 @@ mackb — local knowledge base for counseling materials (POC)
   mackb search "<query>"                       hybrid keyword + semantic search
   mackb ask "<question>"                       answer with the local Qwen model, with citations
   mackb remember "<title>" "<text>"            propose a memory (goes to the inbox)
-  mackb inbox | approve <id> | reject <id>     review agent-proposed memories
+  mackb inbox | approve <id> | reject <id>     review agent-proposed memories and filings
+  mackb drop [file...]                         file what is in the drop folder (adding these files first)
   mackb mcp                                    run the MCP server on stdio (for Claude Code etc.)
   mackb bench                                  measure LLM speed on a fixed prompt
   mackb eval [questions.json] --label <name>   score Q&A against a question set (see eval/)
@@ -104,6 +105,7 @@ do {
         if items.isEmpty { print("inbox empty") }
         for n in items {
             print("\(n.id)  \(n.title)  (by \(n.meta["proposed_by"] ?? "?"))")
+            if let t = n.meta["target"] { print("    → \(n.meta["action"] ?? "new") \(t): \(n.meta["why"] ?? "")") }
             if let f = n.meta["privacy_flags"] { print("    ⚠ \(f)") }
         }
     case "approve":
@@ -112,6 +114,17 @@ do {
     case "reject":
         try reject(args.first ?? "")
         print("moved to Trash")
+    case "drop":
+        try Drop.add(args.map { URL(fileURLWithPath: $0) })
+        let files = Drop.pending(settled: false)
+        if files.isEmpty { print("drop folder is empty: \(Drop.dir.path)") }
+        let emb = try? await Embedder.load()
+        let llm: LLMBackend? = Config.inPlace ? try await makeBackend() : nil
+        for u in files {
+            do { print("\(u.lastPathComponent): " + (try await Drop.process(u, embedder: emb, llm: llm, model: "cli"))) }
+            catch let e as AlreadyFiled { print("\(u.lastPathComponent): skipped, \(e)") }
+            catch { print("\(u.lastPathComponent): failed — \(error)") }
+        }
     case "mcp":
         await MCPServer().serve()
     case "bench":

@@ -22,6 +22,7 @@ window: `mackb app`, or `scripts/make_app.sh` → `build/MacKB.app`.
 | `mackb app` | The window: Ask (cited answers; click a source to open it), Library (browse and search), Inbox (approve or reject agent memories), and a reader that jumps to the cited section |
 | `mackb eval` | Scores Q&A against a question set; see `eval/README.md` |
 | `mackb mcp` | MCP server: `search`, `get_note`, `ask`, `remember`, `list_inbox` |
+| `mackb drop [file…]` | Files what is in the drop folder. In a vault indexed in place, the model reads each file (PDF, Word, Markdown, images by on-device OCR, recordings by transcription) and the folder READMEs, and proposes a new note or a row for an existing log; the proposal waits in the inbox. In a managed vault the file is imported as a source. Originals move to `drop-filed/` in the app's state folder, never into the vault. The app watches the same folder (Vault › Open Drop Folder, ⇧⌘D) and has a drop zone on the Inbox page |
 | `mackb inbox / approve / reject` | Memories that agents propose wait here for approval. Each one is checked for full names, emails and phone numbers first |
 
 **Retrieval** (`Sources/mackb/Index.swift`, tuning constants in `enum Retrieval`), following
