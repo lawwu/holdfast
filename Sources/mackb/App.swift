@@ -484,6 +484,18 @@ final class Store: ObservableObject {
         NSWorkspace.shared.activateFileViewerSelecting([Drop.dir])
     }
 
+    /// "Add Files…": pick files; they go through the drop folder like dropped ones.
+    func chooseFilesToAdd() {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = true
+        panel.canChooseDirectories = false
+        panel.message = Config.inPlace
+            ? "Choose documents, photos or recordings. The model proposes where each belongs; you approve it in the Inbox."
+            : "Choose documents or recordings to import"
+        guard panel.runModal() == .OK else { return }
+        addToDrop(panel.urls)
+    }
+
     /// Files dropped on the window go into the drop folder, then get filed.
     func addToDrop(_ urls: [URL]) {
         do { try Drop.add(urls) } catch { self.error = "\(error)" }

@@ -326,6 +326,8 @@ struct AskHero: View {
                     Text("Answers come only from the notes in this vault, and every claim cites its source.")
                         .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 }
+                AddFilesCard()
+                    .frame(maxWidth: 560)
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 210), spacing: 10)], spacing: 10) {
                     ForEach(suggestions, id: \.1) { icon, q in SuggestionCard(icon: icon, text: q) { store.askSuggested(q) } }
                 }
@@ -357,6 +359,45 @@ struct AskHero: View {
             }
             .padding(24)
             .frame(maxWidth: .infinity)
+        }
+    }
+}
+
+/// On the Ask page: add files to the vault (via the drop folder), or drop them here.
+struct AddFilesCard: View {
+    @EnvironmentObject var store: Store
+    @State private var targeted = false
+
+    var waiting: Int { store.inboxItems.filter { $0.meta["kind"] == "filing" }.count }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: store.dropStatus == nil ? "tray.and.arrow.down.fill" : "gearshape.2.fill")
+                .font(.system(size: 20)).foregroundStyle(Theme.accent)
+                .symbolEffect(.pulse, isActive: store.dropStatus != nil)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(store.dropStatus ?? "Add files to your knowledge base").font(.callout.weight(.semibold))
+                Text(Config.inPlace ? "Drop documents, photos or recordings here; the model proposes where each belongs."
+                                    : "Drop documents or recordings here to import them.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            if waiting > 0 {
+                Button("\(waiting) to review") { store.pane = .inbox }.buttonStyle(.link).font(.caption)
+            }
+            Button("Add Files…") { store.chooseFilesToAdd() }.buttonStyle(.borderedProminent).controlSize(.regular)
+        }
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Theme.accent.opacity(targeted ? 0.14 : 0.05)))
+        .overlay(RoundedRectangle(cornerRadius: 12)
+            .strokeBorder(Theme.accent.opacity(targeted ? 0.9 : 0.3), style: StrokeStyle(lineWidth: 1.2, dash: [6, 4])))
+        .onDrop(of: [.fileURL], isTargeted: $targeted) { providers in
+            for p in providers {
+                _ = p.loadObject(ofClass: URL.self) { url, _ in
+                    if let url { Task { @MainActor in store.addToDrop([url]) } }
+                }
+            }
+            return true
         }
     }
 }
@@ -606,6 +647,14 @@ struct Composer: View {
                 .controlSize(.small)
                 .disabled(store.backend != .mlx)
                 .help("Research mode: the model searches, reads notes, lists folders and queries CSV tables in steps before answering. Slower, better for questions that span files or need numbers. MLX models only.")
+                Button { store.chooseFilesToAdd() } label: {
+                    Label("Add Files", systemImage: "tray.and.arrow.down")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .help(Config.inPlace
+                      ? "Add documents, photos or recordings. The model proposes where each belongs; you approve it in the Inbox."
+                      : "Add documents or recordings to the vault as sources.")
                 Spacer()
                 Label("Private · nothing leaves this Mac", systemImage: "lock.fill")
                     .labelStyle(TightLabel())
