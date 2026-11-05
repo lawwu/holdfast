@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Local Models on a Family Knowledge Base</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Literata:opsz,wght@7..72,500;7..72,600&display=swap" rel="stylesheet">
+<style>
+/* Layout: one reading column; charts as paired bar strips sharing row labels. */
+:root {
+  color-scheme: light;
+  --bg: #f7f8fa; --surface: #ffffff; --ink: #14171c; --ink-2: #4c535e; --ink-3: #7c838e;
+  --line: #e2e5ea; --accent: #2a78d6; --good: #1a7f4b; --bad: #c2362f;
+  --display: "Literata", Georgia, serif; --body: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #15171b; --surface: #1c1f24; --ink: #eef0f3; --ink-2: #b8bec8; --ink-3: #8b929d;
+    --line: #2c3038; --accent: #3987e5; --good: #4cc38a; --bad: #f07a72;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #15171b; --surface: #1c1f24; --ink: #eef0f3; --ink-2: #b8bec8; --ink-3: #8b929d;
+  --line: #2c3038; --accent: #3987e5; --good: #4cc38a; --bad: #f07a72;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15.5px/1.6 var(--body); }
+main { max-width: 980px; margin: 0 auto; padding: 48px 20px 80px; display: grid; gap: 40px; }
+h1, h2 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; }
+h1 { font-size: 34px; line-height: 1.2; }
+h2 { font-size: 23px; }
+h3 { font-size: 15px; margin: 18px 0 6px; color: var(--ink-2); font-weight: 600; }
+p, li { max-width: 68ch; }
+p { margin: 0 0 10px; }
+.lede { color: var(--ink-2); font-size: 17px; }
+.meta { font: 13px var(--mono); color: var(--ink-3); }
+section { display: grid; gap: 14px; }
+.findings { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+.pair { display: grid; grid-template-columns: 210px 1fr 1fr; gap: 0 18px; align-items: start; }
+.rowlabels { list-style: none; margin: 34px 0 0; padding: 0; }
+.rowlabels li { height: 34px; display: flex; flex-direction: column; justify-content: center; line-height: 1.2; }
+.rowlabels b { font-weight: 600; font-size: 14px; }
+.rowlabels span { font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chart { margin: 0; }
+.chart figcaption { font-size: 13px; font-weight: 600; height: 28px; display: flex; gap: 8px; align-items: baseline; }
+.chart figcaption span { font-weight: 400; color: var(--ink-3); font-size: 12px; }
+.chart svg { width: 100%; height: auto; overflow: visible; }
+.grid { stroke: var(--line); stroke-width: 1; }
+.tick { fill: var(--ink-3); font: 10.5px var(--mono); }
+.mark { fill: var(--accent); }
+.val { fill: var(--ink); font: 500 12px var(--mono); }
+.hit { fill: transparent; }
+.bar:hover .mark { opacity: .8; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; background: var(--surface); }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--ink-2); font-size: 12.5px; }
+table.num td:not(:first-child) { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+td small { display: block; color: var(--ink-3); font-size: 11.5px; }
+code { font: 12px var(--mono); color: var(--ink-2); word-break: normal; overflow-wrap: anywhere; }
+table.docs td { min-width: 150px; }
+.ok { color: var(--good); font-weight: 600; }
+.bad { color: var(--bad); font-weight: 600; }
+#tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); font: 12px var(--body);
+  padding: 5px 8px; border-radius: 6px; opacity: 0; transition: opacity .1s; z-index: 9; }
+@media (max-width: 760px) {
+  .pair { grid-template-columns: 1fr; }
+  .rowlabels { display: none; }
+  .chart svg .bar .val { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) { #tip { transition: none; } }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <p class="meta">mac-kb household eval · run 2026-11-05 · MacBook Pro, M1 Max, 64 GB</p>
+  <h1>Local models on a family knowledge base</h1>
+  <p class="lede">How well do models that run entirely on a Mac answer questions from a family's notes, and file new
+  documents into them? Every model here runs on-device with MLX; nothing leaves the laptop.</p>
+</header>
+
+<section class="card">
+  <h2>What we found</h2>
+  <ul class="findings">
+    <li><b>Qwen 3.8 27B is the most accurate</b> at everything tested, and the slowest:
+      74% of facts in plain answers, 100% on the hardest questions in Research mode,
+      and every one of 12 documents filed in the right place.</li>
+    <li><b>Gemma 4 26B is nearly as good and 3–5× faster</b>: 73% of facts at
+      11 s per answer, against 31 s for Qwen. It slips on harder work:
+      79% in Research mode.</li>
+    <li><b>The small Gemma 4 E4B answers simple questions as well as the big models</b>, but when filing it
+      kept two full names in a counseling report that should use initials only, and filed a duplicate.</li>
+    <li><b>Search quality comes from the reranker.</b> Google's EmbeddingGemma ties Qwen's embedder once Qwen's
+      reranker sorts the results; without it, the Google-only setup found fewer of the right passages and its answers fell to
+      59%.</li>
+    <li><b>Numbers need Research mode.</b> No model can total a CSV from search passages; with tools to query the
+      CSVs, Qwen answered all six spending and workout questions.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Answering questions</h2>
+  <p>40 questions over the vault: facts from one note, summaries across notes, totals from CSVs, questions that depend on
+  today's date, questions that span two areas of life, and four the notes can't answer. An answer scores the share of
+  expected facts it contains.</p>
+  <div class="pair"><ol class="rowlabels"><li><b>Qwen 3.8 27B</b><span>4-bit · dense</span></li><li><b>Gemma 4 26B A4B</b><span>4-bit · mixture of experts</span></li><li><b>Gemma 4 E4B</b><span>4-bit · small</span></li><li><b>Google only</b><span>Gemma 4 26B + EmbeddingGemma, no reranker</span></li></ol><figure class="chart"><figcaption>Facts found<span>all answerable questions</span></figcaption>
+<svg viewBox="0 0 360 162" role="img" aria-label="Facts found">
+<line class="grid" x1="4.0" y1="0" x2="4.0" y2="140"/>
+<text class="tick" x="4.0" y="156" text-anchor="middle">0%</text>
+<line class="grid" x1="75.5" y1="0" x2="75.5" y2="140"/>
+<text class="tick" x="75.5" y="156" text-anchor="middle">25%</text>
+<line class="grid" x1="147.0" y1="0" x2="147.0" y2="140"/>
+<text class="tick" x="147.0" y="156" text-anchor="middle">50%</text>
+<line class="grid" x1="218.5" y1="0" x2="218.5" y2="140"/>
+<text class="tick" x="218.5" y="156" text-anchor="middle">75%</text>
+<line class="grid" x1="290.0" y1="0" x2="290.0" y2="140"/>
+<text class="tick" x="290.0" y="156" text-anchor="middle">100%</text>
+<g class="bar" data-tip="Qwen 3.8 27B · 4-bit · dense: 74%"><rect class="hit" x="0" y="3" width="360" height="34"/><path class="mark" d="M4.0,10.0 H212.5 Q216.5,10.0 216.5,14.0 V22.0 Q216.5,26.0 212.5,26.0 H4.0 Z"/><text class="val" x="222.5" y="22">74%</text></g>
+<g class="bar" data-tip="Gemma 4 26B A4B · 4-bit · mixture of experts: 73%"><rect class="hit" x="0" y="37" width="360" height="34"/><path class="mark" d="M4.0,44.0 H208.5 Q212.5,44.0 212.5,48.0 V56.0 Q212.5,60.0 208.5,60.0 H4.0 Z"/><text class="val" x="218.5" y="56">73%</text></g>
+<g class="bar" data-tip="Gemma 4 E4B · 4-bit · small: 72%"><rect class="hit" x="0" y="71" width="360" height="34"/><path class="mark" d="M4.0,78.0 H207.2 Q211.2,78.0 211.2,82.0 V90.0 Q211.2,94.0 207.2,94.0 H4.0 Z"/><text class="val" x="217.2" y="90">72%</text></g>
+<g class="bar" data-tip="Google only · Gemma 4 26B + EmbeddingGemma, no reranker: 59%"><rect class="hit" x="0" y="105" width="360" height="34"/><path class="mark" d="M4.0,112.0 H168.8 Q172.8,112.0 172.8,116.0 V124.0 Q172.8,128.0 168.8,128.0 H4.0 Z"/><text class="val" x="178.8" y="124">59%</text></g>
+</svg></figure><figure class="chart"><figcaption>Seconds per answer<span>median</span></figcaption>
+<svg viewBox="0 0 360 162" role="img" aria-label="Seconds per answer">
+<line class="grid" x1="4.0" y1="0" x2="4.0" y2="140"/>
+<text class="tick" x="4.0" y="156" text-anchor="middle">0</text>
+<line class="grid" x1="75.5" y1="0" x2="75.5" y2="140"/>
+<text class="tick" x="75.5" y="156" text-anchor="middle">20</text>
+<line class="grid" x1="147.0" y1="0" x2="147.0" y2="140"/>
+<text class="tick" x="147.0" y="156" text-anchor="middle">40</text>
+<line class="grid" x1="218.5" y1="0" x2="218.5" y2="140"/>
+<text class="tick" x="218.5" y="156" text-anchor="middle">60</text>
+<line class="grid" x1="290.0" y1="0" x2="290.0" y2="140"/>
+<text class="tick" x="290.0" y="156" text-anchor="middle">80</text>
+<g class="bar" data-tip="Qwen 3.8 27B · 4-bit · dense: 31"><rect class="hit" x="0" y="3" width="360" height="34"/><path class="mark" d="M4.0,10.0 H109.1 Q113.1,10.0 113.1,14.0 V22.0 Q113.1,26.0 109.1,26.0 H4.0 Z"/><text class="val" x="119.1" y="22">31</text></g>
+<g class="bar" data-tip="Gemma 4 26B A4B · 4-bit · mixture of experts: 11"><rect class="hit" x="0" y="37" width="360" height="34"/><path class="mark" d="M4.0,44.0 H39.5 Q43.5,44.0 43.5,48.0 V56.0 Q43.5,60.0 39.5,60.0 H4.0 Z"/><text class="val" x="49.5" y="56">11</text></g>
+<g class="bar" data-tip="Gemma 4 E4B · 4-bit · small: 10"><rect class="hit" x="0" y="71" width="360" height="34"/><path class="mark" d="M4.0,78.0 H35.1 Q39.1,78.0 39.1,82.0 V90.0 Q39.1,94.0 35.1,94.0 H4.0 Z"/><text class="val" x="45.1" y="90">10</text></g>
+<g class="bar" data-tip="Google only · Gemma 4 26B + EmbeddingGemma, no reranker: 8"><rect class="hit" x="0" y="105" width="360" height="34"/><path class="mark" d="M4.0,112.0 H27.8 Q31.8,112.0 31.8,116.0 V124.0 Q31.8,128.0 27.8,128.0 H4.0 Z"/><text class="val" x="37.8" y="124">8</text></g>
+</svg></figure></div>
+  <h3>Research mode</h3>
+  <p>The model searches, reads whole notes, lists folders and runs SQL over CSVs, in up to eight steps, before answering.</p>
+  <div class="pair"><ol class="rowlabels"><li><b>Qwen 3.8 27B</b><span>Research mode</span></li><li><b>Gemma 4 26B A4B</b><span>Research mode</span></li></ol><figure class="chart"><figcaption>Facts found<span>14 hardest questions</span></figcaption>
+<svg viewBox="0 0 360 94" role="img" aria-label="Facts found">
+<line class="grid" x1="4.0" y1="0" x2="4.0" y2="72"/>
+<text class="tick" x="4.0" y="88" text-anchor="middle">0%</text>
+<line class="grid" x1="75.5" y1="0" x2="75.5" y2="72"/>
+<text class="tick" x="75.5" y="88" text-anchor="middle">25%</text>
+<line class="grid" x1="147.0" y1="0" x2="147.0" y2="72"/>
+<text class="tick" x="147.0" y="88" text-anchor="middle">50%</text>
+<line class="grid" x1="218.5" y1="0" x2="218.5" y2="72"/>
+<text class="tick" x="218.5" y="88" text-anchor="middle">75%</text>
+<line class="grid" x1="290.0" y1="0" x2="290.0" y2="72"/>
+<text class="tick" x="290.0" y="88" text-anchor="middle">100%</text>
+<g class="bar" data-tip="Qwen 3.8 27B · Research mode: 100%"><rect class="hit" x="0" y="3" width="360" height="34"/><path class="mark" d="M4.0,10.0 H286.0 Q290.0,10.0 290.0,14.0 V22.0 Q290.0,26.0 286.0,26.0 H4.0 Z"/><text class="val" x="296.0" y="22">100%</text></g>
+<g class="bar" data-tip="Gemma 4 26B A4B · Research mode: 79%"><rect class="hit" x="0" y="37" width="360" height="34"/><path class="mark" d="M4.0,44.0 H224.7 Q228.7,44.0 228.7,48.0 V56.0 Q228.7,60.0 224.7,60.0 H4.0 Z"/><text class="val" x="234.7" y="56">79%</text></g>
+</svg></figure><figure class="chart"><figcaption>Seconds per answer<span>median</span></figcaption>
+<svg viewBox="0 0 360 94" role="img" aria-label="Seconds per answer">
+<line class="grid" x1="4.0" y1="0" x2="4.0" y2="72"/>
+<text class="tick" x="4.0" y="88" text-anchor="middle">0</text>
+<line class="grid" x1="75.5" y1="0" x2="75.5" y2="72"/>
+<text class="tick" x="75.5" y="88" text-anchor="middle">20</text>
+<line class="grid" x1="147.0" y1="0" x2="147.0" y2="72"/>
+<text class="tick" x="147.0" y="88" text-anchor="middle">40</text>
+<line class="grid" x1="218.5" y1="0" x2="218.5" y2="72"/>
+<text class="tick" x="218.5" y="88" text-anchor="middle">60</text>
+<line class="grid" x1="290.0" y1="0" x2="290.0" y2="72"/>
+<text class="tick" x="290.0" y="88" text-anchor="middle">80</text>
+<g class="bar" data-tip="Qwen 3.8 27B · Research mode: 64"><rect class="hit" x="0" y="3" width="360" height="34"/><path class="mark" d="M4.0,10.0 H228.1 Q232.1,10.0 232.1,14.0 V22.0 Q232.1,26.0 228.1,26.0 H4.0 Z"/><text class="val" x="238.1" y="22">64</text></g>
+<g class="bar" data-tip="Gemma 4 26B A4B · Research mode: 19"><rect class="hit" x="0" y="37" width="360" height="34"/><path class="mark" d="M4.0,44.0 H67.4 Q71.4,44.0 71.4,48.0 V56.0 Q71.4,60.0 67.4,60.0 H4.0 Z"/><text class="val" x="77.4" y="56">19</text></g>
+</svg></figure></div>
+  <div class="scroll"><table class="num"><thead><tr><th>Setup</th><th>Facts</th><th>Simple facts</th><th>Says “not in your notes”</th><th>Facts in passages</th><th>Cited</th><th>s / answer</th></tr></thead><tbody><tr><td><b>Qwen 3.8 27B</b><small>4-bit · dense</small></td><td>74%</td><td>94%</td><td>100%</td><td>72%</td><td>97%</td><td>31 s</td></tr><tr><td><b>Gemma 4 26B A4B</b><small>4-bit · mixture of experts</small></td><td>73%</td><td>94%</td><td>100%</td><td>72%</td><td>97%</td><td>11 s</td></tr><tr><td><b>Gemma 4 E4B</b><small>4-bit · small</small></td><td>72%</td><td>96%</td><td>100%</td><td>72%</td><td>92%</td><td>10 s</td></tr><tr><td><b>Google only</b><small>Gemma 4 26B + EmbeddingGemma, no reranker</small></td><td>59%</td><td>85%</td><td>75%</td><td>60%</td><td>89%</td><td>8 s</td></tr><tr><td><b>Qwen 3.8 27B</b><small>Research mode</small></td><td>100%</td><td>—</td><td>—</td><td>75%</td><td>93%</td><td>64 s</td></tr><tr><td><b>Gemma 4 26B A4B</b><small>Research mode</small></td><td>79%</td><td>—</td><td>—</td><td>57%</td><td>100%</td><td>19 s</td></tr></tbody></table></div>
+  <h3>By area of life (plain answers)</h3>
+  <div class="scroll"><table class="num"><thead><tr><th>Setup</th><th>career</th><th>cross</th><th>finance</th><th>health</th><th>home</th><th>life</th><th>ministry</th></tr></thead><tbody><tr><td><b>Qwen 3.8 27B</b><small>4-bit · dense</small></td><td>100%</td><td>100%</td><td>50%</td><td>62%</td><td>93%</td><td>92%</td><td>77%</td></tr><tr><td><b>Gemma 4 26B A4B</b><small>4-bit · mixture of experts</small></td><td>100%</td><td>67%</td><td>50%</td><td>62%</td><td>93%</td><td>100%</td><td>77%</td></tr><tr><td><b>Gemma 4 E4B</b><small>4-bit · small</small></td><td>100%</td><td>50%</td><td>50%</td><td>62%</td><td>100%</td><td>100%</td><td>77%</td></tr><tr><td><b>Google only</b><small>Gemma 4 26B + EmbeddingGemma, no reranker</small></td><td>100%</td><td>100%</td><td>40%</td><td>54%</td><td>80%</td><td>75%</td><td>30%</td></tr></tbody></table></div>
+  <h3>By kind of question</h3>
+  <div class="scroll"><table class="num"><thead><tr><th>Setup</th><th>fact</th><th>synthesis</th><th>table</th><th>temporal</th><th>cross</th><th>unanswerable</th></tr></thead><tbody><tr><td><b>Qwen 3.8 27B</b><small>4-bit · dense</small></td><td>94%</td><td>70%</td><td>0%</td><td>100%</td><td>100%</td><td>100%</td></tr><tr><td><b>Gemma 4 26B A4B</b><small>4-bit · mixture of experts</small></td><td>94%</td><td>76%</td><td>0%</td><td>100%</td><td>67%</td><td>100%</td></tr><tr><td><b>Gemma 4 E4B</b><small>4-bit · small</small></td><td>96%</td><td>76%</td><td>0%</td><td>100%</td><td>50%</td><td>100%</td></tr><tr><td><b>Google only</b><small>Gemma 4 26B + EmbeddingGemma, no reranker</small></td><td>85%</td><td>61%</td><td>0%</td><td>30%</td><td>100%</td><td>75%</td></tr><tr><td><b>Qwen 3.8 27B</b><small>Research mode</small></td><td>—</td><td>100%</td><td>100%</td><td>100%</td><td>100%</td><td>—</td></tr><tr><td><b>Gemma 4 26B A4B</b><small>Research mode</small></td><td>—</td><td>75%</td><td>67%</td><td>100%</td><td>83%</td><td>—</td></tr></tbody></table></div>
+</section>
+
+<section>
+  <h2>Filing dropped documents</h2>
+  <p>12 documents dropped into the knowledge base: invoices, receipts, a clinic visit summary, an insurance renewal, a bank
+  statement, a counseling session report, a flyer, a recipe, and one duplicate. The model reads each with the folder
+  READMEs and proposes a new note or a row in an existing log. Scored on the action, the place, the facts kept, and any
+  account numbers, member IDs or full names that should have been left out.</p>
+  <div class="pair"><ol class="rowlabels"><li><b>Qwen 3.8 27B</b><span>4-bit · dense</span></li><li><b>Gemma 4 26B A4B</b><span>4-bit · mixture of experts</span></li><li><b>Gemma 4 E4B</b><span>4-bit · small</span></li><li><b>Google only</b><span>Gemma 4 26B + EmbeddingGemma, no reranker</span></li></ol><figure class="chart"><figcaption>Filed in the right place<span>12 documents</span></figcaption>
+<svg viewBox="0 0 360 162" role="img" aria-label="Filed in the right place">
+<line class="grid" x1="4.0" y1="0" x2="4.0" y2="140"/>
+<text class="tick" x="4.0" y="156" text-anchor="middle">0%</text>
+<line class="grid" x1="75.5" y1="0" x2="75.5" y2="140"/>
+<text class="tick" x="75.5" y="156" text-anchor="middle">25%</text>
+<line class="grid" x1="147.0" y1="0" x2="147.0" y2="140"/>
+<text class="tick" x="147.0" y="156" text-anchor="middle">50%</text>
+<line class="grid" x1="218.5" y1="0" x2="218.5" y2="140"/>
+<text class="tick" x="218.5" y="156" text-anchor="middle">75%</text>
+<line class="grid" x1="290.0" y1="0" x2="290.0" y2="140"/>
+<text class="tick" x="290.0" y="156" text-anchor="middle">100%</text>
+<g class="bar" data-tip="Qwen 3.8 27B · 4-bit · dense: 100%"><rect class="hit" x="0" y="3" width="360" height="34"/><path class="mark" d="M4.0,10.0 H286.0 Q290.0,10.0 290.0,14.0 V22.0 Q290.0,26.0 286.0,26.0 H4.0 Z"/><text class="val" x="296.0" y="22">100%</text></g>
+<g class="bar" data-tip="Gemma 4 26B A4B · 4-bit · mixture of experts: 92%"><rect class="hit" x="0" y="37" width="360" height="34"/><path class="mark" d="M4.0,44.0 H262.2 Q266.2,44.0 266.2,48.0 V56.0 Q266.2,60.0 262.2,60.0 H4.0 Z"/><text class="val" x="272.2" y="56">92%</text></g>
+<g class="bar" data-tip="Gemma 4 E4B · 4-bit · small: 83%"><rect class="hit" x="0" y="71" width="360" height="34"/><path class="mark" d="M4.0,78.0 H238.3 Q242.3,78.0 242.3,82.0 V90.0 Q242.3,94.0 238.3,94.0 H4.0 Z"/><text class="val" x="248.3" y="90">83%</text></g>
+<g class="bar" data-tip="Google only · Gemma 4 26B + EmbeddingGemma, no reranker: 92%"><rect class="hit" x="0" y="105" width="360" height="34"/><path class="mark" d="M4.0,112.0 H262.2 Q266.2,112.0 266.2,116.0 V124.0 Q266.2,128.0 262.2,128.0 H4.0 Z"/><text class="val" x="272.2" y="124">92%</text></g>
+</svg></figure><figure class="chart"><figcaption>Seconds per document<span>median</span></figcaption>
+<svg viewBox="0 0 360 162" role="img" aria-label="Seconds per document">
+<line class="grid" x1="4.0" y1="0" x2="4.0" y2="140"/>
+<text class="tick" x="4.0" y="156" text-anchor="middle">0</text>
+<line class="grid" x1="75.5" y1="0" x2="75.5" y2="140"/>
+<text class="tick" x="75.5" y="156" text-anchor="middle">20</text>
+<line class="grid" x1="147.0" y1="0" x2="147.0" y2="140"/>
+<text class="tick" x="147.0" y="156" text-anchor="middle">40</text>
+<line class="grid" x1="218.5" y1="0" x2="218.5" y2="140"/>
+<text class="tick" x="218.5" y="156" text-anchor="middle">60</text>
+<line class="grid" x1="290.0" y1="0" x2="290.0" y2="140"/>
+<text class="tick" x="290.0" y="156" text-anchor="middle">80</text>
+<g class="bar" data-tip="Qwen 3.8 27B · 4-bit · dense: 63"><rect class="hit" x="0" y="3" width="360" height="34"/><path class="mark" d="M4.0,10.0 H226.4 Q230.4,10.0 230.4,14.0 V22.0 Q230.4,26.0 226.4,26.0 H4.0 Z"/><text class="val" x="236.4" y="22">63</text></g>
+<g class="bar" data-tip="Gemma 4 26B A4B · 4-bit · mixture of experts: 12"><rect class="hit" x="0" y="37" width="360" height="34"/><path class="mark" d="M4.0,44.0 H44.0 Q48.0,44.0 48.0,48.0 V56.0 Q48.0,60.0 44.0,60.0 H4.0 Z"/><text class="val" x="54.0" y="56">12</text></g>
+<g class="bar" data-tip="Gemma 4 E4B · 4-bit · small: 8"><rect class="hit" x="0" y="71" width="360" height="34"/><path class="mark" d="M4.0,78.0 H27.2 Q31.2,78.0 31.2,82.0 V90.0 Q31.2,94.0 27.2,94.0 H4.0 Z"/><text class="val" x="37.2" y="90">8</text></g>
+<g class="bar" data-tip="Google only · Gemma 4 26B + EmbeddingGemma, no reranker: 13"><rect class="hit" x="0" y="105" width="360" height="34"/><path class="mark" d="M4.0,112.0 H48.1 Q52.1,112.0 52.1,116.0 V124.0 Q52.1,128.0 48.1,128.0 H4.0 Z"/><text class="val" x="58.1" y="124">13</text></g>
+</svg></figure></div>
+  <div class="scroll"><table class="num"><thead><tr><th>Setup</th><th>Right action</th><th>Right place</th><th>Facts kept</th><th>IDs or names leaked</th><th>s / document</th></tr></thead><tbody><tr><td><b>Qwen 3.8 27B</b><small>4-bit · dense</small></td><td>100%</td><td>100%</td><td>96%</td><td><span class="">0</span></td><td>63 s</td></tr><tr><td><b>Gemma 4 26B A4B</b><small>4-bit · mixture of experts</small></td><td>100%</td><td>92%</td><td>88%</td><td><span class="">0</span></td><td>12 s</td></tr><tr><td><b>Gemma 4 E4B</b><small>4-bit · small</small></td><td>92%</td><td>83%</td><td>79%</td><td><span class="bad">2</span></td><td>8 s</td></tr><tr><td><b>Google only</b><small>Gemma 4 26B + EmbeddingGemma, no reranker</small></td><td>100%</td><td>92%</td><td>91%</td><td><span class="">0</span></td><td>13 s</td></tr></tbody></table></div>
+  <h3>Every document</h3>
+  <div class="scroll"><table class="docs"><thead><tr><th>Document</th><th>Expected</th><th>Qwen 3.8 27B</th><th>Gemma 4 26B A4B</th><th>Gemma 4 E4B</th><th>Google only (Google only)</th></tr></thead><tbody><tr><td><b>f01</b><small>ridgeline invoice 2026 11 02</small></td><td>append</td><td><span class="ok">✓</span> <code>home/<wbr>maintenance-log.md</code></td><td><span class="ok">✓</span> <code>home/<wbr>maintenance-log.md</code></td><td><span class="ok">✓</span> <code>home/<wbr>maintenance-log.md</code></td><td><span class="ok">✓</span> <code>home/<wbr>maintenance-log.md</code></td></tr><tr><td><b>f02</b><small>corvell washer warranty registration</small></td><td>new</td><td><span class="ok">✓</span> <code>home/<wbr>washing-machine.md</code></td><td><span class="ok">✓</span> <code>home/<wbr>washer.md</code></td><td><span class="ok">✓</span> <code>home/<wbr>washer.md</code></td><td><span class="ok">✓</span> <code>home/<wbr>washer.md</code></td></tr><tr><td><b>f03</b><small>greta after visit summary 2026 11 03</small></td><td>new</td><td><span class="ok">✓</span> <code>health/<wbr>visits/<wbr>2026-11-03_greta_alder-creek-pediatrics.md</code></td><td><span class="ok">✓</span> <code>health/<wbr>visits/<wbr>2026-11-03_greta_alder-creek-pediatrics.md</code></td><td><span class="ok">✓</span> <code>health/<wbr>visits/<wbr>2026-11-03_greta_alder-creek-pediatrics.md</code></td><td><span class="ok">✓</span> <code>health/<wbr>visits/<wbr>2026-11-03_greta_alder-creek-pediatrics.md</code></td></tr><tr><td><b>f04</b><small>hillcrest donation receipt 2026 11 01</small></td><td>append</td><td><span class="ok">✓</span> <code>finance/<wbr>giving.md</code></td><td><span class="ok">✓</span> <code>finance/<wbr>giving.md</code></td><td><span class="ok">✓</span> <code>finance/<wbr>giving.md</code></td><td><span class="ok">✓</span> <code>finance/<wbr>giving.md</code></td></tr><tr><td><b>f05</b><small>cascade mutual home renewal</small></td><td>append</td><td><span class="ok">✓</span> <code>finance/<wbr>insurance.md</code></td><td><span class="ok">✓</span> <code>finance/<wbr>insurance.md</code></td><td><span class="ok">✓</span> <code>finance/<wbr>insurance.md</code></td><td><span class="ok">✓</span> <code>finance/<wbr>insurance.md</code></td></tr><tr><td><b>f06</b><small>summit peak statement oct 2026</small></td><td>append or new</td><td><span class="ok">✓</span> <code>finance/<wbr>statements/<wbr>2026-10_summit-peak-checking.md</code></td><td><span class="bad">✗</span> <code>finance/<wbr>data/<wbr>transactions.csv.md</code></td><td><span class="bad">✗</span> <code>finance/<wbr>profile.md</code></td><td><span class="bad">✗</span> <code>finance/<wbr>data/<wbr>transactions.csv.md</code></td></tr><tr><td><b>f07</b><small>rs case report session 4</small></td><td>new</td><td><span class="ok">✓</span> <code>ministry/<wbr>counseling/<wbr>rs/<wbr>rs-session-04.md</code></td><td><span class="ok">✓</span> <code>ministry/<wbr>counseling/<wbr>rs/<wbr>rs-session-04.md</code></td><td><span class="ok">✓</span> <code>ministry/<wbr>counseling/<wbr>rs/<wbr>rs-session-04.md</code> <span class="bad">leaked 2</span></td><td><span class="ok">✓</span> <code>ministry/<wbr>counseling/<wbr>rs/<wbr>rs-session-04.md</code></td></tr><tr><td><b>f08</b><small>pacific coast airlines confirmation</small></td><td>append</td><td><span class="ok">✓</span> <code>life/<wbr>trips/<wbr>202612_san-diego-christmas/<wbr>plan.md</code></td><td><span class="ok">✓</span> <code>life/<wbr>trips/<wbr>202612_san-diego-christmas/<wbr>plan.md</code></td><td><span class="ok">✓</span> <code>life/<wbr>trips/<wbr>202612_san-diego-christmas/<wbr>plan.md</code></td><td><span class="ok">✓</span> <code>life/<wbr>trips/<wbr>202612_san-diego-christmas/<wbr>plan.md</code></td></tr><tr><td><b>f09</b><small>joanna lentil soup</small></td><td>new</td><td><span class="ok">✓</span> <code>life/<wbr>recipes/<wbr>joanna-red-lentil-soup.md</code></td><td><span class="ok">✓</span> <code>life/<wbr>recipes/<wbr>joannas-red-lentil-soup.md</code></td><td><span class="ok">✓</span> <code>life/<wbr>recipes/<wbr>lentil-soup.md</code></td><td><span class="ok">✓</span> <code>life/<wbr>recipes/<wbr>joannas-red-lentil-soup.md</code></td></tr><tr><td><b>f10</b><small>barlow plumbing invoice faucet</small></td><td>skip</td><td><span class="ok">✓</span> <code>home/<wbr>maintenance-log.md</code></td><td><span class="ok">✓</span> <code>home/<wbr>maintenance-log.md</code></td><td><span class="bad">✗</span> <code>home/<wbr>maintenance-log.md</code></td><td><span class="ok">✓</span> <code>home/<wbr>maintenance-log.md</code></td></tr><tr><td><b>f11</b><small>alder creek elementary flyer</small></td><td>append</td><td><span class="ok">✓</span> <code>life/<wbr>calendar.md</code></td><td><span class="ok">✓</span> <code>life/<wbr>calendar.md</code></td><td><span class="ok">✓</span> <code>life/<wbr>calendar.md</code></td><td><span class="ok">✓</span> <code>life/<wbr>calendar.md</code></td></tr><tr><td><b>f12</b><small>bright smile receipt erik 2026 11 04</small></td><td>new</td><td><span class="ok">✓</span> <code>health/<wbr>visits/<wbr>2026-11-04_erik_bright-smile-dental.md</code></td><td><span class="ok">✓</span> <code>health/<wbr>visits/<wbr>2026-11-04_erik_bright-smile-dental.md</code></td><td><span class="ok">✓</span> <code>health/<wbr>visits/<wbr>2026-11-04_erik_bright-smile-dental.md</code></td><td><span class="ok">✓</span> <code>health/<wbr>visits/<wbr>2026-11-04_erik_bright-smile-dental.md</code></td></tr></tbody></table></div>
+</section>
+
+<section>
+  <h2>Search</h2>
+  <p>The step before the model: which 8 passages each question gets. No answer model involved.</p>
+  <div class="pair"><ol class="rowlabels"><li><b>EmbeddingGemma 300M</b><span>no reranker</span></li><li><b>EmbeddingGemma 300M</b><span>+ Qwen3-Reranker</span></li><li><b>Qwen3-Embedding 0.6B</b><span>no reranker</span></li><li><b>Qwen3-Embedding 0.6B</b><span>+ Qwen3-Reranker</span></li></ol><figure class="chart"><figcaption>Expected facts in the passages<span>8 passages per question</span></figcaption>
+<svg viewBox="0 0 360 162" role="img" aria-label="Expected facts in the passages">
+<line class="grid" x1="4.0" y1="0" x2="4.0" y2="140"/>
+<text class="tick" x="4.0" y="156" text-anchor="middle">0%</text>
+<line class="grid" x1="75.5" y1="0" x2="75.5" y2="140"/>
+<text class="tick" x="75.5" y="156" text-anchor="middle">25%</text>
+<line class="grid" x1="147.0" y1="0" x2="147.0" y2="140"/>
+<text class="tick" x="147.0" y="156" text-anchor="middle">50%</text>
+<line class="grid" x1="218.5" y1="0" x2="218.5" y2="140"/>
+<text class="tick" x="218.5" y="156" text-anchor="middle">75%</text>
+<line class="grid" x1="290.0" y1="0" x2="290.0" y2="140"/>
+<text class="tick" x="290.0" y="156" text-anchor="middle">100%</text>
+<g class="bar" data-tip="EmbeddingGemma 300M · no reranker: 60%"><rect class="hit" x="0" y="3" width="360" height="34"/><path class="mark" d="M4.0,10.0 H170.8 Q174.8,10.0 174.8,14.0 V22.0 Q174.8,26.0 170.8,26.0 H4.0 Z"/><text class="val" x="180.8" y="22">60%</text></g>
+<g class="bar" data-tip="EmbeddingGemma 300M · + Qwen3-Reranker: 72%"><rect class="hit" x="0" y="37" width="360" height="34"/><path class="mark" d="M4.0,44.0 H205.2 Q209.2,44.0 209.2,48.0 V56.0 Q209.2,60.0 205.2,60.0 H4.0 Z"/><text class="val" x="215.2" y="56">72%</text></g>
+<g class="bar" data-tip="Qwen3-Embedding 0.6B · no reranker: 66%"><rect class="hit" x="0" y="71" width="360" height="34"/><path class="mark" d="M4.0,78.0 H187.4 Q191.4,78.0 191.4,82.0 V90.0 Q191.4,94.0 187.4,94.0 H4.0 Z"/><text class="val" x="197.4" y="90">66%</text></g>
+<g class="bar" data-tip="Qwen3-Embedding 0.6B · + Qwen3-Reranker: 72%"><rect class="hit" x="0" y="105" width="360" height="34"/><path class="mark" d="M4.0,112.0 H205.2 Q209.2,112.0 209.2,116.0 V124.0 Q209.2,128.0 205.2,128.0 H4.0 Z"/><text class="val" x="215.2" y="124">72%</text></g>
+</svg></figure><figure class="chart"><figcaption>Answer files among the passages<span></span></figcaption>
+<svg viewBox="0 0 360 162" role="img" aria-label="Answer files among the passages">
+<line class="grid" x1="4.0" y1="0" x2="4.0" y2="140"/>
+<text class="tick" x="4.0" y="156" text-anchor="middle">0%</text>
+<line class="grid" x1="75.5" y1="0" x2="75.5" y2="140"/>
+<text class="tick" x="75.5" y="156" text-anchor="middle">25%</text>
+<line class="grid" x1="147.0" y1="0" x2="147.0" y2="140"/>
+<text class="tick" x="147.0" y="156" text-anchor="middle">50%</text>
+<line class="grid" x1="218.5" y1="0" x2="218.5" y2="140"/>
+<text class="tick" x="218.5" y="156" text-anchor="middle">75%</text>
+<line class="grid" x1="290.0" y1="0" x2="290.0" y2="140"/>
+<text class="tick" x="290.0" y="156" text-anchor="middle">100%</text>
+<g class="bar" data-tip="EmbeddingGemma 300M · no reranker: 70%"><rect class="hit" x="0" y="3" width="360" height="34"/><path class="mark" d="M4.0,10.0 H201.3 Q205.3,10.0 205.3,14.0 V22.0 Q205.3,26.0 201.3,26.0 H4.0 Z"/><text class="val" x="211.3" y="22">70%</text></g>
+<g class="bar" data-tip="EmbeddingGemma 300M · + Qwen3-Reranker: 75%"><rect class="hit" x="0" y="37" width="360" height="34"/><path class="mark" d="M4.0,44.0 H213.2 Q217.2,44.0 217.2,48.0 V56.0 Q217.2,60.0 213.2,60.0 H4.0 Z"/><text class="val" x="223.2" y="56">75%</text></g>
+<g class="bar" data-tip="Qwen3-Embedding 0.6B · no reranker: 76%"><rect class="hit" x="0" y="71" width="360" height="34"/><path class="mark" d="M4.0,78.0 H218.5 Q222.5,78.0 222.5,82.0 V90.0 Q222.5,94.0 218.5,94.0 H4.0 Z"/><text class="val" x="228.5" y="90">76%</text></g>
+<g class="bar" data-tip="Qwen3-Embedding 0.6B · + Qwen3-Reranker: 75%"><rect class="hit" x="0" y="105" width="360" height="34"/><path class="mark" d="M4.0,112.0 H213.2 Q217.2,112.0 217.2,116.0 V124.0 Q217.2,128.0 213.2,128.0 H4.0 Z"/><text class="val" x="223.2" y="124">75%</text></g>
+</svg></figure></div>
+</section>
+
+<section class="card">
+  <h2>How this was run</h2>
+  <p>The knowledge base is invented: a family of five with finance notes and spending CSVs, home maintenance logs,
+  health visits and a workout CSV, trips, a career note, and biblical-counseling case reports that follow an initials-only rule.
+  Today's date is fixed at 2026-11-05. Answers and filings are scored by text patterns, with no model judging another.
+  Each setup ran once on MacBook Pro, M1 Max, 64 GB; with 40 questions and 12 documents, differences of a few points are noise.</p>
+  <p>Not yet run: Gemini as a cloud ceiling, and the next local candidates (Qwen 3.6 35B A3B, gpt-oss 20B,
+  Gemma 4 31B, larger Qwen embedders and rerankers).</p>
+</section>
+</main>
+<div id="tip" role="tooltip"></div>
+<script>
+const tip = document.getElementById("tip");
+document.querySelectorAll(".bar").forEach(g => {
+  g.addEventListener("mousemove", e => {
+    tip.textContent = g.dataset.tip; tip.style.opacity = 1;
+    tip.style.left = (e.clientX + 12) + "px"; tip.style.top = (e.clientY + 12) + "px";
+  });
+  g.addEventListener("mouseleave", () => { tip.style.opacity = 0; });
+});
+</script>
+</body>
+</html>

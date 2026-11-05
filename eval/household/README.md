@@ -52,3 +52,10 @@ Account, card, policy and member numbers appear only in `drops/`, and they are f
 | f10 | Barlow Plumbing faucet invoice, 2026-10-03 | pdf | skip | `home/maintenance-log.md` | already logged, so no duplicate row |
 | f11 | School flyer, two events | png | append | `life/calendar.md` | both dated events added |
 | f12 | Dental receipt, Erik, 2026-11-04 | png | new | `health/visits/2026-11-04_erik_….md` | naming rule; no subscriber ID or card |
+
+## Results and next models
+
+- `report.md` (from `report.py`): every metric as Markdown tables.
+- `page.html` (from `page.py`): the same results as a self-contained web page with
+  charts, ready to publish. Regenerate after new runs; add new setups to `NAMES`.
+- `models-to-try.md`: the researched shortlist of models to run next.
