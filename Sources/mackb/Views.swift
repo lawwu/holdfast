@@ -553,6 +553,8 @@ struct Composer: View {
                         }
                     }
                     .pickerStyle(.inline)
+                    Divider()
+                    SettingsLink { Text("Model Settings…") }
                 } label: {
                     Label(store.backend.short, systemImage: "cpu")
                 }

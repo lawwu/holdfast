@@ -177,6 +177,14 @@ final class MLXBackend: LLMBackend, @unchecked Sendable {
         return snaps.appendingPathComponent(s)
     }
 
+    static var isLoaded: Bool { cached != nil }
+
+    /// Drop the model so its ~16 GB can be reclaimed (reloads on next use).
+    static func unload() {
+        cached = nil
+        Memory.clearCache()
+    }
+
     static func shared() async throws -> MLXBackend {
         if let c = cached { return c }
         guard let dir = modelDir else { throw MacKBError("MLX model not found in the HF cache") }

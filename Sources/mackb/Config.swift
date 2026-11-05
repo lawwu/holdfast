@@ -22,12 +22,13 @@ enum Config {
     /// The index is a cache rebuilt from the vault; deleting it loses nothing.
     static var indexPath: URL { vault.appendingPathComponent(".mackb/index.sqlite") }
 
-    /// LLM backend. The POC talks to Ollama over localhost (the plan's
-    /// "OpenAI-compatible backend"); MLX in-process can slot in behind `LLMBackend`.
+    /// Ollama, one of the two LLM backends (the other is MLX in-process; see
+    /// `MLXBackend`). The app's Settings window picks between them.
     static var ollamaURL: URL {
         URL(string: ProcessInfo.processInfo.environment["MACKB_OLLAMA"] ?? "http://localhost:11434")!
     }
-    /// Qwen 3.8 27B as already installed in Ollama (Q4_K_M despite the "q8" in its name).
+    /// Qwen 3.8 27B as already installed in Ollama: 8-bit (a 29 GB blob), though
+    /// Ollama's metadata labels it Q4_K_M.
     static var llmModel: String { ProcessInfo.processInfo.environment["MACKB_LLM"] ?? "qwen38-27b-q8-32k" }
 
     /// Qwen3-Embedding-0.6B, already in the Hugging Face cache; run in-process by MLX Swift.
