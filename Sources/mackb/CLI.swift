@@ -76,9 +76,19 @@ do {
         }
     case "ask":
         let emb = flag("--no-embed") ? nil : try await Embedder.load()
+        let research = flag("--research")
         let q = args.joined(separator: " ")
-        let a = try await ask(q, embedder: emb, llm: try await makeBackend()) { tok in
-            FileHandle.standardOutput.write(tok.data(using: .utf8)!)
+        let a: Answer
+        if research {
+            // Tool loop on MLX: steps go to stderr, the answer to stdout at the end.
+            a = try await Agent.run(q, embedder: emb, backend: try await MLXBackend.shared()) { ev in
+                if case .step(let s) = ev { log("  → \(s)") }
+            }
+            print(a.text)
+        } else {
+            a = try await ask(q, embedder: emb, llm: try await makeBackend()) { tok in
+                FileHandle.standardOutput.write(tok.data(using: .utf8)!)
+            }
         }
         print("\n" + formatSources(a))
         log(String(format: "retrieval %.2fs · prompt %d tok at %.0f tok/s · answer %d tok at %.1f tok/s",
