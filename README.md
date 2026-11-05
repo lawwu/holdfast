@@ -18,7 +18,7 @@ window: `mackb app`, or `scripts/make_app.sh` → `build/MacKB.app`.
 | `mackb ingest <YouTube URL>` | yt-dlp; uses the video's captions when there are any, otherwise transcribes the audio |
 | `mackb index` | Chunks each note on headings and timestamps; SQLite FTS5 + **Qwen3-Embedding-0.6B** vectors (in-process, MLX Swift). Only changed notes are re-indexed |
 | `mackb search "…"` | Keyword (BM25) and vector results merged with reciprocal rank fusion |
-| `mackb ask "…"` | The top 8 passages go to **Qwen 3.8 27B** (Ollama, thinking off). The answer cites `[n]`, and each source prints as `[[note#anchor]]` |
+| `mackb ask "…"` | The top 12 passages go to **Qwen 3.8 27B** (MLX 4-bit in-process or Ollama, thinking off). The answer cites `[n]`, and each source prints as `[[note#anchor]]` |
 | `mackb app` | The window: Ask (cited answers; click a source to open it), Library (browse and search), Inbox (approve or reject agent memories), and a reader that jumps to the cited section |
 | `mackb eval` | Scores Q&A against a question set; see `eval/README.md` |
 | `mackb mcp` | MCP server: `search`, `get_note`, `ask`, `remember`, `list_inbox` |
