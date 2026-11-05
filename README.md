@@ -5,8 +5,8 @@ supervision recordings and past case reports, then search and ask questions of t
 with citations. Everything runs on the Mac, because case material is confidential.
 Nothing is sent to a cloud service.
 
-This is the Phase 0–3 proof of concept from the Mac KB plan (`a notes repo`,
-`projects/202611_mac-kb/`). One binary is the CLI, the MCP server and a SwiftUI
+This is the Phase 0–3 proof of concept from the Mac KB plan (kept in a
+separate notes repo). One binary is the CLI, the MCP server and a SwiftUI
 window: `mackb app`, or `scripts/make_app.sh` → `build/MacKB.app`.
 
 ## What it does
