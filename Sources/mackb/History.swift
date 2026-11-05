@@ -1,7 +1,7 @@
 import Foundation
 
-/// Past questions and answers, one JSON file per vault at
-/// `.mackb/history.json`. Kept out of the indexed notes on purpose: the model's
+/// Past questions and answers, one JSON file per vault in its state folder
+/// (`.mackb/history.json`, or Application Support for an in-place vault). Kept out of the indexed notes on purpose: the model's
 /// own earlier answers must never come back as evidence for new ones.
 struct HistoryEntry: Codable, Identifiable {
     var id = UUID()
@@ -49,7 +49,7 @@ struct HistorySource: Codable {
 }
 
 enum History {
-    static var file: URL { Config.vault.appendingPathComponent(".mackb/history.json") }
+    static var file: URL { Config.stateDir.appendingPathComponent("history.json") }
 
     static func load() -> [HistoryEntry] {
         guard let d = try? Data(contentsOf: file) else { return [] }

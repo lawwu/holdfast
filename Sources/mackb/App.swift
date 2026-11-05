@@ -28,6 +28,14 @@ struct MacKBApp: App {
                 Divider()
                 Button("Choose Vault…") { store.chooseVault() }
             }
+            CommandMenu("Note") {
+                Button("Quick Open…") { store.showQuickOpen = true }.keyboardShortcut("o")
+                Button("New Note") { store.createNote(near: store.opened?.note) }.keyboardShortcut("n", modifiers: [.command, .shift])
+                Button(store.editing ? "Reading View" : "Editing View") { store.editing.toggle() }.keyboardShortcut("e")
+                Divider()
+                Button("Files") { store.pane = .files }.keyboardShortcut("1", modifiers: [.command, .option])
+                Button("Graph") { store.pane = .graph }.keyboardShortcut("g", modifiers: [.command, .shift])
+            }
         }
     }
 }
@@ -43,12 +51,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 enum Pane: String, CaseIterable, Identifiable {
-    case ask = "Ask", history = "History", library = "Library", inbox = "Inbox"
+    case ask = "Ask", history = "History", files = "Files", graph = "Graph", library = "Library", inbox = "Inbox"
     var id: String { rawValue }
     var icon: String {
         switch self {
         case .ask: return "bubble.left.and.text.bubble.right"
         case .history: return "clock.arrow.circlepath"
+        case .files: return "folder"
+        case .graph: return "point.3.connected.trianglepath.dotted"
         case .library: return "books.vertical"
         case .inbox: return "tray"
         }
@@ -108,6 +118,14 @@ final class Store: ObservableObject {
     /// The history entry on screen in Ask, if any.
     @Published var currentHistoryId: UUID?
     @Published var historySearch = ""
+    /// Links between notes, rebuilt on load and after every save.
+    @Published var links = LinkGraph()
+    /// Notes open in the editor rather than the reader (⌘E).
+    @Published var editing = false
+    @Published var showQuickOpen = false
+    private var reindexTask: Task<Void, Never>?
+    /// The vault's default profile (general or counseling); see Profile.swift.
+    @Published var profile = Profile.general { didSet { Profile.vaultDefault = profile } }
     @Published var showLinkSheet = false
     @Published var linkText = ""
     @Published var indexCounts = (chunks: 0, notes: 0, vectors: 0)
@@ -129,9 +147,15 @@ final class Store: ObservableObject {
         Config.vaultOverride = vault
         try? ensureVault()
         notes = allNotes()
+        links = LinkGraph(notes: notes)
+        vaultDomains = Array(Set(notes.compactMap(\.domain))).sorted()
+        if let o = opened, let fresh = notes.first(where: { $0.path == o.note.path }) {
+            opened = Opened(note: fresh, anchor: o.anchor)
+        }
         inboxItems = inbox()
         indexCounts = (try? Index().count()) ?? (0, 0, 0)
         history = History.load()
+        if profile != Profile.vaultDefault { profile = Profile.vaultDefault }
     }
 
     // MARK: models
@@ -275,6 +299,87 @@ final class Store: ObservableObject {
     func open(_ c: Chunk) {
         if let n = findNote(c.noteId) ?? notes.first(where: { $0.relPath == c.relPath }) {
             opened = Opened(note: n, anchor: c.anchor)
+        }
+    }
+
+    func openNote(_ n: Note, anchor: String? = nil) {
+        opened = Opened(note: n, anchor: anchor)
+    }
+
+    /// Opens a link clicked in a note: `mackb-note:` (a wikilink, resolved like
+    /// Obsidian) or `mackb-rel:` (a Markdown link relative to the note). A
+    /// wikilink to a note that doesn't exist yet creates it, as Obsidian does.
+    func openLink(_ url: URL, from: Note?) {
+        let raw = url.absoluteString
+        guard let colon = raw.firstIndex(of: ":") else { return }
+        let scheme = raw[..<colon]
+        var rest = String(raw[raw.index(after: colon)...])
+        var fragment: String?
+        if let hash = rest.firstIndex(of: "#") {
+            fragment = String(rest[rest.index(after: hash)...]).removingPercentEncoding
+            rest = String(rest[..<hash])
+        }
+        let target = rest.removingPercentEncoding ?? rest
+        switch scheme {
+        case "mackb-note":
+            if let n = links.resolve(wikiTarget: target, from: from) {
+                openNote(n, anchor: fragment)
+            } else {
+                createNote(named: target, near: from)
+            }
+        case "mackb-rel":
+            let base = (from?.path ?? Config.vault.appendingPathComponent("x")).deletingLastPathComponent()
+            let path = URL(fileURLWithPath: target, relativeTo: base).standardizedFileURL.path
+            if let n = notes.first(where: { $0.path.standardizedFileURL.path == path }) {
+                openNote(n, anchor: fragment)
+            } else {
+                error = "No note at \(target)"
+            }
+        default:
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    /// Writes an edited note, refreshes notes and links, and re-indexes it
+    /// quietly a few seconds later (so search and Ask see the change).
+    func saveNote(at path: URL, text: String) throws {
+        try text.write(to: path, atomically: true, encoding: .utf8)
+        if let fresh = try? Note.read(path) {
+            if let i = notes.firstIndex(where: { $0.path == path }) { notes[i] = fresh } else { notes.append(fresh) }
+            links = LinkGraph(notes: notes)
+            if opened?.note.path == path { opened = Opened(note: fresh, anchor: nil) }
+        }
+        reindexTask?.cancel()
+        reindexTask = Task {
+            try? await Task.sleep(for: .seconds(4))
+            guard !Task.isCancelled, busy == nil else { return }
+            let emb = await getEmbedder()
+            busy = nil
+            try? await reindex(embedder: emb)
+            indexCounts = (try? Index().count()) ?? indexCounts
+        }
+    }
+
+    /// New note: in the given folder, else next to `near`, else the vault
+    /// root (in place) or sources/ (managed). Opens it in the editor.
+    func createNote(named name: String = "Untitled", in folder: URL? = nil, near: Note? = nil) {
+        let dir = folder ?? near?.path.deletingLastPathComponent() ?? (Config.inPlace ? Config.vault : Config.sourcesDir)
+        let base = name.replacingOccurrences(of: "/", with: "-")
+        var url = dir.appendingPathComponent(base + ".md")
+        var n = 2
+        while FileManager.default.fileExists(atPath: url.path) {
+            url = dir.appendingPathComponent("\(base) \(n).md"); n += 1
+        }
+        do {
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            try "# \(base)\n\n".write(to: url, atomically: true, encoding: .utf8)
+            reload()
+            if let note = notes.first(where: { $0.path == url }) {
+                editing = true
+                openNote(note)
+            }
+        } catch {
+            self.error = "Couldn't create \(url.lastPathComponent): \(error)"
         }
     }
 

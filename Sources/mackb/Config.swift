@@ -15,12 +15,45 @@ enum Config {
         return FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("MacKB")
     }
 
-    static var sourcesDir: URL { vault.appendingPathComponent("sources") }
-    static var memoryDir: URL { vault.appendingPathComponent("memory") }
-    static var inboxDir: URL { vault.appendingPathComponent("inbox") }
-    static var mediaDir: URL { vault.appendingPathComponent(".mackb/media") }
+    /// Two kinds of vault:
+    /// - managed: a folder the app owns. Imports are copied into `sources/`,
+    ///   approved memories go to `memory/`, and app state lives in `.mackb/`.
+    /// - in place: an existing folder of notes (e.g. a git repo of notes),
+    ///   indexed where it is. The app writes nothing into it: index, history,
+    ///   inbox, memories and imports live in Application Support instead.
+    /// A folder is managed if it has `sources/` or is empty (a new vault).
+    static var inPlace: Bool {
+        let key = vault.path
+        if let v = inPlaceCache[key] { return v }
+        let v = detectInPlace()
+        inPlaceCache[key] = v
+        return v
+    }
+    nonisolated(unsafe) private static var inPlaceCache: [String: Bool] = [:]
+    private static func detectInPlace() -> Bool {
+        let fm = FileManager.default
+        if fm.fileExists(atPath: vault.appendingPathComponent("sources").path) { return false }
+        let items = (try? fm.contentsOfDirectory(atPath: vault.path))?.filter { !$0.hasPrefix(".") } ?? []
+        return !items.isEmpty
+    }
+
+    /// Where app state lives: `.mackb/` in a managed vault, else a per-vault
+    /// folder in Application Support (named after the folder plus a path hash).
+    static var stateDir: URL {
+        guard inPlace else { return vault.appendingPathComponent(".mackb") }
+        var h: UInt64 = 1469598103934665603  // FNV-1a, stable across launches
+        for b in vault.standardizedFileURL.path.utf8 { h = (h ^ UInt64(b)) &* 1099511628211 }
+        return FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Application Support/MacKB/vaults")
+            .appendingPathComponent("\(vault.lastPathComponent)-\(String(h, radix: 16).prefix(8))")
+    }
+
+    static var sourcesDir: URL { inPlace ? stateDir.appendingPathComponent("sources") : vault.appendingPathComponent("sources") }
+    static var memoryDir: URL { inPlace ? stateDir.appendingPathComponent("memory") : vault.appendingPathComponent("memory") }
+    static var inboxDir: URL { inPlace ? stateDir.appendingPathComponent("inbox") : vault.appendingPathComponent("inbox") }
+    static var mediaDir: URL { stateDir.appendingPathComponent("media") }
     /// The index is a cache rebuilt from the vault; deleting it loses nothing.
-    static var indexPath: URL { vault.appendingPathComponent(".mackb/index.sqlite") }
+    static var indexPath: URL { stateDir.appendingPathComponent("index.sqlite") }
 
     /// Ollama, one of the two LLM backends (the other is MLX in-process; see
     /// `MLXBackend`). The app's Settings window picks between them.
@@ -124,6 +157,7 @@ enum Prefs {
 }
 
 func ensureVault() throws {
+    // For an in-place vault these all live in Application Support, not the vault.
     for d in [Config.sourcesDir, Config.memoryDir, Config.inboxDir, Config.mediaDir] {
         try FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
     }

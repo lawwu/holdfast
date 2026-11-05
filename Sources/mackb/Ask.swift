@@ -1,18 +1,6 @@
 import Foundation
 import NaturalLanguage
 
-/// The Q&A prompt is written for the first use case: a biblical counselor asking
-/// questions of their own materials and past case reports.
-let askSystemPrompt = """
-You help a biblical counselor search their own counseling materials: lessons, homework, \
-supervision notes and past case reports. Answer ONLY from the numbered passages provided. \
-After each claim, cite the passage it came from as [n]. If the passages do not answer the \
-question, say so plainly instead of guessing. Refer to counselees by initials only, never \
-full names, even if a passage spells one out. Quote Scripture references exactly as the \
-passages give them. Be concise and practical. You are preparing the counselor, not \
-counseling anyone yourself.
-"""
-
 struct Answer {
     var text: String
     /// [n] markers in the text that point at no passage.
@@ -39,7 +27,7 @@ func ask(_ question: String, embedder: Embedder?, llm: LLMBackend = OllamaBacken
     let rt = Date().timeIntervalSince(t0)
     guard !hits.isEmpty else {
         // Abstain before generating: nothing relevant enough, so don't ask the 27B to guess.
-        let msg = "Your materials don't cover this question. Nothing in the vault was relevant enough to answer from."
+        let msg = Profile.vaultDefault.notCovered
         stream?(msg)
         return Answer(text: msg, sources: [],
                       stats: GenStats(promptTokens: 0, promptSeconds: 0, outputTokens: 0, outputSeconds: 0), retrievalSeconds: rt)
@@ -48,9 +36,15 @@ func ask(_ question: String, embedder: Embedder?, llm: LLMBackend = OllamaBacken
     for (i, c) in hits.enumerated() {
         ctx += "[\(i + 1)] (\(c.title) — \(c.anchor))\n\(c.text)\n\n"
     }
-    let user = "Passages:\n\n\(ctx)Question: \(question)"
+    var manuals = ""
+    for m in Manuals.forPassages(hits) {
+        manuals += "Folder manual — \(m.path):\n\(m.text)\n\n"
+    }
+    let profile = Profile.forPassages(hits)
+    let user = (manuals.isEmpty ? "" : manuals + "---\n\n") + "Passages:\n\n\(ctx)Question: \(question)"
+    let system = profile.systemPrompt + "\n\n" + todayLine()
     let box = TextBox()
-    let stats = try await llm.chat(system: askSystemPrompt, user: user) { tok in
+    let stats = try await llm.chat(system: system, user: user) { tok in
         box.append(tok)
         stream?(tok)
     }

@@ -53,7 +53,7 @@ func runEval(questionsPath: String, label: String, outDir: URL, only: Set<String
         for pat in q.expect {
             if a.text.range(of: pat, options: [.regularExpression, .caseInsensitive]) != nil { hit += 1 } else { missed.append(pat) }
         }
-        let ids = Set(a.sources.map { $0.noteId })
+        let ids = Set(a.sources.map { ($0.noteId as NSString).lastPathComponent })
         let recall: Double? = q.sessions.isEmpty ? nil
             : Double(q.sessions.filter { ids.contains(sessionNoteId($0)) }.count) / Double(q.sessions.count)
         let cited = a.text.range(of: #"\[\d+\]"#, options: .regularExpression) != nil
