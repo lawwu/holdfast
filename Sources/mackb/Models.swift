@@ -1,6 +1,7 @@
 import Foundation
 import MLX
 import MLXEmbedders
+import MLXLLM
 import MLXHuggingFace
 import MLXLMCommon
 import Tokenizers
@@ -53,7 +54,7 @@ final class Embedder: @unchecked Sendable {
 
 protocol LLMBackend {
     /// Streams the answer to `onToken`; returns generation stats.
-    func chat(system: String, user: String, onToken: (String) -> Void) async throws -> GenStats
+    func chat(system: String, user: String, onToken: @escaping @Sendable (String) -> Void) async throws -> GenStats
 }
 
 struct GenStats {
@@ -70,7 +71,7 @@ struct GenStats {
 struct OllamaBackend: LLMBackend {
     var model = Config.llmModel
 
-    func chat(system: String, user: String, onToken: (String) -> Void) async throws -> GenStats {
+    func chat(system: String, user: String, onToken: @escaping @Sendable (String) -> Void) async throws -> GenStats {
         var req = URLRequest(url: Config.ollamaURL.appendingPathComponent("api/chat"))
         req.httpMethod = "POST"
         req.timeoutInterval = 1800
@@ -98,5 +99,69 @@ struct OllamaBackend: LLMBackend {
             }
         }
         return stats
+    }
+}
+
+// MARK: - MLX backend: Qwen 3.8 27B 4-bit in-process (no Ollama)
+
+/// Pick the backend: MACKB_BACKEND=mlx loads the model inside this process.
+func makeBackend() async throws -> LLMBackend {
+    if (ProcessInfo.processInfo.environment["MACKB_BACKEND"] ?? "ollama") == "mlx" { return try await MLXBackend.shared() }
+    return OllamaBackend()
+}
+
+final class MLXBackend: LLMBackend, @unchecked Sendable {
+    let container: ModelContainer
+    let loadSeconds: Double
+    nonisolated(unsafe) private static var cached: MLXBackend?
+
+    /// Default: mlx-community/Qwen3.8-27B-4bit from the HF cache. Override with MACKB_MLX_DIR.
+    static var modelDir: URL? {
+        if let p = ProcessInfo.processInfo.environment["MACKB_MLX_DIR"] { return URL(fileURLWithPath: p) }
+        let repo = ProcessInfo.processInfo.environment["MACKB_MLX_REPO"] ?? "mlx-community/Qwen3.8-27B-4bit"
+        let snaps = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".cache/huggingface/hub/models--\(repo.replacingOccurrences(of: "/", with: "--"))/snapshots")
+        guard let s = try? FileManager.default.contentsOfDirectory(atPath: snaps.path).sorted().last else { return nil }
+        return snaps.appendingPathComponent(s)
+    }
+
+    static func shared() async throws -> MLXBackend {
+        if let c = cached { return c }
+        guard let dir = modelDir else { throw MacKBError("MLX model not found in the HF cache") }
+        let t0 = Date()
+        log("loading \(dir.path.components(separatedBy: "models--").last ?? "") with MLX…")
+        let c = try await LLMModelFactory.shared.loadContainer(from: dir, using: #huggingFaceTokenizerLoader())
+        let b = MLXBackend(container: c, loadSeconds: Date().timeIntervalSince(t0))
+        log(String(format: "loaded in %.1fs", b.loadSeconds))
+        cached = b
+        return b
+    }
+
+    private init(container: ModelContainer, loadSeconds: Double) {
+        self.container = container
+        self.loadSeconds = loadSeconds
+    }
+
+    func chat(system: String, user: String, onToken: @escaping @Sendable (String) -> Void) async throws -> GenStats {
+        let params = GenerateParameters(maxTokens: 2000, temperature: Float(Config.temperature), topP: Float(Config.topP),
+                                        topK: Config.topK, presencePenalty: Float(Config.presencePenalty))
+        let (text, info) = try await container.perform { (context: ModelContext) -> (String, GenerateCompletionInfo?) in
+            let input = try await context.processor.prepare(
+                input: UserInput(chat: [.system(system), .user(user)], additionalContext: ["enable_thinking": false]))
+            var text = ""
+            var info: GenerateCompletionInfo?
+            for await g in try generate(input: input, parameters: params, context: context) {
+                switch g {
+                case .chunk(let s):
+                    text += s
+                    onToken(s)  // stream to the caller as tokens arrive
+                case .info(let i): info = i
+                default: break
+                }
+            }
+            return (text, info)
+        }
+        return GenStats(promptTokens: info?.promptTokenCount ?? 0, promptSeconds: info?.promptTime ?? 0,
+                        outputTokens: info?.generationTokenCount ?? 0, outputSeconds: info?.generateTime ?? 0)
     }
 }

@@ -4,7 +4,11 @@ import Foundation
 enum Config {
     /// The vault: plain Markdown, the source of truth. Opens in Obsidian.
     /// Override with MACKB_VAULT.
+    /// Set by the app when the user picks a vault; wins over the environment.
+    nonisolated(unsafe) static var vaultOverride: URL?
+
     static var vault: URL {
+        if let v = vaultOverride { return v }
         if let p = ProcessInfo.processInfo.environment["MACKB_VAULT"] {
             return URL(fileURLWithPath: (p as NSString).expandingTildeInPath)
         }
@@ -46,7 +50,7 @@ enum Config {
 
     /// Retrieval: reciprocal-rank-fusion constant and how many chunks go to the LLM.
     static let rrfK: Double = 60
-    static let contextChunks = 8
+    static let contextChunks = 12
 
     /// Q&A sampling for Qwen 3.8 with thinking off, per its model card.
     static let temperature = 0.7
