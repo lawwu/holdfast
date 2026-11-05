@@ -13,29 +13,39 @@ import Tokenizers
 final class Embedder: @unchecked Sendable {
     let container: EmbedderModelContainer
     let eosId: Int?
+    let spec: EmbedSpec
 
     static func load() async throws -> Embedder? {
+        let spec = Config.embedSpec
         guard let dir = Config.embedModelDir else {
-            log("no Qwen3-Embedding-0.6B in the HF cache; keyword search only")
+            log("no \(spec.label) in the HF cache; keyword search only")
             return nil
         }
         let c = try await EmbedderModelFactory.shared.loadContainer(from: dir, using: #huggingFaceTokenizerLoader())
         let tok = await c.tokenizer
-        return Embedder(container: c, eosId: tok.convertTokenToId("<|endoftext|>"))
+        return Embedder(container: c, eosId: spec == .qwen3 ? tok.convertTokenToId("<|endoftext|>") : nil, spec: spec)
     }
 
-    private init(container: EmbedderModelContainer, eosId: Int?) {
+    private init(container: EmbedderModelContainer, eosId: Int?, spec: EmbedSpec) {
         self.container = container
         self.eosId = eosId
+        self.spec = spec
     }
 
     /// Qwen3-Embedding: instruction on queries only, EOS appended, last-token
     /// pooling, L2-normalised. One text at a time avoids padding subtleties.
+    /// EmbeddingGemma: its own task prompts, and the model pools (mean, then dense
+    /// layers) and normalises itself.
     func embed(_ texts: [String], query: Bool) async throws -> [[Float]] {
         let eos = eosId
-        let inputs = texts.map { query ? "Instruct: \(Config.queryInstruction)\nQuery: \($0)" : $0 }
+        let inputs: [String]
+        switch spec {
+        case .qwen3: inputs = texts.map { query ? "Instruct: \(Config.queryInstruction)\nQuery: \($0)" : $0 }
+        case .embeddingGemma: inputs = texts.map { query ? "task: search result | query: \($0)" : "title: none | text: \($0)" }
+        }
+        let strategy: Pooling.Strategy = spec == .qwen3 ? .last : .none
         return await container.perform { ctx -> [[Float]] in
-            let pool = Pooling(strategy: .last)
+            let pool = Pooling(strategy: strategy)
             var out: [[Float]] = []
             for t in inputs {
                 var ids = Array(ctx.tokenizer.encode(text: t, addSpecialTokens: true).prefix(1024))
@@ -107,8 +117,15 @@ func configureMLXMemory() {
 // MARK: - LLM backend
 
 protocol LLMBackend {
-    /// Streams the answer to `onToken`; returns generation stats.
-    func chat(system: String, user: String, onToken: @escaping @Sendable (String) -> Void) async throws -> GenStats
+    /// Streams the answer to `onToken`; returns generation stats. `temperature`
+    /// overrides `Config.temperature` (filing wants exact JSON, so it runs cooler).
+    func chat(system: String, user: String, temperature: Double?, onToken: @escaping @Sendable (String) -> Void) async throws -> GenStats
+}
+
+extension LLMBackend {
+    func chat(system: String, user: String, onToken: @escaping @Sendable (String) -> Void) async throws -> GenStats {
+        try await chat(system: system, user: user, temperature: nil, onToken: onToken)
+    }
 }
 
 struct GenStats {
@@ -125,14 +142,14 @@ struct GenStats {
 struct OllamaBackend: LLMBackend {
     var model = Config.llmModel
 
-    func chat(system: String, user: String, onToken: @escaping @Sendable (String) -> Void) async throws -> GenStats {
+    func chat(system: String, user: String, temperature: Double?, onToken: @escaping @Sendable (String) -> Void) async throws -> GenStats {
         var req = URLRequest(url: Config.ollamaURL.appendingPathComponent("api/chat"))
         req.httpMethod = "POST"
         req.timeoutInterval = 1800
         let body: [String: Any] = [
             "model": model, "stream": true, "think": false, "keep_alive": "30m",
             "messages": [["role": "system", "content": system], ["role": "user", "content": user]],
-            "options": ["temperature": Config.temperature, "top_p": Config.topP, "top_k": Config.topK,
+            "options": ["temperature": temperature ?? Config.temperature, "top_p": Config.topP, "top_k": Config.topK,
                         "presence_penalty": Config.presencePenalty, "num_ctx": 16384],
         ]
         req.httpBody = try JSONSerialization.data(withJSONObject: body)
@@ -160,8 +177,53 @@ struct OllamaBackend: LLMBackend {
 
 /// Pick the backend: MACKB_BACKEND=mlx loads the model inside this process.
 func makeBackend() async throws -> LLMBackend {
-    if (ProcessInfo.processInfo.environment["MACKB_BACKEND"] ?? "ollama") == "mlx" { return try await MLXBackend.shared() }
-    return OllamaBackend()
+    switch ProcessInfo.processInfo.environment["MACKB_BACKEND"] ?? "ollama" {
+    case "mlx": return try await MLXBackend.shared()
+    case "gemini": return try GeminiBackend()
+    default: return OllamaBackend()
+    }
+}
+
+/// Google's Gemini API, for evals on synthetic data only: the app never offers
+/// it, because anything sent here leaves the Mac. Needs GEMINI_API_KEY;
+/// MACKB_GEMINI_MODEL picks the model.
+struct GeminiBackend: LLMBackend {
+    var model = ProcessInfo.processInfo.environment["MACKB_GEMINI_MODEL"] ?? "gemini-flash-latest"
+    let key: String
+
+    init() throws {
+        guard let k = ProcessInfo.processInfo.environment["GEMINI_API_KEY"], !k.isEmpty else {
+            throw MacKBError("set GEMINI_API_KEY to use the Gemini backend")
+        }
+        key = k
+    }
+
+    func chat(system: String, user: String, temperature: Double?, onToken: @escaping @Sendable (String) -> Void) async throws -> GenStats {
+        var req = URLRequest(url: URL(string: "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent")!)
+        req.httpMethod = "POST"
+        req.timeoutInterval = 600
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue(key, forHTTPHeaderField: "x-goog-api-key")
+        let body: [String: Any] = [
+            "systemInstruction": ["parts": [["text": system]]],
+            "contents": [["role": "user", "parts": [["text": user]]]],
+            "generationConfig": ["temperature": temperature ?? Config.temperature, "topP": Config.topP, "maxOutputTokens": 4000],
+        ]
+        req.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let t0 = Date()
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        let secs = Date().timeIntervalSince(t0)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200,
+              let j = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw MacKBError("Gemini returned \((resp as? HTTPURLResponse)?.statusCode ?? 0): \(String(data: data, encoding: .utf8)?.prefix(300) ?? "")")
+        }
+        let parts = ((j["candidates"] as? [[String: Any]])?.first?["content"] as? [String: Any])?["parts"] as? [[String: Any]] ?? []
+        let text = parts.filter { ($0["thought"] as? Bool) != true }.compactMap { $0["text"] as? String }.joined()
+        onToken(text)
+        let usage = j["usageMetadata"] as? [String: Any]
+        return GenStats(promptTokens: usage?["promptTokenCount"] as? Int ?? 0, promptSeconds: 0,
+                        outputTokens: usage?["candidatesTokenCount"] as? Int ?? 0, outputSeconds: secs)
+    }
 }
 
 final class MLXBackend: LLMBackend, @unchecked Sendable {
@@ -225,8 +287,8 @@ final class MLXBackend: LLMBackend, @unchecked Sendable {
         self.loadSeconds = loadSeconds
     }
 
-    func chat(system: String, user: String, onToken: @escaping @Sendable (String) -> Void) async throws -> GenStats {
-        let params = GenerateParameters(maxTokens: 2000, temperature: Float(Config.temperature), topP: Float(Config.topP),
+    func chat(system: String, user: String, temperature: Double?, onToken: @escaping @Sendable (String) -> Void) async throws -> GenStats {
+        let params = GenerateParameters(maxTokens: 2000, temperature: Float(temperature ?? Config.temperature), topP: Float(Config.topP),
                                         topK: Config.topK, presencePenalty: Float(Config.presencePenalty))
         let (text, info) = try await container.perform { (context: ModelContext) -> (String, GenerateCompletionInfo?) in
             let input = try await context.processor.prepare(

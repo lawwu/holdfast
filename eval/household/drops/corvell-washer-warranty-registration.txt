@@ -1,0 +1,26 @@
+CORVELL HOME APPLIANCES — PRODUCT REGISTRATION CONFIRMATION
+(SYNTHETIC TEST DOCUMENT)
+
+Thank you for registering your Corvell product!
+
+Registered owner: Anna Halvorsen
+Email: anna.halvorsen.test@example.com
+Phone: (541) 555-0187
+
+Product: Corvell front-load washer, 4.5 cu ft, white
+Model: CW-5200
+Serial: CW52-2610-77341
+Purchase date: 10/30/2026
+Retailer: Alder Appliance Center
+Purchase price: $899.00
+Delivery and installation: 11/01/2026 (haul-away of old washer included)
+
+Your warranty coverage:
+  - Limited warranty: 1 year parts and labor (through 10/30/2027)
+  - Direct-drive motor: 10 years parts only (through 10/30/2036)
+  - Stainless drum: lifetime, parts only
+
+Care tips: run the Clean Washer cycle monthly; leave the door ajar between loads;
+clean the drain pump filter every 3 months.
+
+Registration ID: REG-8841-2290-CV

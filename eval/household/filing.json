@@ -1,0 +1,202 @@
+[
+  {
+    "id": "f01",
+    "file": "drops/ridgeline-invoice-2026-11-02.txt",
+    "convert": "pdf",
+    "expect_action": "append",
+    "expect_path": "^home/maintenance-log\\.md$",
+    "expect_facts": [
+      "2026-11-02",
+      "Ridgeline",
+      "\\$?312\\.40",
+      "igniter"
+    ],
+    "forbid": [
+      "4417",
+      "RHA-?20961",
+      "08812B"
+    ]
+  },
+  {
+    "id": "f02",
+    "file": "drops/corvell-washer-warranty-registration.txt",
+    "convert": "docx",
+    "expect_action": "new",
+    "expect_path": "^home/(washing-machine|washer|clothes-washer|laundry)[^/]*\\.md$",
+    "expect_facts": [
+      "Corvell",
+      "CW-5200",
+      "2026-10-30",
+      "10[- ]year|2036"
+    ],
+    "forbid": [
+      "anna\\.halvorsen\\.test@example\\.com",
+      "555-0187"
+    ]
+  },
+  {
+    "id": "f03",
+    "file": "drops/greta-after-visit-summary-2026-11-03.txt",
+    "convert": "pdf",
+    "expect_action": "new",
+    "expect_path": "^health/visits/2026-11-03_greta_[a-z0-9-]+\\.md$",
+    "expect_facts": [
+      "strep",
+      "amoxicillin",
+      "2026-11-03"
+    ],
+    "forbid": [
+      "NHP-?88231457",
+      "88231457",
+      "55120",
+      "00418823",
+      "2290"
+    ]
+  },
+  {
+    "id": "f04",
+    "file": "drops/hillcrest-donation-receipt-2026-11-01.txt",
+    "convert": "none",
+    "expect_action": "append",
+    "expect_path": "^finance/giving\\.md$",
+    "expect_facts": [
+      "2026-11-01",
+      "Hillcrest",
+      "\\$?750",
+      "outreach"
+    ],
+    "forbid": [
+      "4417",
+      "HBC-TXN-559102",
+      "559102"
+    ]
+  },
+  {
+    "id": "f05",
+    "file": "drops/cascade-mutual-home-renewal.txt",
+    "convert": "pdf",
+    "expect_action": "append",
+    "expect_path": "^finance/insurance\\.md$",
+    "expect_facts": [
+      "Cascade Mutual",
+      "\\$?1,?568",
+      "2026-12-15|2027-12-15",
+      "545,?000"
+    ],
+    "forbid": [
+      "HO-?4471-?889-?2210",
+      "4471",
+      "7731"
+    ]
+  },
+  {
+    "id": "f06",
+    "file": "drops/summit-peak-statement-oct-2026.txt",
+    "convert": "pdf",
+    "expect_action": "append",
+    "expect_path": "^finance/(open-items\\.md|[a-z0-9-]*(bank|statement|checking|cash|account|summit)[a-z0-9-]*\\.md)$",
+    "expect_facts": [
+      "Summit Peak",
+      "overdraft|\\$?35",
+      "18,?607"
+    ],
+    "forbid": [
+      "0049221077315",
+      "323075880"
+    ]
+  },
+  {
+    "id": "f07",
+    "file": "drops/rs-case-report-session-4.txt",
+    "convert": "docx",
+    "expect_action": "new",
+    "expect_path": "^ministry/counseling/rs/rs-session-0?4\\.md$",
+    "expect_facts": [
+      "R\\.S\\.",
+      "2026-10-22",
+      "Psalm 34:4",
+      "Session: 4"
+    ],
+    "forbid": [
+      "Rebecca",
+      "Sandoval",
+      "Tomas"
+    ]
+  },
+  {
+    "id": "f08",
+    "file": "drops/pacific-coast-airlines-confirmation.txt",
+    "convert": "pdf",
+    "expect_action": "append",
+    "expect_path": "^life/trips/(202612_san-diego-christmas/plan\\.md|README\\.md)$",
+    "expect_facts": [
+      "PC ?482",
+      "2026-12-21",
+      "\\$?1,?642\\.50",
+      "QX7R2M"
+    ],
+    "forbid": [
+      "8823",
+      "CR ?4410 ?2289 ?51",
+      "4410"
+    ]
+  },
+  {
+    "id": "f09",
+    "file": "drops/joanna-lentil-soup.txt",
+    "convert": "none",
+    "expect_action": "new",
+    "expect_path": "^life/recipes/[a-z0-9-]*lentil[a-z0-9-]*\\.md$",
+    "expect_facts": [
+      "red lentils?",
+      "Joanna",
+      "cumin"
+    ],
+    "forbid": [
+      "541-555-0142",
+      "555-0142"
+    ]
+  },
+  {
+    "id": "f10",
+    "file": "drops/barlow-plumbing-invoice-faucet.txt",
+    "convert": "pdf",
+    "expect_action": "skip",
+    "expect_path": "^home/maintenance-log\\.md$",
+    "expect_facts": [],
+    "forbid": []
+  },
+  {
+    "id": "f11",
+    "file": "drops/alder-creek-elementary-flyer.txt",
+    "convert": "png",
+    "expect_action": "append",
+    "expect_path": "^life/calendar\\.md$",
+    "expect_facts": [
+      "2026-11-18",
+      "[Bb]ook [Ff]air",
+      "2026-12-10",
+      "[Ww]inter [Cc]oncert"
+    ],
+    "forbid": []
+  },
+  {
+    "id": "f12",
+    "file": "drops/bright-smile-receipt-erik-2026-11-04.txt",
+    "convert": "png",
+    "expect_action": "new",
+    "expect_path": "^health/visits/2026-11-04_erik_[a-z0-9-]+\\.md$",
+    "expect_facts": [
+      "2026-11-04",
+      "Bright Smile",
+      "\\$?48",
+      "no cavities|cleaning"
+    ],
+    "forbid": [
+      "NSD-?55102948",
+      "55102948",
+      "30412",
+      "6650"
+    ]
+  }
+]

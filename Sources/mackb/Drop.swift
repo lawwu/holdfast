@@ -123,8 +123,16 @@ enum Drop {
     {"action": "new" | "append" | "skip", "path": "folder/sub/file.md", "title": "…", "markdown": "…", "why": "one sentence: why this place"}
     """
 
-    /// Asks the model where a dropped file belongs; the proposal goes to the inbox.
-    static func propose(_ url: URL, text: String, embedder: Embedder?, llm: LLMBackend, model: String) async throws -> (Note, [String]) {
+    /// What the model decided for one file, before anything is written.
+    struct Decision {
+        var filing: Filing          // action "skip" when already recorded
+        var flags: [String]
+        var stats: GenStats
+        var reply: String
+    }
+
+    /// Asks the model where a dropped file belongs. Writes nothing.
+    static func decide(_ url: URL, text: String, embedder: Embedder?, llm: LLMBackend) async throws -> Decision {
         let doc = String(text.prefix(maxDocChars))
         let probe = url.deletingPathExtension().lastPathComponent + "\n" + String(doc.prefix(1500))
         let hits = (try? await search(probe, embedder: embedder, limit: 24)) ?? []
@@ -159,18 +167,28 @@ enum Drop {
         """
         let system = [instructions, todayLine()].joined(separator: "\n\n")
         let out = OutputBuffer()
-        _ = try await llm.chat(system: system, user: user) { out.append($0) }
+        let stats = try await llm.chat(system: system, user: user, temperature: Config.filingTemperature) { out.append($0) }
         var f = try parse(out.text)
-        if f.action.lowercased() == "skip" { throw AlreadyFiled(why: f.why) }
+        if f.action.lowercased() == "skip" {
+            f.action = "skip"
+            return Decision(filing: f, flags: [], stats: stats, reply: out.text)
+        }
         f = try validate(f)
         if f.title.trimmingCharacters(in: .whitespaces).isEmpty {
             f.title = (f.action == "append" ? "Add to " : "") + (f.path as NSString).lastPathComponent
         }
-
-        let today = dayString(Date())
         // Names matter in counseling folders (initials only); elsewhere a shop or clinic name is the point.
         let counseling = Profile.forPath(f.path).id == Profile.counseling.id
         let flags = privacyFlags(f.title + "\n" + f.markdown, names: counseling)
+        return Decision(filing: f, flags: flags, stats: stats, reply: out.text)
+    }
+
+    /// Asks the model where a dropped file belongs; the proposal goes to the inbox.
+    static func propose(_ url: URL, text: String, embedder: Embedder?, llm: LLMBackend, model: String) async throws -> (Note, [String]) {
+        let d = try await decide(url, text: text, embedder: embedder, llm: llm)
+        let f = d.filing, flags = d.flags
+        if f.action == "skip" { throw AlreadyFiled(why: f.why) }
+        let today = dayString(mackb.today())
         var meta = ["title": f.title, "kind": "filing", "proposed_by": "Drop folder · \(model)", "proposed": today,
                     "target": f.path, "action": f.action, "why": f.why, "original": url.lastPathComponent]
         if !flags.isEmpty { meta["privacy_flags"] = flags.joined(separator: "; ") }

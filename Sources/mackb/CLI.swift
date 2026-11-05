@@ -13,6 +13,8 @@ mackb — local knowledge base for counseling materials (POC)
   mackb mcp                                    run the MCP server on stdio (for Claude Code etc.)
   mackb bench                                  measure LLM speed on a fixed prompt
   mackb eval [questions.json] --label <name>   score Q&A against a question set (see eval/)
+                [--research] [--retrieval-only]   answer with the tool loop, or score search alone
+  mackb eval-filing [filing.json] --label <name>  score where dropped documents get filed (eval/household/)
   mackb status                                 vault and index counts
 
 Vault: $MACKB_VAULT (default ~/MacKB). LLM: $MACKB_BACKEND=ollama|mlx; Ollama model $MACKB_LLM
@@ -139,7 +141,13 @@ do {
         let only = Set(option("--only"))
         let out = option("--out").first ?? "eval/results"
         try await runEval(questionsPath: args.first ?? "eval/questions.json", label: label,
-                          outDir: URL(fileURLWithPath: out), only: only)
+                          outDir: URL(fileURLWithPath: out), only: only,
+                          research: flag("--research"), retrievalOnly: flag("--retrieval-only"))
+    case "eval-filing":
+        let label = option("--label").first ?? "run"
+        try await runFilingEval(casesPath: args.first ?? "eval/household/filing.json", label: label,
+                                outDir: URL(fileURLWithPath: option("--out").first ?? "eval/household/results/filing"),
+                                only: Set(option("--only")))
     case "status":
         let idx = try Index()
         let c = idx.count()

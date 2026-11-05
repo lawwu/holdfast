@@ -1,0 +1,20 @@
+SUMMIT PEAK CREDIT UNION — Monthly Statement Summary
+(SYNTHETIC TEST DOCUMENT)
+
+Members: Erik Halvorsen, Anna Halvorsen
+Account: Joint Checking   Account number: 0049221077315
+Routing number: 323075880
+Statement period: 10/01/2026 - 10/31/2026
+
+Beginning balance ................ $14,208.55
+Deposits and credits (6) ......... $12,946.30
+Withdrawals and debits (41) ...... $ 8,512.68
+Fees ............................. $    35.00
+Ending balance ................... $18,607.17
+
+Fee detail:
+  10/17/2026  Overdraft fee ........ $35.00
+  (Debit of $412.90 posted before payroll deposit cleared. You may request a
+   courtesy reversal within 60 days by calling Member Services.)
+
+Dividends earned YTD: $3.12

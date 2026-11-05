@@ -47,6 +47,17 @@ The vault is plain Markdown with YAML frontmatter (`$MACKB_VAULT`, default
 `~/MacKB`): `sources/`, `memory/`, `inbox/`. It opens in Obsidian. The index in
 `.mackb/` is a cache; delete it and run `mackb index` again.
 
+## Household eval (synthetic)
+
+`eval/household/` is a made-up family's knowledge base (finance, home, health,
+trips, career, and counseling case reports under `ministry/`) with 40 questions
+and 12 documents to file. `eval/household/run.sh` runs it across answer models
+(Qwen 3.8 27B, Gemma 4 26B A4B, Gemma 4 E4B), embedders (Qwen3-Embedding,
+EmbeddingGemma) and modes (plain, Research), plus Gemini when `GEMINI_API_KEY`
+is set; `report.py` writes `report.md`. Pick models with `MACKB_BACKEND`,
+`MACKB_MLX_REPO`, `MACKB_EMBED=embeddinggemma`, `MACKB_RERANK=0`, and fix the
+date with `MACKB_TODAY=2026-11-05`.
+
 ## Build
 
 MLX compiles Metal shaders, so build with `xcodebuild`, not `swift build`.

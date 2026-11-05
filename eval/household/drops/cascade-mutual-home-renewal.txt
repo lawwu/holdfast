@@ -1,0 +1,19 @@
+CASCADE MUTUAL INSURANCE
+Homeowners Policy Renewal Notice
+(SYNTHETIC TEST DOCUMENT)
+
+Named insured: Erik and Anna Halvorsen
+Policy number: HO-4471-889-2210
+Property: Juniper Lane, Alder Creek, OR
+
+Your policy will renew on December 15, 2026 for the term 12/15/2026 - 12/15/2027.
+
+                          Current term      Renewal term
+Dwelling coverage (A)     $520,000          $545,000
+Deductible                $2,500            $2,500
+Annual premium            $1,420.00         $1,568.00
+
+Why did my premium change? Your dwelling coverage was increased 5% to keep pace with
+rebuilding costs in your area, and regional wildfire and wind rates increased.
+
+Payment of $1,568.00 is due by 12/15/2026. Autopay is set up from the account ending 7731.

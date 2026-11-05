@@ -53,7 +53,11 @@ enum Config {
     static var inboxDir: URL { inPlace ? stateDir.appendingPathComponent("inbox") : vault.appendingPathComponent("inbox") }
     static var mediaDir: URL { stateDir.appendingPathComponent("media") }
     /// The index is a cache rebuilt from the vault; deleting it loses nothing.
-    static var indexPath: URL { stateDir.appendingPathComponent("index.sqlite") }
+    static var indexPath: URL {
+        stateDir.appendingPathComponent(embedSpec == .qwen3 ? "index.sqlite" : "index-\(embedSpec.rawValue).sqlite")
+    }
+    /// Filing a dropped file wants exact JSON and a steady choice of place.
+    static let filingTemperature = 0.2
 
     /// Ollama, one of the two LLM backends (the other is MLX in-process; see
     /// `MLXBackend`). The app's Settings window picks between them.
@@ -64,11 +68,17 @@ enum Config {
     /// Ollama's metadata labels it Q4_K_M.
     static var llmModel: String { ProcessInfo.processInfo.environment["MACKB_LLM"] ?? "qwen38-27b-q8-32k" }
 
-    /// Qwen3-Embedding-0.6B, already in the Hugging Face cache; run in-process by MLX Swift.
+    /// The embedding model: Qwen3-Embedding-0.6B by default, or Google's
+    /// EmbeddingGemma-300m with MACKB_EMBED=embeddinggemma (each has its own index).
+    static var embedSpec: EmbedSpec {
+        EmbedSpec(rawValue: ProcessInfo.processInfo.environment["MACKB_EMBED"] ?? "") ?? .qwen3
+    }
+
+    /// The embedding model's folder in the Hugging Face cache; run in-process by MLX Swift.
     static var embedModelDir: URL? {
         if let p = ProcessInfo.processInfo.environment["MACKB_EMBED_DIR"] { return URL(fileURLWithPath: p) }
         let snaps = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".cache/huggingface/hub/models--Qwen--Qwen3-Embedding-0.6B/snapshots")
+            .appendingPathComponent(".cache/huggingface/hub/models--\(embedSpec.repo.replacingOccurrences(of: "/", with: "--"))/snapshots")
         guard let first = try? FileManager.default.contentsOfDirectory(atPath: snaps.path).sorted().last else { return nil }
         return snaps.appendingPathComponent(first)
     }
@@ -111,6 +121,8 @@ struct MLXModelSpec: Identifiable, Hashable {
                      blurb: "Same model at higher precision; about half the speed."),
         MLXModelSpec(repo: "mlx-community/gemma-4-26b-a4b-it-4bit", name: "Gemma 4 26B A4B", detail: "4-bit · MoE", sizeGB: 15.4,
                      blurb: "Google's mixture-of-experts: ~4B active, so much faster. Not yet evaluated."),
+        MLXModelSpec(repo: "mlx-community/gemma-4-e4b-it-4bit", name: "Gemma 4 E4B", detail: "4-bit", sizeGB: 4.8,
+                     blurb: "Google's small model: ~60 tok/s here. Not yet evaluated."),
         MLXModelSpec(repo: "mlx-community/Qwen3.5-9B-4bit", name: "Qwen 3.5 9B", detail: "4-bit", sizeGB: 6.0,
                      blurb: "Small and quick; for Macs with 16 GB. Not yet evaluated."),
     ]
@@ -166,4 +178,11 @@ func ensureVault() throws {
 /// stderr logging, so stdout stays clean for the MCP server.
 func log(_ s: String) {
     FileHandle.standardError.write((s + "\n").data(using: .utf8)!)
+}
+
+enum EmbedSpec: String {
+    case qwen3 = "qwen3-0.6b"
+    case embeddingGemma = "embeddinggemma"
+    var repo: String { self == .qwen3 ? "Qwen/Qwen3-Embedding-0.6B" : "mlx-community/embeddinggemma-300m-bf16" }
+    var label: String { self == .qwen3 ? "Qwen3-Embedding-0.6B" : "EmbeddingGemma-300m" }
 }

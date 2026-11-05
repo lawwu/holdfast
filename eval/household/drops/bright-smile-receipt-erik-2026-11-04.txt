@@ -1,0 +1,17 @@
+BRIGHT SMILE DENTAL
+Patient Receipt
+(SYNTHETIC TEST DOCUMENT)
+
+Patient: Erik Halvorsen      Patient #: 30412
+Provider: Dr. Karin Lindgren, DDS
+Date of service: 11/04/2026
+
+  D1110  Adult prophylaxis (cleaning)          $128.00
+  D0120  Periodic oral exam                    $ 62.00
+  D0274  Bitewing x-rays, four films           $ 74.00
+  Total charges                                $264.00
+  Insurance paid (Northstar Dental, Subscriber ID NSD-55102948)   $216.00
+  Patient paid                                 $ 48.00   (Debit card ending 6650)
+
+Notes: No cavities. Mild gum recession lower front teeth; use a soft brush.
+Next cleaning due May 2027.
