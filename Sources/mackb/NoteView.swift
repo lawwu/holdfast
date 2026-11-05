@@ -13,6 +13,10 @@ struct NoteView: View {
     @State private var draftPath: URL?
     @State private var saveState: SaveState = .saved
     @State private var saveTask: Task<Void, Never>?
+    /// The outline (table of contents) beside the reader; remembered across notes.
+    @AppStorage("showOutline") private var showOutline = true
+    /// The first block on screen, so the outline can mark where you are.
+    @State private var topVisible = -1
 
     enum SaveState { case saved, editing, failed(String) }
 
@@ -54,6 +58,11 @@ struct NoteView: View {
         .onDisappear { flush() }
         .toolbar {
             ToolbarItemGroup(placement: .navigation) {
+                Button { store.showList.toggle() } label: {
+                    Label(store.showList ? "Hide File List" : "Show File List",
+                          systemImage: store.showList ? "rectangle.righthalf.inset.filled" : "rectangle.split.2x1")
+                }
+                .help(store.showList ? "Hide the file list to read the note wide (⇧⌘\\)" : "Show the file list again (⇧⌘\\)")
                 Button { store.goBack() } label: { Label("Back", systemImage: "chevron.left") }
                     .disabled(store.backStack.isEmpty)
                     .help(store.backStack.last.map { "Back to \($0.note.title) (⌘[)" } ?? "Back (⌘[)")
@@ -62,6 +71,10 @@ struct NoteView: View {
                     .help(store.forwardStack.last.map { "Forward to \($0.note.title) (⌘])" } ?? "Forward (⌘])")
             }
             ToolbarItemGroup {
+                Toggle(isOn: $showOutline) { Label("Outline", systemImage: "list.bullet.indent") }
+                    .disabled(store.editing)
+                    .help("Show or hide the table of contents (⌥⌘O)")
+                    .keyboardShortcut("o", modifiers: [.command, .option])
                 Picker("Mode", selection: $store.editing) {
                     Label("Reading", systemImage: "book").tag(false)
                     Label("Editing", systemImage: "pencil").tag(true)
@@ -84,7 +97,9 @@ struct NoteView: View {
         let bs = blocks
         let anchorIdx = bs.firstIndex(where: isAnchor)
         let kind = Theme.kind(of: note)
+        let outline = bs.filter { b in if case .heading(let l) = b.kind { return l <= 4 } else { return false } }
         return ScrollViewReader { proxy in
+          HStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     NoteHeader(note: note, kind: kind).id(-1)
@@ -118,10 +133,25 @@ struct NoteView: View {
                     }
                     LinksFooter(note: note).padding(.top, 28)
                 }
+                .scrollTargetLayout()
                 .padding(.horizontal, 36).padding(.vertical, 28)
                 .frame(maxWidth: 800, alignment: .leading)
                 .frame(maxWidth: .infinity)
             }
+            .onScrollTargetVisibilityChange(idType: Int.self, threshold: 0.01) { ids in
+                topVisible = ids.min() ?? -1
+            }
+            if showOutline && outline.count >= 2 {
+                Divider()
+                OutlinePanel(title: note.title, headings: outline,
+                             current: outline.last { $0.id <= max(topVisible, 0) }?.id ?? (topVisible <= 0 ? nil : outline.first?.id)) { id in
+                    withAnimation(.easeInOut(duration: 0.25)) { proxy.scrollTo(id, anchor: .top) }
+                }
+                .frame(width: 230)
+                .transition(.move(edge: .trailing).combined(with: .opacity))
+            }
+          }
+          .animation(.easeOut(duration: 0.18), value: showOutline)
             .onAppear { if let i = anchorIdx { proxy.scrollTo(i, anchor: .top) } }
             .onChange(of: opened) { _, _ in
                 if let i = blocks.firstIndex(where: isAnchor) { withAnimation { proxy.scrollTo(i, anchor: .top) } }
@@ -367,4 +397,72 @@ func domainColor(_ d: String) -> Color {
     var h: UInt32 = 2166136261
     for b in d.utf8 { h = (h ^ UInt32(b)) &* 16777619 }
     return palette[Int(h % UInt32(palette.count))]
+}
+
+/// Table of contents for the open note: its headings, indented by level, with
+/// the section on screen marked. Click to jump.
+struct OutlinePanel: View {
+    var title: String
+    var headings: [MDBlock]
+    var current: Int?
+    var jump: (Int) -> Void
+
+    var minLevel: Int {
+        headings.compactMap { if case .heading(let l) = $0.kind { return l } else { return nil } }.min() ?? 1
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 1) {
+                Text("ON THIS PAGE").font(.caption2.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
+                    .padding(.horizontal, 10).padding(.bottom, 6)
+                Button { jump(-1) } label: {
+                    Text(title).font(.callout.weight(.semibold)).lineLimit(2).multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 10).padding(.vertical, 4).contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                ForEach(headings) { h in OutlineRow(heading: h, indent: level(h) - minLevel, active: h.id == current) { jump(h.id) } }
+            }
+            .padding(.vertical, 16).padding(.horizontal, 8)
+        }
+        .background(.background.secondary)
+    }
+
+    func level(_ b: MDBlock) -> Int { if case .heading(let l) = b.kind { return l } else { return 1 } }
+}
+
+struct OutlineRow: View {
+    var heading: MDBlock
+    var indent: Int
+    var active: Bool
+    var action: () -> Void
+    @State private var hover = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 0) {
+                Rectangle().fill(active ? Theme.accent : .clear).frame(width: 2)
+                Text(plain(heading.text))
+                    .font(indent == 0 ? .callout.weight(.medium) : .callout)
+                    .foregroundStyle(active ? Theme.accent : (indent == 0 ? .primary : .secondary))
+                    .lineLimit(2).multilineTextAlignment(.leading)
+                    .padding(.leading, 8 + CGFloat(indent) * 12)
+                    .padding(.vertical, 4)
+                Spacer(minLength: 0)
+            }
+            .background(RoundedRectangle(cornerRadius: 5).fill(hover ? Color.primary.opacity(0.05) : .clear))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hover = $0 }
+        .help(plain(heading.text))
+    }
+
+    /// Heading text without Markdown marks.
+    func plain(_ s: String) -> String {
+        s.replacingOccurrences(of: #"\[\[([^\]|]+\|)?([^\]]+)\]\]"#, with: "$2", options: .regularExpression)
+            .replacingOccurrences(of: #"\[([^\]]+)\]\([^)]*\)"#, with: "$1", options: .regularExpression)
+            .replacingOccurrences(of: #"[*_`]"#, with: "", options: .regularExpression)
+    }
 }

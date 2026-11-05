@@ -121,31 +121,47 @@ struct AppMark: View {
 
 struct RootView: View {
     @EnvironmentObject var store: Store
+    /// Width of the pane beside a note; drag the divider to change it.
+    @AppStorage("listWidth") private var listWidth: Double = 540
+
+    @ViewBuilder var paneView: some View {
+        switch store.pane ?? .ask {
+        case .ask: AskView()
+        case .library: LibraryView()
+        case .inbox: InboxView()
+        case .history: HistoryView()
+        case .files: FilesView()
+        case .graph: GraphView()
+        }
+    }
 
     var body: some View {
+        // Two columns: the sidebar, then the pane and the note side by side in a
+        // split view, so the pane (the file list) can be hidden on its own.
         NavigationSplitView {
             Sidebar()
                 .navigationSplitViewColumnWidth(min: 200, ideal: 220)
-        } content: {
-            Group {
-                switch store.pane ?? .ask {
-                case .ask: AskView()
-                case .library: LibraryView()
-                case .inbox: InboxView()
-                case .history: HistoryView()
-                case .files: FilesView()
-                case .graph: GraphView()
+        } detail: {
+            HStack(spacing: 0) {
+                if store.opened == nil && store.pane != .ask && store.pane != nil {
+                    paneView.background(Theme.canvas)  // nothing open: the pane gets the room
+                } else {
+                    if store.showList {
+                        paneView
+                            .background(Theme.canvas)
+                            .frame(width: listWidth)
+                        ResizeHandle(width: $listWidth)
+                    }
+                    if let o = store.opened {
+                        NoteView(opened: o).frame(minWidth: 420, maxWidth: .infinity)
+                    } else {
+                        EmptyState(icon: "doc.text.magnifyingglass", title: "Nothing open",
+                                   message: "Click a citation, a source or a note to read it here.")
+                            .frame(maxWidth: .infinity)
+                    }
                 }
             }
-            .background(Theme.canvas)
-            .navigationSplitViewColumnWidth(min: 460, ideal: 560)
-        } detail: {
-            if let o = store.opened {
-                NoteView(opened: o)
-            } else {
-                EmptyState(icon: "doc.text.magnifyingglass", title: "Nothing open",
-                           message: "Click a citation, a source or a note to read it here.")
-            }
+            .animation(.easeOut(duration: 0.18), value: store.showList)
         }
         .tint(Theme.accent)
         .toolbar {
@@ -1203,5 +1219,30 @@ struct StepsList: View {
         if s.hasPrefix("Listed") { return "folder" }
         if s.hasPrefix("Queried") { return "function" }
         return "circle"
+    }
+}
+
+/// The divider between the pane and the note: drag to resize (360–900 pt).
+struct ResizeHandle: View {
+    @Binding var width: Double
+    @State private var start: Double?
+    @State private var hover = false
+
+    var body: some View {
+        Rectangle()
+            .fill(hover || start != nil ? Theme.accent.opacity(0.5) : Color(nsColor: .separatorColor))
+            .frame(width: hover || start != nil ? 3 : 1)
+            .padding(.horizontal, 3)
+            .contentShape(Rectangle())
+            .onHover { h in
+                hover = h
+                if h { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
+            }
+            .gesture(DragGesture(minimumDistance: 1)
+                .onChanged { g in
+                    if start == nil { start = width }
+                    width = min(900, max(360, (start ?? width) + g.translation.width))
+                }
+                .onEnded { _ in start = nil })
     }
 }

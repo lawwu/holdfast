@@ -32,6 +32,8 @@ struct MacKBApp: App {
             CommandMenu("Note") {
                 Button("Back") { store.goBack() }.keyboardShortcut("[").disabled(store.backStack.isEmpty)
                 Button("Forward") { store.goForward() }.keyboardShortcut("]").disabled(store.forwardStack.isEmpty)
+                Button(store.showList ? "Hide File List" : "Show File List") { store.showList.toggle() }
+                    .keyboardShortcut("\\", modifiers: [.command, .shift])
                 Divider()
                 Button("Quick Open…") { store.showQuickOpen = true }.keyboardShortcut("o")
                 Button("New Note") { store.createNote(near: store.opened?.note) }.keyboardShortcut("n", modifiers: [.command, .shift])
@@ -108,6 +110,11 @@ final class Store: ObservableObject {
     @Published var error: String?
     @Published var opened: Opened? { didSet { recordNavigation(from: oldValue) } }
     /// Notes visited before and after the one open, for Back and Forward (⌘[ ⌘]).
+    /// The middle pane (Ask, Files, Library…) beside an open note; hide it to
+    /// read the note wide. The sidebar has its own button.
+    @Published var showList = UserDefaults.standard.object(forKey: "showList") as? Bool ?? true {
+        didSet { UserDefaults.standard.set(showList, forKey: "showList") }
+    }
     @Published private(set) var backStack: [Opened] = []
     @Published private(set) var forwardStack: [Opened] = []
     private var navigating = false
