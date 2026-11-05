@@ -12,6 +12,8 @@ struct HistoryEntry: Codable, Identifiable {
     var model: String
     var stats: AnswerStats
     var sources: [HistorySource]
+    /// Research mode's tool steps, if it was used.
+    var steps: [String]?
 
     init(question: String, answer: String, model: String, stats: AnswerStats, sources: [Chunk]) {
         self.question = question

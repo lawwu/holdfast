@@ -8,6 +8,8 @@ struct Answer {
     var sources: [Chunk]
     var stats: GenStats
     var retrievalSeconds: Double
+    /// Research mode: the tool calls made, in order.
+    var steps: [String] = []
 }
 
 /// Collects streamed tokens from a @Sendable callback.

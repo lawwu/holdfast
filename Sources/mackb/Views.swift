@@ -284,7 +284,7 @@ struct AskView: View {
                         QuestionHeader(text: store.askedQuestion)
                         if let b = store.busy { StatusPill(text: b) }
                         if let e = store.error { ErrorBanner(text: e) }
-                        if !store.answer.isEmpty { AnswerCard() }
+                        if !store.answer.isEmpty || !store.steps.isEmpty { AnswerCard() }
                         if !store.sources.isEmpty { SourcesSection() }
                     }
                     .padding(24)
@@ -437,6 +437,7 @@ struct AnswerCard: View {
             }
             // No .textSelection here: on macOS it routes link clicks around
             // the openURL handler, so citations wouldn't open. Copy is above.
+            if !store.steps.isEmpty { StepsList(steps: store.steps, running: store.busy != nil) }
             MarkdownBlocks(text: store.answer, linkCitations: true)
             if let w = store.warning {
                 ErrorBanner(text: w, color: .orange, icon: "exclamationmark.triangle.fill")
@@ -598,6 +599,13 @@ struct Composer: View {
                 .menuStyle(.borderlessButton)
                 .fixedSize()
                 .font(.caption)
+                Toggle(isOn: $store.research) {
+                    Label("Research", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+                }
+                .toggleStyle(.button)
+                .controlSize(.small)
+                .disabled(store.backend != .mlx)
+                .help("Research mode: the model searches, reads notes, lists folders and queries CSV tables in steps before answering. Slower, better for questions that span files or need numbers. MLX models only.")
                 Spacer()
                 Label("Private · nothing leaves this Mac", systemImage: "lock.fill")
                     .labelStyle(TightLabel())
@@ -1032,5 +1040,38 @@ struct HistoryRow: View {
             Divider()
             Button("Delete", role: .destructive) { store.deleteHistory(entry) }
         }
+    }
+}
+
+/// Research mode's steps, shown above the answer.
+struct StepsList: View {
+    var steps: [String]
+    var running: Bool
+    @State private var open = true
+    var body: some View {
+        DisclosureGroup(isExpanded: $open) {
+            VStack(alignment: .leading, spacing: 5) {
+                ForEach(Array(steps.enumerated()), id: \.offset) { i, s in
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Image(systemName: icon(s)).font(.caption).foregroundStyle(Theme.accent).frame(width: 14)
+                        Text(s).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                        if running && i == steps.count - 1 { ProgressView().controlSize(.mini) }
+                    }
+                }
+            }
+            .padding(.top, 4)
+        } label: {
+            Text("\(steps.count) research step\(steps.count == 1 ? "" : "s")").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+        }
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Theme.accent.opacity(0.05)))
+    }
+    func icon(_ s: String) -> String {
+        if s.hasPrefix("Searched") { return "magnifyingglass" }
+        if s.hasPrefix("Read") { return "doc.text" }
+        if s.hasPrefix("Listed tables") { return "tablecells" }
+        if s.hasPrefix("Listed") { return "folder" }
+        if s.hasPrefix("Queried") { return "function" }
+        return "circle"
     }
 }

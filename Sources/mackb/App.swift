@@ -123,6 +123,12 @@ final class Store: ObservableObject {
     /// Notes open in the editor rather than the reader (⌘E).
     @Published var editing = false
     @Published var showQuickOpen = false
+    /// Research mode: answer in steps with tools (search, read, list, query CSVs).
+    @Published var research = UserDefaults.standard.bool(forKey: "research") {
+        didSet { UserDefaults.standard.set(research, forKey: "research") }
+    }
+    /// The tool steps of the answer on screen.
+    @Published var steps: [String] = []
     private var reindexTask: Task<Void, Never>?
     /// The vault's default profile (general or counseling); see Profile.swift.
     @Published var profile = Profile.general { didSet { Profile.vaultDefault = profile } }
@@ -222,15 +228,31 @@ final class Store: ObservableObject {
         askedQuestion = q
         question = ""
         currentHistoryId = nil
+        steps = []
         let model = modelLabel
+        let useAgent = research && backend == .mlx
         Task {
             do {
                 let emb = await getEmbedder()
                 let llm = try await getLLM()
                 busy = "Searching and writing the answer…"
                 let t0 = Date()
-                let a = try await ask(q, embedder: emb, llm: llm) { tok in
-                    Task { @MainActor in self.answer += tok }
+                let a: Answer
+                if useAgent, let mlx = llm as? MLXBackend {
+                    busy = "Researching…"
+                    a = try await Agent.run(q, embedder: emb, backend: mlx) { ev in
+                        Task { @MainActor in
+                            switch ev {
+                            case .step(let s): self.steps.append(s); self.busy = s + "…"
+                            case .token(let t): self.answer += t
+                            case .resetText: self.answer = ""
+                            }
+                        }
+                    }
+                } else {
+                    a = try await ask(q, embedder: emb, llm: llm) { tok in
+                        Task { @MainActor in self.answer += tok }
+                    }
                 }
                 answer = a.text
                 sources = a.sources
@@ -239,7 +261,8 @@ final class Store: ObservableObject {
                 if !a.badCitations.isEmpty {
                     warning = "The answer cites passages that don't exist: " + a.badCitations.map { "[\($0)]" }.joined(separator: ", ")
                 }
-                let entry = HistoryEntry(question: q, answer: a.text, model: model, stats: answerStats!, sources: a.sources)
+                var entry = HistoryEntry(question: q, answer: a.text, model: model, stats: answerStats!, sources: a.sources)
+                entry.steps = a.steps.isEmpty ? nil : a.steps
                 history.insert(entry, at: 0)
                 currentHistoryId = entry.id
                 History.save(history)
@@ -262,6 +285,7 @@ final class Store: ObservableObject {
         askedQuestion = e.question
         answer = e.answer
         sources = e.sources.map(\.chunk)
+        steps = e.steps ?? []
         answerStats = e.stats
         warning = nil
         error = nil
@@ -280,6 +304,7 @@ final class Store: ObservableObject {
         currentHistoryId = nil
         answer = ""
         sources = []
+        steps = []
         answerStats = nil
         warning = nil
         error = nil
