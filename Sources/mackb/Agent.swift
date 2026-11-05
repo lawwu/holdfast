@@ -123,7 +123,7 @@ enum Agent {
             .matches(in: final, range: NSRange(final.startIndex..., in: final))
             .compactMap { Range($0.range(at: 1), in: final).flatMap { Int(final[$0]) } } ?? []
         let bad = Array(Set(cited.filter { $0 < 1 || $0 > ctx.sources.count })).sorted()
-        return Answer(text: final, badCitations: bad, sources: ctx.sources, stats: stats,
+        return Answer(text: stripThoughts(final), badCitations: bad, sources: ctx.sources, stats: stats,
                       retrievalSeconds: Date().timeIntervalSince(t0), steps: ctx.log)
     }
 }
@@ -216,9 +216,10 @@ final class CSVTables {
     private var loaded = Set<String>()
 
     init() {
-        if Config.inPlace, FileManager.default.fileExists(atPath: Config.vault.appendingPathComponent(".git").path),
-           let list = try? run("/usr/bin/git", ["-C", Config.vault.path, "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.csv"]) {
-            files = list.split(separator: "\0").map(String.init).filter { !$0.split(separator: "/").contains { $0.hasSuffix("-raw") } }.sorted()
+        // Any in-place vault: a repo, a folder inside one, or a plain folder.
+        if Config.inPlace {
+            let root = Config.vault.standardizedFileURL.path + "/"
+            files = vaultFiles(ext: "csv").map { String($0.standardizedFileURL.path.dropFirst(root.count)) }.sorted()
         } else {
             files = []
         }

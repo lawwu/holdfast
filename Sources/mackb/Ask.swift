@@ -55,7 +55,7 @@ func ask(_ question: String, embedder: Embedder?, llm: LLMBackend = OllamaBacken
         .matches(in: box.text, range: NSRange(box.text.startIndex..., in: box.text))
         .compactMap { Range($0.range(at: 1), in: box.text).flatMap { Int(box.text[$0]) } } ?? []
     let bad = Array(Set(cited.filter { $0 < 1 || $0 > hits.count })).sorted()
-    return Answer(text: box.text, badCitations: bad, sources: hits, stats: stats, retrievalSeconds: rt)
+    return Answer(text: stripThoughts(box.text), badCitations: bad, sources: hits, stats: stats, retrievalSeconds: rt)
 }
 
 func formatSources(_ a: Answer) -> String {
@@ -150,4 +150,11 @@ func reject(_ id: String) throws {
     guard let n = inbox().first(where: { $0.id == id }) else { throw MacKBError("no inbox item \(id)") }
     // Rejected proposals go to the Trash, not oblivion.
     try FileManager.default.trashItem(at: n.path, resultingItemURL: nil)
+}
+
+/// Gemma 4 sometimes emits an empty thought channel even with thinking off:
+/// "<|channel>thought …<channel|>". Keep only what follows it.
+func stripThoughts(_ s: String) -> String {
+    s.replacingOccurrences(of: #"<\|channel\>[\s\S]*?<channel\|>"#, with: "", options: .regularExpression)
+        .trimmingCharacters(in: .whitespacesAndNewlines)
 }

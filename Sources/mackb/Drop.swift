@@ -104,6 +104,18 @@ enum Drop {
         var title: String
         var markdown: String
         var why: String
+
+        /// Small models drop or null fields; only the action is required
+        /// (a path and Markdown too, unless skipping: checked in `decide`).
+        init(from d: Decoder) throws {
+            let c = try d.container(keyedBy: CodingKeys.self)
+            action = try c.decode(String.self, forKey: .action)
+            path = (try? c.decodeIfPresent(String.self, forKey: .path)) ?? ""
+            title = (try? c.decodeIfPresent(String.self, forKey: .title)) ?? ""
+            markdown = (try? c.decodeIfPresent(String.self, forKey: .markdown)) ?? ""
+            why = (try? c.decodeIfPresent(String.self, forKey: .why)) ?? ""
+        }
+        enum CodingKeys: String, CodingKey { case action, path, title, markdown, why }
     }
 
     static let instructions = """
@@ -172,6 +184,9 @@ enum Drop {
         if f.action.lowercased() == "skip" {
             f.action = "skip"
             return Decision(filing: f, flags: [], stats: stats, reply: out.text)
+        }
+        if f.markdown.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            throw MacKBError("the model proposed \(f.action) \(f.path) but wrote nothing to save")
         }
         f = try validate(f)
         if f.title.trimmingCharacters(in: .whitespaces).isEmpty {

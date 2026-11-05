@@ -198,7 +198,7 @@ func runFilingEval(casesPath: String, label: String, outDir: URL, only: Set<Stri
             r.markdown = f.markdown
             r.flags = d.flags
             r.outputTokens = d.stats.outputTokens
-            r.actionOK = f.action == c.expect_action
+            r.actionOK = c.expect_action.split(separator: "|").contains { $0 == f.action }  // "append|new": either is right
             if c.expect_action == "skip" {
                 r.placeOK = r.actionOK
                 r.facts = r.actionOK ? 1 : 0
