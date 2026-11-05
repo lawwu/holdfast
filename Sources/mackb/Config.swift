@@ -50,7 +50,7 @@ enum Config {
 
     /// Retrieval: reciprocal-rank-fusion constant and how many chunks go to the LLM.
     static let rrfK: Double = 60
-    static let contextChunks = 12
+    static let contextChunks = 8
 
     /// Q&A sampling for Qwen 3.8 with thinking off, per its model card.
     static let temperature = 0.7

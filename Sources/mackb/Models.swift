@@ -2,6 +2,7 @@ import Foundation
 import MLX
 import MLXEmbedders
 import MLXLLM
+import MLXRerankers
 import MLXHuggingFace
 import MLXLMCommon
 import Tokenizers
@@ -48,6 +49,57 @@ final class Embedder: @unchecked Sendable {
             return out
         }
     }
+}
+
+// MARK: - Reranker: Qwen3-Reranker-0.6B 4-bit in-process (oss-best-practices.md #1)
+
+final class Reranker: @unchecked Sendable {
+    let container: RerankerContainer
+    nonisolated(unsafe) private static var cached: Reranker?
+    nonisolated(unsafe) private static var tried = false
+
+    /// Instruction-aware reranking adds a few points for Qwen3-Reranker.
+    static let instruction = "Given a biblical counselor's question, judge whether this passage from their counseling materials or case reports answers it"
+
+    static var modelDir: URL? {
+        if let p = ProcessInfo.processInfo.environment["MACKB_RERANK_DIR"] { return URL(fileURLWithPath: p) }
+        let snaps = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".cache/huggingface/hub/models--mlx-community--Qwen3-Reranker-0.6B-4bit/snapshots")
+        guard let s = try? FileManager.default.contentsOfDirectory(atPath: snaps.path).sorted().last else { return nil }
+        return snaps.appendingPathComponent(s)
+    }
+
+    /// Loaded once; nil (keyword + vector only) if missing or MACKB_RERANK=0.
+    static func shared() async -> Reranker? {
+        if tried { return cached }
+        tried = true
+        guard ProcessInfo.processInfo.environment["MACKB_RERANK"] != "0", let dir = modelDir else { return nil }
+        do {
+            let c = try await RerankerModelFactory.shared.loadContainer(
+                from: dir, using: #huggingFaceTokenizerLoader(), allowUnverifiedModel: true)
+            cached = Reranker(container: c)
+        } catch {
+            log("reranker unavailable: \(error)")
+        }
+        return cached
+    }
+
+    private init(container: RerankerContainer) { self.container = container }
+
+    /// Relevance 0…1 for each document, in the order given.
+    func score(query: String, documents: [String]) async throws -> [Double] {
+        guard !documents.isEmpty else { return [] }
+        let r = try await container.scores(query: query, documents: documents, instruction: Self.instruction)
+        var out = Array(repeating: 0.0, count: documents.count)
+        for x in r.results where x.index < out.count { out[x.index] = x.score }
+        return out
+    }
+}
+
+/// Several models share unified memory (27B LLM, embedder, reranker, Parakeet):
+/// cap MLX's buffer cache so freed memory goes back to the system.
+func configureMLXMemory() {
+    Memory.cacheLimit = 2 << 30  // 2 GB
 }
 
 // MARK: - LLM backend

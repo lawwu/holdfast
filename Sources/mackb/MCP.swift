@@ -79,7 +79,7 @@ final class MCPServer {
         switch name {
         case "search":
             let q = a["query"] as? String ?? ""
-            let hits = try await search(q, embedder: await getEmbedder(), limit: a["limit"] as? Int ?? 8)
+            let hits = try await search(q, embedder: await getEmbedder(), reranker: await Reranker.shared(), limit: a["limit"] as? Int ?? 8)
             if hits.isEmpty { return text("No matches.") }
             return text(hits.enumerated().map { i, c in "[\(i + 1)] \(citation(c))\n\(c.text)" }.joined(separator: "\n\n---\n\n"))
         case "get_note":

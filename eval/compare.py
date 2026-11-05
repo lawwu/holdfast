@@ -27,13 +27,21 @@ for q in qids:
     print(f"| {q}: {first['question'][:70]} | {first['kind']} | " + " | ".join(cells) + " |")
 
 print()
-print("| Run | Facts found | Retrieval recall | Cited | Gen tok/s | Median s/answer | Total min |")
+print("| Run | Facts found | Context recall | Cited | Gen tok/s | Median s/answer | Total min |")
 print("| --- | --- | --- | --- | --- | --- | --- |")
 for lab, rs in runs.items():
     facts = statistics.mean(r["facts"] for r in rs)
-    rec = [r["recall"] for r in rs if r.get("recall") is not None]
+    # Context recall: share of expected facts present in the passages the model saw.
+    # Older runs only have session-level "recall"; fall back to it, marked with *.
+    rec = [r["contextRecall"] for r in rs if r.get("contextRecall") is not None]
+    star = ""
+    if not rec:
+        rec = [r["recall"] for r in rs if r.get("recall") is not None]
+        star = "*"
     out = sum(r["outputTokens"] for r in rs)
     gen = sum(r["outputTokens"] / max(r["tokPerSec"], 1e-3) for r in rs)
     secs = [r["seconds"] for r in rs]
-    print(f"| {lab} | {facts*100:.0f}% | {statistics.mean(rec)*100:.0f}% | {sum(r['cited'] for r in rs)}/{len(rs)} "
+    print(f"| {lab} | {facts*100:.0f}% | {statistics.mean(rec)*100:.0f}%{star} | {sum(r['cited'] for r in rs)}/{len(rs)} "
           f"| {out/gen:.1f} | {statistics.median(secs):.0f} | {sum(secs)/60:.1f} |")
+print()
+print("* session-level recall (the run predates context recall), which overstates retrieval.")
