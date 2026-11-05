@@ -1,3 +1,4 @@
+import Hub
 import Foundation
 import MLX
 import MLXEmbedders
@@ -71,6 +72,7 @@ final class Reranker: @unchecked Sendable {
 
     /// Loaded once; nil (keyword + vector only) if missing or MACKB_RERANK=0.
     static func shared() async -> Reranker? {
+        guard Prefs.rerankerOn else { return nil }
         if tried { return cached }
         tried = true
         guard ProcessInfo.processInfo.environment["MACKB_RERANK"] != "0", let dir = modelDir else { return nil }
@@ -167,33 +169,54 @@ final class MLXBackend: LLMBackend, @unchecked Sendable {
     let loadSeconds: Double
     nonisolated(unsafe) private static var cached: MLXBackend?
 
-    /// Default: mlx-community/Qwen3.8-27B-4bit from the HF cache. Override with MACKB_MLX_DIR.
-    static var modelDir: URL? {
+    /// Which repo to run: MACKB_MLX_REPO, else the Settings choice.
+    static var currentRepo: String { ProcessInfo.processInfo.environment["MACKB_MLX_REPO"] ?? Prefs.mlxRepo }
+    nonisolated(unsafe) private(set) static var loadedRepo: String?
+
+    /// MACKB_MLX_DIR wins; then the Hugging Face cache; then the app's own downloads.
+    static func modelDir(repo: String = currentRepo) -> URL? {
         if let p = ProcessInfo.processInfo.environment["MACKB_MLX_DIR"] { return URL(fileURLWithPath: p) }
-        let repo = ProcessInfo.processInfo.environment["MACKB_MLX_REPO"] ?? "mlx-community/Qwen3.8-27B-4bit"
         let snaps = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent(".cache/huggingface/hub/models--\(repo.replacingOccurrences(of: "/", with: "--"))/snapshots")
-        guard let s = try? FileManager.default.contentsOfDirectory(atPath: snaps.path).sorted().last else { return nil }
-        return snaps.appendingPathComponent(s)
+        if let s = try? FileManager.default.contentsOfDirectory(atPath: snaps.path).sorted().last {
+            let d = snaps.appendingPathComponent(s)
+            if FileManager.default.fileExists(atPath: d.appendingPathComponent("config.json").path) { return d }
+        }
+        let own = Prefs.modelsDir.appendingPathComponent("models/\(repo)")
+        let done = own.appendingPathComponent(".complete")
+        return FileManager.default.fileExists(atPath: done.path) ? own : nil
     }
 
     static var isLoaded: Bool { cached != nil }
 
-    /// Drop the model so its ~16 GB can be reclaimed (reloads on next use).
+    /// Drop the model so its memory can be reclaimed (reloads on next use).
     static func unload() {
         cached = nil
+        loadedRepo = nil
         Memory.clearCache()
     }
 
+    /// Download an MLX repo into the app's models folder. `progress` gets 0…1.
+    static func download(repo: String, progress: @escaping @Sendable (Double) -> Void) async throws {
+        let hub = HubApi(downloadBase: Prefs.modelsDir, cache: nil)
+        let dir = try await hub.snapshot(from: repo, matching: ["*.json", "*.safetensors", "*.jinja", "*.txt", "*.model"]) { p in
+            progress(p.fractionCompleted)
+        }
+        FileManager.default.createFile(atPath: dir.appendingPathComponent(".complete").path, contents: Data())
+    }
+
     static func shared() async throws -> MLXBackend {
-        if let c = cached { return c }
-        guard let dir = modelDir else { throw MacKBError("MLX model not found in the HF cache") }
+        let repo = currentRepo
+        if let c = cached, loadedRepo == repo { return c }
+        if cached != nil { unload() }  // switching models: free the old one first
+        guard let dir = modelDir(repo: repo) else { throw MacKBError("\(repo) is not downloaded; download it in Settings") }
         let t0 = Date()
-        log("loading \(dir.path.components(separatedBy: "models--").last ?? "") with MLX…")
+        log("loading \(repo) with MLX…")
         let c = try await LLMModelFactory.shared.loadContainer(from: dir, using: #huggingFaceTokenizerLoader())
         let b = MLXBackend(container: c, loadSeconds: Date().timeIntervalSince(t0))
         log(String(format: "loaded in %.1fs", b.loadSeconds))
         cached = b
+        loadedRepo = repo
         return b
     }
 

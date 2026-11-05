@@ -43,26 +43,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 enum Pane: String, CaseIterable, Identifiable {
-    case ask = "Ask", library = "Library", inbox = "Inbox"
+    case ask = "Ask", history = "History", library = "Library", inbox = "Inbox"
     var id: String { rawValue }
     var icon: String {
         switch self {
         case .ask: return "bubble.left.and.text.bubble.right"
+        case .history: return "clock.arrow.circlepath"
         case .library: return "books.vertical"
         case .inbox: return "tray"
         }
     }
 }
 
+/// Where answers are generated: an MLX model inside the app (which one is
+/// `Store.mlxRepo`), or the Ollama server.
 enum Backend: String, CaseIterable, Identifiable {
     case mlx = "Qwen 3.8 27B · MLX (in app)"
     case ollama = "Qwen 3.8 27B · Ollama"
     var id: String { rawValue }
-    var short: String { self == .mlx ? "Qwen 27B · MLX" : "Qwen 27B · Ollama" }
-    var detail: String { self == .mlx ? "Runs inside the app" : "Uses the local Ollama server" }
 }
 
-struct AnswerStats {
+struct AnswerStats: Codable {
     var passages: Int
     var tokens: Int
     var tokPerSec: Double
@@ -94,7 +95,19 @@ final class Store: ObservableObject {
     @Published var opened: Opened?
     @Published var searchText = ""
     @Published var results: [Chunk] = []
-    @Published var backend: Backend = .mlx
+    @Published var backend: Backend = .mlx {
+        didSet { UserDefaults.standard.set(backend.rawValue, forKey: "backend") }
+    }
+    @Published var mlxRepo = Prefs.mlxRepo { didSet { Prefs.mlxRepo = mlxRepo } }
+    @Published var rerankerOn = Prefs.rerankerOn { didSet { Prefs.rerankerOn = rerankerOn } }
+    @Published var transcription = Prefs.transcription { didSet { Prefs.transcription = transcription } }
+    /// In-flight model downloads: repo → fraction done.
+    @Published var downloads: [String: Double] = [:]
+    @Published var downloadErrors: [String: String] = [:]
+    @Published var history: [HistoryEntry] = []
+    /// The history entry on screen in Ask, if any.
+    @Published var currentHistoryId: UUID?
+    @Published var historySearch = ""
     @Published var showLinkSheet = false
     @Published var linkText = ""
     @Published var indexCounts = (chunks: 0, notes: 0, vectors: 0)
@@ -118,6 +131,41 @@ final class Store: ObservableObject {
         notes = allNotes()
         inboxItems = inbox()
         indexCounts = (try? Index().count()) ?? (0, 0, 0)
+        history = History.load()
+    }
+
+    // MARK: models
+
+    /// Short label for the model answering now, e.g. "Qwen 3.8 27B · 4-bit".
+    var modelLabel: String {
+        if backend == .ollama { return "Qwen 3.8 27B · Ollama" }
+        guard let spec = MLXModelSpec.find(mlxRepo) else { return mlxRepo.components(separatedBy: "/").last ?? mlxRepo }
+        return "\(spec.name) · \(spec.detail)"
+    }
+
+    func isDownloaded(_ repo: String) -> Bool { MLXBackend.modelDir(repo: repo) != nil }
+
+    func selectMLX(_ repo: String) {
+        guard isDownloaded(repo) else { return }
+        mlxRepo = repo
+        backend = .mlx
+    }
+
+    func download(_ spec: MLXModelSpec) {
+        guard downloads[spec.repo] == nil else { return }
+        downloads[spec.repo] = 0
+        downloadErrors[spec.repo] = nil
+        let repo = spec.repo
+        Task {
+            do {
+                try await MLXBackend.download(repo: repo) { f in
+                    Task { @MainActor in if self.downloads[repo] != nil { self.downloads[repo] = f } }
+                }
+            } catch {
+                downloadErrors[repo] = "\(error)"
+            }
+            downloads[repo] = nil
+        }
     }
 
     private func getEmbedder() async -> Embedder? {
@@ -129,11 +177,12 @@ final class Store: ObservableObject {
     }
 
     private func getLLM() async throws -> LLMBackend {
-        UserDefaults.standard.set(backend.rawValue, forKey: "backend")
         switch backend {
         case .ollama: return OllamaBackend()
         case .mlx:
-            busy = "Loading Qwen 3.8 27B into memory (first question only)…"
+            if !(MLXBackend.isLoaded && MLXBackend.loadedRepo == mlxRepo) {
+                busy = "Loading \(modelLabel) into memory…"
+            }
             return try await MLXBackend.shared()
         }
     }
@@ -148,6 +197,8 @@ final class Store: ObservableObject {
         error = nil
         askedQuestion = q
         question = ""
+        currentHistoryId = nil
+        let model = modelLabel
         Task {
             do {
                 let emb = await getEmbedder()
@@ -164,6 +215,10 @@ final class Store: ObservableObject {
                 if !a.badCitations.isEmpty {
                     warning = "The answer cites passages that don't exist: " + a.badCitations.map { "[\($0)]" }.joined(separator: ", ")
                 }
+                let entry = HistoryEntry(question: q, answer: a.text, model: model, stats: answerStats!, sources: a.sources)
+                history.insert(entry, at: 0)
+                currentHistoryId = entry.id
+                History.save(history)
             } catch {
                 self.error = "\(error)"
             }
@@ -176,8 +231,29 @@ final class Store: ObservableObject {
         runAsk()
     }
 
+    // MARK: history
+
+    func openHistory(_ e: HistoryEntry) {
+        guard busy == nil else { return }
+        askedQuestion = e.question
+        answer = e.answer
+        sources = e.sources.map(\.chunk)
+        answerStats = e.stats
+        warning = nil
+        error = nil
+        currentHistoryId = e.id
+        pane = .ask
+    }
+
+    func deleteHistory(_ e: HistoryEntry) {
+        history.removeAll { $0.id == e.id }
+        History.save(history)
+        if currentHistoryId == e.id { newQuestion() }
+    }
+
     func newQuestion() {
         guard busy == nil else { return }
+        currentHistoryId = nil
         answer = ""
         sources = []
         answerStats = nil
@@ -280,6 +356,8 @@ final class Store: ObservableObject {
         vault = u
         UserDefaults.standard.set(u.path, forKey: "vault")
         opened = nil
+        currentHistoryId = nil
+        askedQuestion = ""
         answer = ""
         sources = []
         results = []
