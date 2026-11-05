@@ -786,28 +786,75 @@ struct InboxView: View {
     @EnvironmentObject var store: Store
 
     var body: some View {
-        Group {
-            if store.inboxItems.isEmpty {
-                EmptyState(icon: "tray", title: "All caught up",
-                           message: "Memories that agents (like Claude Code over MCP) propose to save wait here for your approval.")
-            } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Agents asked to remember \(store.inboxItems.count == 1 ? "this" : "these"). Nothing is saved until you approve.")
-                            .font(.callout).foregroundStyle(.secondary)
-                        ForEach(store.inboxItems, id: \.path) { n in InboxCard(note: n) }
-                    }
-                    .padding(20)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                DropZone()
+                if store.inboxItems.isEmpty {
+                    EmptyState(icon: "tray", title: "All caught up",
+                               message: Config.inPlace
+                               ? "Files you drop are read by the model, which proposes where each belongs. Proposals, and memories agents ask to save, wait here for your approval."
+                               : "Memories that agents (like Claude Code over MCP) propose to save wait here for your approval.")
+                        .frame(minHeight: 260)
+                } else {
+                    Text("Nothing is written until you approve.")
+                        .font(.callout).foregroundStyle(.secondary)
+                    ForEach(store.inboxItems, id: \.path) { n in InboxCard(note: n) }
                 }
             }
+            .padding(20)
         }
         .navigationTitle("Inbox")
+    }
+}
+
+/// Drop files here, or into the drop folder in Finder; the app files them.
+struct DropZone: View {
+    @EnvironmentObject var store: Store
+    @State private var targeted = false
+
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 12) {
+                Image(systemName: store.dropStatus == nil ? "tray.and.arrow.down.fill" : "gearshape.2.fill")
+                    .font(.system(size: 26)).foregroundStyle(Theme.accent)
+                    .symbolEffect(.pulse, isActive: store.dropStatus != nil)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(store.dropStatus ?? "Drop files to add them to the vault").font(.headline)
+                    Text(Config.inPlace
+                         ? "PDFs, Word, Markdown, images (read on-device), recordings. The model proposes a note or a log entry; you approve it below."
+                         : "Documents and recordings are imported as sources and indexed.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button("Open Drop Folder") { store.revealDrop() }.buttonStyle(.bordered)
+            }
+            ForEach(store.dropErrors, id: \.self) { e in
+                ErrorBanner(text: e, color: .orange, icon: "exclamationmark.triangle.fill")
+            }
+            if !store.dropErrors.isEmpty {
+                Button("Clear") { store.dropErrors = [] }.buttonStyle(.link).frame(maxWidth: .infinity, alignment: .trailing)
+            }
+        }
+        .padding(16)
+        .background(RoundedRectangle(cornerRadius: 14).fill(Theme.accent.opacity(targeted ? 0.14 : 0.05)))
+        .overlay(RoundedRectangle(cornerRadius: 14)
+            .strokeBorder(Theme.accent.opacity(targeted ? 0.9 : 0.35), style: StrokeStyle(lineWidth: 1.5, dash: [6, 4])))
+        .onDrop(of: [.fileURL], isTargeted: $targeted) { providers in
+            for p in providers {
+                _ = p.loadObject(ofClass: URL.self) { url, _ in
+                    if let url { Task { @MainActor in store.addToDrop([url]) } }
+                }
+            }
+            return true
+        }
     }
 }
 
 struct InboxCard: View {
     @EnvironmentObject var store: Store
     var note: Note
+
+    var isFiling: Bool { note.meta["kind"] == "filing" }
 
     var preview: String {
         note.body.split(separator: "\n").filter { !$0.hasPrefix("#") }.joined(separator: " ")
@@ -816,7 +863,7 @@ struct InboxCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
-                KindTile(kind: "memory", size: 30)
+                KindTile(kind: isFiling ? "document" : "memory", size: 30)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(note.title).font(.headline)
                     Text("Proposed by \(note.meta["proposed_by"] ?? "an agent")\(note.meta["proposed"].map { " · \($0)" } ?? "")")
@@ -824,17 +871,51 @@ struct InboxCard: View {
                 }
                 Spacer()
             }
+            if isFiling, let target = note.meta["target"] {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label {
+                        Text(note.meta["action"] == "append" ? "Append to " : "New note ")
+                            + Text(target).font(.callout.monospaced()).foregroundColor(Theme.accent)
+                    } icon: {
+                        Image(systemName: note.meta["action"] == "append" ? "text.append" : "doc.badge.plus")
+                    }
+                    .font(.callout)
+                    if let why = note.meta["why"] { Text(why).font(.caption).foregroundStyle(.secondary) }
+                    if let o = note.meta["original"] {
+                        Text("From \(o)").font(.caption).foregroundStyle(.tertiary)
+                    }
+                }
+            }
             if let f = note.meta["privacy_flags"] {
                 ErrorBanner(text: f, color: .orange, icon: "exclamationmark.shield.fill")
             }
-            Text(preview).font(.callout).lineLimit(5).foregroundStyle(.primary.opacity(0.85))
+            if isFiling {
+                ScrollView {
+                    Text(note.body.trimmingCharacters(in: .whitespacesAndNewlines))
+                        .font(.callout.monospaced()).textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(maxHeight: 220)
+                .padding(10)
+                .background(RoundedRectangle(cornerRadius: 8).fill(.quaternary.opacity(0.5)))
+            } else {
+                Text(preview).font(.callout).lineLimit(5).foregroundStyle(.primary.opacity(0.85))
+            }
             HStack(spacing: 8) {
-                Button { store.approveItem(note) } label: { Label("Approve", systemImage: "checkmark") }
+                Button { store.approveItem(note) } label: { Label(isFiling ? "File It" : "Approve", systemImage: "checkmark") }
                     .buttonStyle(.borderedProminent).tint(.green)
                 Button(role: .destructive) { store.rejectItem(note) } label: { Label("Reject", systemImage: "xmark") }
                     .buttonStyle(.bordered)
                 Spacer()
-                Button("Open") { store.opened = Opened(note: note, anchor: nil) }.buttonStyle(.link)
+                if isFiling, let o = note.meta["original"] {
+                    Button("Show Original") {
+                        NSWorkspace.shared.activateFileViewerSelecting([Drop.filedDir.appendingPathComponent(o)])
+                    }.buttonStyle(.link)
+                }
+                Button(isFiling ? "Edit" : "Open") {
+                    if isFiling { store.editing = true }
+                    store.opened = Opened(note: note, anchor: nil)
+                }.buttonStyle(.link)
             }
             .controlSize(.regular)
         }

@@ -68,8 +68,14 @@ func formatSources(_ a: Answer) -> String {
 
 /// Cheap privacy lint for anything an agent proposes to save: likely full
 /// names, emails and phone numbers. The counselor sees the flags before approving.
-func privacyFlags(_ text: String) -> [String] {
+func privacyFlags(_ text: String, names: Bool = true) -> [String] {
     var flags: [String] = []
+    if text.range(of: #"[\w.+-]+@[\w-]+\.[\w.]+"#, options: .regularExpression) != nil { flags.append("email address") }
+    if text.range(of: #"\(?\d{3}\)?[ .-]\d{3}[ .-]\d{4}"#, options: .regularExpression) != nil { flags.append("phone number") }
+    // Long digit runs (account, card, member or policy numbers); dates and money don't match.
+    let undated = text.replacingOccurrences(of: #"\b\d{4}-\d{2}-\d{2}\b"#, with: " ", options: .regularExpression)
+    if undated.range(of: #"\b(?:\d[ -]?){8,}\b"#, options: .regularExpression) != nil { flags.append("long number (account or id?)") }
+    guard names else { return Array(Set(flags)).sorted() }
     let name = try! NSRegularExpression(pattern: #"\b([A-Z][a-z]{2,})\s+([A-Z][a-z]{2,})\b"#)
     let allow: Set<String> = ["Holy Spirit", "Jesus Christ", "Old Testament", "New Testament", "Lord Jesus",
                               "Put Off", "Put On", "Inner Man", "Heart Map", "Phase Three", "Case Study"]
@@ -82,8 +88,6 @@ func privacyFlags(_ text: String) -> [String] {
         flags.append("possible name: \"\(s)\"")
     }
     flags += nameTaggerFlags(text)
-    if text.range(of: #"[\w.+-]+@[\w-]+\.[\w.]+"#, options: .regularExpression) != nil { flags.append("email address") }
-    if text.range(of: #"\(?\d{3}\)?[ .-]\d{3}[ .-]\d{4}"#, options: .regularExpression) != nil { flags.append("phone number") }
     return Array(Set(flags)).sorted()
 }
 
@@ -129,6 +133,11 @@ func inbox() -> [Note] { allNotes(in: [Config.inboxDir]) }
 
 func approve(_ id: String) throws -> Note {
     guard let n = inbox().first(where: { $0.id == id }) else { throw MacKBError("no inbox item \(id)") }
+    if n.meta["kind"] == "filing" {  // a dropped file: write it where the model proposed
+        let dest = try Drop.apply(n)
+        try FileManager.default.removeItem(at: n.path)
+        return (try? Note.read(dest)) ?? Note(path: dest, meta: [:], body: "")
+    }
     var m = n
     m.meta["approved"] = ISO8601DateFormatter.string(from: Date(), timeZone: TimeZone(identifier: "America/Los_Angeles")!, formatOptions: [.withFullDate])
     m.path = Config.memoryDir.appendingPathComponent(n.path.lastPathComponent)

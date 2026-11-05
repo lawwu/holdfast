@@ -25,6 +25,7 @@ struct MacKBApp: App {
                 Button("Import Files or Folder…") { store.importFiles() }.keyboardShortcut("i")
                 Button("Add Link…") { store.showLinkSheet = true }.keyboardShortcut("l")
                 Button("Rebuild Index") { store.rebuildIndex() }
+                Button("Open Drop Folder") { store.revealDrop() }.keyboardShortcut("d", modifiers: [.command, .shift])
                 Divider()
                 Button("Choose Vault…") { store.chooseVault() }
             }
@@ -135,6 +136,11 @@ final class Store: ObservableObject {
     @Published var showLinkSheet = false
     @Published var linkText = ""
     @Published var indexCounts = (chunks: 0, notes: 0, vectors: 0)
+    /// The drop folder: what is being filed now, and files that failed.
+    @Published var dropStatus: String?
+    @Published var dropErrors: [String] = []
+    private var dropTimer: Timer?
+    private var filing = false
 
     private var embedder: Embedder?
     let player = AVPlayer()
@@ -147,6 +153,9 @@ final class Store: ObservableObject {
         }
         if let b = UserDefaults.standard.string(forKey: "backend"), let v = Backend(rawValue: b) { backend = v }
         reload()
+        dropTimer = Timer.scheduledTimer(withTimeInterval: Drop.pollSeconds, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.fileDropped() }
+        }
     }
 
     func reload() {
@@ -468,6 +477,48 @@ final class Store: ObservableObject {
 
     func rebuildIndex() { Task { await indexNow() } }
 
+    // MARK: drop folder
+
+    func revealDrop() {
+        Drop.ensure()
+        NSWorkspace.shared.activateFileViewerSelecting([Drop.dir])
+    }
+
+    /// Files dropped on the window go into the drop folder, then get filed.
+    func addToDrop(_ urls: [URL]) {
+        do { try Drop.add(urls) } catch { self.error = "\(error)" }
+        fileDropped()
+    }
+
+    /// Files whatever is waiting in the drop folder, one at a time, when the
+    /// model is free (an answer in progress goes first).
+    func fileDropped() {
+        guard !filing, busy == nil else { return }
+        let files = Drop.pending()
+        guard !files.isEmpty else { return }
+        filing = true
+        Task {
+            for u in files {
+                dropStatus = "Reading \(u.lastPathComponent)…"
+                do {
+                    let emb = await getEmbedder()
+                    let llm: LLMBackend? = Config.inPlace ? try await getLLM() : nil
+                    dropStatus = Config.inPlace ? "Deciding where \(u.lastPathComponent) belongs…" : "Importing \(u.lastPathComponent)…"
+                    busy = dropStatus
+                    _ = try await Drop.process(u, embedder: emb, llm: llm, model: modelLabel)
+                } catch let e as AlreadyFiled {
+                    dropErrors.append("Skipped \(u.lastPathComponent): \(e)")
+                } catch {
+                    dropErrors.append("\(u.lastPathComponent): \(error)")
+                }
+                busy = nil
+            }
+            dropStatus = nil
+            filing = false
+            if Config.inPlace { reload() } else { await indexNow() }
+        }
+    }
+
     private func indexNow() async {
         let emb = await getEmbedder()
         busy = "Indexing…"
@@ -497,7 +548,10 @@ final class Store: ObservableObject {
     // MARK: inbox
 
     func approveItem(_ n: Note) {
-        do { _ = try approve(n.id) } catch { self.error = "\(error)" }
+        do {
+            let saved = try approve(n.id)
+            if n.meta["kind"] == "filing" { opened = Opened(note: saved, anchor: nil) }
+        } catch { self.error = "\(error)" }
         reload()
         rebuildIndex()
     }

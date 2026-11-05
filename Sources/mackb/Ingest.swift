@@ -15,6 +15,8 @@ func extractText(_ url: URL) throws -> String {
     switch url.pathExtension.lowercased() {
     case "md", "markdown", "txt":
         return try String(contentsOf: url, encoding: .utf8)
+    case let e where imageExtensions.contains(e):
+        return try ocrImage(url)
     case "pdf":
         guard let doc = PDFDocument(url: url) else { throw MacKBError("can't open PDF \(url.lastPathComponent)") }
         var pages: [String] = []
