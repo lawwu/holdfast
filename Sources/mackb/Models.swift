@@ -59,8 +59,8 @@ final class Reranker: @unchecked Sendable {
     nonisolated(unsafe) private static var cached: Reranker?
     nonisolated(unsafe) private static var tried = false
 
-    /// Instruction-aware reranking adds a few points for Qwen3-Reranker.
-    static let instruction = "Given a biblical counselor's question, judge whether this passage from their counseling materials or case reports answers it"
+    // Instruction-aware reranking adds a few points for Qwen3-Reranker; the
+    // instruction comes from the vault's profile (Profile.swift).
 
     static var modelDir: URL? {
         if let p = ProcessInfo.processInfo.environment["MACKB_RERANK_DIR"] { return URL(fileURLWithPath: p) }
@@ -91,7 +91,7 @@ final class Reranker: @unchecked Sendable {
     /// Relevance 0…1 for each document, in the order given.
     func score(query: String, documents: [String]) async throws -> [Double] {
         guard !documents.isEmpty else { return [] }
-        let r = try await container.scores(query: query, documents: documents, instruction: Self.instruction)
+        let r = try await container.scores(query: query, documents: documents, instruction: Profile.vaultDefault.rerankInstruction)
         var out = Array(repeating: 0.0, count: documents.count)
         for x in r.results where x.index < out.count { out[x.index] = x.score }
         return out

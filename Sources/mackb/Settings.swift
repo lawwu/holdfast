@@ -249,6 +249,14 @@ struct VaultSettings: View {
             .padding(12)
             .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.card))
             .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Color.primary.opacity(0.08)))
+            Text(Config.inPlace
+                 ? "Indexed in place: the app writes nothing into this folder. Its index, history, inbox and imports are in Application Support."
+                 : "Managed by the app: imports are copied into sources/, approved memories into memory/.")
+                .font(.caption).foregroundStyle(.secondary)
+            Picker("Profile", selection: $store.profile) {
+                ForEach(Profile.all, id: \.id) { Text($0.name).tag($0) }
+            }
+            .help("Sets the answer prompt, the reranker's instruction and the suggested questions. Folders named like ministry or counseling always use the counseling profile.")
             HStack(spacing: 16) {
                 Label("\(store.notes.count) notes", systemImage: "doc.on.doc")
                 Label("\(store.indexCounts.chunks) passages", systemImage: "text.alignleft")

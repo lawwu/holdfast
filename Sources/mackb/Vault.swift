@@ -28,10 +28,35 @@ struct Note {
     var meta: [String: String]
     var body: String
 
-    var id: String { path.deletingPathExtension().lastPathComponent }
-    var title: String { meta["title"] ?? id }
+    /// The vault-relative path without ".md": unique, unlike the file name
+    /// (an in-place vault has a README.md in every folder).
+    var id: String { String(relPath.dropLast(relPath.hasSuffix(".md") ? 3 : 0)) }
+    /// The file name without ".md".
+    var name: String { path.deletingPathExtension().lastPathComponent }
+    /// Frontmatter title, else the first H1, else the file name; a bare
+    /// "README" becomes its folder's name.
+    var title: String {
+        if let t = meta["title"] { return t }
+        if let h = body.split(separator: "\n").first(where: { $0.hasPrefix("# ") }) {
+            return h.dropFirst(2).trimmingCharacters(in: .whitespaces)
+        }
+        if name.lowercased() == "readme" { return path.deletingLastPathComponent().lastPathComponent }
+        return name
+    }
+    /// Path relative to the vault; files kept in an in-place vault's state
+    /// folder (imports, memories, inbox) are shown as "@sources/…" etc.
     var relPath: String {
-        path.path.replacingOccurrences(of: Config.vault.path + "/", with: "")
+        let p = path.standardizedFileURL.path
+        for (root, prefix) in [(Config.vault, ""), (Config.stateDir, "@")] {
+            let r = root.standardizedFileURL.path + "/"
+            if p.hasPrefix(r) { return prefix + String(p.dropFirst(r.count)) }
+        }
+        return p
+    }
+    /// Top-level folder, e.g. "health" for health/goals.md; nil at the root.
+    var domain: String? {
+        let parts = relPath.split(separator: "/")
+        return parts.count > 1 && !relPath.hasPrefix("@") ? String(parts[0]) : nil
     }
 
     static func read(_ url: URL) throws -> Note {
@@ -74,7 +99,41 @@ struct Note {
     }
 }
 
-func allNotes(in dirs: [URL] = [Config.sourcesDir, Config.memoryDir]) -> [Note] {
+/// Every note the index covers: the vault's own Markdown (in place) plus
+/// imports and approved memories.
+func allNotes() -> [Note] {
+    var out = Config.inPlace ? vaultMarkdown().compactMap { try? Note.read($0) } : []
+    out += allNotes(in: [Config.sourcesDir, Config.memoryDir])
+    return out.sorted { $0.relPath < $1.relPath }
+}
+
+/// Folders never indexed in an in-place vault: raw exports, dependencies.
+let skippedFolders = ["node_modules", ".git", ".obsidian", ".trash"]
+
+/// Markdown files in an in-place vault. In a git repo, what git tracks or
+/// would track (so .gitignore'd raw exports stay out); elsewhere, a walk that
+/// skips hidden folders. Folders ending in "-raw" are skipped either way.
+func vaultMarkdown() -> [URL] {
+    let root = Config.vault
+    func keep(_ rel: String) -> Bool {
+        !rel.split(separator: "/").dropLast().contains { $0.hasPrefix(".") || $0.hasSuffix("-raw") || skippedFolders.contains(String($0)) }
+    }
+    if FileManager.default.fileExists(atPath: root.appendingPathComponent(".git").path),
+       let list = try? run("/usr/bin/git", ["-C", root.path, "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.md"]) {
+        return list.split(separator: "\0").map(String.init).filter(keep).map { root.appendingPathComponent($0) }
+            .filter { FileManager.default.fileExists(atPath: $0.path) }
+    }
+    var out: [URL] = []
+    guard let e = FileManager.default.enumerator(at: root, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]) else { return [] }
+    for case let u as URL in e {
+        let rel = String(u.path.dropFirst(root.path.count + 1))
+        if u.hasDirectoryPath, !keep(rel + "/x") { e.skipDescendants(); continue }
+        if u.pathExtension == "md" { out.append(u) }
+    }
+    return out
+}
+
+func allNotes(in dirs: [URL]) -> [Note] {
     var out: [Note] = []
     for d in dirs {
         guard let e = FileManager.default.enumerator(at: d, includingPropertiesForKeys: nil) else { continue }
@@ -85,11 +144,12 @@ func allNotes(in dirs: [URL] = [Config.sourcesDir, Config.memoryDir]) -> [Note] 
     return out.sorted { $0.path.path < $1.path.path }
 }
 
+/// Look a note up by id ("health/goals"), vault path ("health/goals.md"),
+/// or bare file name ("goals", as older ids and history entries used).
 func findNote(_ idOrPath: String) -> Note? {
-    let key = idOrPath.replacingOccurrences(of: ".md", with: "")
-    return allNotes(in: [Config.sourcesDir, Config.memoryDir, Config.inboxDir]).first {
-        $0.id == key || $0.relPath == idOrPath || $0.relPath == key + ".md"
-    }
+    let key = idOrPath.hasSuffix(".md") ? String(idOrPath.dropLast(3)) : idOrPath
+    let notes = allNotes() + allNotes(in: [Config.inboxDir])
+    return notes.first { $0.id == key } ?? notes.first { $0.name == key }
 }
 
 func transcriptNote(title: String, source: String, kind: String, duration: Double,

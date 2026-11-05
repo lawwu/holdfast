@@ -352,7 +352,8 @@ func planQuery(_ q: String, maxSession: Int?, sessionsOfKind: (String) -> [Int] 
     let spreadCues = ["across", "over the course", "throughout", "all sessions", "every session", "each session",
                       "which sessions", "in which session", "from the start", "start to the end", "beginning to the end",
                       "over time", "change from", "changed from", "over the sessions", "how has", "how have"]
-    plan.spread = plan.sessions.isEmpty && spreadCues.contains { lower.contains($0) }
+    // Spread selection groups by session, so it only makes sense with case reports.
+    plan.spread = maxSession != nil && plan.sessions.isEmpty && spreadCues.contains { lower.contains($0) }
     return plan
 }
 

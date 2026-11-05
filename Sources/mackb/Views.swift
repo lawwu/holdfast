@@ -133,6 +133,8 @@ struct RootView: View {
                 case .library: LibraryView()
                 case .inbox: InboxView()
                 case .history: HistoryView()
+                case .files: FilesView()
+                case .graph: GraphView()
                 }
             }
             .background(Theme.canvas)
@@ -155,9 +157,18 @@ struct RootView: View {
             }
         }
         .sheet(isPresented: $store.showLinkSheet) { LinkSheet() }
+        .sheet(isPresented: $store.showQuickOpen) { QuickOpen().environmentObject(store) }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            // Notes may have changed outside the app (Obsidian, Claude Code, git pull).
+            if !store.editing { store.reload() }
+        }
         .environment(\.openURL, OpenURLAction { url in
             if url.scheme == "mackb", let n = Int(url.lastPathComponent) {
                 store.openSource(n)
+                return .handled
+            }
+            if url.scheme == "mackb-note" || url.scheme == "mackb-rel" {
+                store.openLink(url, from: store.opened?.note)
                 return .handled
             }
             return .systemAction
@@ -303,19 +314,15 @@ struct AskView: View {
 
 struct AskHero: View {
     @EnvironmentObject var store: Store
-    let suggestions = [
-        ("list.bullet.clipboard", "What homework was assigned across the sessions?"),
-        ("arrow.triangle.2.circlepath", "How has the counselee's view of his anger changed?"),
-        ("book.closed", "Which memory verses were assigned, and when?"),
-        ("lightbulb", "What did I note I could have done better?"),
-    ]
+    var suggestions: [(String, String)] { store.profile.suggestions.map { ($0.icon, $0.text) } }
     var body: some View {
         ScrollView {
             VStack(spacing: 22) {
                 Spacer(minLength: 40)
                 AppMark(size: 56)
                 VStack(spacing: 6) {
-                    Text("Ask your case notes").font(.system(size: 26, weight: .semibold, design: .rounded))
+                    Text(store.profile == .counseling ? "Ask your case notes" : "Ask your knowledge base")
+                        .font(.system(size: 26, weight: .semibold, design: .rounded))
                     Text("Answers come only from the notes in this vault, and every claim cites its source.")
                         .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 }
@@ -543,7 +550,7 @@ struct Composer: View {
     var body: some View {
         VStack(spacing: 8) {
             HStack(alignment: .bottom, spacing: 10) {
-                TextField("Ask about your materials and case reports…", text: $store.question, axis: .vertical)
+                TextField(store.profile == .counseling ? "Ask about your materials and case reports…" : "Ask your knowledge base…", text: $store.question, axis: .vertical)
                     .textFieldStyle(.plain)
                     .font(.system(size: 14))
                     .lineLimit(1...6)
@@ -866,142 +873,6 @@ struct SearchFieldLike: View {
         .padding(.horizontal, 12).padding(.vertical, 9)
         .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.card))
         .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Color.primary.opacity(0.12)))
-    }
-}
-
-// MARK: - Note viewer
-
-struct NoteView: View {
-    @EnvironmentObject var store: Store
-    var opened: Opened
-
-    struct Block: Identifiable {
-        var id: Int
-        var text: String
-        var level: Int  // 0 = body, 1-3 = heading
-        var time: Double?
-    }
-
-    var blocks: [Block] {
-        var out: [Block] = []
-        for line in opened.note.body.split(separator: "\n").map(String.init) where !line.trimmingCharacters(in: .whitespaces).isEmpty {
-            var level = 0
-            var text = line
-            if line.hasPrefix("#") {
-                level = min(line.prefix(while: { $0 == "#" }).count, 3)
-                text = line.drop(while: { $0 == "#" }).trimmingCharacters(in: .whitespaces)
-            }
-            var time: Double?
-            if line.hasPrefix("["), line.count > 10, line.dropFirst(9).first == "]" { time = parseTime(String(line.dropFirst().prefix(8))) }
-            if line.hasPrefix("**"), line.count > 12 { time = parseTime(String(line.dropFirst(2).prefix(8))) }
-            out.append(Block(id: out.count, text: text, level: level, time: time))
-        }
-        // The title is shown in the header; drop a leading H1 that repeats it.
-        if let f = out.first, f.level == 1, f.text == opened.note.title { out.removeFirst() }
-        // ids double as array indices (the anchor highlight relies on it).
-        return out.enumerated().map { i, b in var b = b; b.id = i; return b }
-    }
-
-    func isAnchor(_ b: Block) -> Bool {
-        guard let a = opened.anchor, a != opened.note.title else { return false }
-        return (b.level > 0 && b.text == a) || b.text.hasPrefix("[\(a)]") || b.text.hasPrefix("**\(a)**")
-    }
-
-    var isRecording: Bool {
-        guard let src = opened.note.meta["source"] else { return false }
-        return ["recording", "video"].contains(opened.note.meta["kind"] ?? "") && FileManager.default.fileExists(atPath: src)
-    }
-
-    var metaChips: [String] {
-        var out: [String] = []
-        if let c = opened.note.meta["case"] { out.append(c) }
-        if let s = opened.note.meta["session"] { out.append("Session \(s)") }
-        if let k = opened.note.meta["session_kind"] { out.append(k) }
-        if let d = opened.note.meta["date"] { out.append(d) }
-        return out
-    }
-
-    var body: some View {
-        let bs = blocks
-        let anchorIdx = bs.firstIndex(where: isAnchor)
-        let kind = Theme.kind(of: opened.note)
-        ScrollViewReader { proxy in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack(spacing: 6) {
-                            Pill(text: Theme.label(kind).replacingOccurrences(of: "s$", with: "", options: .regularExpression),
-                                 icon: Theme.icon(kind), color: Theme.color(kind))
-                            ForEach(metaChips, id: \.self) { Pill(text: $0) }
-                        }
-                        Text(opened.note.title)
-                            .font(.system(size: 24, weight: .bold, design: .serif))
-                            .fixedSize(horizontal: false, vertical: true)
-                        if let t = opened.note.meta["tags"], !t.isEmpty, t != opened.note.meta["doc_type"] {
-                            Text(t).font(.caption).foregroundStyle(.secondary)
-                        }
-                    }
-                    .padding(.bottom, 8)
-                    .id(-1)
-                    Divider().padding(.bottom, 6)
-
-                    ForEach(bs) { b in
-                        let inAnchor = anchorIdx.map { i in b.id == i || (bs[i].level > 0 && b.id > i && !bs[(i + 1)...b.id].contains { $0.level > 0 }) } ?? false
-                        HStack(alignment: .firstTextBaseline, spacing: 8) {
-                            if let t = b.time, isRecording {
-                                Button { store.play(opened.note, at: t) } label: {
-                                    Image(systemName: "play.circle.fill").foregroundStyle(Theme.accent)
-                                }
-                                .buttonStyle(.plain).help("Play from here")
-                            }
-                            blockText(b)
-                            Spacer(minLength: 0)
-                        }
-                        .padding(.vertical, inAnchor ? 4 : 0)
-                        .padding(.leading, inAnchor ? 12 : 0)
-                        .padding(.trailing, inAnchor ? 8 : 0)
-                        .background(alignment: .leading) {
-                            if inAnchor {
-                                ZStack(alignment: .leading) {
-                                    Rectangle().fill(Theme.accent.opacity(0.08))
-                                    Rectangle().fill(Theme.gradient).frame(width: 3)
-                                }
-                            }
-                        }
-                        .id(b.id)
-                    }
-                }
-                .padding(.horizontal, 32).padding(.vertical, 28)
-                .frame(maxWidth: 760, alignment: .leading)
-                .frame(maxWidth: .infinity)
-                .textSelection(.enabled)
-            }
-            .onAppear { if let i = anchorIdx { proxy.scrollTo(i, anchor: .top) } }
-            .onChange(of: opened) { _, _ in
-                if let i = blocks.firstIndex(where: isAnchor) { withAnimation { proxy.scrollTo(i, anchor: .top) } }
-                else { proxy.scrollTo(-1, anchor: .top) }
-            }
-        }
-        .navigationTitle(opened.note.title)
-        .toolbar {
-            ToolbarItemGroup {
-                Button { NSWorkspace.shared.activateFileViewerSelecting([opened.note.path]) } label: {
-                    Label("Show in Finder", systemImage: "folder")
-                }
-                .help("Show the Markdown file in Finder")
-                Button { store.opened = nil } label: { Label("Close", systemImage: "xmark") }
-                    .help("Close the note")
-            }
-        }
-    }
-
-    @ViewBuilder func blockText(_ b: Block) -> some View {
-        switch b.level {
-        case 1: Text(b.text).font(.system(size: 20, weight: .bold, design: .serif)).padding(.top, 8)
-        case 2: Text(b.text).font(.system(size: 15, weight: .semibold)).padding(.top, 14)
-        case 3: Text(b.text).font(.system(size: 13.5, weight: .semibold)).foregroundStyle(.secondary).padding(.top, 8)
-        default: Text(inlineMarkdown(b.text)).font(.system(size: 14)).lineSpacing(4)
-        }
     }
 }
 
