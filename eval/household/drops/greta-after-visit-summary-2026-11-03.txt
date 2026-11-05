@@ -1,0 +1,22 @@
+ALDER CREEK PEDIATRICS — AFTER VISIT SUMMARY
+(SYNTHETIC TEST DOCUMENT)
+
+Patient: Greta Halvorsen     DOB: 03/02/2017
+Visit date: 11/03/2026       Provider: Priya Patel, MD
+Insurance: Northstar Health Plan   Member ID: NHP-88231457-02   Group: 55120
+MRN: 00418823
+
+Reason for visit: Sore throat and fever (101.4 F) since yesterday.
+
+Assessment:
+  - Streptococcal pharyngitis (strep throat). Rapid strep test POSITIVE.
+
+Plan:
+  - Amoxicillin 400 mg/5 mL, 6 mL by mouth twice daily for 10 days. Finish the whole course.
+  - Acetaminophen or ibuprofen for fever and pain.
+  - May return to school after 24 hours on antibiotics AND fever-free.
+  - Replace toothbrush after 48 hours on antibiotics.
+  - Call if not improving in 48-72 hours, rash, or trouble swallowing.
+
+Copay collected: $25.00 (Mastercard ending 2290)
+Next well visit: March 2027

@@ -1,0 +1,13 @@
+BARLOW PLUMBING
+(SYNTHETIC TEST DOCUMENT)
+
+Invoice #BP-7730
+Date of service: 10/03/2026
+Customer: Halvorsen, Juniper Lane, Alder Creek
+
+Kitchen faucet dripping at spout. Replaced faucet cartridge.
+  Service call ........ $95.00
+  Cartridge + labor ... $90.00
+  TOTAL ............... $185.00
+
+Paid by card ending 4417 on 10/03/2026.

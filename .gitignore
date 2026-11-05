@@ -3,3 +3,4 @@
 *.xcodeproj
 DerivedData/
 build/
+eval/household/run.log

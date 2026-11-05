@@ -87,7 +87,18 @@ func todayLine() -> String {
     let f = DateFormatter()
     f.timeZone = TimeZone(identifier: "America/Los_Angeles")
     f.dateFormat = "EEEE, MMMM d, yyyy"
-    return "Today is \(f.string(from: Date())) (America/Los_Angeles)."
+    return "Today is \(f.string(from: today())) (America/Los_Angeles)."
+}
+
+/// Now, or MACKB_TODAY (YYYY-MM-DD) so evals over a fixture give the same answers any day.
+func today() -> Date {
+    if let s = ProcessInfo.processInfo.environment["MACKB_TODAY"] {
+        let f = DateFormatter()
+        f.timeZone = TimeZone(identifier: "America/Los_Angeles")
+        f.dateFormat = "yyyy-MM-dd HH:mm"
+        if let d = f.date(from: s + " 12:00") { return d }
+    }
+    return Date()
 }
 
 /// Folder manuals: for an in-place vault, the README.md of the top-level

@@ -1,0 +1,588 @@
+[
+ {
+  "id": "h01",
+  "kind": "fact",
+  "domain": "finance",
+  "question": "Who insures our house, and when does the homeowners policy renew?",
+  "expect": [
+   "Cascade Mutual",
+   "2026-12-15|December 15|Dec\\.? 15"
+  ],
+  "sessions": [],
+  "paths": [
+   "finance/insurance.md"
+  ]
+ },
+ {
+  "id": "h02",
+  "kind": "fact",
+  "domain": "home",
+  "question": "When was the water heater replaced, who did it, and what did it cost?",
+  "expect": [
+   "2026-05-09|May 9",
+   "Barlow",
+   "\\$?1,?850"
+  ],
+  "sessions": [],
+  "paths": [
+   "home/maintenance-log.md",
+   "home/water-heater.md"
+  ]
+ },
+ {
+  "id": "h03",
+  "kind": "fact",
+  "domain": "home",
+  "question": "What size furnace filter do we use and how often should it be changed?",
+  "expect": [
+   "16 ?x ?25 ?x ?1",
+   "90 days|3 months|three months|quarter"
+  ],
+  "sessions": [],
+  "paths": [
+   "home/hvac.md"
+  ]
+ },
+ {
+  "id": "h04",
+  "kind": "fact",
+  "domain": "health",
+  "question": "What was Erik's LDL cholesterol at his June physical, and when should it be rechecked?",
+  "expect": [
+   "142",
+   "December|6 months|six months|2026-12"
+  ],
+  "sessions": [],
+  "paths": [
+   "health/visits/2026-06-04_erik_ridgeview-family-medicine.md"
+  ]
+ },
+ {
+  "id": "h05",
+  "kind": "fact",
+  "domain": "health",
+  "question": "What is Erik's weekly fitness goal?",
+  "expect": [
+   "3 runs|three runs",
+   "2 strength|two strength"
+  ],
+  "sessions": [],
+  "paths": [
+   "health/goals.md"
+  ]
+ },
+ {
+  "id": "h06",
+  "kind": "fact",
+  "domain": "life",
+  "question": "What problem did Soren have on the Glacier trip, and what do we plan to do about it next time?",
+  "expect": [
+   "car ?sick|motion ?sick",
+   "middle row|ginger"
+  ],
+  "sessions": [],
+  "paths": [
+   "life/trips/202607_glacier-camping/plan.md"
+  ]
+ },
+ {
+  "id": "h07",
+  "kind": "fact",
+  "domain": "life",
+  "question": "What oven temperature and bake time does the sheet-pan fajita recipe use?",
+  "expect": [
+   "425",
+   "22 ?min"
+  ],
+  "sessions": [],
+  "paths": [
+   "life/recipes/sheet-pan-chicken-fajitas.md"
+  ]
+ },
+ {
+  "id": "h08",
+  "kind": "fact",
+  "domain": "career",
+  "question": "What job was Erik offered, and by when does he have to answer?",
+  "expect": [
+   "regional director",
+   "2026-11-20|November 20|Nov\\.? 20"
+  ],
+  "sessions": [],
+  "paths": [
+   "career/notes.md"
+  ]
+ },
+ {
+  "id": "h09",
+  "kind": "fact",
+  "domain": "ministry",
+  "question": "What brought R.S. to counseling?",
+  "expect": [
+   "panic",
+   "retreat",
+   "pray"
+  ],
+  "sessions": [
+   1
+  ],
+  "paths": [
+   "ministry/counseling/rs/rs-session-01.md"
+  ]
+ },
+ {
+  "id": "h10",
+  "kind": "fact",
+  "domain": "ministry",
+  "question": "Which verse was R.S. asked to memorize after session 2, and what does it say?",
+  "expect": [
+   "Proverbs 29:25|Prov\\.? 29:25",
+   "snare"
+  ],
+  "sessions": [
+   2
+  ],
+  "paths": [
+   "ministry/counseling/rs/rs-session-02.md"
+  ]
+ },
+ {
+  "id": "h11",
+  "kind": "fact",
+  "domain": "ministry",
+  "question": "Who referred D.M. to counseling, and what does he do for work?",
+  "expect": [
+   "Pastor R",
+   "project manager",
+   "construction"
+  ],
+  "sessions": [
+   1
+  ],
+  "paths": [
+   "ministry/counseling/dm/dm-session-01.md"
+  ]
+ },
+ {
+  "id": "h12",
+  "kind": "fact",
+  "domain": "finance",
+  "question": "How much did we give to the Alder Creek Pregnancy Center this year, and when?",
+  "expect": [
+   "\\$?500",
+   "2026-04-12|April 12"
+  ],
+  "sessions": [],
+  "paths": [
+   "finance/giving.md"
+  ]
+ },
+ {
+  "id": "h13",
+  "kind": "fact",
+  "domain": "home",
+  "question": "What did the chimney inspection find?",
+  "expect": [
+   "crack",
+   "crown",
+   "spring|2027"
+  ],
+  "sessions": [],
+  "paths": [
+   "home/maintenance-log.md"
+  ]
+ },
+ {
+  "id": "h14",
+  "kind": "fact",
+  "domain": "life",
+  "question": "When is Greta's piano recital?",
+  "expect": [
+   "2026-11-21|November 21|Nov\\.? 21",
+   "2(:00)? ?(pm|p\\.m\\.)"
+  ],
+  "sessions": [],
+  "paths": [
+   "life/calendar.md"
+  ]
+ },
+ {
+  "id": "h15",
+  "kind": "synthesis",
+  "domain": "home",
+  "question": "What work has Barlow Plumbing done for us, and how much have we paid them in total?",
+  "expect": [
+   "water heater",
+   "faucet|cartridge",
+   "\\$?2,?035"
+  ],
+  "sessions": [],
+  "paths": [
+   "home/maintenance-log.md"
+  ]
+ },
+ {
+  "id": "h16",
+  "kind": "synthesis",
+  "domain": "finance",
+  "question": "What insurance gap do we have, what would it cost to close, and when are we supposed to decide?",
+  "expect": [
+   "umbrella",
+   "\\$?310",
+   "2026-12-01|December 1|Dec\\.? 1\\b"
+  ],
+  "sessions": [],
+  "paths": [
+   "finance/insurance.md",
+   "finance/open-items.md"
+  ]
+ },
+ {
+  "id": "h17",
+  "kind": "synthesis",
+  "domain": "health",
+  "question": "Which family members saw a doctor or dentist this year, and for what?",
+  "expect": [
+   "well-child|well child|check-?up",
+   "ear infection|otitis",
+   "wrist",
+   "cavity|filling"
+  ],
+  "sessions": [],
+  "paths": [
+   "health/README.md",
+   "health/visits/"
+  ]
+ },
+ {
+  "id": "h18",
+  "kind": "synthesis",
+  "domain": "life",
+  "question": "What still needs to be booked for the San Diego Christmas trip?",
+  "expect": [
+   "flight",
+   "minivan|rental|car",
+   "hotel|beach"
+  ],
+  "sessions": [],
+  "paths": [
+   "life/trips/202612_san-diego-christmas/plan.md",
+   "life/trips/README.md"
+  ]
+ },
+ {
+  "id": "h19",
+  "kind": "synthesis",
+  "domain": "ministry",
+  "question": "How has R.S.'s mother-in-law figured in her counseling so far?",
+  "expect": [
+   "E\\.S\\.|mother-in-law",
+   "Thanksgiving",
+   "(say|said|saying|tell) (her )?no|declin|not (to )?host"
+  ],
+  "sessions": [
+   1,
+   2,
+   3
+  ],
+  "paths": [
+   "ministry/counseling/rs/rs-session-01.md",
+   "ministry/counseling/rs/rs-session-02.md",
+   "ministry/counseling/rs/rs-session-03.md"
+  ]
+ },
+ {
+  "id": "h20",
+  "kind": "synthesis",
+  "domain": "ministry",
+  "question": "Which verses was D.M. asked to memorize over the course of counseling?",
+  "expect": [
+   "James 1:19",
+   "Ephesians 4:31|Eph\\.? 4:31",
+   "Proverbs 16:32|Prov\\.? 16:32"
+  ],
+  "sessions": [
+   2,
+   4,
+   6
+  ],
+  "paths": [
+   "ministry/counseling/dm/dm-session-02.md",
+   "ministry/counseling/dm/dm-session-04.md",
+   "ministry/counseling/dm/dm-session-06.md"
+  ]
+ },
+ {
+  "id": "h21",
+  "kind": "synthesis",
+  "domain": "finance",
+  "question": "What is our 2026 giving goal in dollars, and how much have we given so far?",
+  "expect": [
+   "\\$?20,?400",
+   "\\$?15,?050"
+  ],
+  "sessions": [],
+  "paths": [
+   "finance/giving.md",
+   "finance/profile.md"
+  ]
+ },
+ {
+  "id": "h22",
+  "kind": "synthesis",
+  "domain": "life",
+  "question": "What lessons from the Glacier trip are being applied to the San Diego trip?",
+  "expect": [
+   "car ?sick|motion",
+   "budget|cushion|\\$?300|\\$?350"
+  ],
+  "sessions": [],
+  "paths": [
+   "life/trips/202607_glacier-camping/plan.md",
+   "life/trips/202612_san-diego-christmas/plan.md"
+  ]
+ },
+ {
+  "id": "h23",
+  "kind": "table",
+  "domain": "finance",
+  "question": "How much did we spend on groceries in September 2026?",
+  "expect": [
+   "\\$?722\\.85|\\$?723"
+  ],
+  "sessions": [],
+  "paths": [
+   "finance/data/transactions.csv"
+  ]
+ },
+ {
+  "id": "h24",
+  "kind": "table",
+  "domain": "finance",
+  "question": "In which month did our net worth first go above $900,000?",
+  "expect": [
+   "July 2026|2026-07|July"
+  ],
+  "sessions": [],
+  "paths": [
+   "finance/data/net-worth.csv"
+  ]
+ },
+ {
+  "id": "h25",
+  "kind": "table",
+  "domain": "finance",
+  "question": "How much did our investments fall from February to March 2026?",
+  "expect": [
+   "\\$?18,?700|18\\.7 ?k"
+  ],
+  "sessions": [],
+  "paths": [
+   "finance/data/net-worth.csv"
+  ]
+ },
+ {
+  "id": "h26",
+  "kind": "table",
+  "domain": "finance",
+  "question": "How much did we spend on gas in Q3 2026 (July through September)?",
+  "expect": [
+   "\\$?343\\.44|\\$?343"
+  ],
+  "sessions": [],
+  "paths": [
+   "finance/data/transactions.csv"
+  ]
+ },
+ {
+  "id": "h27",
+  "kind": "table",
+  "domain": "health",
+  "question": "How many miles did Erik run in August 2026?",
+  "expect": [
+   "55\\.2"
+  ],
+  "sessions": [],
+  "paths": [
+   "health/data/activities.csv"
+  ]
+ },
+ {
+  "id": "h28",
+  "kind": "table",
+  "domain": "health",
+  "question": "How many strength sessions did Erik log in October 2026?",
+  "expect": [
+   "\\b7\\b.{0,40}(strength|session)|(strength|session).{0,60}\\b7\\b|seven"
+  ],
+  "sessions": [],
+  "paths": [
+   "health/data/activities.csv"
+  ]
+ },
+ {
+  "id": "h29",
+  "kind": "temporal",
+  "domain": "finance",
+  "question": "Which items on the money checklist are overdue?",
+  "expect": [
+   "wills?",
+   "guardian|2026-10-31|October 31"
+  ],
+  "sessions": [],
+  "paths": [
+   "finance/open-items.md"
+  ]
+ },
+ {
+  "id": "h30",
+  "kind": "temporal",
+  "domain": "life",
+  "question": "What is the next thing on the family calendar?",
+  "expect": [
+   "potluck",
+   "2026-11-08|November 8|Nov\\.? 8|Sunday"
+  ],
+  "sessions": [],
+  "paths": [
+   "life/calendar.md"
+  ]
+ },
+ {
+  "id": "h31",
+  "kind": "temporal",
+  "domain": "health",
+  "question": "What medical or dental appointments are coming up this month?",
+  "expect": [
+   "Leif",
+   "Anna",
+   "2026-11-10|November 10|Nov\\.? 10",
+   "2026-11-12|November 12|Nov\\.? 12"
+  ],
+  "sessions": [],
+  "paths": [
+   "life/calendar.md",
+   "health/visits/2026-10-22_leif_cascade-orthopedics.md",
+   "health/visits/2026-09-30_anna_bright-smile-dental.md"
+  ]
+ },
+ {
+  "id": "h32",
+  "kind": "temporal",
+  "domain": "home",
+  "question": "What was the most recent repair or service done on the house?",
+  "expect": [
+   "chimney",
+   "2026-10-28|October 28|Oct\\.? 28"
+  ],
+  "sessions": [],
+  "paths": [
+   "home/maintenance-log.md"
+  ]
+ },
+ {
+  "id": "h33",
+  "kind": "temporal",
+  "domain": "finance",
+  "question": "Which money deadlines fall later this month?",
+  "expect": [
+   "401\\(?k\\)?",
+   "2026-11-15|November 15|Nov\\.? 15",
+   "health plan|open enrollment"
+  ],
+  "sessions": [],
+  "paths": [
+   "finance/open-items.md"
+  ]
+ },
+ {
+  "id": "h34",
+  "kind": "cross",
+  "domain": "cross",
+  "question": "If Erik accepted the regional director role, what would our gross household income become?",
+  "expect": [
+   "\\$?198,?000|198k",
+   "\\$?28,?000"
+  ],
+  "sessions": [],
+  "paths": [
+   "career/notes.md",
+   "finance/profile.md"
+  ]
+ },
+ {
+  "id": "h35",
+  "kind": "cross",
+  "domain": "cross",
+  "question": "There is a gap in Erik's workout log in July 2026. When was it and why?",
+  "expect": [
+   "July 1[0-9]|07-1[0-9]|11(th)?.{1,12}18",
+   "Glacier|camping"
+  ],
+  "sessions": [],
+  "paths": [
+   "health/data/activities.csv",
+   "life/trips/202607_glacier-camping/plan.md"
+  ]
+ },
+ {
+  "id": "h36",
+  "kind": "cross",
+  "domain": "cross",
+  "question": "Which fence quote did we pick, and is there enough in the home-projects savings to cover it?",
+  "expect": [
+   "Cedarline",
+   "\\$?8,?900",
+   "\\$?7,?600|\\$?10,?000"
+  ],
+  "sessions": [],
+  "paths": [
+   "home/projects.md",
+   "finance/profile.md"
+  ]
+ },
+ {
+  "id": "h37",
+  "kind": "unanswerable",
+  "domain": "finance",
+  "question": "What is the interest rate on our home equity line of credit?",
+  "expect": [
+   "not (in|recorded|found)|no (record|information)|doesn't (say|mention|have)|isn't (in|recorded)|don't (see|have)"
+  ],
+  "sessions": [],
+  "paths": []
+ },
+ {
+  "id": "h38",
+  "kind": "unanswerable",
+  "domain": "home",
+  "question": "When was the roof last replaced?",
+  "expect": [
+   "not (in|recorded|found)|no (record|information)|doesn't (say|mention|have)|isn't (in|recorded)|don't (see|have)"
+  ],
+  "sessions": [],
+  "paths": []
+ },
+ {
+  "id": "h39",
+  "kind": "unanswerable",
+  "domain": "health",
+  "question": "What is Greta's blood type?",
+  "expect": [
+   "not (in|recorded|found)|no (record|information)|doesn't (say|mention|have)|isn't (in|recorded)|don't (see|have)"
+  ],
+  "sessions": [],
+  "paths": []
+ },
+ {
+  "id": "h40",
+  "kind": "unanswerable",
+  "domain": "ministry",
+  "question": "What medication is R.S. taking for her anxiety?",
+  "expect": [
+   "not (in|recorded|found)|no (record|information)|doesn't (say|mention|have)|isn't (in|recorded)|don't (see|have)"
+  ],
+  "sessions": [],
+  "paths": []
+ }
+]
