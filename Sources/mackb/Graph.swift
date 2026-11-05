@@ -88,8 +88,11 @@ final class GraphSim {
 
 struct GraphView: View {
     @EnvironmentObject var store: Store
+    /// Compact: the right sidebar's local graph (no legend or controls).
+    var compact = false
     @State private var sim = GraphSim()
-    @State private var local = false
+    @State private var localPick = false
+    var local: Bool { compact || localPick }
     @State private var orphans = false
     @State private var scale: CGFloat = 1
     @State private var baseScale: CGFloat = 1
@@ -118,13 +121,13 @@ struct GraphView: View {
             .onContinuousHover { phase in
                 if case .active(let p) = phase { hovered = hit(p, center: center) } else { hovered = nil }
             }
-            .overlay(alignment: .topLeading) { legend.padding(14) }
-            .overlay(alignment: .topTrailing) { controls(geo.size).padding(14) }
-            .overlay(alignment: .bottomLeading) { hoverCard.padding(14) }
+            .overlay(alignment: .topLeading) { if !compact { legend.padding(14) } }
+            .overlay(alignment: .topTrailing) { if !compact { controls(geo.size).padding(14) } }
+            .overlay(alignment: .bottomLeading) { hoverCard.padding(compact ? 6 : 14) }
             .task(id: key) { rebuild(); fit(geo.size) }
         }
-        .background(Theme.canvas)
-        .navigationTitle("Graph")
+        .background(compact ? AnyShapeStyle(Color.clear) : AnyShapeStyle(Theme.canvas))
+        .modifier(GraphTitle(on: !compact))
     }
 
     // MARK: model
@@ -158,10 +161,21 @@ struct GraphView: View {
     }
 
     func screen(_ p: CGPoint, _ c: CGPoint) -> CGPoint {
-        CGPoint(x: c.x + p.x * scale + offset.width, y: c.y + p.y * scale + offset.height)
+        let (s, o) = transform(c)
+        return CGPoint(x: c.x + p.x * s + o.width, y: c.y + p.y * s + o.height)
     }
     func world(_ p: CGPoint, _ c: CGPoint) -> CGPoint {
-        CGPoint(x: (p.x - c.x - offset.width) / scale, y: (p.y - c.y - offset.height) / scale)
+        let (s, o) = transform(c)
+        return CGPoint(x: (p.x - c.x - o.width) / s, y: (p.y - c.y - o.height) / s)
+    }
+    /// Zoom and pan; the compact graph is refitted to the view on every frame,
+    /// so it stays centred while the layout settles.
+    func transform(_ c: CGPoint) -> (CGFloat, CGSize) {
+        guard compact else { return (scale, offset) }
+        let b = sim.bounds
+        guard b.width > 0, b.height > 0 else { return (1, .zero) }
+        let s = max(0.2, min(1.6, min(c.x * 2 / b.width, c.y * 2 / b.height) * 0.92))
+        return (s, CGSize(width: -b.midX * s, height: -b.midY * s))
     }
     func radius(_ i: Int) -> CGFloat { 3.5 + sqrt(CGFloat(sim.degree[i])) * 1.8 }
 
@@ -260,7 +274,7 @@ struct GraphView: View {
 
     func controls(_ size: CGSize) -> some View {
         VStack(alignment: .trailing, spacing: 8) {
-            Picker("", selection: $local) {
+            Picker("", selection: $localPick) {
                 Text("Whole vault").tag(false)
                 Text("Around this note").tag(true)
             }
@@ -291,5 +305,12 @@ struct GraphView: View {
             .padding(10)
             .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(.regularMaterial))
         }
+    }
+}
+
+private struct GraphTitle: ViewModifier {
+    var on: Bool
+    func body(content: Content) -> some View {
+        if on { content.navigationTitle("Graph") } else { content }
     }
 }
