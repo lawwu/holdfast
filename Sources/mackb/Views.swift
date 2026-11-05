@@ -153,7 +153,11 @@ struct RootView: View {
                         ResizeHandle(width: $listWidth)
                     }
                     if let o = store.opened {
-                        NoteView(opened: o).frame(minWidth: 420, maxWidth: .infinity)
+                        VStack(spacing: 0) {
+                            TabBar()
+                            NoteView(opened: o)
+                        }
+                        .frame(minWidth: 420, maxWidth: .infinity)
                     } else {
                         EmptyState(icon: "doc.text.magnifyingglass", title: "Nothing open",
                                    message: "Click a citation, a source or a note to read it here.")
@@ -174,6 +178,10 @@ struct RootView: View {
         }
         .sheet(isPresented: $store.showLinkSheet) { LinkSheet() }
         .sheet(isPresented: $store.showQuickOpen) { QuickOpen().environmentObject(store) }
+        .sheet(isPresented: $store.showPalette) { CommandPalette().environmentObject(store) }
+        .sheet(item: $store.preview) { o in
+            NotePreview(opened: o).environmentObject(store)
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             // Notes may have changed outside the app (Obsidian, Claude Code, git pull).
             if !store.editing { store.reload() }
@@ -184,7 +192,12 @@ struct RootView: View {
                 return .handled
             }
             if url.scheme == "mackb-note" || url.scheme == "mackb-rel" {
-                store.openLink(url, from: store.opened?.note)
+                let mods = NSEvent.modifierFlags
+                if mods.contains(.option) {  // ⌥-click: preview without leaving
+                    store.preview = store.resolveLink(url, from: store.opened?.note)
+                } else {
+                    store.openLink(url, from: store.opened?.note, newTab: mods.contains(.command))
+                }
                 return .handled
             }
             return .systemAction

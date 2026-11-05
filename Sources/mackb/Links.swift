@@ -100,7 +100,14 @@ struct LinkGraph {
         source.body.split(separator: "\n").map(String.init).filter { line in
             LinkParser.links(in: line).contains { resolve($0, from: source)?.id == target.id }
         }
-        .map { $0.trimmingCharacters(in: .whitespaces) }
+        .map { line in
+            // A table row reads better as its cells: "a · b · c".
+            var l = line.trimmingCharacters(in: .whitespaces)
+            if l.hasPrefix("|") {
+                l = l.split(separator: "|").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }.joined(separator: " · ")
+            }
+            return l
+        }
     }
 
     var edgeCount: Int { outgoing.values.reduce(0) { $0 + $1.count } }

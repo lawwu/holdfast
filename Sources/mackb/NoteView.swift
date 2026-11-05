@@ -44,7 +44,11 @@ struct NoteView: View {
     var body: some View {
         VStack(spacing: 0) {
             if store.editing {
-                MarkdownEditor(text: $draft) { url in store.openLink(url, from: note) }
+                MarkdownEditor(text: $draft, notes: store.notes) { url in
+                    let mods = NSEvent.modifierFlags
+                    if mods.contains(.option) { store.preview = store.resolveLink(url, from: note) }
+                    else { store.openLink(url, from: note, newTab: mods.contains(.command)) }
+                }
                     .onChange(of: draft) { _, new in scheduleSave(new) }
                 EditorStatusBar(state: saveState, text: draft, path: note.relPath)
             } else {
@@ -71,9 +75,9 @@ struct NoteView: View {
                     .help(store.forwardStack.last.map { "Forward to \($0.note.title) (⌘])" } ?? "Forward (⌘])")
             }
             ToolbarItemGroup {
-                Toggle(isOn: $showOutline) { Label("Outline", systemImage: "list.bullet.indent") }
+                Toggle(isOn: $showOutline) { Label("Right Sidebar", systemImage: "sidebar.right") }
                     .disabled(store.editing)
-                    .help("Show or hide the table of contents (⌥⌘O)")
+                    .help("Outline, backlinks, links and local graph (⌥⌘O)")
                     .keyboardShortcut("o", modifiers: [.command, .option])
                 Picker("Mode", selection: $store.editing) {
                     Label("Reading", systemImage: "book").tag(false)
@@ -141,13 +145,13 @@ struct NoteView: View {
             .onScrollTargetVisibilityChange(idType: Int.self, threshold: 0.01) { ids in
                 topVisible = ids.min() ?? -1
             }
-            if showOutline && outline.count >= 2 {
+            if showOutline {
                 Divider()
-                OutlinePanel(title: note.title, headings: outline,
-                             current: outline.last { $0.id <= max(topVisible, 0) }?.id ?? (topVisible <= 0 ? nil : outline.first?.id)) { id in
+                RightPanel(note: note, headings: outline,
+                           current: outline.last { $0.id <= max(topVisible, 0) }?.id ?? (topVisible <= 0 ? nil : outline.first?.id)) { id in
                     withAnimation(.easeInOut(duration: 0.25)) { proxy.scrollTo(id, anchor: .top) }
                 }
-                .frame(width: 230)
+                .frame(width: 250)
                 .transition(.move(edge: .trailing).combined(with: .opacity))
             }
           }
@@ -297,6 +301,7 @@ struct LinksFooter: View {
                                 .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
+                            .hoverPreview(Opened(note: src, anchor: nil))
                         }
                     }
                     .padding(.top, 6)
@@ -414,7 +419,7 @@ struct OutlinePanel: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 1) {
-                Text("ON THIS PAGE").font(.caption2.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
+                Text(headings.isEmpty ? "NO HEADINGS" : "ON THIS PAGE").font(.caption2.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
                     .padding(.horizontal, 10).padding(.bottom, 6)
                 Button { jump(-1) } label: {
                     Text(title).font(.callout.weight(.semibold)).lineLimit(2).multilineTextAlignment(.leading)
@@ -426,7 +431,6 @@ struct OutlinePanel: View {
             }
             .padding(.vertical, 16).padding(.horizontal, 8)
         }
-        .background(.background.secondary)
     }
 
     func level(_ b: MDBlock) -> Int { if case .heading(let l) = b.kind { return l } else { return 1 } }

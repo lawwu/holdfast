@@ -7,12 +7,14 @@ import SwiftUI
 /// [[wikilinks]] are clickable and open in the app.
 struct MarkdownEditor: NSViewRepresentable {
     @Binding var text: String
+    /// Notes offered after `[[` (and their headings after `#`).
+    var notes: [Note] = []
     var onOpenLink: (URL) -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     func makeNSView(context: Context) -> NSScrollView {
-        let scroll = NSTextView.scrollableTextView()
+        let scroll = LinkTextView.scrollableTextView()
         scroll.drawsBackground = false
         let tv = scroll.documentView as! NSTextView
         tv.delegate = context.coordinator
@@ -56,12 +58,49 @@ struct MarkdownEditor: NSViewRepresentable {
             MarkdownStyler.style(tv.textStorage!)
             tv.typingAttributes = MarkdownStyler.baseAttributes
             parent.text = tv.string
+            // Inside [[…: show note suggestions as you type, as Obsidian does.
+            if let ltv = tv as? LinkTextView, !ltv.completing, ltv.wikiPartialRange() != nil {
+                DispatchQueue.main.async { ltv.complete(nil) }
+            }
+        }
+
+        /// Suggestions after `[[`: notes whose name, title or path contain what
+        /// was typed; after `#`, that note's headings.
+        func textView(_ textView: NSTextView, completions words: [String], forPartialWordRange charRange: NSRange,
+                      indexOfSelectedItem index: UnsafeMutablePointer<Int>?) -> [String] {
+            guard let ltv = textView as? LinkTextView, let r = ltv.wikiPartialRange() else { return words }
+            let partial = (textView.string as NSString).substring(with: r)
+            index?.pointee = 0
+            let notes = parent.notes
+            var nameCount: [String: Int] = [:]
+            for n in notes { nameCount[n.name.lowercased(), default: 0] += 1 }
+            func linkText(_ n: Note) -> String { nameCount[n.name.lowercased()] == 1 ? n.name : n.id }
+            if let hash = partial.firstIndex(of: "#") {
+                let target = String(partial[..<hash]).lowercased()
+                let hq = String(partial[partial.index(after: hash)...]).lowercased()
+                guard let n = notes.first(where: { $0.name.lowercased() == target || $0.id.lowercased() == target }) else { return [] }
+                return MarkdownParser.parse(n.body).filter(\.isHeading).map(\.text)
+                    .filter { hq.isEmpty || $0.lowercased().contains(hq) }
+                    .prefix(40).map { "\(String(partial[..<hash]))#\($0)" }
+            }
+            let q = partial.lowercased()
+            let scored: [(String, Int)] = notes.compactMap { n in
+                let name = n.name.lowercased(), title = n.title.lowercased(), id = n.id.lowercased()
+                let s: Int
+                if q.isEmpty { s = 3 }
+                else if name.hasPrefix(q) || title.hasPrefix(q) { s = 0 }
+                else if name.contains(q) || title.contains(q) { s = 1 }
+                else if id.contains(q) { s = 2 }
+                else { return nil }
+                return (linkText(n), s)
+            }
+            return scored.sorted { $0.1 != $1.1 ? $0.1 < $1.1 : $0.0.count < $1.0.count }.prefix(50).map(\.0)
         }
 
         func textView(_ textView: NSTextView, clickedOnLink link: Any, at charIndex: Int) -> Bool {
-            if let u = link as? URL { parent.onOpenLink(u); return true }
-            if let s = link as? String, let u = URL(string: s) { parent.onOpenLink(u); return true }
-            return false
+            guard let u = (link as? URL) ?? (link as? String).flatMap(URL.init(string:)) else { return false }
+            parent.onOpenLink(u)  // the caller reads ⌘ (new tab) and ⌥ (preview)
+            return true
         }
     }
 }
@@ -201,5 +240,42 @@ enum MarkdownStyler {
 
     static func dim(_ ts: NSTextStorage, _ r: NSRange) {
         ts.addAttribute(.foregroundColor, value: faint, range: r)
+    }
+}
+
+/// The editor's text view: completion knows that `[[` starts a link, and
+/// accepting a suggestion closes it with `]]`.
+final class LinkTextView: NSTextView {
+    /// True while a suggestion is being inserted (so it doesn't re-trigger itself).
+    var completing = false
+
+    /// The text typed since an unclosed `[[` on this line, if the cursor is in one.
+    func wikiPartialRange() -> NSRange? {
+        let sel = selectedRange()
+        guard sel.length == 0 else { return nil }
+        let s = string as NSString
+        let line = s.lineRange(for: NSRange(location: sel.location, length: 0))
+        let before = s.substring(with: NSRange(location: line.location, length: sel.location - line.location)) as NSString
+        let open = before.range(of: "[[", options: .backwards)
+        guard open.location != NSNotFound else { return nil }
+        let typed = before.substring(from: open.location + 2)
+        if typed.contains("]") || typed.contains("|") || typed.contains("[") { return nil }
+        return NSRange(location: line.location + open.location + 2, length: typed.utf16.count)
+    }
+
+    override var rangeForUserCompletion: NSRange { wikiPartialRange() ?? super.rangeForUserCompletion }
+
+    override func insertCompletion(_ word: String, forPartialWordRange charRange: NSRange, movement: Int, isFinal flag: Bool) {
+        completing = true
+        defer { completing = false }
+        var w = word
+        let accepted = movement == NSTextMovement.return.rawValue || movement == NSTextMovement.tab.rawValue
+        if flag && accepted && wikiPartialRange() != nil {
+            let s = string as NSString
+            let after = charRange.location + charRange.length
+            let closed = after + 2 <= s.length && s.substring(with: NSRange(location: after, length: 2)) == "]]"
+            if !closed { w += "]]" }
+        }
+        super.insertCompletion(w, forPartialWordRange: charRange, movement: movement, isFinal: flag)
     }
 }

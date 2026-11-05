@@ -35,7 +35,13 @@ struct MacKBApp: App {
                 Button(store.showList ? "Hide File List" : "Show File List") { store.showList.toggle() }
                     .keyboardShortcut("\\", modifiers: [.command, .shift])
                 Divider()
-                Button("Quick Open…") { store.showQuickOpen = true }.keyboardShortcut("o")
+                Button("Command Palette…") { store.showPalette = true }.keyboardShortcut("p")
+                Button("Quick Open…") { store.quickOpenNewTab = false; store.showQuickOpen = true }.keyboardShortcut("o")
+                Button("Open in New Tab…") { store.quickOpenNewTab = true; store.showQuickOpen = true }.keyboardShortcut("t")
+                Button("Close Tab") { store.closeTab(store.activeTab) }.keyboardShortcut("w").disabled(store.tabs.isEmpty)
+                Button("Next Tab") { store.cycleTab(1) }.keyboardShortcut(.tab, modifiers: .control).disabled(store.tabs.count < 2)
+                Button("Previous Tab") { store.cycleTab(-1) }.keyboardShortcut(.tab, modifiers: [.control, .shift]).disabled(store.tabs.count < 2)
+                Divider()
                 Button("New Note") { store.createNote(near: store.opened?.note) }.keyboardShortcut("n", modifiers: [.command, .shift])
                 Button(store.editing ? "Reading View" : "Editing View") { store.editing.toggle() }.keyboardShortcut("e")
                 Divider()
@@ -86,7 +92,16 @@ struct AnswerStats: Codable {
     var seconds: Double
 }
 
-struct Opened: Equatable {
+/// One tab: the note it shows and where it has been.
+struct NoteTab: Identifiable {
+    let id = UUID()
+    var opened: Opened
+    var back: [Opened] = []
+    var forward: [Opened] = []
+}
+
+struct Opened: Equatable, Identifiable {
+    var id: String { note.path.path + "#" + (anchor ?? "") }
     var note: Note
     var anchor: String?
     static func == (a: Opened, b: Opened) -> Bool { a.note.path == b.note.path && a.anchor == b.anchor }
@@ -108,16 +123,27 @@ final class Store: ObservableObject {
     @Published var warning: String?
     @Published var busy: String?
     @Published var error: String?
-    @Published var opened: Opened? { didSet { recordNavigation(from: oldValue) } }
-    /// Notes visited before and after the one open, for Back and Forward (⌘[ ⌘]).
+    /// Open notes, one per tab, each with its own Back/Forward history.
+    @Published var tabs: [NoteTab] = []
+    @Published var activeTab: UUID?
+    /// The note in the active tab. Setting another note navigates in that tab
+    /// (recording history); setting nil closes the tab.
+    var opened: Opened? {
+        get { tabs.first { $0.id == activeTab }?.opened }
+        set { navigate(to: newValue) }
+    }
+    /// A note shown in a preview card (option-click a link, or hover a link chip).
+    @Published var preview: Opened?
+    @Published var showPalette = false
+    /// Quick Open puts its pick in a new tab (the + in the tab bar, ⌘T).
+    @Published var quickOpenNewTab = false
     /// The middle pane (Ask, Files, Library…) beside an open note; hide it to
     /// read the note wide. The sidebar has its own button.
     @Published var showList = UserDefaults.standard.object(forKey: "showList") as? Bool ?? true {
         didSet { UserDefaults.standard.set(showList, forKey: "showList") }
     }
-    @Published private(set) var backStack: [Opened] = []
-    @Published private(set) var forwardStack: [Opened] = []
-    private var navigating = false
+    var backStack: [Opened] { tabs.first { $0.id == activeTab }?.back ?? [] }
+    var forwardStack: [Opened] { tabs.first { $0.id == activeTab }?.forward ?? [] }
     @Published var searchText = ""
     @Published var results: [Chunk] = []
     @Published var backend: Backend = .mlx {
@@ -178,8 +204,10 @@ final class Store: ObservableObject {
         notes = allNotes()
         links = LinkGraph(notes: notes)
         vaultDomains = Array(Set(notes.compactMap(\.domain))).sorted()
-        if let o = opened, let fresh = notes.first(where: { $0.path == o.note.path }) {
-            opened = Opened(note: fresh, anchor: o.anchor)
+        for i in tabs.indices {  // tabs show the latest copy of their notes
+            if let fresh = notes.first(where: { $0.path == tabs[i].opened.note.path }) {
+                tabs[i].opened = Opened(note: fresh, anchor: tabs[i].opened.anchor)
+            }
         }
         inboxItems = inbox()
         indexCounts = (try? Index().count()) ?? (0, 0, 0)
@@ -357,7 +385,7 @@ final class Store: ObservableObject {
     /// Opens a link clicked in a note: `mackb-note:` (a wikilink, resolved like
     /// Obsidian) or `mackb-rel:` (a Markdown link relative to the note). A
     /// wikilink to a note that doesn't exist yet creates it, as Obsidian does.
-    func openLink(_ url: URL, from: Note?) {
+    func openLink(_ url: URL, from: Note?, newTab: Bool = false) {
         let raw = url.absoluteString
         guard let colon = raw.firstIndex(of: ":") else { return }
         let scheme = raw[..<colon]
@@ -371,7 +399,7 @@ final class Store: ObservableObject {
         switch scheme {
         case "mackb-note":
             if let n = links.resolve(wikiTarget: target, from: from) {
-                openNote(n, anchor: fragment)
+                openNote(n, anchor: fragment, newTab: newTab)
             } else {
                 createNote(named: target, near: from)
             }
@@ -379,13 +407,34 @@ final class Store: ObservableObject {
             let base = (from?.path ?? Config.vault.appendingPathComponent("x")).deletingLastPathComponent()
             let path = URL(fileURLWithPath: target, relativeTo: base).standardizedFileURL.path
             if let n = notes.first(where: { $0.path.standardizedFileURL.path == path }) {
-                openNote(n, anchor: fragment)
+                openNote(n, anchor: fragment, newTab: newTab)
             } else {
                 error = "No note at \(target)"
             }
         default:
             NSWorkspace.shared.open(url)
         }
+    }
+
+    /// The note a link points to, without opening it (for previews).
+    func resolveLink(_ url: URL, from: Note?) -> Opened? {
+        let raw = url.absoluteString
+        guard let colon = raw.firstIndex(of: ":") else { return nil }
+        let scheme = raw[..<colon]
+        var rest = String(raw[raw.index(after: colon)...])
+        var fragment: String?
+        if let hash = rest.firstIndex(of: "#") {
+            fragment = String(rest[rest.index(after: hash)...]).removingPercentEncoding
+            rest = String(rest[..<hash])
+        }
+        let target = rest.removingPercentEncoding ?? rest
+        if scheme == "mackb-note", let n = links.resolve(wikiTarget: target, from: from) { return Opened(note: n, anchor: fragment) }
+        if scheme == "mackb-rel" {
+            let base = (from?.path ?? Config.vault.appendingPathComponent("x")).deletingLastPathComponent()
+            let path = URL(fileURLWithPath: target, relativeTo: base).standardizedFileURL.path
+            if let n = notes.first(where: { $0.path.standardizedFileURL.path == path }) { return Opened(note: n, anchor: fragment) }
+        }
+        return nil
     }
 
     /// Writes an edited note, refreshes notes and links, and re-indexes it
@@ -395,7 +444,9 @@ final class Store: ObservableObject {
         if let fresh = try? Note.read(path) {
             if let i = notes.firstIndex(where: { $0.path == path }) { notes[i] = fresh } else { notes.append(fresh) }
             links = LinkGraph(notes: notes)
-            if opened?.note.path == path { opened = Opened(note: fresh, anchor: nil) }
+            for i in tabs.indices where tabs[i].opened.note.path == path {
+                tabs[i].opened = Opened(note: fresh, anchor: nil)
+            }
         }
         reindexTask?.cancel()
         reindexTask = Task {
@@ -562,7 +613,8 @@ final class Store: ObservableObject {
         guard panel.runModal() == .OK, let u = panel.url else { return }
         vault = u
         UserDefaults.standard.set(u.path, forKey: "vault")
-        opened = nil
+        tabs = []
+        activeTab = nil
         currentHistoryId = nil
         askedQuestion = ""
         answer = ""
@@ -571,15 +623,49 @@ final class Store: ObservableObject {
         reload()
     }
 
-    // MARK: note history
+    // MARK: tabs and note history
 
-    /// Opening a different note (a link, a citation, Quick Open, the file tree)
-    /// pushes the one being left; Back and Forward walk that history.
-    private func recordNavigation(from old: Opened?) {
-        guard !navigating, let old, old.note.path != opened?.note.path else { return }
-        backStack.append(old)
-        if backStack.count > 100 { backStack.removeFirst() }
-        forwardStack.removeAll()
+    private var activeIndex: Int? { tabs.firstIndex { $0.id == activeTab } }
+
+    /// Opening a different note in a tab (a link, a citation, Quick Open, the
+    /// file tree) pushes the one being left onto that tab's Back list.
+    private func navigate(to new: Opened?) {
+        guard let new else { closeTab(activeTab); return }
+        guard let i = activeIndex else { openInNewTab(new); return }
+        let old = tabs[i].opened
+        if old.note.path != new.note.path {
+            tabs[i].back.append(old)
+            if tabs[i].back.count > 100 { tabs[i].back.removeFirst() }
+            tabs[i].forward.removeAll()
+        }
+        tabs[i].opened = new
+    }
+
+    func openInNewTab(_ o: Opened) {
+        let t = NoteTab(opened: o)
+        if let i = activeIndex { tabs.insert(t, at: i + 1) } else { tabs.append(t) }
+        activeTab = t.id
+    }
+
+    func openNote(_ n: Note, anchor: String? = nil, newTab: Bool) {
+        if newTab { openInNewTab(Opened(note: n, anchor: anchor)) } else { openNote(n, anchor: anchor) }
+    }
+
+    func closeTab(_ id: UUID?) {
+        guard let id, let i = tabs.firstIndex(where: { $0.id == id }) else { return }
+        tabs.remove(at: i)
+        if activeTab == id { activeTab = tabs.isEmpty ? nil : tabs[min(i, tabs.count - 1)].id }
+    }
+
+    func closeOtherTabs(_ id: UUID) {
+        tabs.removeAll { $0.id != id }
+        activeTab = id
+    }
+
+    /// ⌃Tab / ⌃⇧Tab.
+    func cycleTab(_ step: Int) {
+        guard let i = activeIndex, tabs.count > 1 else { return }
+        activeTab = tabs[(i + step + tabs.count) % tabs.count].id
     }
 
     /// The latest copy of a note from history (it may have been edited since).
@@ -588,19 +674,15 @@ final class Store: ObservableObject {
     }
 
     func goBack() {
-        guard let prev = backStack.popLast() else { return }
-        navigating = true
-        if let cur = opened { forwardStack.append(cur) }
-        opened = current(prev)
-        navigating = false
+        guard let i = activeIndex, let prev = tabs[i].back.popLast() else { return }
+        tabs[i].forward.append(tabs[i].opened)
+        tabs[i].opened = current(prev)
     }
 
     func goForward() {
-        guard let next = forwardStack.popLast() else { return }
-        navigating = true
-        if let cur = opened { backStack.append(cur) }
-        opened = current(next)
-        navigating = false
+        guard let i = activeIndex, let next = tabs[i].forward.popLast() else { return }
+        tabs[i].back.append(tabs[i].opened)
+        tabs[i].opened = current(next)
     }
 
     // MARK: inbox

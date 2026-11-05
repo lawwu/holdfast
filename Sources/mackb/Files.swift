@@ -135,6 +135,7 @@ struct FileRow: View {
         .buttonStyle(.plain)
         .listRowBackground(selected ? RoundedRectangle(cornerRadius: 6).fill(Theme.accent.opacity(0.14)).padding(.horizontal, 6) : nil)
         .contextMenu {
+            Button("Open in New Tab") { store.openNote(note, newTab: true) }
             Button("Open in Editing View") { store.editing = true; store.openNote(note) }
             Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([note.path]) }
             Button("Copy Wikilink") {
@@ -221,8 +222,11 @@ struct QuickOpen: View {
     }
 
     func open(_ rs: [Note]) {
+        // ⌘↩ (or Quick Open started from + / ⌘T) opens in a new tab.
+        let newTab = store.quickOpenNewTab || NSEvent.modifierFlags.contains(.command) || store.opened == nil
+        store.quickOpenNewTab = false
         if rs.indices.contains(index) {
-            store.openNote(rs[index])
+            store.openNote(rs[index], newTab: newTab)
         } else if !query.trimmingCharacters(in: .whitespaces).isEmpty {
             store.createNote(named: query.trimmingCharacters(in: .whitespaces), near: store.opened?.note)
         }
