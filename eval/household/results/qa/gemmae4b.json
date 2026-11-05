@@ -1,0 +1,1185 @@
+[
+  {
+    "answer" : "Cascade Mutual insures the home [2]. The homeowners policy renews on 2026-12-15 [2].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h01",
+    "kind" : "fact",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 28,
+    "pathRecall" : 1,
+    "promptTokens" : 1775,
+    "question" : "Who insures our house, and when does the homeowners policy renew?",
+    "reranker" : true,
+    "seconds" : 8.038889050483704,
+    "sources" : [
+      "[[finance\/README#Files]]",
+      "[[finance\/insurance#Insurance]]"
+    ],
+    "tokPerSec" : 48.97690142795153
+  },
+  {
+    "answer" : "The water heater was replaced on 2026-05-09 by Barlow Plumbing, and it cost $1,850 [1]. This replacement included the installation of a new Aquastream 50-gallon natural-gas tank, model AQ-50G-40 [2].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "home",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h02",
+    "kind" : "fact",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 66,
+    "pathRecall" : 1,
+    "promptTokens" : 1458,
+    "question" : "When was the water heater replaced, who did it, and what did it cost?",
+    "reranker" : true,
+    "seconds" : 8.3680419921875,
+    "sources" : [
+      "[[home\/maintenance-log#Maintenance log]]",
+      "[[home\/water-heater#Water heater]]"
+    ],
+    "tokPerSec" : 51.65665047684946
+  },
+  {
+    "answer" : "The furnace filter size is 16x25x1, MERV 11 [1]. It should be changed every 90 days, which is done on the first of January, April, July, and October [1].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "home",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h03",
+    "kind" : "fact",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 50,
+    "pathRecall" : 1,
+    "promptTokens" : 935,
+    "question" : "What size furnace filter do we use and how often should it be changed?",
+    "reranker" : true,
+    "seconds" : 7.828725099563599,
+    "sources" : [
+      "[[home\/hvac#Furnace and air conditioning]]"
+    ],
+    "tokPerSec" : 47.51031807630913
+  },
+  {
+    "answer" : "Erik's LDL cholesterol at his June physical was **142 mg\/dL** [1]. The lipid panel should be rechecked in 6 months, in **December 2026** [1].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h04",
+    "kind" : "fact",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 45,
+    "pathRecall" : 1,
+    "promptTokens" : 1542,
+    "question" : "What was Erik's LDL cholesterol at his June physical, and when should it be rechecked?",
+    "reranker" : true,
+    "seconds" : 10.345624923706055,
+    "sources" : [
+      "[[health\/visits\/2026-06-04_erik_ridgeview-family-medicine#2026-06-04 — Erik — Ridgeview Family Medicine]]",
+      "[[health\/README#Rules]]"
+    ],
+    "tokPerSec" : 45.486246787840464
+  },
+  {
+    "answer" : "Erik's fitness goal is to complete 3 runs and 2 strength sessions every week [1]. This goal emphasizes consistency rather than performance, meaning a week is counted as \"met\" if it includes at least 3 runs and 2 strength sessions (Monday–Sunday weeks) [1].\n\nSpecifically, the runs should include two easy weekday runs (3–4.5 mi) and one longer Saturday run (5.5–7.5 mi), while strength training should be done on Monday and Friday for 35–45 minutes at home [1]. Sunday family walks are welcome but do not count toward the goal [1].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h05",
+    "kind" : "fact",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 132,
+    "pathRecall" : 1,
+    "promptTokens" : 1319,
+    "question" : "What is Erik's weekly fitness goal?",
+    "reranker" : true,
+    "seconds" : 11.488043069839478,
+    "sources" : [
+      "[[health\/goals#Fitness goal]]",
+      "[[health\/README#Files]]"
+    ],
+    "tokPerSec" : 39.89796981234379
+  },
+  {
+    "answer" : "Soren got car sick on the mountain roads both days during the Glacier trip [1]. For the next long drive, the plan is to seat him in the middle row by a window and bring ginger chews, with stops every 90 minutes [1].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h06",
+    "kind" : "fact",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 53,
+    "pathRecall" : 1,
+    "promptTokens" : 1153,
+    "question" : "What problem did Soren have on the Glacier trip, and what do we plan to do about it next time?",
+    "reranker" : true,
+    "seconds" : 9.978662014007568,
+    "sources" : [
+      "[[life\/trips\/202607_glacier-camping\/plan#Budget]]",
+      "[[life\/trips\/202612_san-diego-christmas\/plan#Budget]]",
+      "[[life\/trips\/202607_glacier-camping\/plan#Plan as run]]"
+    ],
+    "tokPerSec" : 40.48227160101733
+  },
+  {
+    "answer" : "The sheet-pan chicken fajitas recipe requires heating the oven to 425°F and baking for 22 minutes [1].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h07",
+    "kind" : "fact",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 29,
+    "pathRecall" : 1,
+    "promptTokens" : 844,
+    "question" : "What oven temperature and bake time does the sheet-pan fajita recipe use?",
+    "reranker" : true,
+    "seconds" : 7.814634919166565,
+    "sources" : [
+      "[[life\/recipes\/sheet-pan-chicken-fajitas#Ingredients]]"
+    ],
+    "tokPerSec" : 40.08453438547088
+  },
+  {
+    "answer" : "Erik was offered the regional director role [1]. He owes them an answer by 2026-11-20 [1].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "career",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h08",
+    "kind" : "fact",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 30,
+    "pathRecall" : 1,
+    "promptTokens" : 758,
+    "question" : "What job was Erik offered, and by when does he have to answer?",
+    "reranker" : true,
+    "seconds" : 8.638236999511719,
+    "sources" : [
+      "[[career\/notes#Current role]]"
+    ],
+    "tokPerSec" : 40.58397729629414
+  },
+  {
+    "answer" : "R.S. experienced a panic attack at the women's retreat in late August when she was unexpectedly asked to pray aloud for the group, which involved symptoms like a racing heart, shaking, and inability to breathe, causing her to leave the room [3]. Since that event, she has avoided small group twice and spends time lying awake replaying conversations [3].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "ministry",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h09",
+    "kind" : "fact",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 74,
+    "pathRecall" : 1,
+    "promptTokens" : 1804,
+    "question" : "What brought R.S. to counseling?",
+    "recall" : 0,
+    "reranker" : true,
+    "seconds" : 10.325546026229858,
+    "sources" : [
+      "[[ministry\/counseling\/rs\/rs-session-02#What can you highlight as significant background information?]]",
+      "[[ministry\/counseling\/rs\/rs-session-03#What can you highlight as significant background information?]]",
+      "[[ministry\/counseling\/rs\/rs-session-01#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
+      "[[ministry\/counseling\/rs\/rs-session-01#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
+      "[[ministry\/counseling\/rs\/rs-session-03#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
+      "[[ministry\/counseling\/rs\/rs-session-02#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
+      "[[ministry\/README#Counselees]]"
+    ],
+    "tokPerSec" : 39.6538956263731
+  },
+  {
+    "answer" : "R.S. was asked to memorize Proverbs 29:25 [1]. The passage does not state what Proverbs 29:25 says.",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 0.5,
+    "domain" : "ministry",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0.5,
+    "id" : "h10",
+    "kind" : "fact",
+    "missed" : [
+      "snare"
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 33,
+    "pathRecall" : 1,
+    "promptTokens" : 1491,
+    "question" : "Which verse was R.S. asked to memorize after session 2, and what does it say?",
+    "recall" : 1,
+    "reranker" : true,
+    "seconds" : 8.10423195362091,
+    "sources" : [
+      "[[ministry\/counseling\/rs\/rs-session-02#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
+      "[[ministry\/counseling\/dm\/dm-session-02#What homework was given and how did it specifically apply to problems?]]",
+      "[[ministry\/counseling\/rs\/rs-session-03#What was gained by performing the homework from last session? What change?]]",
+      "[[ministry\/counseling\/rs\/rs-session-02#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
+      "[[ministry\/counseling\/rs\/rs-session-02#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]"
+    ],
+    "tokPerSec" : 45.36874453733557
+  },
+  {
+    "answer" : "Pastor R. referred D.M. [2]. He is a project manager at a commercial construction company [2].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "ministry",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h11",
+    "kind" : "fact",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 24,
+    "pathRecall" : 1,
+    "promptTokens" : 1903,
+    "question" : "Who referred D.M. to counseling, and what does he do for work?",
+    "recall" : 1,
+    "reranker" : true,
+    "seconds" : 7.887888073921204,
+    "sources" : [
+      "[[ministry\/counseling\/dm\/dm-session-02#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
+      "[[ministry\/counseling\/dm\/dm-session-01#Case Report — D.M. — Session 1]]",
+      "[[ministry\/counseling\/dm\/dm-session-07#Thinking back on\/listening to this session, what could you have done better?]]",
+      "[[ministry\/counseling\/dm\/dm-session-06#What specific applications to the counselee's life did you discuss from your Scripture?]]",
+      "[[ministry\/counseling\/dm\/dm-session-06#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the counselee?]]",
+      "[[ministry\/counseling\/dm\/dm-session-08#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the counselee?]]",
+      "[[ministry\/counseling\/dm\/dm-session-05#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
+      "[[ministry\/README#Counselees]]"
+    ],
+    "tokPerSec" : 42.299172596277785
+  },
+  {
+    "answer" : "You gave $500 to the Alder Creek Pregnancy Center on 2026-04-12 [1].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h12",
+    "kind" : "fact",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 27,
+    "pathRecall" : 1,
+    "promptTokens" : 1309,
+    "question" : "How much did we give to the Alder Creek Pregnancy Center this year, and when?",
+    "reranker" : true,
+    "seconds" : 9.02474296092987,
+    "sources" : [
+      "[[finance\/giving#Giving log]]"
+    ],
+    "tokPerSec" : 39.34002014484907
+  },
+  {
+    "answer" : "The chimney inspection found a small mortar crack on the chimney crown, and it was recommended to re-inspect in spring 2027 [1].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "home",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h13",
+    "kind" : "fact",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 31,
+    "pathRecall" : 1,
+    "promptTokens" : 1215,
+    "question" : "What did the chimney inspection find?",
+    "reranker" : true,
+    "seconds" : 8.741760969161987,
+    "sources" : [
+      "[[home\/maintenance-log#Maintenance log]]"
+    ],
+    "tokPerSec" : 42.591251367588
+  },
+  {
+    "answer" : "Greta's piano recital is on 2026-11-21 at 2:00 pm [1].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h14",
+    "kind" : "fact",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 29,
+    "pathRecall" : 1,
+    "promptTokens" : 1198,
+    "question" : "When is Greta's piano recital?",
+    "reranker" : true,
+    "seconds" : 8.66064190864563,
+    "sources" : [
+      "[[life\/calendar#Family calendar — upcoming]]"
+    ],
+    "tokPerSec" : 41.827905085398555
+  },
+  {
+    "answer" : "Barlow Plumbing has performed the following work for you:\n*   Replaced the water heater (50-gal gas) on 2026-05-09 for $1,850 [1].\n*   Fixed a kitchen faucet leak on 2026-10-03 for $185 [1].\n\nThe total paid to Barlow Plumbing is $1,850 + $185 = $2,035.",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 0.6666666666666666,
+    "domain" : "home",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h15",
+    "kind" : "synthesis",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 103,
+    "pathRecall" : 1,
+    "promptTokens" : 1460,
+    "question" : "What work has Barlow Plumbing done for us, and how much have we paid them in total?",
+    "reranker" : true,
+    "seconds" : 11.627040982246399,
+    "sources" : [
+      "[[home\/maintenance-log#Maintenance log]]",
+      "[[home\/water-heater#Water heater]]"
+    ],
+    "tokPerSec" : 40.64253032596657
+  },
+  {
+    "answer" : "The insurance gap is the lack of an umbrella policy [1]. Cascade Mutual quoted $1M of umbrella coverage for about $310\/yr, bundled with auto and home [1]. The decision regarding this is on the [open items](open-items.md) list, due 2026-12-01 [1].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h16",
+    "kind" : "synthesis",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 73,
+    "pathRecall" : 0.5,
+    "promptTokens" : 1218,
+    "question" : "What insurance gap do we have, what would it cost to close, and when are we supposed to decide?",
+    "reranker" : true,
+    "seconds" : 10.031700015068054,
+    "sources" : [
+      "[[finance\/insurance#Insurance]]"
+    ],
+    "tokPerSec" : 43.326888963100906
+  },
+  {
+    "answer" : "The family members who saw a doctor or dentist in 2026, and the reason for their visit, are:\n\n*   **Greta:** Saw a doctor on 2026-03-18 at Alder Creek Pediatrics for a [9-year well-child visit](visits\/2026-03-18_greta_alder-creek-pediatrics.md) [health\/README.md].\n*   **Erik:** Saw a doctor on 2026-06-04 at Ridgeview Family Medicine for an [annual physical](visits\/2026-06-04_erik_ridgeview-family-medicine.md) [health\/README.md].\n*   **Soren:** Saw a doctor on 2026-08-21 at Alder Creek Pediatrics for an [ear infection](visits\/2026-08-21_soren_alder-creek-pediatrics.md) [health\/README.md].\n*   **Anna:** Saw a dentist on 2026-09-30 at Bright Smile Dental for a [cleaning and exam](visits\/2026-09-30_anna_bright-smile-dental.md) [health\/README.md].\n*   **Leif:** Saw a doctor on 2026-10-22 at Cascade Orthopedics for a [wrist sprain](visits\/2026-10-22_leif_cascade-orthopedics.md) [health\/README.md].",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0.75,
+    "id" : "h17",
+    "kind" : "synthesis",
+    "missed" : [
+      "cavity|filling"
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 353,
+    "pathRecall" : 0.5,
+    "promptTokens" : 1772,
+    "question" : "Which family members saw a doctor or dentist this year, and for what?",
+    "reranker" : true,
+    "seconds" : 18.526978015899658,
+    "sources" : [
+      "[[README#Purpose]]",
+      "[[health\/README#Files]]"
+    ],
+    "tokPerSec" : 38.38423877750994
+  },
+  {
+    "answer" : "For the San Diego Christmas trip, the following items still need to be booked:\n*   Flights (PDX → SAN round trip for 5 people) [3]\n*   Minivan rental at SAN for 12\/21–12\/29 [3]\n*   Hotel near the beach for 12\/27–12\/29 (2 nights) [3]",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h18",
+    "kind" : "synthesis",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 86,
+    "pathRecall" : 1,
+    "promptTokens" : 1532,
+    "question" : "What still needs to be booked for the San Diego Christmas trip?",
+    "reranker" : true,
+    "seconds" : 12.019917011260986,
+    "sources" : [
+      "[[life\/trips\/202612_san-diego-christmas\/plan#Lessons carried over from Glacier]]",
+      "[[life\/trips\/README#Trips]]",
+      "[[life\/trips\/202612_san-diego-christmas\/plan#San Diego Christmas — December 2026]]",
+      "[[life\/calendar#December 2026]]"
+    ],
+    "tokPerSec" : 38.52212933705515
+  },
+  {
+    "answer" : "R.S.'s mother-in-law, E.S., lives ten minutes away and is closely involved with the children [1]. The next test for R.S. is a conversation with E.S. [7].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 0.6666666666666666,
+    "domain" : "ministry",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0.3333333333333333,
+    "id" : "h19",
+    "kind" : "synthesis",
+    "missed" : [
+      "Thanksgiving",
+      "(say|said|saying|tell) (her )?no|declin|not (to )?host"
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 48,
+    "pathRecall" : 1,
+    "promptTokens" : 2238,
+    "question" : "How has R.S.'s mother-in-law figured in her counseling so far?",
+    "recall" : 0,
+    "reranker" : true,
+    "seconds" : 10.07255494594574,
+    "sources" : [
+      "[[ministry\/counseling\/rs\/rs-session-01#Case Report — R.S. — Session 1]]",
+      "[[ministry\/counseling\/rs\/rs-session-01#What specific applications to the counselee's life did you discuss from your Scripture?]]",
+      "[[ministry\/README#Counselees]]",
+      "[[ministry\/counseling\/rs\/rs-session-03#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
+      "[[ministry\/counseling\/rs\/rs-session-02#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
+      "[[career\/notes#2026-11-02]]",
+      "[[ministry\/counseling\/rs\/rs-session-03#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
+      "[[ministry\/counseling\/rs\/rs-session-02#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]"
+    ],
+    "tokPerSec" : 44.18636325128295
+  },
+  {
+    "answer" : "D.M. was asked to memorize James 1:19-20 [1], Ephesians 4:31-32 [3], Proverbs 16:32 [4], and James 1:19-20 again [5].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "ministry",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h20",
+    "kind" : "synthesis",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 56,
+    "pathRecall" : 1,
+    "promptTokens" : 1745,
+    "question" : "Which verses was D.M. asked to memorize over the course of counseling?",
+    "recall" : 1,
+    "reranker" : true,
+    "seconds" : 8.366315007209778,
+    "sources" : [
+      "[[ministry\/counseling\/dm\/dm-session-02#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
+      "[[ministry\/counseling\/dm\/dm-session-03#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
+      "[[ministry\/counseling\/dm\/dm-session-04#What homework was given and how did it specifically apply to problems?]]",
+      "[[ministry\/counseling\/dm\/dm-session-06#What homework was given and how did it specifically apply to problems?]]",
+      "[[ministry\/counseling\/dm\/dm-session-05#What homework was given and how did it specifically apply to problems?]]",
+      "[[ministry\/counseling\/dm\/dm-session-07#What was gained by performing the homework from last session? What change?]]"
+    ],
+    "tokPerSec" : 45.49117716526397
+  },
+  {
+    "answer" : "The 2026 giving goal is to give 12% of gross household income [1].\n\nAs for how much has been given, the giving log shows various amounts contributed throughout 2026, including:\n*   $1,400 to Hillcrest Bible Church in January, February, March, April, May, June, July, August, September, and October [1].\n*   $500 to Alder Creek Pregnancy Center in April [1].\n*   $300 to the Okafor family for support in Tanzania in July [1].\n*   $250 to Harvest Food Bank in September [1].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h21",
+    "kind" : "synthesis",
+    "missed" : [
+      "\\$?20,?400",
+      "\\$?15,?050"
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 139,
+    "pathRecall" : 0.5,
+    "promptTokens" : 2780,
+    "question" : "What is our 2026 giving goal in dollars, and how much have we given so far?",
+    "reranker" : true,
+    "seconds" : 15.185204029083252,
+    "sources" : [
+      "[[finance\/giving#Giving log]]",
+      "[[finance\/README#Files]]",
+      "[[finance\/net-worth#Net worth — narrative]]",
+      "[[life\/trips\/202612_san-diego-christmas\/plan#Budget]]",
+      "[[career\/notes#2026-10-30]]"
+    ],
+    "tokPerSec" : 42.478662315592025
+  },
+  {
+    "answer" : "The lessons from the Glacier trip that are being applied to the San Diego trip include: Soren gets car sick, so he sits in the middle row by a window, and ginger chews should be packed for the drive down to Chula Vista. Additionally, this budget has a $300 cushion built in because the Glacier trip went over budget by $350 [1].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h22",
+    "kind" : "synthesis",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 77,
+    "pathRecall" : 0.5,
+    "promptTokens" : 865,
+    "question" : "What lessons from the Glacier trip are being applied to the San Diego trip?",
+    "reranker" : true,
+    "seconds" : 8.928627014160156,
+    "sources" : [
+      "[[life\/trips\/202612_san-diego-christmas\/plan#Budget]]"
+    ],
+    "tokPerSec" : 43.85747577535499
+  },
+  {
+    "answer" : "To find out how much was spent on groceries in September 2026, you should look at `data\/transactions.csv` [1].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h23",
+    "kind" : "table",
+    "missed" : [
+      "\\$?722\\.85|\\$?723"
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 31,
+    "pathRecall" : 0,
+    "promptTokens" : 1168,
+    "question" : "How much did we spend on groceries in September 2026?",
+    "reranker" : true,
+    "seconds" : 10.831794023513794,
+    "sources" : [
+      "[[finance\/README#Files]]"
+    ],
+    "tokPerSec" : 43.22508917308513
+  },
+  {
+    "answer" : "The provided passages describe net worth movements and where the month-end numbers are located in `data\/net-worth.csv`, but they do not state the month when the net worth first went above $900,000 [1].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h24",
+    "kind" : "table",
+    "missed" : [
+      "July 2026|2026-07|July"
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 51,
+    "pathRecall" : 0,
+    "promptTokens" : 1035,
+    "question" : "In which month did our net worth first go above $900,000?",
+    "reranker" : true,
+    "seconds" : 9.677949905395508,
+    "sources" : [
+      "[[finance\/net-worth#Net worth — narrative]]"
+    ],
+    "tokPerSec" : 42.26318361589037
+  },
+  {
+    "answer" : "The provided passages mention that March 2026 was a dip where the market fell and investments dropped for the month, but they do not specify the exact amount of the fall from February to March 2026. [1]",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h25",
+    "kind" : "table",
+    "missed" : [
+      "\\$?18,?700|18\\.7 ?k"
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 49,
+    "pathRecall" : 0,
+    "promptTokens" : 1435,
+    "question" : "How much did our investments fall from February to March 2026?",
+    "reranker" : true,
+    "seconds" : 9.919570922851562,
+    "sources" : [
+      "[[finance\/net-worth#Net worth — narrative]]",
+      "[[finance\/README#Files]]"
+    ],
+    "tokPerSec" : 41.56586371807578
+  },
+  {
+    "answer" : "The provided passages mention that the trip to Glacier National Park in July 2026 had a budget of $2,000 planned and $2,350 actual, with the extra cost being due to gas and two motel nights [1]. However, the passages do not specify how much was spent on gas specifically for Q3 2026.",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h26",
+    "kind" : "table",
+    "missed" : [
+      "\\$?343\\.44|\\$?343"
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 76,
+    "pathRecall" : 0,
+    "promptTokens" : 911,
+    "question" : "How much did we spend on gas in Q3 2026 (July through September)?",
+    "reranker" : true,
+    "seconds" : 10.110886096954346,
+    "sources" : [
+      "[[life\/trips\/202607_glacier-camping\/plan#Plan as run]]"
+    ],
+    "tokPerSec" : 44.5141820858429
+  },
+  {
+    "answer" : "The provided passages do not contain the number of miles Erik ran in August 2026. The file `data\/activities.csv` contains Erik's workouts from July–October 2026, but the specific data is not present in the current passages [1, 2].",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h27",
+    "kind" : "table",
+    "missed" : [
+      "55\\.2"
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 61,
+    "pathRecall" : 0,
+    "promptTokens" : 1324,
+    "question" : "How many miles did Erik run in August 2026?",
+    "reranker" : true,
+    "seconds" : 9.984079003334045,
+    "sources" : [
+      "[[health\/goals#Fitness goal]]",
+      "[[health\/README#Files]]"
+    ],
+    "tokPerSec" : 38.87061129942318
+  },
+  {
+    "answer" : "The available information indicates that `data\/activities.csv` contains Erik's workouts from July to October 2026, and the column headers are `date,type,distance_mi,minutes` [2]. However, the content of `data\/activities.csv` is not provided in the passages, so I cannot say how many strength sessions Erik logged in October 2026.",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 0,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h28",
+    "kind" : "table",
+    "missed" : [
+      "\\b7\\b.{0,40}(strength|session)|(strength|session).{0,60}\\b7\\b|seven"
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 83,
+    "pathRecall" : 0,
+    "promptTokens" : 1325,
+    "question" : "How many strength sessions did Erik log in October 2026?",
+    "reranker" : true,
+    "seconds" : 11.385167956352234,
+    "sources" : [
+      "[[health\/goals#Fitness goal]]",
+      "[[health\/README#Files]]"
+    ],
+    "tokPerSec" : 40.73863656776042
+  },
+  {
+    "answer" : "The following items on the money checklist have a due date of 2026-10-31 or earlier and are not marked as complete:\n\n*   Update wills and name guardians for the kids (attorney: Pruitt & Lowe) — **due 2026-10-31**\n\nThe following items are upcoming deadlines, but not yet overdue:\n*   Raise Erik's 401(k) contribution from 8% to 12% at open enrollment — due 2026-11-15\n*   Choose the 2027 health plan during Bluestem open enrollment (window 2026-11-03 to 2026-11-20) — due 2026-11-20\n*   Review the umbrella liability quote from Cascade Mutual ($1M, about $310\/yr) — due 2026-12-01\n*   Year-end missions gift to Hillcrest Bible Church — due 2026-12-20 (see [[finance\/giving]])\n*   Rebalance Evergreen brokerage back to 80\/20 — due 2026-12-31\n*   Decide whether to replace the 2015 Camry or keep driving it — due 2027-03-31",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h29",
+    "kind" : "temporal",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 305,
+    "pathRecall" : 1,
+    "promptTokens" : 1758,
+    "question" : "Which items on the money checklist are overdue?",
+    "reranker" : true,
+    "seconds" : 17.41548490524292,
+    "sources" : [
+      "[[finance\/open-items#Open items — money checklist]]",
+      "[[finance\/README#Files]]"
+    ],
+    "tokPerSec" : 38.901006778758024
+  },
+  {
+    "answer" : "The next thing on the family calendar is the Hillcrest fall potluck after the second service on 2026-11-08 at 12:15 pm [1].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h30",
+    "kind" : "temporal",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 41,
+    "pathRecall" : 1,
+    "promptTokens" : 1501,
+    "question" : "What is the next thing on the family calendar?",
+    "reranker" : true,
+    "seconds" : 9.459612011909485,
+    "sources" : [
+      "[[life\/calendar#Family calendar — upcoming]]",
+      "[[README#Domains]]"
+    ],
+    "tokPerSec" : 41.01989232563742
+  },
+  {
+    "answer" : "Upcoming medical or dental appointments this month (November 2026) are:\n\n*   **2026-11-08 at 12:15 pm:** Hillcrest fall potluck after the second service (all) [2].\n*   **2026-11-10 at 3:30 pm:** Wrist follow-up, Cascade Orthopedics (Leif + Erik) [2].\n*   **2026-11-12:** Filling, Bright Smile Dental (Anna) [2].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h31",
+    "kind" : "temporal",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 121,
+    "pathRecall" : 0.3333333333333333,
+    "promptTokens" : 2551,
+    "question" : "What medical or dental appointments are coming up this month?",
+    "reranker" : true,
+    "seconds" : 13.615573048591614,
+    "sources" : [
+      "[[health\/README#Files]]",
+      "[[life\/calendar#Family calendar — upcoming]]",
+      "[[health\/README#Visits so far in 2026]]"
+    ],
+    "tokPerSec" : 40.80521851875943
+  },
+  {
+    "answer" : "The most recent repair or service done on the house was a chimney sweep and inspection on 2026-10-28 [1].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "home",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h32",
+    "kind" : "temporal",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 31,
+    "pathRecall" : 1,
+    "promptTokens" : 1221,
+    "question" : "What was the most recent repair or service done on the house?",
+    "reranker" : true,
+    "seconds" : 9.731953978538513,
+    "sources" : [
+      "[[home\/maintenance-log#Maintenance log]]"
+    ],
+    "tokPerSec" : 41.84625366491051
+  },
+  {
+    "answer" : "The following money-related deadlines are due this month (November 2026):\n\n*   Raise Erik's 401(k) contribution from 8% to 12% at open enrollment — due 2026-11-15 [2]\n*   Choose the 2027 health plan during Bluestem open enrollment (window 2026-11-03 to 2026-11-20) — due 2026-11-20 [2]",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h33",
+    "kind" : "temporal",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 120,
+    "pathRecall" : 1,
+    "promptTokens" : 1594,
+    "question" : "Which money deadlines fall later this month?",
+    "reranker" : true,
+    "seconds" : 11.34175193309784,
+    "sources" : [
+      "[[finance\/README#Files]]",
+      "[[finance\/open-items#Open items — money checklist]]"
+    ],
+    "tokPerSec" : 44.703327020331265
+  },
+  {
+    "answer" : "The current gross household income is $170,000 [2]. If Erik accepted the regional director role, it would pay about $28,000 more a year [1].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 0.5,
+    "domain" : "cross",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0.5,
+    "id" : "h34",
+    "kind" : "cross",
+    "missed" : [
+      "\\$?198,?000|198k"
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 42,
+    "pathRecall" : 1,
+    "promptTokens" : 1754,
+    "question" : "If Erik accepted the regional director role, what would our gross household income become?",
+    "reranker" : true,
+    "seconds" : 8.470474004745483,
+    "sources" : [
+      "[[career\/notes#Current role]]",
+      "[[finance\/profile#People]]",
+      "[[career\/README#Where to look]]"
+    ],
+    "tokPerSec" : 47.8397505695814
+  },
+  {
+    "answer" : "The provided passages do not contain information about a gap in Erik's workout log for July 2026 or the reason for it.\n\nHowever, the `health\/README.md` suggests looking at `data\/activities.csv` to see Erik's workouts from July–October 2026 [Folder manual — health\/README.md]. Additionally, a passage mentions that in one week, \"Erik didn't run or lift that week, and that was fine — rest is part of the [[health\/goals|goal]]\" [1]. The fitness goal states that missed weeks happen due to travel or sickness [4].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 0.5,
+    "domain" : "cross",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h35",
+    "kind" : "cross",
+    "missed" : [
+      "July 1[0-9]|07-1[0-9]|11(th)?.{1,12}18",
+      "Glacier|camping"
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 133,
+    "pathRecall" : 0.5,
+    "promptTokens" : 2272,
+    "question" : "There is a gap in Erik's workout log in July 2026. When was it and why?",
+    "reranker" : true,
+    "seconds" : 11.33700704574585,
+    "sources" : [
+      "[[life\/trips\/202607_glacier-camping\/plan#Budget]]",
+      "[[health\/README#Files]]",
+      "[[README#Domains]]",
+      "[[health\/goals#Fitness goal]]"
+    ],
+    "tokPerSec" : 49.66802787786654
+  },
+  {
+    "answer" : "The chosen quote was from **Cedarline Fence at $8,900** [1].\n\nRegarding the home-projects savings:\n*   The target for the home projects sinking fund was **$10,000 by 2027-02-28** [2].\n*   As of the end of October, there was about **$7,600** in the fund [2].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "cross",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h36",
+    "kind" : "cross",
+    "missed" : [
+
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 91,
+    "pathRecall" : 1,
+    "promptTokens" : 2442,
+    "question" : "Which fence quote did we pick, and is there enough in the home-projects savings to cover it?",
+    "reranker" : true,
+    "seconds" : 10.449267029762268,
+    "sources" : [
+      "[[home\/projects#Quotes]]",
+      "[[finance\/profile#The house]]",
+      "[[home\/README#Where to look]]",
+      "[[finance\/net-worth#Net worth — narrative]]",
+      "[[home\/hvac#Furnace and air conditioning]]"
+    ],
+    "tokPerSec" : 48.214321882629186
+  },
+  {
+    "answer" : "Your notes don't cover this question. Nothing in the vault was relevant enough to answer from.",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h37",
+    "kind" : "unanswerable",
+    "missed" : [
+      "not (in|recorded|found)|no (record|information)|doesn't (say|mention|have)|isn't (in|recorded)|don't (see|have)"
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 0,
+    "promptTokens" : 0,
+    "question" : "What is the interest rate on our home equity line of credit?",
+    "reranker" : true,
+    "seconds" : 5.31966507434845,
+    "sources" : [
+
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "Your notes don't cover this question. Nothing in the vault was relevant enough to answer from.",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "domain" : "home",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h38",
+    "kind" : "unanswerable",
+    "missed" : [
+      "not (in|recorded|found)|no (record|information)|doesn't (say|mention|have)|isn't (in|recorded)|don't (see|have)"
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 0,
+    "promptTokens" : 0,
+    "question" : "When was the roof last replaced?",
+    "reranker" : true,
+    "seconds" : 4.574276924133301,
+    "sources" : [
+
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "Your notes don't cover this question. Nothing in the vault was relevant enough to answer from.",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h39",
+    "kind" : "unanswerable",
+    "missed" : [
+      "not (in|recorded|found)|no (record|information)|doesn't (say|mention|have)|isn't (in|recorded)|don't (see|have)"
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 0,
+    "promptTokens" : 0,
+    "question" : "What is Greta's blood type?",
+    "reranker" : true,
+    "seconds" : 4.458774089813232,
+    "sources" : [
+
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "The provided passages do not contain information about what medication R.S. is taking for her anxiety [1, 2, 3].",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "domain" : "ministry",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h40",
+    "kind" : "unanswerable",
+    "missed" : [
+      "not (in|recorded|found)|no (record|information)|doesn't (say|mention|have)|isn't (in|recorded)|don't (see|have)"
+    ],
+    "mode" : "plain",
+    "model" : "gemma-4-e4b-it-4bit",
+    "outputTokens" : 28,
+    "promptTokens" : 1268,
+    "question" : "What medication is R.S. taking for her anxiety?",
+    "reranker" : true,
+    "seconds" : 5.726714015007019,
+    "sources" : [
+      "[[ministry\/counseling\/rs\/rs-session-01#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
+      "[[ministry\/counseling\/rs\/rs-session-02#What can you highlight as significant background information?]]",
+      "[[ministry\/counseling\/rs\/rs-session-01#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]"
+    ],
+    "tokPerSec" : 50.113382740998915
+  }
+]

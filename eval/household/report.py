@@ -63,6 +63,16 @@ out = ["# Household fixture — model comparison", "",
        "see `README.md` for how each number is scored.", ""]
 
 qa = load("qa")
+# Re-score answers against the current questions.json, so a fixed pattern
+# applies to saved runs without asking the models again.
+import re
+QS = {q["id"]: q for q in json.loads((HERE / "questions.json").read_text())}
+for rs in qa.values():
+    for r in rs:
+        q = QS.get(r["id"])
+        if q and r.get("mode") != "retrieval":
+            hits = [p for p in q["expect"] if re.search(p, r["answer"], re.I)]
+            r["facts"] = len(hits) / max(len(q["expect"]), 1)
 answer_runs = {k: v for k, v in qa.items() if v and v[0].get("mode") != "retrieval"}
 retrieval_runs = {k: v for k, v in qa.items() if v and v[0].get("mode") == "retrieval"}
 
@@ -88,7 +98,7 @@ if answer_runs:
         out.append("")
 
     labels = list(answer_runs)
-    first = answer_runs[labels[0]]
+    first = max(answer_runs.values(), key=len)
     out += ["### Per question", "", "| Question | Kind | " + " | ".join(labels) + " |",
             "| --- | --- | " + " | ".join("---" for _ in labels) + " |"]
     by = {lab: {r["id"]: r for r in rs} for lab, rs in answer_runs.items()}
@@ -110,6 +120,15 @@ if retrieval_runs:
     out.append("")
 
 filing = load("filing")
+# Re-check the place against the current filing.json (same reason as above).
+CASES = {c["id"]: c for c in json.loads((HERE / "filing.json").read_text())}
+for rs in filing.values():
+    for r in rs:
+        c = CASES.get(r["id"])
+        if c and not r.get("error"):
+            r["actionOK"] = r["action"] in c["expect_action"].split("|")
+        if c and c["expect_action"] != "skip" and not r.get("error"):
+            r["placeOK"] = r["action"] != "skip" and re.search(c["expect_path"], r["path"], re.I) is not None
 if filing:
     out += ["## Filing dropped documents", "",
             "| Run | Model | Action | Place | Facts kept | Leaks | Errors | Median s |",

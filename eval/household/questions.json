@@ -547,7 +547,7 @@
   "domain": "finance",
   "question": "What is the interest rate on our home equity line of credit?",
   "expect": [
-   "not (in|recorded|found)|no (record|information)|doesn't (say|mention|have)|isn't (in|recorded)|don't (see|have)"
+   "not (in|recorded|found|mentioned|stated|covered)|no (record|information|mention)|(doesn't|does not|don't|do not) (say|mention|state|contain|cover|have|hold|include|record|show)|(isn't|is not) (in|recorded|mentioned)|can(no|')t (answer|find|tell|determine)"
   ],
   "sessions": [],
   "paths": []
@@ -558,7 +558,7 @@
   "domain": "home",
   "question": "When was the roof last replaced?",
   "expect": [
-   "not (in|recorded|found)|no (record|information)|doesn't (say|mention|have)|isn't (in|recorded)|don't (see|have)"
+   "not (in|recorded|found|mentioned|stated|covered)|no (record|information|mention)|(doesn't|does not|don't|do not) (say|mention|state|contain|cover|have|hold|include|record|show)|(isn't|is not) (in|recorded|mentioned)|can(no|')t (answer|find|tell|determine)"
   ],
   "sessions": [],
   "paths": []
@@ -569,7 +569,7 @@
   "domain": "health",
   "question": "What is Greta's blood type?",
   "expect": [
-   "not (in|recorded|found)|no (record|information)|doesn't (say|mention|have)|isn't (in|recorded)|don't (see|have)"
+   "not (in|recorded|found|mentioned|stated|covered)|no (record|information|mention)|(doesn't|does not|don't|do not) (say|mention|state|contain|cover|have|hold|include|record|show)|(isn't|is not) (in|recorded|mentioned)|can(no|')t (answer|find|tell|determine)"
   ],
   "sessions": [],
   "paths": []
@@ -580,7 +580,7 @@
   "domain": "ministry",
   "question": "What medication is R.S. taking for her anxiety?",
   "expect": [
-   "not (in|recorded|found)|no (record|information)|doesn't (say|mention|have)|isn't (in|recorded)|don't (see|have)"
+   "not (in|recorded|found|mentioned|stated|covered)|no (record|information|mention)|(doesn't|does not|don't|do not) (say|mention|state|contain|cover|have|hold|include|record|show)|(isn't|is not) (in|recorded|mentioned)|can(no|')t (answer|find|tell|determine)"
   ],
   "sessions": [],
   "paths": []

@@ -113,13 +113,19 @@ let skippedFolders = ["node_modules", ".git", ".obsidian", ".trash"]
 /// Markdown files in an in-place vault. In a git repo, what git tracks or
 /// would track (so .gitignore'd raw exports stay out); elsewhere, a walk that
 /// skips hidden folders. Folders ending in "-raw" are skipped either way.
-func vaultMarkdown() -> [URL] {
+func vaultMarkdown() -> [URL] { vaultFiles(ext: "md") }
+
+/// Files with this extension in an in-place vault. Inside a git work tree
+/// (the vault folder or any parent is a repo), what git tracks or would track,
+/// so .gitignore'd raw exports stay out; otherwise a walk that skips hidden
+/// folders. Folders ending in "-raw" are skipped either way.
+func vaultFiles(ext: String) -> [URL] {
     let root = Config.vault
     func keep(_ rel: String) -> Bool {
         !rel.split(separator: "/").dropLast().contains { $0.hasPrefix(".") || $0.hasSuffix("-raw") || skippedFolders.contains(String($0)) }
     }
-    if FileManager.default.fileExists(atPath: root.appendingPathComponent(".git").path),
-       let list = try? run("/usr/bin/git", ["-C", root.path, "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.md"]) {
+    if (try? run("/usr/bin/git", ["-C", root.path, "rev-parse", "--is-inside-work-tree"]))?.hasPrefix("true") == true,
+       let list = try? run("/usr/bin/git", ["-C", root.path, "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.\(ext)"]) {
         return list.split(separator: "\0").map(String.init).filter(keep).map { root.appendingPathComponent($0) }
             .filter { FileManager.default.fileExists(atPath: $0.path) }
     }
@@ -128,7 +134,7 @@ func vaultMarkdown() -> [URL] {
     for case let u as URL in e {
         let rel = String(u.path.dropFirst(root.path.count + 1))
         if u.hasDirectoryPath, !keep(rel + "/x") { e.skipDescendants(); continue }
-        if u.pathExtension == "md" { out.append(u) }
+        if u.pathExtension.lowercased() == ext { out.append(u) }
     }
     return out
 }
