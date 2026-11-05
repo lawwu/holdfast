@@ -28,8 +28,11 @@ python3 eval/compare.py
 - **Facts found:** the share of a question's required patterns that appear in the
   answer. Crude (it can't tell a wrong statement that happens to contain a keyword)
   but cheap and repeatable. Read the answers for anything that matters.
-- **Retrieval recall:** the share of the expected sessions that were among the
-  passages given to the model. This is the same for every model, so a low fact
-  score with full recall is the model's fault.
+- **Context recall:** the share of the expected facts that appear in the passages
+  given to the model. It's the same for every model, so a low fact score with
+  full context recall is the model's fault, and a low context recall is
+  retrieval's. (Before 2026-11-05 the eval only checked whether the right
+  *session* was retrieved; that reported 98% while the passage holding the
+  answer was missing.)
 - **Cited:** whether the answer cites at least one passage as `[n]`.
 - The unanswerable question passes if the answer says the reports don't say.

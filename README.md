@@ -17,12 +17,30 @@ window: `mackb app`, or `scripts/make_app.sh` → `build/MacKB.app`.
 | `mackb ingest <audio/video>` | ffmpeg → 16 kHz → **Parakeet v3** (FluidAudio, CoreML) → a note with `[hh:mm:ss]` lines |
 | `mackb ingest <YouTube URL>` | yt-dlp; uses the video's captions when there are any, otherwise transcribes the audio |
 | `mackb index` | Chunks each note on headings and timestamps; SQLite FTS5 + **Qwen3-Embedding-0.6B** vectors (in-process, MLX Swift). Only changed notes are re-indexed |
-| `mackb search "…"` | Keyword (BM25) and vector results merged with reciprocal rank fusion |
+| `mackb search "…"` | Retrieval pipeline below |
 | `mackb ask "…"` | The top 12 passages go to **Qwen 3.8 27B** (MLX 4-bit in-process or Ollama, thinking off). The answer cites `[n]`, and each source prints as `[[note#anchor]]` |
 | `mackb app` | The window: Ask (cited answers; click a source to open it), Library (browse and search), Inbox (approve or reject agent memories), and a reader that jumps to the cited section |
 | `mackb eval` | Scores Q&A against a question set; see `eval/README.md` |
 | `mackb mcp` | MCP server: `search`, `get_note`, `ask`, `remember`, `list_inbox` |
 | `mackb inbox / approve / reject` | Memories that agents propose wait here for approval. Each one is checked for full names, emails and phone numbers first |
+
+**Retrieval** (`Sources/mackb/Index.swift`, tuning constants in `enum Retrieval`), following
+the open-source survey in the kb repo (`projects/202611_mac-kb/oss-best-practices.md`):
+
+1. **Read the question.** "First session", "session 4", "final session", "graduation",
+   or "second joint session" (from the form header) become session filters. "Across
+   sessions" or "over the course of" turn on spread mode.
+2. **Find candidates.** 60 passages from FTS5 BM25 and Qwen3-Embedding vectors, merged with
+   reciprocal rank fusion. Each passage starts with a label (title › date › session
+   kind › form question), so both searches see which session it is from.
+3. **Rerank** with **Qwen3-Reranker-0.6B** (MLX, in-process). If the best score is
+   below 0.08, decline without calling the LLM.
+4. **Select.** Drop passages scoring under half the best. Cap each note at 2, except
+   that a note holding 3 of the top 5 gets 5. Add the neighbours of the top 2 hits.
+   Merge neighbouring passages. In spread mode, take the best 1–2 per session and
+   send them in session order.
+5. **Answer.** 8 passages go to Qwen 3.8 27B. `[n]` markers that point at no passage
+   are flagged.
 
 The vault is plain Markdown with YAML frontmatter (`$MACKB_VAULT`, default
 `~/MacKB`): `sources/`, `memory/`, `inbox/`. It opens in Obsidian. The index in
@@ -65,7 +83,9 @@ Qwen would be faster still.
 
 ## Not done yet
 
-- Retrieval fixes from the eval (a reranker, one passage per section, "first session" → Session 1); sqlite-vec
+- Keep Word headings and tables on import (Docling or a Swift OOXML reader) instead of the "?"-line heuristic; sqlite-vec
+- Per-session summaries and a per-case timeline written at import, for questions across sessions
+- Claim-level faithfulness and citation-precision scores in the eval; a bigger question set
 - Faster prompt reading on MLX (prompt caching, MTP)
 - Batched embeddings (currently one passage at a time); a background job queue
 - Case-report templates (ACBC structure: data gathering, problem, hope, plan, homework)

@@ -110,9 +110,29 @@ func ingestDocument(_ url: URL, root: URL?, tags: [String]) throws -> Note {
     meta["format"] = url.pathExtension.lowercased()
     let allTags = Array(Set(tags + folderTags)).sorted()
     if !allTags.isEmpty { meta["tags"] = allTags.joined(separator: ", ") }
+    meta.merge(caseMetadata(title: title, body: body)) { old, _ in old }
     let note = Note(path: dest, meta: meta, body: "\n" + body + "\n")
     try note.write()
     return note
+}
+
+/// Case-report metadata from the ACBC form header ("Date: … Session: N") and an
+/// initials-style counselee id in the title ("D.M."). Becomes frontmatter, so
+/// retrieval can filter by session and label every passage with it.
+func caseMetadata(title: String, body: String) -> [String: String] {
+    func first(_ pattern: String, _ text: String) -> String? {
+        guard let re = try? NSRegularExpression(pattern: pattern),
+              let m = re.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+              let r = Range(m.range(at: 1), in: text) else { return nil }
+        return String(text[r])
+    }
+    let head = String(body.prefix(600))
+    guard let session = first(#"Session:\s*(\d{1,3})"#, head) ?? first(#"Session\s+(\d{1,3})\b"#, title) else { return [:] }
+    var m = ["session": session, "doc_type": "case-report"]
+    if let d = first(#"Date:\s*(\d{4}-\d{2}-\d{2})"#, head) { m["date"] = d }
+    if let kind = first(#"Session:\s*\d{1,3}\s*\(([^)]{3,60})\)"#, head) { m["session_kind"] = kind }
+    if let c = first(#"\b((?:[A-Z]\.){2,3})"#, title) ?? first(#"\b((?:[A-Z]\.){2,3})"#, head) { m["case"] = c }
+    return m
 }
 
 /// Walk a folder. When a lesson exists as both .docx and .pdf (common in a

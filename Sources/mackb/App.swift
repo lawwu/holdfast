@@ -141,6 +141,9 @@ final class Store: ObservableObject {
                 sources = a.sources
                 stats = String(format: "%d passages · %d tokens at %.1f tok/s · %.0fs",
                                a.sources.count, a.stats.outputTokens, a.stats.tokPerSec, Date().timeIntervalSince(t0))
+                if !a.badCitations.isEmpty {
+                    stats += " · ⚠ cites passages that don't exist: " + a.badCitations.map { "[\($0)]" }.joined(separator: ", ")
+                }
             } catch {
                 self.error = "\(error)"
             }
@@ -154,7 +157,7 @@ final class Store: ObservableObject {
         Task {
             let emb = await getEmbedder()
             busy = nil
-            results = (try? await search(q, embedder: emb, limit: 25)) ?? []
+            results = (try? await search(q, embedder: emb, reranker: await Reranker.shared(), limit: 25)) ?? []
         }
     }
 
@@ -407,7 +410,12 @@ struct SourceRow: View {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 if let n { Text("[\(n)]").monospacedDigit().foregroundStyle(.secondary) }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(chunk.title).fontWeight(.medium)
+                    HStack {
+                        Text(chunk.title).fontWeight(.medium)
+                        if let s = chunk.score {
+                            Text(String(format: "%.0f%% relevant", s * 100)).font(.caption2).foregroundStyle(.secondary)
+                        }
+                    }
                     if chunk.anchor != chunk.title {
                         Text(chunk.anchor).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                     }

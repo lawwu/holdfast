@@ -1,4 +1,5 @@
 import Foundation
+import NaturalLanguage
 
 /// The Q&A prompt is written for the first use case: a biblical counselor asking
 /// questions of their own materials and past case reports.
@@ -14,6 +15,8 @@ counseling anyone yourself.
 
 struct Answer {
     var text: String
+    /// [n] markers in the text that point at no passage.
+    var badCitations: [Int] = []
     var sources: [Chunk]
     var stats: GenStats
     var retrievalSeconds: Double
@@ -32,10 +35,13 @@ func citation(_ c: Chunk) -> String { "[[\(c.noteId)#\(c.anchor)]]" }
 func ask(_ question: String, embedder: Embedder?, llm: LLMBackend = OllamaBackend(),
          stream: (@Sendable (String) -> Void)? = nil) async throws -> Answer {
     let t0 = Date()
-    let hits = try await search(question, embedder: embedder, limit: Config.contextChunks)
+    let hits = try await search(question, embedder: embedder, reranker: await Reranker.shared(), limit: Config.contextChunks)
     let rt = Date().timeIntervalSince(t0)
     guard !hits.isEmpty else {
-        return Answer(text: "Nothing in the vault matches that question.", sources: [],
+        // Abstain before generating: nothing relevant enough, so don't ask the 27B to guess.
+        let msg = "Your materials don't cover this question. Nothing in the vault was relevant enough to answer from."
+        stream?(msg)
+        return Answer(text: msg, sources: [],
                       stats: GenStats(promptTokens: 0, promptSeconds: 0, outputTokens: 0, outputSeconds: 0), retrievalSeconds: rt)
     }
     var ctx = ""
@@ -48,7 +54,12 @@ func ask(_ question: String, embedder: Embedder?, llm: LLMBackend = OllamaBacken
         box.append(tok)
         stream?(tok)
     }
-    return Answer(text: box.text, sources: hits, stats: stats, retrievalSeconds: rt)
+    // Citation check: every [n] must point at a passage that was given.
+    let cited = (try? NSRegularExpression(pattern: #"\[(\d+)\]"#))?
+        .matches(in: box.text, range: NSRange(box.text.startIndex..., in: box.text))
+        .compactMap { Range($0.range(at: 1), in: box.text).flatMap { Int(box.text[$0]) } } ?? []
+    let bad = Array(Set(cited.filter { $0 < 1 || $0 > hits.count })).sorted()
+    return Answer(text: box.text, badCitations: bad, sources: hits, stats: stats, retrievalSeconds: rt)
 }
 
 func formatSources(_ a: Answer) -> String {
@@ -72,11 +83,35 @@ func privacyFlags(_ text: String) -> [String] {
         let first = String(text[Range(m.range(at: 1), in: text)!])
         let books: Set<String> = ["First", "Second", "Third", "Song", "God", "The", "This", "That", "When", "And", "But", "Lord"]
         if allow.contains(s) || books.contains(first) { continue }
-        flags.append("possible full name: \"\(s)\"")
+        flags.append("possible name: \"\(s)\"")
     }
+    flags += nameTaggerFlags(text)
     if text.range(of: #"[\w.+-]+@[\w-]+\.[\w.]+"#, options: .regularExpression) != nil { flags.append("email address") }
     if text.range(of: #"\(?\d{3}\)?[ .-]\d{3}[ .-]\d{4}"#, options: .regularExpression) != nil { flags.append("phone number") }
     return Array(Set(flags)).sorted()
+}
+
+/// Apple's on-device named-entity tagger (no download): personal names that are
+/// not initials and not common biblical names (oss-best-practices.md #10).
+func nameTaggerFlags(_ text: String) -> [String] {
+    let biblical: Set<String> = ["God", "Jesus", "Christ", "Lord", "Holy Spirit", "Paul", "Peter", "John", "James", "Moses",
+        "David", "Abraham", "Isaac", "Jacob", "Joseph", "Mary", "Martha", "Matthew", "Mark", "Luke", "Timothy", "Titus",
+        "Solomon", "Job", "Elijah", "Isaiah", "Jeremiah", "Daniel", "Jonah", "Ruth", "Esther", "Noah", "Adam", "Eve",
+        "Samuel", "Saul", "Ezekiel", "Philippians", "Ephesians", "Colossians", "Corinthians", "Romans", "Galatians", "Hebrews"]
+    let tagger = NLTagger(tagSchemes: [.nameType])
+    tagger.string = text
+    var out: [String] = []
+    tagger.enumerateTags(in: text.startIndex..<text.endIndex, unit: .word, scheme: .nameType,
+                         options: [.omitWhitespace, .omitPunctuation, .joinNames]) { tag, range in
+        if tag == .personalName {
+            let name = String(text[range])
+            if !biblical.contains(name), name.range(of: #"^([A-Z]\.?){1,3}$"#, options: .regularExpression) == nil {
+                out.append("possible name: \"\(name)\"")
+            }
+        }
+        return true
+    }
+    return out
 }
 
 func propose(title: String, text: String, tags: [String], by agent: String) throws -> (Note, [String]) {

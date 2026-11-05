@@ -24,6 +24,10 @@ struct EvalResult: Codable {
     var facts: Double
     var missed: [String]
     var recall: Double?
+    /// Share of expected facts present in the passages given to the model:
+    /// a section-level retrieval score (session-level `recall` hid misses).
+    var contextRecall: Double?
+    var badCitations: [Int]?
     var cited: Bool
     var promptTokens: Int
     var outputTokens: Int
@@ -53,12 +57,17 @@ func runEval(questionsPath: String, label: String, outDir: URL, only: Set<String
         let recall: Double? = q.sessions.isEmpty ? nil
             : Double(q.sessions.filter { ids.contains(sessionNoteId($0)) }.count) / Double(q.sessions.count)
         let cited = a.text.range(of: #"\[\d+\]"#, options: .regularExpression) != nil
+        let context = a.sources.map(\.text).joined(separator: "\n")
+        let contextRecall: Double? = q.kind == "unanswerable" ? nil
+            : Double(q.expect.filter { context.range(of: $0, options: [.regularExpression, .caseInsensitive]) != nil }.count)
+              / Double(max(q.expect.count, 1))
         let r = EvalResult(id: q.id, kind: q.kind, question: q.question, answer: a.text,
                            facts: Double(hit) / Double(max(q.expect.count, 1)), missed: missed, recall: recall,
-                           cited: cited, promptTokens: a.stats.promptTokens, outputTokens: a.stats.outputTokens,
+                           contextRecall: contextRecall, badCitations: a.badCitations, cited: cited, promptTokens: a.stats.promptTokens, outputTokens: a.stats.outputTokens,
                            tokPerSec: a.stats.tokPerSec, seconds: secs, sources: a.sources.map { citation($0) })
         results.append(r)
-        log(String(format: "%@ facts %.0f%% recall %@ cited %@ · %d tok at %.1f tok/s · %.0fs", q.id, r.facts * 100,
+        log(String(format: "%@ facts %.0f%% context %@ recall %@ cited %@ · %d tok at %.1f tok/s · %.0fs", q.id, r.facts * 100,
+                   contextRecall.map { String(format: "%.0f%%", $0 * 100) } ?? "—",
                    recall.map { String(format: "%.0f%%", $0 * 100) } ?? "—", cited ? "y" : "n", r.outputTokens, r.tokPerSec, secs))
     }
     try FileManager.default.createDirectory(at: outDir, withIntermediateDirectories: true)
@@ -68,10 +77,10 @@ func runEval(questionsPath: String, label: String, outDir: URL, only: Set<String
 
     let n = Double(results.count)
     let facts = results.map(\.facts).reduce(0, +) / n
-    let recalls = results.compactMap(\.recall)
+    let recalls = results.compactMap(\.contextRecall)
     let totalOut = results.map(\.outputTokens).reduce(0, +)
     let genSecs = results.map { Double($0.outputTokens) / max($0.tokPerSec, 0.001) }.reduce(0, +)
-    print(String(format: "\n%@: facts %.0f%% · retrieval recall %.0f%% · cited %d/%d · %.1f tok/s · median %.0fs/answer · %.1f min total",
+    print(String(format: "\n%@: facts %.0f%% · context recall %.0f%% · cited %d/%d · %.1f tok/s · median %.0fs/answer · %.1f min total",
                  label, facts * 100, recalls.reduce(0, +) / Double(max(recalls.count, 1)) * 100,
                  results.filter(\.cited).count, results.count, Double(totalOut) / max(genSecs, 0.001),
                  results.map(\.seconds).sorted()[results.count / 2], results.map(\.seconds).reduce(0, +) / 60))

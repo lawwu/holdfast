@@ -70,9 +70,9 @@ do {
     case "search":
         let emb = flag("--no-embed") ? nil : try await Embedder.load()
         let q = args.joined(separator: " ")
-        for (i, c) in try await search(q, embedder: emb, limit: 8).enumerated() {
+        for (i, c) in try await search(q, embedder: emb, reranker: await Reranker.shared(), limit: 8).enumerated() {
             let preview = c.text.split(separator: "\n").dropFirst().joined(separator: " ").prefix(220)
-            print("[\(i + 1)] \(citation(c))\n    \(preview)\n")
+            print("[\(i + 1)] \(citation(c))" + (c.score.map { String(format: "  (%.2f)", $0) } ?? "") + "\n    \(preview)\n")
         }
     case "ask":
         let emb = flag("--no-embed") ? nil : try await Embedder.load()
