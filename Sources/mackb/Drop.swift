@@ -368,7 +368,11 @@ enum Drop {
         let entry = item.body.trimmingCharacters(in: .whitespacesAndNewlines)
         let before = Versions.snapshot(dest, reason: "filing")
         let written: String
-        if item.meta["action"] == "append", target.lowercased().hasSuffix(".csv"), var text = try? String(contentsOf: dest, encoding: .utf8) {
+        if item.meta["action"] == "link", let text = try? String(contentsOf: dest, encoding: .utf8) {
+            // A cross-link: one line under the note's "## See also".
+            try appendUnder("## See also", lines: [entry], to: text).write(to: dest, atomically: true, encoding: .utf8)
+            written = entry
+        } else if item.meta["action"] == "append", target.lowercased().hasSuffix(".csv"), var text = try? String(contentsOf: dest, encoding: .utf8) {
             let rows = csvRows(entry, for: text)
             guard !rows.isEmpty else { throw MacKBError("the proposal has no row matching \(target)'s columns; edit it into a CSV line first") }
             // Keep the file's line endings (Excel writes \r\n, which Swift sees as one character).

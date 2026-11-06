@@ -175,6 +175,57 @@ do {
         default:
             throw MacKBError("pack list | install | index | on | off | remove | create")
         }
+    case "job":
+        guard args.first == "crosslink" else { throw MacKBError("job crosslink [--dry] [--limit N] [--candidates] [--out file.json]") }
+        let dry = flag("--dry"), candOnly = flag("--candidates")
+        let limit = option("--limit").first.flatMap(Int.init), out = option("--out").first
+        if candOnly {
+            let pairs = CrossLink.candidates(allNotes())
+            let enc = JSONEncoder(); enc.outputFormatting = [.prettyPrinted, .sortedKeys]
+            let data = try enc.encode(pairs)
+            if let out { try data.write(to: URL(fileURLWithPath: out)) } else { print(String(decoding: data, as: UTF8.self)) }
+            FileHandle.standardError.write(Data("\(pairs.count) candidate pairs\n".utf8))
+            break
+        }
+        let llm = try await makeBackend()
+        let vs = await CrossLink.run(llm: llm, model: evalModelName(), limit: limit, dryRun: dry) { _, _, _ in true }
+        for v in vs { print("\(v.link ? "LINK" : "no  ") \(String(format: "%.2f", v.score))  \(v.a) → \(v.b)  \(v.reason)\(v.error.map { "  ERROR \($0)" } ?? "")") }
+        print("\(vs.filter(\.link).count) of \(vs.count) pairs\(dry ? " (dry run: nothing proposed)" : " proposed to the inbox")")
+    case "eval-links":
+        // Scores the cross-link judge on labeled pairs (eval/household/crosslink.json).
+        let label = option("--label").first ?? evalModelName()
+        struct Labeled: Codable { var a: String; var b: String; var link: Bool; var why: String? }
+        let cases = try JSONDecoder().decode([Labeled].self, from: Data(contentsOf: URL(fileURLWithPath: args.first ?? "eval/household/crosslink.json")))
+        let byPath = Dictionary(allNotes().map { ($0.relPath, $0) }, uniquingKeysWith: { a, _ in a })
+        let llm = try await makeBackend()
+        var tp = 0, fp = 0, fn = 0, tn = 0, secs: [Double] = [], wrong: [String] = []
+        for c in cases {
+            guard let a = byPath[c.a], let b = byPath[c.b] else { continue }
+            let v = await CrossLink.judge(CrossLink.Pair(a: c.a, b: c.b, score: 0), a: a, b: b, llm: llm)
+            secs.append(v.seconds)
+            switch (v.link, c.link) {
+            case (true, true): tp += 1
+            case (true, false): fp += 1; wrong.append("false link: \(c.a) → \(c.b) (\(v.reason))")
+            case (false, true): fn += 1; wrong.append("missed: \(c.a) → \(c.b)")
+            default: tn += 1
+            }
+        }
+        for w in wrong { print("  " + w) }
+        let n = Double(tp + fp + fn + tn)
+        print(String(format: "%@: accuracy %.0f%% · precision %.0f%% · recall %.0f%% · false links %d · median %.1fs/pair", label,
+                     Double(tp + tn) / n * 100, Double(tp) / Double(max(tp + fp, 1)) * 100, Double(tp) / Double(max(tp + fn, 1)) * 100,
+                     fp, secs.sorted()[secs.count / 2]))
+    case "route":
+        // How the one box would handle each request: mackb route "<request>" … (or --file questions.json)
+        var qs = args
+        if let f = option("--file").first, let d = try? Data(contentsOf: URL(fileURLWithPath: f)),
+           let arr = try? JSONSerialization.jsonObject(with: d) as? [[String: Any]] {
+            qs = arr.compactMap { ($0["id"] as? String).map { id in id + "\t" + (arr.first { $0["id"] as? String == id }?["question"] as? String ?? "") } }
+        }
+        for q in qs {
+            let parts = q.components(separatedBy: "\t")
+            print("\(parts.count > 1 ? parts[0] + "\t" : "")\(Router.route(parts.last!).rawValue)\t\(parts.last!)")
+        }
     case "filings":
         for (i, r) in FilingLog.load().prefix(20).enumerated() {
             print("\(i + 1). \(r.undone ? "[undone] " : "")\(r.action) \(r.target)  \(r.title)\(r.rule.map { "  (rule: \($0))" } ?? "")")
