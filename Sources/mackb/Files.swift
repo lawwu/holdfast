@@ -151,7 +151,8 @@ struct FileRow: View {
 /// Obsidian's quick switcher: type part of a title or path, Return opens.
 struct QuickOpen: View {
     @EnvironmentObject var store: Store
-    @Environment(\.dismiss) var dismiss
+    /// Shown as a floating panel (see FloatingPanel), so closing is the store's flag, not a sheet's dismiss.
+    func dismiss() { store.showQuickOpen = false }
     @State private var query = ""
     @State private var index = 0
     @FocusState private var focused: Bool

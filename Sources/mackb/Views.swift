@@ -180,8 +180,14 @@ struct RootView: View {
         .sheet(isPresented: $store.showLinkSheet) { LinkSheet() }
         .sheet(isPresented: $store.showBulkImport) { BulkImportSheet().environmentObject(store) }
         .sheet(item: $store.reading) { t in ConversationReader(thread: t.id).environmentObject(store) }
-        .sheet(isPresented: $store.showQuickOpen) { QuickOpen().environmentObject(store) }
-        .sheet(isPresented: $store.showPalette) { CommandPalette().environmentObject(store) }
+        .overlay {
+            // Quick Open and the command palette float like Spotlight: a click outside closes them.
+            if store.showQuickOpen || store.showPalette {
+                FloatingPanel(close: { store.showQuickOpen = false; store.showPalette = false }) {
+                    if store.showQuickOpen { QuickOpen() } else { CommandPalette() }
+                }
+            }
+        }
         .sheet(item: $store.preview) { o in
             NotePreview(opened: o).environmentObject(store)
         }
@@ -632,7 +638,7 @@ struct RelevanceMeter: View {
             .frame(width: 36, height: 4)
             Text(String(format: "%.0f%%", score * 100)).font(.caption2).monospacedDigit().foregroundStyle(.secondary)
         }
-        .help("Relevance from the reranker")
+        .help("How relevant the reranker judged this passage to your question (0–100%). Not a probability of being right: passages that score low next to the best one are left out, so a lower one still made the cut.")
     }
 }
 
