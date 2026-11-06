@@ -362,24 +362,31 @@ final class Store: ObservableObject {
                     a = try await Agent.run(q, embedder: emb, backend: mlx, prior: prior) { ev in
                         Task { @MainActor in
                             switch ev {
-                            case .step(let s): self.steps.append(s); self.busy = s + "…"
+                            case .step(let s): self.steps.append(s); self.busy = Steps.split(s).title + "…"
+                            case .stepDetail(let d): self.attachDetail(d)
                             case .token(let t): self.answer += t
                             case .resetText: self.answer = ""
                             }
                         }
                     }
                 } else {
-                    steps.append("Searching your notes" + (prior.isEmpty ? "" : " (with the conversation so far)"))
+                    steps.append("Searching your notes" + (prior.isEmpty ? "" : " (with the conversation so far)")
+                                 + Steps.sep + "search(\"\(q)\")" + (prior.isEmpty ? "" : "\nwith earlier turns: \(prior.count)"))
                     busy = "Searching your notes…"
+                    let raw = TextBox()
                     a = try await ask(q, embedder: emb, llm: llm, prior: prior) { tok in
+                        raw.append(tok)
+                        let shown = Thinking.visible(raw.text)
                         Task { @MainActor in
-                            if self.busy == "Searching your notes…" { self.busy = "Writing the answer…" }
-                            self.answer += tok
+                            self.busy = shown.isEmpty ? (Thinking.on ? "Thinking…" : "Reading what it found…") : "Writing the answer…"
+                            self.answer = shown
                         }
                     }
                     let noteCount = Set(a.sources.map(\.relPath)).count
-                    steps.append(a.sources.isEmpty ? "Found nothing close enough to answer from"
-                                 : "Read \(a.sources.count) passages from \(noteCount) note\(noteCount == 1 ? "" : "s")")
+                    if !a.thinking.isEmpty { steps.append("Thinking" + Steps.sep + a.thinking) }
+                    steps.append((a.sources.isEmpty ? "Found nothing close enough to answer from"
+                                  : "Read \(a.sources.count) passages from \(noteCount) note\(noteCount == 1 ? "" : "s")")
+                                 + (a.sources.isEmpty ? "" : Steps.sep + a.sources.enumerated().map { "[\($0.offset + 1)] \($0.element.relPath) › \($0.element.anchor)" }.joined(separator: "\n")))
                     // Found nothing? Look deeper before giving up.
                     if Router.shouldEscalate(a), let mlx = llm as? MLXBackend {
                         escalated = true
@@ -389,7 +396,8 @@ final class Store: ObservableObject {
                         a = try await Agent.run(q, embedder: emb, backend: mlx, prior: prior) { ev in
                             Task { @MainActor in
                                 switch ev {
-                                case .step(let s): self.steps.append(s); self.busy = s + "…"
+                                case .step(let s): self.steps.append(s); self.busy = Steps.split(s).title + "…"
+                                case .stepDetail(let d): self.attachDetail(d)
                                 case .token(let t): self.answer += t
                                 case .resetText: self.answer = ""
                                 }
@@ -819,6 +827,12 @@ final class Store: ObservableObject {
     func rejectItem(_ n: Note) {
         do { try reject(n.id) } catch { self.error = "\(error)" }
         reload()
+    }
+
+    /// Attaches a tool call's detail to the step just announced.
+    func attachDetail(_ d: String) {
+        guard let i = steps.indices.last, Steps.split(steps[i]).detail == nil else { return }
+        steps[i] += Steps.sep + d
     }
 
     // MARK: bulk import

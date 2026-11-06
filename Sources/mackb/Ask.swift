@@ -10,6 +10,53 @@ struct Answer {
     var retrievalSeconds: Double
     /// Research mode: the tool calls made, in order.
     var steps: [String] = []
+    /// The model's reasoning, when thinking is on.
+    var thinking = ""
+}
+
+/// Steps carry an optional detail after a separator: "Read finance/profile.md␟read_note({…})\n\n<result>".
+enum Steps {
+    static let sep = "\u{1F}"
+    /// Characters of a tool's result kept in its step detail.
+    static let resultChars = 1_200
+
+    static func split(_ s: String) -> (title: String, detail: String?) {
+        guard let r = s.range(of: sep) else { return (s, nil) }
+        return (String(s[..<r.lowerBound]), String(s[r.upperBound...]))
+    }
+}
+
+/// The model's reasoning ("thinking") when it is switched on.
+enum Thinking {
+    static var on: Bool {
+        UserDefaults.standard.bool(forKey: "showThinking") || ProcessInfo.processInfo.environment["MACKB_THINK"] == "1"
+    }
+
+    /// Reasoning blocks (<think>…</think>; Gemma's <|channel>thought…<channel|>) and the text without them.
+    static func split(_ s: String) -> (thought: String, rest: String) {
+        var thoughts: [String] = []
+        var rest = s
+        // Qwen's template opens <think> in the prompt, so the reply starts mid-reasoning and only closes it.
+        if let close = rest.range(of: "</think>"), !rest[..<close.lowerBound].contains("<think>") {
+            thoughts.append(String(rest[..<close.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines))
+            rest = String(rest[close.upperBound...])
+        }
+        for p in [#"(?s)<think>(.*?)</think>"#, #"(?s)<\|channel\>thought(.*?)<channel\|>"#] {
+            let re = try! NSRegularExpression(pattern: p)
+            for m in re.matches(in: rest, range: NSRange(rest.startIndex..., in: rest)) {
+                if let r = Range(m.range(at: 1), in: rest) { thoughts.append(String(rest[r]).trimmingCharacters(in: .whitespacesAndNewlines)) }
+            }
+            rest = re.stringByReplacingMatches(in: rest, range: NSRange(rest.startIndex..., in: rest), withTemplate: "")
+        }
+        return (thoughts.filter { !$0.isEmpty }.joined(separator: "\n\n"), rest)
+    }
+
+    /// Streamed text to show: nothing while a reasoning block is still open.
+    static func visible(_ partial: String) -> String {
+        if partial.contains("<think>") && !partial.contains("</think>") { return "" }
+        if on && !partial.contains("</think>") && !partial.contains("<|channel>") { return "" }  // still reasoning
+        return split(partial).rest.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 }
 
 /// Collects streamed tokens from a @Sendable callback.
@@ -58,7 +105,8 @@ func ask(_ question: String, embedder: Embedder?, llm: LLMBackend = OllamaBacken
         .matches(in: box.text, range: NSRange(box.text.startIndex..., in: box.text))
         .compactMap { Range($0.range(at: 1), in: box.text).flatMap { Int(box.text[$0]) } } ?? []
     let bad = Array(Set(cited.filter { $0 < 1 || $0 > hits.count })).sorted()
-    return Answer(text: stripThoughts(box.text), badCitations: bad, sources: hits, stats: stats, retrievalSeconds: rt)
+    let (thought, rest) = Thinking.split(box.text)
+    return Answer(text: stripThoughts(rest), badCitations: bad, sources: hits, stats: stats, retrievalSeconds: rt, thinking: thought)
 }
 
 /// Follow-ups: what earlier turns of a conversation the model sees.

@@ -19,6 +19,7 @@ enum Agent {
         case step(String)   // "Searching: …", "Reading health/goals.md"
         case token(String)  // streamed text of the current turn
         case resetText      // the streamed text was a preamble to tool calls
+        case stepDetail(String)  // the exact call and what it returned, for the step just announced
     }
 
     static let instructions = """
@@ -108,14 +109,23 @@ enum Agent {
                 default: break
                 }
             }
+            let (thought, said) = Thinking.split(text)
+            if !thought.isEmpty { onEvent(.step("Thinking" + Steps.sep + thought)) }
             if calls.isEmpty || step == maxSteps {
-                final = text
+                final = said
                 break
             }
             onEvent(.resetText)
             next = []
-            for call in calls {
+            for (k, call) in calls.enumerated() {
                 let result = await ctx.call(call) { onEvent(.step($0)) }
+                // What was asked and what came back, shown when the step is clicked.
+                let args = (try? JSONEncoder().encode(call.function.arguments)).map { String(decoding: $0, as: UTF8.self) } ?? "{}"
+                var detail = "\(call.function.name)(\(args))\n\n" + String(result.prefix(Steps.resultChars))
+                    + (result.count > Steps.resultChars ? "\n[…]" : "")
+                let preamble = stripThoughts(said).trimmingCharacters(in: .whitespacesAndNewlines)
+                if k == 0, !preamble.isEmpty { detail = "Model: \(preamble)\n\n" + detail }
+                onEvent(.stepDetail(detail))
                 next.append(.tool(result, name: call.function.name))
             }
         }
