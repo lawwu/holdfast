@@ -511,6 +511,8 @@ struct AnswerCard: View {
     @EnvironmentObject var store: Store
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            // The "Answer" header appears once there is answer text; while it works, only the steps show.
+            if !store.answer.isEmpty {
             HStack(spacing: 8) {
                 Image(systemName: "sparkles").foregroundStyle(Theme.gradient)
                 Text("Answer").font(.headline)
@@ -521,6 +523,7 @@ struct AnswerCard: View {
                 } label: { Image(systemName: "doc.on.doc") }
                 .buttonStyle(.borderless).help("Copy the answer")
                 .disabled(store.busy != nil)
+            }
             }
             // No .textSelection here: on macOS it routes link clicks around
             // the openURL handler, so citations wouldn't open. Copy is above.
