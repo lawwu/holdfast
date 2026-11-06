@@ -27,8 +27,8 @@ struct SettingsHeader: View {
     var subtitle: String
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.headline)
-            Text(subtitle).font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Text(title).font(Theme.headline)
+            Text(subtitle).font(Theme.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -47,14 +47,14 @@ struct ChoiceRow<Trailing: View>: View {
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                .font(.title3)
+                .font(Theme.title3)
                 .foregroundStyle(selected ? AnyShapeStyle(Theme.gradient) : AnyShapeStyle(Color.secondary.opacity(enabled ? 0.5 : 0.25)))
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
-                    Text(title).font(.callout.weight(.semibold))
+                    Text(title).font(Theme.callout.weight(.semibold))
                     if let tag { Pill(text: tag) }
                 }
-                Text(subtitle).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Text(subtitle).font(Theme.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             .opacity(enabled ? 1 : 0.6)
             Spacer(minLength: 8)
@@ -110,7 +110,7 @@ struct AnswerSettings: View {
                 Image(systemName: "memorychip")
                 Text(String(format: "This Mac has %.0f GB of memory. Models download from Hugging Face (mlx-community).", ramGB))
             }
-            .font(.caption).foregroundStyle(.secondary)
+            .font(Theme.caption).foregroundStyle(.secondary)
 
             SettingsHeader(title: "Other runtime", subtitle: "For comparison; needs the Ollama server running.")
             GroupBox2 {
@@ -124,7 +124,7 @@ struct AnswerSettings: View {
             if MLXBackend.isLoaded && store.backend == .ollama {
                 HStack(spacing: 10) {
                     Image(systemName: "memorychip").foregroundStyle(.orange)
-                    Text("\(MLXModelSpec.find(MLXBackend.loadedRepo ?? "")?.name ?? "The MLX model") is still in memory.").font(.callout)
+                    Text("\(MLXModelSpec.find(MLXBackend.loadedRepo ?? "")?.name ?? "The MLX model") is still in memory.").font(Theme.callout)
                     Spacer()
                     Button("Unload") { MLXBackend.unload(); tick += 1 }.disabled(store.busy != nil)
                 }
@@ -146,7 +146,7 @@ struct AnswerSettings: View {
             if let f = store.downloads[spec.repo] {
                 HStack(spacing: 6) {
                     ProgressView(value: f).frame(width: 70)
-                    Text(String(format: "%.0f%%", f * 100)).font(.caption).monospacedDigit().foregroundStyle(.secondary)
+                    Text(String(format: "%.0f%%", f * 100)).font(Theme.caption).monospacedDigit().foregroundStyle(.secondary)
                 }
             } else if downloaded {
                 StatusBadge(status: .ready(MLXBackend.loadedRepo == spec.repo ? "Loaded" : "Downloaded"))
@@ -221,7 +221,7 @@ struct TranscriptionSettings: View {
                 }
             }
             Text("Measured here: Parakeet v3 transcribes at about 140× real time (an hour of audio in under 30 seconds).")
-                .font(.caption).foregroundStyle(.secondary)
+                .font(Theme.caption).foregroundStyle(.secondary)
         }
         .padding(24)
     }
@@ -237,10 +237,10 @@ struct VaultSettings: View {
             SettingsHeader(title: "Vault",
                            subtitle: "A folder of plain Markdown notes. It can be an Obsidian vault; the search index and question history live in its hidden .mackb folder.")
             HStack(spacing: 12) {
-                Image(systemName: "folder.fill").font(.title2).foregroundStyle(Theme.accent)
+                Image(systemName: "folder.fill").font(Theme.title2).foregroundStyle(Theme.accent)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(store.vault.lastPathComponent).font(.callout.weight(.semibold))
-                    Text(store.vault.path).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                    Text(store.vault.lastPathComponent).font(Theme.callout.weight(.semibold))
+                    Text(store.vault.path).font(Theme.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
                 }
                 Spacer()
                 Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([store.vault]) }
@@ -252,7 +252,7 @@ struct VaultSettings: View {
             Text(Config.inPlace
                  ? "Indexed in place: the app writes nothing into this folder. Its index, history, inbox and imports are in Application Support."
                  : "Managed by the app: imports are copied into sources/, approved memories into memory/.")
-                .font(.caption).foregroundStyle(.secondary)
+                .font(Theme.caption).foregroundStyle(.secondary)
             Picker("Profile", selection: $store.profile) {
                 ForEach(Profile.all, id: \.id) { Text($0.name).tag($0) }
             }
@@ -264,7 +264,7 @@ struct VaultSettings: View {
                 Spacer()
                 Button("Rebuild Index") { store.rebuildIndex() }.disabled(store.busy != nil)
             }
-            .font(.callout).foregroundStyle(.secondary)
+            .font(Theme.callout).foregroundStyle(.secondary)
         }
         .padding(24)
     }

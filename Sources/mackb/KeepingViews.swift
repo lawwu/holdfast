@@ -20,7 +20,7 @@ struct TablesView: View {
                         HStack(spacing: 6) {
                             ForEach(types, id: \.self) { t in
                                 Button { type = t } label: {
-                                    Text("\(t.capitalized) · \(groups[t]!.count)").font(.callout)
+                                    Text("\(t.capitalized) · \(groups[t]!.count)").font(Theme.callout)
                                         .padding(.horizontal, 10).padding(.vertical, 4)
                                         .background(Capsule().fill(t == current ? Theme.accent.opacity(0.16) : Color.primary.opacity(0.05)))
                                         .foregroundStyle(t == current ? Theme.accent : .primary)
@@ -64,10 +64,10 @@ struct PropertyTable: View {
                     ForEach(sorted, id: \.path) { n in
                         Button { store.openNote(n, newTab: NSEvent.modifierFlags.contains(.command)) } label: {
                             HStack(spacing: 0) {
-                                Text(n.title).font(.callout.weight(.medium)).lineLimit(1)
+                                Text(n.title).font(Theme.callout.weight(.medium)).lineLimit(1)
                                     .frame(width: Self.titleWidth, alignment: .leading)
                                 ForEach(cols, id: \.self) { c in
-                                    Text(n.meta[c] ?? "").font(.callout.monospacedDigit()).foregroundStyle(.secondary).lineLimit(1)
+                                    Text(n.meta[c] ?? "").font(Theme.callout.monospacedDigit()).foregroundStyle(.secondary).lineLimit(1)
                                         .frame(width: Self.colWidth, alignment: .leading)
                                 }
                             }
@@ -96,8 +96,8 @@ struct PropertyTable: View {
             if sortKey == key { ascending.toggle() } else { sortKey = key; ascending = key == "title" }
         } label: {
             HStack(spacing: 3) {
-                Text(label).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                if sortKey == key { Image(systemName: ascending ? "chevron.up" : "chevron.down").font(.system(size: 8, weight: .bold)).foregroundStyle(.secondary) }
+                Text(label).font(Theme.caption.weight(.semibold)).foregroundStyle(.secondary)
+                if sortKey == key { Image(systemName: ascending ? "chevron.up" : "chevron.down").font(.system(size: 9, weight: .bold)).foregroundStyle(.secondary) }
             }
             .frame(width: width, alignment: .leading)
         }
@@ -115,31 +115,31 @@ struct UpcomingCard: View {
         if !store.upcoming.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Text("UPCOMING").font(.caption.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
+                    Text("UPCOMING").font(Theme.caption.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
                     Spacer()
-                    Text("next \(Upcoming.horizonDays) days").font(.caption).foregroundStyle(.tertiary)
+                    Text("next \(Upcoming.horizonDays) days").font(Theme.caption).foregroundStyle(.tertiary)
                 }
                 ForEach(store.upcoming.prefix(Self.shown)) { f in
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         Button { store.complete(f) } label: {
-                            Image(systemName: "circle").font(.system(size: 13)).foregroundStyle(.secondary)
+                            Image(systemName: "circle").font(.system(size: 14.5)).foregroundStyle(.secondary)
                         }
                         .buttonStyle(.plain).help("Mark done")
                         Button { store.openNote(f.note, newTab: NSEvent.modifierFlags.contains(.command)) } label: {
                             VStack(alignment: .leading, spacing: 1) {
-                                Text(f.text).font(.callout).lineLimit(1).foregroundStyle(.primary)
-                                Text(f.note.title).font(.caption).foregroundStyle(.tertiary).lineLimit(1)
+                                Text(f.text).font(Theme.callout).lineLimit(1).foregroundStyle(.primary)
+                                Text(f.note.title).font(Theme.caption).foregroundStyle(.tertiary).lineLimit(1)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        Text(f.overdue ? "overdue · \(f.due)" : f.due).font(.caption.monospacedDigit())
+                        Text(f.overdue ? "overdue · \(f.due)" : f.due).font(Theme.caption.monospacedDigit())
                             .foregroundStyle(f.overdue ? Color.orange : .secondary)
                     }
                 }
                 if store.upcoming.count > Self.shown {
-                    Text("+\(store.upcoming.count - Self.shown) more").font(.caption).foregroundStyle(.tertiary)
+                    Text("+\(store.upcoming.count - Self.shown) more").font(Theme.caption).foregroundStyle(.tertiary)
                 }
             }
             .padding(14)
@@ -157,9 +157,9 @@ struct NoticeBanner: View {
         if let n = store.notice {
             HStack(spacing: 8) {
                 Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-                Text(n).font(.callout)
+                Text(n).font(Theme.callout)
                 Spacer()
-                Button { store.notice = nil } label: { Image(systemName: "xmark").font(.caption) }.buttonStyle(.plain)
+                Button { store.notice = nil } label: { Image(systemName: "xmark").font(Theme.caption) }.buttonStyle(.plain)
             }
             .padding(10)
             .background(RoundedRectangle(cornerRadius: 8).fill(Color.green.opacity(0.08)))
@@ -174,10 +174,10 @@ struct RuleSuggestionCard: View {
         VStack(alignment: .leading, spacing: 8) {
             Label {
                 Text("You've filed \(c.count) documents from ") + Text(c.from).bold()
-                    + Text(c.action == "new" ? " as new notes in " : " to ") + Text(c.target).font(.callout.monospaced()).foregroundColor(Theme.accent)
+                    + Text(c.action == "new" ? " as new notes in " : " to ") + Text(c.target).font(Theme.callout.monospaced()).foregroundColor(Theme.accent)
                     + Text(". Always file them there?")
             } icon: { Image(systemName: "wand.and.stars") }
-            .font(.callout)
+            .font(Theme.callout)
             HStack(spacing: 8) {
                 Button("Make a Rule") { store.acceptRule(c, auto: false) }.buttonStyle(.borderedProminent)
                 Button("File Automatically") { store.acceptRule(c, auto: true) }.buttonStyle(.bordered)
@@ -200,25 +200,25 @@ struct RecentFilings: View {
         if !store.filings.isEmpty {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("RECENTLY FILED").font(.caption.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
+                    Text("RECENTLY FILED").font(Theme.caption.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
                     Spacer()
-                    Button("Filing Rules…") { store.openRules() }.buttonStyle(.link).font(.caption)
+                    Button("Filing Rules…") { store.openRules() }.buttonStyle(.link).font(Theme.caption)
                 }
                 ForEach(store.filings.prefix(Self.shown)) { r in
                     HStack(spacing: 8) {
-                        Image(systemName: r.action == "append" ? "text.append" : "doc.badge.plus").font(.caption).foregroundStyle(.secondary).frame(width: 16)
+                        Image(systemName: r.action == "append" ? "text.append" : "doc.badge.plus").font(Theme.caption).foregroundStyle(.secondary).frame(width: 16)
                         VStack(alignment: .leading, spacing: 1) {
-                            Text(r.title).font(.callout).lineLimit(1).strikethrough(r.undone)
+                            Text(r.title).font(Theme.callout).lineLimit(1).strikethrough(r.undone)
                             Text(r.target + (r.rule.map { " · rule: \($0)" } ?? "") + " · " + r.date.formatted(.relative(presentation: .named)))
-                                .font(.caption).foregroundStyle(.tertiary).lineLimit(1)
+                                .font(Theme.caption).foregroundStyle(.tertiary).lineLimit(1)
                         }
                         Spacer()
                         if r.undone {
-                            Text("Undone").font(.caption).foregroundStyle(.tertiary)
+                            Text("Undone").font(Theme.caption).foregroundStyle(.tertiary)
                         } else {
                             Button("Open") {
                                 if let n = store.notes.first(where: { $0.relPath == r.target }) { store.openNote(n, newTab: false) }
-                            }.buttonStyle(.link).font(.caption)
+                            }.buttonStyle(.link).font(Theme.caption)
                             Button("Undo") { store.undoFiling(r) }.buttonStyle(.bordered).controlSize(.small)
                         }
                     }
@@ -246,7 +246,7 @@ struct RelatedPanel: View {
                     ProgressView().controlSize(.small).padding(.horizontal, 10)
                 } else if related.isEmpty {
                     Text("Nothing close yet. Related notes come from search embeddings, so the note needs to be indexed.")
-                        .font(.callout).foregroundStyle(.secondary).padding(.horizontal, 10)
+                        .font(Theme.callout).foregroundStyle(.secondary).padding(.horizontal, 10)
                 }
                 ForEach(related) { r in
                     let target = store.notes.first(where: { $0.relPath == r.relPath })
@@ -254,13 +254,13 @@ struct RelatedPanel: View {
                     Button { if let target { store.openNote(target, newTab: NSEvent.modifierFlags.contains(.command)) } } label: {
                         VStack(alignment: .leading, spacing: 3) {
                             HStack {
-                                Text(target?.title ?? r.title).font(.callout.weight(.medium)).lineLimit(1)
+                                Text(target?.title ?? r.title).font(Theme.callout.weight(.medium)).lineLimit(1)
                                 Spacer()
-                                if linked { Image(systemName: "link").font(.caption2).foregroundStyle(.tertiary).help("Already linked") }
-                                Text("\(Int((r.score * 100).rounded()))%").font(.caption2.monospacedDigit()).foregroundStyle(.tertiary)
+                                if linked { Image(systemName: "link").font(Theme.caption2).foregroundStyle(.tertiary).help("Already linked") }
+                                Text("\(Int((r.score * 100).rounded()))%").font(Theme.caption2.monospacedDigit()).foregroundStyle(.tertiary)
                             }
-                            Text(r.relPath).font(.caption2).foregroundStyle(.tertiary).lineLimit(1)
-                            Text(r.snippet).font(.system(size: 11.5)).foregroundStyle(.secondary).lineLimit(2)
+                            Text(r.relPath).font(Theme.caption2).foregroundStyle(.tertiary).lineLimit(1)
+                            Text(r.snippet).font(.system(size: 12.5)).foregroundStyle(.secondary).lineLimit(2)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(8)
@@ -312,22 +312,22 @@ struct HistoryPanel: View {
                 PanelHeader(text: "Earlier copies · \(versions.count)")
                 if versions.isEmpty {
                     Text("Holdfast keeps a copy before it files into this note or you edit it. None yet.")
-                        .font(.callout).foregroundStyle(.secondary).padding(.horizontal, 10)
+                        .font(Theme.callout).foregroundStyle(.secondary).padding(.horizontal, 10)
                 }
                 ForEach(versions) { v in
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             VStack(alignment: .leading, spacing: 0) {
-                                Text(v.date.formatted(date: .abbreviated, time: .shortened)).font(.callout)
-                                Text(Self.label(v.reason)).font(.caption2).foregroundStyle(.tertiary)
+                                Text(v.date.formatted(date: .abbreviated, time: .shortened)).font(Theme.callout)
+                                Text(Self.label(v.reason)).font(Theme.caption2).foregroundStyle(.tertiary)
                             }
                             Spacer()
-                            Button(viewing == v ? "Hide" : "View") { viewing = viewing == v ? nil : v }.buttonStyle(.link).font(.caption)
+                            Button(viewing == v ? "Hide" : "View") { viewing = viewing == v ? nil : v }.buttonStyle(.link).font(Theme.caption)
                             Button("Restore") { confirm = v }.buttonStyle(.bordered).controlSize(.small)
                         }
                         if viewing == v, let text = try? String(contentsOf: v.url, encoding: .utf8) {
                             ScrollView {
-                                Text(text).font(.system(size: 11, design: .monospaced)).textSelection(.enabled)
+                                Text(text).font(.system(size: 12, design: .monospaced)).textSelection(.enabled)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }
                             .frame(maxHeight: 220)
@@ -363,7 +363,7 @@ struct BulkImportSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Bulk Import").font(.title2.weight(.semibold))
+            Text("Bulk Import").font(Theme.title2.weight(.semibold))
             HStack {
                 Button("Choose Files or Folders…") {
                     let picked = store.chooseBulkImport()
@@ -378,7 +378,7 @@ struct BulkImportSheet: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 3) {
                         ForEach(sources, id: \.self) { u in
-                            Label(u.lastPathComponent, systemImage: u.hasDirectoryPath ? "folder" : "doc").font(.callout).lineLimit(1)
+                            Label(u.lastPathComponent, systemImage: u.hasDirectoryPath ? "folder" : "doc").font(Theme.callout).lineLimit(1)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -392,14 +392,14 @@ struct BulkImportSheet: View {
             .pickerStyle(.segmented).labelsHidden()
             if asIs {
                 Text("Markdown and CSV files are copied. Spreadsheets become CSV tables. Documents, PDFs, mail, slides, ebooks, photos and recordings become Markdown notes of their text (originals stay outside the vault). Zip archives and Evernote, Day One and mailbox exports are opened first. No model is used, so it's fast; recordings still need transcribing.")
-                    .font(.callout).foregroundStyle(.secondary)
+                    .font(Theme.callout).foregroundStyle(.secondary)
                 HStack {
-                    Text("Into folder").font(.callout)
+                    Text("Into folder").font(Theme.callout)
                     TextField("imported/…", text: $folder).textFieldStyle(.roundedBorder)
                 }
             } else {
                 Text("Every file goes through the drop folder: the model reads it with the folder READMEs and proposes where it belongs, and you approve proposals in groups in the Inbox. Filing rules and duplicate checks apply. Roughly 10–60 seconds per document depending on the model; you can pause anytime.")
-                    .font(.callout).foregroundStyle(.secondary)
+                    .font(Theme.callout).foregroundStyle(.secondary)
             }
             HStack {
                 Spacer()
@@ -426,9 +426,9 @@ struct ImportProgressBar: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(p.total == 0 ? (store.jobTitle == "Importing" ? "Opening files…" : "Getting ready…")
-                         : "\(store.jobTitle) \(min(p.done + 1, p.total)) of \(p.total)").font(.callout.weight(.medium))
+                         : "\(store.jobTitle) \(min(p.done + 1, p.total)) of \(p.total)").font(Theme.callout.weight(.medium))
                     Spacer()
-                    Text(p.file).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                    Text(p.file).font(Theme.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
                     if store.jobTitle != "Importing" { Button("Stop") { store.stopJob() }.buttonStyle(.bordered).controlSize(.small) }
                 }
                 if p.total > 0 { ProgressView(value: Double(p.done), total: Double(p.total)) } else { ProgressView().progressViewStyle(.linear) }
@@ -440,7 +440,7 @@ struct ImportProgressBar: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(store.dropPaused ? "Filing paused · \(store.queueDone) of \(total)" : "Filing \(min(store.queueDone + 1, total)) of \(total)")
-                        .font(.callout.weight(.medium))
+                        .font(Theme.callout.weight(.medium))
                     Spacer()
                     Button(store.dropPaused ? "Resume" : "Pause") { store.pauseFiling(!store.dropPaused) }
                         .buttonStyle(.bordered).controlSize(.small)
@@ -461,11 +461,11 @@ struct FilingGroupHeader: View {
     var body: some View {
         HStack {
             Image(systemName: "square.stack.3d.up").foregroundStyle(.secondary)
-            Text("\(items.count) proposals → ") + Text(place).font(.callout.monospaced()).foregroundColor(Theme.accent)
+            Text("\(items.count) proposals → ") + Text(place).font(Theme.callout.monospaced()).foregroundColor(Theme.accent)
             Spacer()
             Button("File All \(items.count)") { store.approveAll(items) }.buttonStyle(.borderedProminent).tint(.green).controlSize(.small)
         }
-        .font(.callout)
+        .font(Theme.callout)
         .padding(.top, 6)
     }
 }
@@ -487,16 +487,16 @@ struct PacksSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("KNOWLEDGE PACKS").font(.caption.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
+                Text("KNOWLEDGE PACKS").font(Theme.caption.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
                 Spacer()
                 Button("Show in Finder") {
                     try? FileManager.default.createDirectory(at: Packs.dir, withIntermediateDirectories: true)
                     NSWorkspace.shared.open(Packs.dir)
-                }.buttonStyle(.link).font(.caption)
+                }.buttonStyle(.link).font(Theme.caption)
             }
             if packs.isEmpty {
                 Text("Reference collections (a Bible, a wiki) that Ask can quote beside your notes. None installed.")
-                    .font(.callout).foregroundStyle(.secondary)
+                    .font(Theme.callout).foregroundStyle(.secondary)
             }
             ForEach(packs) { m in
                 HStack(alignment: .top, spacing: 10) {
@@ -504,13 +504,13 @@ struct PacksSection: View {
                         Packs.setEnabled(m.id, on); enabled = Packs.enabled()
                     })).toggleStyle(.switch).labelsHidden().controlSize(.small)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(m.name).font(.callout.weight(.semibold))
-                        Text(m.description).font(.caption).foregroundStyle(.secondary).lineLimit(2)
-                        Text("\(m.license) · \(m.attribution)").font(.caption2).foregroundStyle(.tertiary).lineLimit(2)
+                        Text(m.name).font(Theme.callout.weight(.semibold))
+                        Text(m.description).font(Theme.caption).foregroundStyle(.secondary).lineLimit(2)
+                        Text("\(m.license) · \(m.attribution)").font(Theme.caption2).foregroundStyle(.tertiary).lineLimit(2)
                     }
                     Spacer()
                     if let n = counts[m.id] {
-                        Text("\(n) passages").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                        Text("\(n) passages").font(Theme.caption.monospacedDigit()).foregroundStyle(.secondary)
                     } else {
                         Button("Index") { store.indexPack(m.id) }.buttonStyle(.bordered).controlSize(.small)
                     }
@@ -544,14 +544,14 @@ struct TurnView: View {
             MarkdownBlocks(text: entry.answer)
             HStack(spacing: 12) {
                 if !entry.sources.isEmpty {
-                    Button(showSources ? "Hide sources" : "\(entry.sources.count) sources") { showSources.toggle() }.buttonStyle(.link).font(.caption)
+                    Button(showSources ? "Hide sources" : "\(entry.sources.count) sources") { showSources.toggle() }.buttonStyle(.link).font(Theme.caption)
                 }
-                if let r = entry.route { Label(r, systemImage: "arrow.triangle.branch").font(.caption).foregroundStyle(.tertiary) }
+                if let r = entry.route { Label(r, systemImage: "arrow.triangle.branch").font(Theme.caption).foregroundStyle(.tertiary) }
             }
             if showSources {
                 ForEach(Array(entry.sources.enumerated()), id: \.offset) { i, s in
                     Button { store.open(s.chunk) } label: {
-                        Text("[\(i + 1)] \(s.title) — \(s.anchor)").font(.caption).lineLimit(1)
+                        Text("[\(i + 1)] \(s.title) — \(s.anchor)").font(Theme.caption).lineLimit(1)
                     }.buttonStyle(.link)
                 }
             }
@@ -569,7 +569,7 @@ struct ConversationReader: View {
         let turns = store.history.filter { $0.thread == thread }.sorted { $0.date < $1.date }
         VStack(spacing: 0) {
             HStack {
-                Text(turns.first?.question ?? "Conversation").font(.headline).lineLimit(1)
+                Text(turns.first?.question ?? "Conversation").font(Theme.headline).lineLimit(1)
                 Spacer()
                 Button("Continue This Conversation") {
                     if let last = turns.last { dismiss(); store.openHistory(last) }

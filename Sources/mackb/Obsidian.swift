@@ -19,7 +19,7 @@ struct TabBar: View {
                 .padding(.horizontal, 6)
             }
             Button { store.quickOpenNewTab = true; store.showQuickOpen = true } label: {
-                Image(systemName: "plus").font(.system(size: 12, weight: .medium)).frame(width: 26, height: 26)
+                Image(systemName: "plus").font(.system(size: 13, weight: .medium)).frame(width: 26, height: 26)
             }
             .buttonStyle(.borderless)
             .help("Open a note in a new tab (⌘T)")
@@ -40,11 +40,11 @@ struct TabChip: View {
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: Theme.icon(Theme.kind(of: tab.opened.note)))
-                .font(.system(size: 10)).foregroundStyle(active ? Theme.accent : .secondary)
-            Text(tab.opened.note.title).font(.callout).lineLimit(1)
+                .font(.system(size: 11)).foregroundStyle(active ? Theme.accent : .secondary)
+            Text(tab.opened.note.title).font(Theme.callout).lineLimit(1)
                 .foregroundStyle(active ? .primary : .secondary)
             Button { store.closeTab(tab.id) } label: {
-                Image(systemName: "xmark").font(.system(size: 9, weight: .bold))
+                Image(systemName: "xmark").font(.system(size: 10, weight: .bold))
                     .frame(width: 16, height: 16)
                     .background(Circle().fill(Color.primary.opacity(hover ? 0.08 : 0)))
             }
@@ -113,7 +113,7 @@ struct RightPanel: View {
             HStack(spacing: 2) {
                 ForEach(RightTab.allCases) { t in
                     Button { tab = t } label: {
-                        Image(systemName: t.icon).font(.system(size: 12))
+                        Image(systemName: t.icon).font(.system(size: 13))
                             .frame(maxWidth: .infinity, minHeight: 26)
                             .foregroundStyle(tab == t ? Theme.accent : .secondary)
                             .background(RoundedRectangle(cornerRadius: 6).fill(tab == t ? Theme.accent.opacity(0.12) : .clear))
@@ -148,7 +148,7 @@ struct RightPanel: View {
 struct PanelHeader: View {
     var text: String
     var body: some View {
-        Text(text.uppercased()).font(.caption2.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
+        Text(text.uppercased()).font(Theme.caption2.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 10).padding(.bottom, 4)
     }
@@ -164,14 +164,14 @@ struct BacklinksPanel: View {
             VStack(alignment: .leading, spacing: 6) {
                 PanelHeader(text: "Linked mentions · \(back.count)")
                 if back.isEmpty {
-                    Text("No other note links here yet.").font(.callout).foregroundStyle(.secondary).padding(.horizontal, 10)
+                    Text("No other note links here yet.").font(Theme.callout).foregroundStyle(.secondary).padding(.horizontal, 10)
                 }
                 ForEach(back, id: \.id) { src in
                     Button { store.openNote(src, newTab: NSEvent.modifierFlags.contains(.command)) } label: {
                         VStack(alignment: .leading, spacing: 3) {
-                            Text(src.title).font(.callout.weight(.medium)).lineLimit(1)
+                            Text(src.title).font(Theme.callout.weight(.medium)).lineLimit(1)
                             ForEach(store.links.mentions(of: note, in: src).prefix(2), id: \.self) { line in
-                                Text(noteInline(line, size: 11.5)).font(.system(size: 11.5)).foregroundStyle(.secondary).lineLimit(3)
+                                Text(noteInline(line, size: 11.5)).font(.system(size: 12.5)).foregroundStyle(.secondary).lineLimit(3)
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -228,10 +228,10 @@ struct PanelRow: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 8) {
-                Image(systemName: icon).font(.caption).foregroundStyle(.secondary).frame(width: 14)
+                Image(systemName: icon).font(Theme.caption).foregroundStyle(.secondary).frame(width: 14)
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(title).font(.callout).lineLimit(1)
-                    Text(sub).font(.caption2).foregroundStyle(.tertiary).lineLimit(1)
+                    Text(title).font(Theme.callout).lineLimit(1)
+                    Text(sub).font(Theme.caption2).foregroundStyle(.tertiary).lineLimit(1)
                 }
                 Spacer(minLength: 0)
             }
@@ -269,8 +269,8 @@ struct PreviewContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(opened.note.title).font(.headline)
-                Text(opened.note.relPath + (opened.anchor.map { " › " + $0 } ?? "")).font(.caption).foregroundStyle(.secondary)
+                Text(opened.note.title).font(Theme.headline)
+                Text(opened.note.relPath + (opened.anchor.map { " › " + $0 } ?? "")).font(Theme.caption).foregroundStyle(.secondary)
             }
             Divider()
             ScrollView {
@@ -293,7 +293,7 @@ struct NotePreview: View {
         VStack(alignment: .leading, spacing: 12) {
             PreviewContent(opened: opened).frame(height: 360)
             HStack {
-                Text("Esc to close").font(.caption).foregroundStyle(.tertiary)
+                Text("Esc to close").font(Theme.caption).foregroundStyle(.tertiary)
                 Spacer()
                 Button("Open in New Tab") { let o = opened; dismiss(); store.openInNewTab(o) }
                 Button("Open") { let o = opened; dismiss(); store.opened = o }
@@ -423,7 +423,7 @@ struct CommandPalette: View {
             HStack(spacing: 10) {
                 Image(systemName: "command").foregroundStyle(.secondary)
                 TextField("Type a command…", text: $query)
-                    .textFieldStyle(.plain).font(.system(size: 16))
+                    .textFieldStyle(.plain).font(.system(size: 17.5))
                     .focused($focused)
                     .onSubmit { run(rs) }
                     .onChange(of: query) { _, _ in index = 0 }
@@ -442,7 +442,7 @@ struct CommandPalette: View {
                                 .id(i)
                         }
                         if rs.isEmpty {
-                            Text("No matching command").font(.callout).foregroundStyle(.secondary).padding(14)
+                            Text("No matching command").font(Theme.callout).foregroundStyle(.secondary).padding(14)
                         }
                     }
                     .padding(6)
@@ -472,10 +472,10 @@ struct PaletteRow: View {
         let sub: Color = selected ? Color.white.opacity(0.8) : Color.secondary
         HStack(spacing: 10) {
             Image(systemName: command.icon).foregroundStyle(sub).frame(width: 18)
-            Text(command.title).font(.callout.weight(.medium)).foregroundStyle(fg)
+            Text(command.title).font(Theme.callout.weight(.medium)).foregroundStyle(fg)
             Spacer()
             if !command.shortcut.isEmpty {
-                Text(command.shortcut).font(.caption.monospaced()).foregroundStyle(sub)
+                Text(command.shortcut).font(Theme.caption.monospaced()).foregroundStyle(sub)
             }
         }
         .padding(.horizontal, 10).padding(.vertical, 7)

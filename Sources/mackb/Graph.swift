@@ -219,7 +219,7 @@ struct GraphView: View {
             }
             let showLabel = i == focus || (near?.contains(i) ?? false) || scale > 1.5 || (near == nil && topDegree.contains(i))
             if showLabel, let note {
-                ctx.draw(Text(note.title).font(.system(size: 11, weight: i == focus ? .semibold : .regular))
+                ctx.draw(Text(note.title).font(.system(size: 12, weight: i == focus ? .semibold : .regular))
                             .foregroundStyle(dim ? Color.secondary.opacity(0.5) : Color.primary.opacity(0.85)),
                          at: CGPoint(x: p.x, y: p.y + r + 8), anchor: .top)
             }
@@ -259,12 +259,12 @@ struct GraphView: View {
         let counts = Dictionary(grouping: sim.ids.compactMap { store.links.byId[$0]?.domain ?? "·" }, by: { $0 }).mapValues(\.count)
         let domains = counts.keys.sorted { counts[$0]! > counts[$1]! }.prefix(10)
         return VStack(alignment: .leading, spacing: 5) {
-            Text("\(sim.ids.count) notes · \(sim.edges.count) links").font(.caption.weight(.semibold))
+            Text("\(sim.ids.count) notes · \(sim.edges.count) links").font(Theme.caption.weight(.semibold))
             ForEach(Array(domains), id: \.self) { d in
                 HStack(spacing: 6) {
                     Circle().fill(domainColor(d)).frame(width: 8, height: 8)
-                    Text(d == "·" ? "(root)" : d).font(.caption)
-                    Text("\(counts[d]!)").font(.caption2).foregroundStyle(.tertiary)
+                    Text(d == "·" ? "(root)" : d).font(Theme.caption)
+                    Text("\(counts[d]!)").font(Theme.caption2).foregroundStyle(.tertiary)
                 }
             }
         }
@@ -282,7 +282,7 @@ struct GraphView: View {
             .fixedSize()
             .disabled(store.opened == nil && !local)
             HStack(spacing: 6) {
-                Toggle("Unlinked notes", isOn: $orphans).toggleStyle(.checkbox).font(.caption).disabled(local)
+                Toggle("Unlinked notes", isOn: $orphans).toggleStyle(.checkbox).font(Theme.caption).disabled(local)
                 Button { scale = max(0.2, scale / 1.25); baseScale = scale } label: { Image(systemName: "minus.magnifyingglass") }
                 Button { scale = min(5, scale * 1.25); baseScale = scale } label: { Image(systemName: "plus.magnifyingglass") }
                 Button { fit(size) } label: { Image(systemName: "arrow.up.left.and.down.right.magnifyingglass") }.help("Fit")
@@ -297,10 +297,10 @@ struct GraphView: View {
     @ViewBuilder var hoverCard: some View {
         if let i = hovered, sim.ids.indices.contains(i), let n = store.links.byId[sim.ids[i]] {
             VStack(alignment: .leading, spacing: 3) {
-                Text(n.title).font(.callout.weight(.semibold))
-                Text(n.relPath).font(.caption).foregroundStyle(.secondary)
+                Text(n.title).font(Theme.callout.weight(.semibold))
+                Text(n.relPath).font(Theme.caption).foregroundStyle(.secondary)
                 Text("\(store.links.incoming[n.id]?.count ?? 0) backlinks · \(store.links.outgoing[n.id]?.count ?? 0) links · click to open")
-                    .font(.caption2).foregroundStyle(.tertiary)
+                    .font(Theme.caption2).foregroundStyle(.tertiary)
             }
             .padding(10)
             .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(.regularMaterial))
