@@ -687,6 +687,9 @@ struct Composer: View {
                             set: { if $0 { store.backend = .ollama } }))
                     }
                     Divider()
+                    Toggle("Show Thinking (slower)", isOn: Binding(
+                        get: { UserDefaults.standard.bool(forKey: "showThinking") },
+                        set: { UserDefaults.standard.set($0, forKey: "showThinking") }))
                     SettingsLink { Text("More Models…") }
                 } label: {
                     Label(store.modelLabel, systemImage: "cpu")
@@ -1255,19 +1258,46 @@ struct HistoryRow: View {
     }
 }
 
-/// Research mode's steps, shown above the answer.
+/// What Holdfast did, step by step. A step with a detail (the exact tool call and
+/// what it returned, or the model's reasoning) opens when clicked.
 struct StepsList: View {
     var steps: [String]
     var running: Bool
     @State private var open = true
+    @State private var expanded: Set<Int> = []
     var body: some View {
         DisclosureGroup(isExpanded: $open) {
             VStack(alignment: .leading, spacing: 5) {
-                ForEach(Array(steps.enumerated()), id: \.offset) { i, s in
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Image(systemName: icon(s)).font(.caption).foregroundStyle(Theme.accent).frame(width: 14)
-                        Text(s).font(.caption).foregroundStyle(.secondary).lineLimit(2)
-                        if running && i == steps.count - 1 { ProgressView().controlSize(.mini) }
+                ForEach(Array(steps.enumerated()), id: \.offset) { i, raw in
+                    let (title, detail) = Steps.split(raw)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Button {
+                            if detail != nil { if expanded.contains(i) { expanded.remove(i) } else { expanded.insert(i) } }
+                        } label: {
+                            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                Image(systemName: icon(title)).font(.caption).foregroundStyle(Theme.accent).frame(width: 14)
+                                Text(title).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                                if detail != nil {
+                                    Image(systemName: expanded.contains(i) ? "chevron.down" : "chevron.right")
+                                        .font(.system(size: 8, weight: .semibold)).foregroundStyle(.tertiary)
+                                }
+                                if running && i == steps.count - 1 { ProgressView().controlSize(.mini) }
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(detail == nil)
+                        .help(detail == nil ? "" : "Show the exact call and what came back")
+                        if let detail, expanded.contains(i) {
+                            ScrollView {
+                                Text(detail).font(.system(size: 11, design: .monospaced)).textSelection(.enabled)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .frame(maxHeight: 200)
+                            .padding(8)
+                            .background(RoundedRectangle(cornerRadius: 6).fill(Color.primary.opacity(0.04)))
+                            .padding(.leading, 22)
+                        }
                     }
                 }
             }
@@ -1288,6 +1318,7 @@ struct StepsList: View {
         if s.hasPrefix("Planning") { return "list.bullet.indent" }
         if s.hasPrefix("No direct") || s.hasPrefix("Found nothing") { return "arrow.down.right.circle" }
         if s.hasPrefix("Done") { return "checkmark.circle" }
+        if s.hasPrefix("Thinking") { return "brain" }
         return "circle"
     }
 }

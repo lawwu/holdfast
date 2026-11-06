@@ -58,7 +58,10 @@ enum Config {
     }
     /// Chat-template switches: Qwen's thinking off, gpt-oss's reasoning low.
     /// Templates ignore switches they don't use.
-    nonisolated(unsafe) static let templateContext: [String: any Sendable] = ["enable_thinking": false, "reasoning_effort": "low"]
+    /// Thinking off by default (faster); "Show Thinking" turns it on and shows the reasoning as a step.
+    static var templateContext: [String: any Sendable] {
+        Thinking.on ? ["enable_thinking": true, "reasoning_effort": "medium"] : ["enable_thinking": false, "reasoning_effort": "low"]
+    }
     /// Filing a dropped file wants exact JSON and a steady choice of place.
     static let filingTemperature = 0.2
 
