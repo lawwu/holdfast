@@ -307,10 +307,13 @@ let stopwords: Set<String> = ["the", "and", "for", "are", "was", "what", "how", 
 
 /// Re-index changed notes. Embeddings are optional: keyword search still works without them.
 func reindex(embedder: Embedder?, force: Bool = false) async throws {
-    let idx = try Index()
+    try await reindexNotes(Index(), notes: allNotes(), embedder: embedder, force: force)
+}
+
+/// Brings one index up to date with a set of notes (the vault's, or a knowledge pack's).
+func reindexNotes(_ idx: Index, notes: [Note], embedder: Embedder?, force: Bool = false) async throws {
     if force { try idx.exec("DELETE FROM chunks; INSERT INTO chunks_fts(chunks_fts) VALUES('rebuild');") }
     let have = try idx.indexedMtimes()
-    let notes = allNotes()
     let live = Set(notes.map { $0.relPath })
     for gone in have.keys where !live.contains(gone) { try idx.deleteNote(gone) }
     var todo: [(Note, Double)] = []
@@ -419,27 +422,33 @@ enum Retrieval {
 /// Hybrid retrieval: keyword + vector lists merged by reciprocal rank fusion,
 /// then (if a reranker is loaded) cross-encoder reranking, per-note caps,
 /// neighbour merging, and session-aware selection.
-func search(_ q: String, embedder: Embedder?, reranker: Reranker? = nil, limit: Int) async throws -> [Chunk] {
+func search(_ q: String, embedder: Embedder?, reranker: Reranker? = nil, limit: Int, packs: Bool = true) async throws -> [Chunk] {
     let idx = try Index()
     let plan = planQuery(q, maxSession: idx.maxSession(), sessionsOfKind: { idx.sessions(ofKind: $0) })
-    let kw = try idx.keyword(q, limit: Retrieval.candidates)
-    var vec: [(Int64, Chunk)] = []
-    if let embedder, let qv = try await embedder.embed([q], query: true).first {
-        vec = try idx.vector(qv, limit: Retrieval.candidates)
-    }
-    var score: [Int64: Double] = [:]
-    var byId: [Int64: Chunk] = [:]
-    for list in [kw, vec] {
-        for (rank, (id, c)) in list.enumerated() {
-            score[id, default: 0] += 1.0 / (Config.rrfK + Double(rank + 1))
-            byId[id] = c
+    // The vault's index, then each knowledge pack that is switched on: each is ranked
+    // on its own (keyword + vector, fused), then the lists are merged by that rank.
+    var sources: [(key: String, idx: Index)] = [("vault", idx)]
+    if packs { for id in Packs.searchable() { if let p = try? Index(path: Packs.indexPath(id)) { sources.append((id, p)) } } }
+    let qv: [Float]? = embedder == nil ? nil : try await embedder!.embed([q], query: true).first
+    var score: [String: Double] = [:]
+    var byId: [String: Chunk] = [:]
+    for (key, sidx) in sources {
+        let kw = try sidx.keyword(q, limit: Retrieval.candidates)
+        let vec = qv.map { try? sidx.vector($0, limit: Retrieval.candidates) } ?? nil
+        for list in [kw, vec ?? []] {
+            for (rank, (id, c)) in list.enumerated() {
+                let k = "\(key)#\(id)"
+                score[k, default: 0] += 1.0 / (Config.rrfK + Double(rank + 1))
+                byId[k] = c
+            }
         }
     }
+    func index(for c: Chunk) -> Index { Packs.id(of: c.relPath).flatMap { id in sources.first { $0.key == id }?.idx } ?? idx }
     // A named session: everything from that session is a candidate, and nothing else.
     if !plan.sessions.isEmpty {
         let pinned = try idx.bySessions(plan.sessions)
         if !pinned.isEmpty {
-            for (id, c) in pinned where byId[id] == nil { byId[id] = c; score[id] = 0 }
+            for (id, c) in pinned where byId["vault#\(id)"] == nil { byId["vault#\(id)"] = c; score["vault#\(id)"] = 0 }
             byId = byId.filter { plan.sessions.contains($0.value.session ?? -1) }
         }
     }
@@ -500,7 +509,7 @@ func search(_ q: String, embedder: Embedder?, reranker: Reranker? = nil, limit: 
         // ("setback" for "relapse"). Merged into the hit, so the passage count stays.
         for c in picked.prefix(Retrieval.expandTop) {
             let have = Set(picked.filter { $0.relPath == c.relPath }.map(\.ord))
-            let extra = try idx.byOrds(c.relPath, [c.ord - 1, c.ord + 1].filter { $0 >= 0 && !have.contains($0) })
+            let extra = try index(for: c).byOrds(c.relPath, [c.ord - 1, c.ord + 1].filter { $0 >= 0 && !have.contains($0) })
             picked += extra.map { var e = $0; e.score = c.score; return e }
         }
     }

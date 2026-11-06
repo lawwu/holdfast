@@ -392,7 +392,7 @@ final class Store: ObservableObject {
     }
 
     func open(_ c: Chunk) {
-        if let n = findNote(c.noteId) ?? notes.first(where: { $0.relPath == c.relPath }) {
+        if let n = findNote(c.noteId) ?? notes.first(where: { $0.relPath == c.relPath }) ?? Packs.note(c.relPath) {
             opened = Opened(note: n, anchor: c.anchor)
         }
     }
@@ -459,6 +459,9 @@ final class Store: ObservableObject {
     /// Writes an edited note, refreshes notes and links, and re-indexes it
     /// quietly a few seconds later (so search and Ask see the change).
     func saveNote(at path: URL, text: String) throws {
+        if path.standardizedFileURL.path.hasPrefix(Packs.dir.standardizedFileURL.path) {
+            throw MacKBError("knowledge packs are read-only")
+        }
         Versions.snapshot(path, reason: "edit")
         try text.write(to: path, atomically: true, encoding: .utf8)
         if let fresh = try? Note.read(path) {
@@ -779,6 +782,18 @@ final class Store: ObservableObject {
         if !failed.isEmpty { self.error = failed.joined(separator: "\n") }
         reload()
         rebuildIndex()
+    }
+
+    /// Builds a knowledge pack's search index (minutes for a whole Bible).
+    func indexPack(_ id: String) {
+        Task {
+            let emb = await getEmbedder()
+            busy = "Indexing the \(Packs.manifest(id)?.name ?? id) pack…"
+            do { try await Packs.reindex(id, embedder: emb) } catch { self.error = "\(error)" }
+            busy = nil
+            indexCounts = (try? Index().count()) ?? indexCounts
+            notice = "Indexed the \(Packs.manifest(id)?.name ?? id) pack."
+        }
     }
 
     // MARK: keeping

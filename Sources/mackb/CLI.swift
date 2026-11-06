@@ -11,6 +11,9 @@ mackb — local knowledge base for counseling materials (POC)
   mackb inbox | approve <id> | reject <id>     review agent-proposed memories and filings
   mackb drop [file...]                         file what is in the drop folder (adding these files first)
   mackb import <path...> [--as-is <folder>]   bulk import: file each one (default), or copy and convert into a folder
+  mackb pack list | install <folder> | index <id> | on <id> | off <id> | remove <id>
+                                               knowledge packs (read-only references Ask can quote)
+  mackb pack create <id> --name N --license L --attribution A --source URL --cite C <files/folders...>
   mackb filings | undo <n>                     recent filings; undo the nth (1 = newest)
   mackb upcoming                               open follow-ups due soon or overdue
   mackb related <note.md>                      notes closest to a note (search embeddings)
@@ -133,6 +136,44 @@ do {
         } else {
             let r = try BulkImport.queue(urls)
             print("queued \(r.queued) files in the drop folder (skipped \(r.skipped.count)); run `mackb drop` to file them")
+        }
+    case "pack":
+        let sub = args.first ?? "list"
+        let rest = Array(args.dropFirst())
+        switch sub {
+        case "list":
+            let on = Packs.enabled()
+            for m in Packs.installed() {
+                let c = Packs.count(m.id)
+                print("\(on.contains(m.id) ? "on " : "off") \(m.id)  \(m.name) · \(m.license) · " + (c.map { "\($0.notes) notes, \($0.chunks) passages" } ?? "not indexed"))
+            }
+        case "install":
+            let m = try Packs.install(from: URL(fileURLWithPath: rest.first ?? "."))
+            print("installed \(m.id) (\(m.name)); run `mackb pack index \(m.id)` then `mackb pack on \(m.id)`")
+        case "index":
+            let emb = try? await Embedder.load()
+            try await Packs.reindex(rest.first ?? "", embedder: emb, force: flag("--force"))
+            if let c = Packs.count(rest.first ?? "") { print("\(c.notes) notes, \(c.chunks) passages, \(c.vectors) with vectors") }
+        case "on", "off":
+            Packs.setEnabled(rest.first ?? "", sub == "on")
+            print("\(rest.first ?? "") \(sub)")
+        case "remove":
+            try Packs.remove(rest.first ?? "")
+            print("moved to Trash")
+        case "create":
+            var r = rest
+            func opt(_ k: String) -> String {
+                guard let i = r.firstIndex(of: k), i + 1 < r.count else { return "" }
+                let v = r[i + 1]; r.removeSubrange(i...(i + 1)); return v
+            }
+            let id = r.removeFirst()
+            let name = opt("--name"), lic = opt("--license"), att = opt("--attribution"), src = opt("--source"), cite = opt("--cite")
+            let report = try await Packs.create(id: id, name: name.isEmpty ? id : name, license: lic, attribution: att, source: src,
+                                                description: opt("--description"), cite: cite.isEmpty ? id : cite,
+                                                from: r.map { URL(fileURLWithPath: $0) })
+            print("pack \(id): \(report.notes) notes; skipped \(report.skipped.count). Run `mackb pack index \(id)`.")
+        default:
+            throw MacKBError("pack list | install | index | on | off | remove | create")
         }
     case "filings":
         for (i, r) in FilingLog.load().prefix(20).enumerated() {
