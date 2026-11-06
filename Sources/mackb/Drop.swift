@@ -13,7 +13,7 @@ import Vision
 // Originals are moved out of the drop folder into `drop-filed/` (state folder),
 // so a raw export never lands in the repo.
 
-let imageExtensions: Set<String> = ["png", "jpg", "jpeg", "heic", "tiff", "gif"]
+let imageExtensions: Set<String> = ["png", "jpg", "jpeg", "heic", "heif", "tiff", "tif", "gif", "webp", "bmp"]
 
 enum Drop {
     /// Files dropped here get filed. In place it lives with the app state, not in the repo.
@@ -35,7 +35,9 @@ enum Drop {
     /// How often the app looks in the drop folder.
     static let pollSeconds: TimeInterval = 5
 
-    static var supported: Set<String> { docExtensions.union(audioExtensions).union(imageExtensions) }
+    static var supported: Set<String> {
+        docExtensions.union(audioExtensions).union(imageExtensions).union(Formats.readable).union(Formats.containers)
+    }
 
     static func ensure() { try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true) }
 
@@ -151,7 +153,7 @@ enum Drop {
     - Follow the folder READMEs below: they say where each kind of thing is recorded (a log, a dated table, one note per item).
     - If a README says events of this kind go in an existing log or note, append to that note ("append"). Otherwise create a new note ("new") in the right folder, named like its neighbours (lowercase, hyphens, dated YYYY-MM-DD or YYYYMM_ prefixes when the folder uses them).
     - Write a short summary and the facts worth finding later: dates, amounts, providers or businesses, decisions, follow-ups. Do not paste the whole document.
-    - For "append", write only the lines to add: a table row matching that table's columns, or a dated section.
+    - For "append", write only the lines to add: a table row matching that table's columns, or a dated section. For a CSV file, one CSV line per row, matching its header.
     - For "new", write the whole note, starting with a "# " title.
     - Never include account numbers, card numbers, policy or member ids, passwords or other credentials.
     - Anything about counseling or the care of a person (ministry folders): initials only, never full names.
@@ -232,6 +234,11 @@ enum Drop {
             throw MacKBError("the model proposed \(f.action) \(f.path) but wrote nothing to save")
         }
         f = try validate(f)
+        if f.path.lowercased().hasSuffix(".csv"),
+           let csvText = try? String(contentsOf: Config.vault.appendingPathComponent(f.path), encoding: .utf8),
+           csvRows(f.markdown, for: csvText).isEmpty {
+            throw MacKBError("the model proposed a row for \(f.path) but didn't write one matching its columns")
+        }
         if f.title.trimmingCharacters(in: .whitespaces).isEmpty {
             f.title = (f.action == "append" ? "Add to " : "") + (f.path as NSString).lastPathComponent
         }
@@ -282,12 +289,44 @@ enum Drop {
 
     /// The JSON object in the model's reply (it may wrap it in a code fence).
     static func parse(_ reply: String) throws -> Filing {
-        guard let a = reply.firstIndex(of: "{"), let b = reply.lastIndex(of: "}"), a < b,
+        guard let a = reply.firstIndex(of: "{"), let b = firstObjectEnd(reply, from: a) ?? reply.lastIndex(of: "}"), a < b,
               let data = String(reply[a...b]).data(using: .utf8) else {
             throw MacKBError("the model's filing reply had no JSON: \(reply.prefix(200))")
         }
         do { return try JSONDecoder().decode(Filing.self, from: data) }
         catch { throw MacKBError("couldn't read the model's filing reply: \(error)") }
+    }
+
+    /// The entry's lines that are rows of this CSV: CSV lines or Markdown table rows
+    /// with exactly the header's number of columns. Anything else (bullets, prose) is dropped.
+    static func csvRows(_ entry: String, for csvText: String) -> [String] {
+        let header = (CSV.parse(String(csvText.prefix { $0 != "\n" })).first ?? []).map { $0.lowercased() }
+        let width = header.count
+        return entry.components(separatedBy: "\n").compactMap { l -> String? in
+            let t = l.trimmingCharacters(in: .whitespaces)
+            guard !t.isEmpty, t.range(of: #"^\|?[\s:|-]+\|?$"#, options: .regularExpression) == nil else { return nil }
+            let cells = t.hasPrefix("|")
+                ? t.trimmingCharacters(in: CharacterSet(charactersIn: "|")).components(separatedBy: "|").map { $0.trimmingCharacters(in: .whitespaces) }
+                : (CSV.parse(t).first ?? [])
+            guard cells.count == width, cells.map({ $0.lowercased() }) != header else { return nil }  // not the header again
+            return Formats.csvLine(cells)
+        }
+    }
+
+    /// Where the first JSON object closes (models sometimes add a second block or a note after it).
+    static func firstObjectEnd(_ s: String, from start: String.Index) -> String.Index? {
+        var depth = 0, inString = false, escaped = false
+        var i = start
+        while i < s.endIndex {
+            let c = s[i]
+            if inString {
+                if escaped { escaped = false } else if c == "\\" { escaped = true } else if c == "\"" { inString = false }
+            } else if c == "\"" { inString = true }
+            else if c == "{" { depth += 1 }
+            else if c == "}" { depth -= 1; if depth == 0 { return i } }
+            i = s.index(after: i)
+        }
+        return nil
     }
 
     /// Keeps the target inside the vault, a Markdown file, and consistent with the action.
@@ -299,19 +338,20 @@ enum Drop {
         if p.isEmpty || parts.contains("..") || parts.contains(where: { $0.hasPrefix(".") }) {
             throw MacKBError("the model proposed a path outside the vault: \(f.path)")
         }
-        if !p.hasSuffix(".md") { p += ".md" }
+        // A row for an existing CSV table goes into that table; anything else is a Markdown note.
+        let csv = p.lowercased().hasSuffix(".csv") && FileManager.default.fileExists(atPath: Config.vault.appendingPathComponent(p).path)
+        if !csv && !p.hasSuffix(".md") { p += ".md" }
         f.path = p
+        if csv { f.properties = [:] }
         let exists = FileManager.default.fileExists(atPath: Config.vault.appendingPathComponent(p).path)
-        f.action = f.action.lowercased() == "append" && exists ? "append" : "new"
-        if f.action == "new" && exists {  // never overwrite: pick a free name next to it
-            f.path = relative(unique(Config.vault.appendingPathComponent(p)))
-        }
+        // An existing note is added to, never overwritten or duplicated as "note-2".
+        f.action = exists ? "append" : "new"
         return f
     }
 
     static func relative(_ u: URL) -> String {
-        let root = Config.vault.standardizedFileURL.path + "/"
-        let p = u.standardizedFileURL.path
+        let root = Config.vault.resolvingSymlinksInPath().path + "/"
+        let p = u.resolvingSymlinksInPath().path
         return p.hasPrefix(root) ? String(p.dropFirst(root.count)) : p
     }
 
@@ -328,7 +368,16 @@ enum Drop {
         let entry = item.body.trimmingCharacters(in: .whitespacesAndNewlines)
         let before = Versions.snapshot(dest, reason: "filing")
         let written: String
-        if item.meta["action"] == "append", var text = try? String(contentsOf: dest, encoding: .utf8) {
+        if item.meta["action"] == "append", target.lowercased().hasSuffix(".csv"), var text = try? String(contentsOf: dest, encoding: .utf8) {
+            let rows = csvRows(entry, for: text)
+            guard !rows.isEmpty else { throw MacKBError("the proposal has no row matching \(target)'s columns; edit it into a CSV line first") }
+            // Keep the file's line endings (Excel writes \r\n, which Swift sees as one character).
+            let eol = text.contains("\r\n") ? "\r\n" : "\n"
+            if !(text.hasSuffix("\n") || text.hasSuffix("\r\n")) { text += eol }
+            written = rows.joined(separator: eol) + eol
+            text += written
+            try text.write(to: dest, atomically: true, encoding: .utf8)
+        } else if item.meta["action"] == "append", var text = try? String(contentsOf: dest, encoding: .utf8) {
             let addition = entry
             if addition.hasPrefix("|") {
                 var lines = text.components(separatedBy: "\n")
@@ -374,13 +423,30 @@ enum Drop {
     /// proposal in the inbox. The original leaves the drop folder either way.
     static func process(_ url: URL, embedder: Embedder?, llm: LLMBackend?, model: String) async throws -> String {
         defer { _ = try? moveToFiled(url) }
+        let ext = url.pathExtension.lowercased()
+        // Containers (zip, mailbox, Evernote export) open into the drop folder; each file is filed on its own.
+        if Formats.containers.contains(ext) {
+            let r = Expand.files(url, staging: BulkImport.staging)
+            for f in r.files { try FileManager.default.moveItem(at: f, to: unique(dir.appendingPathComponent(f.lastPathComponent), ifExists: true)) }
+            return "Opened \(url.lastPathComponent): \(r.files.count) files to file" + (r.skipped.isEmpty ? "" : ", \(r.skipped.count) skipped")
+        }
+        // The same file filed before (byte for byte) is not filed again.
+        let hash = FiledHashes.hash(url)
+        if let h = hash, FiledHashes.contains(h) { throw AlreadyFiled(why: "the same file was filed before") }
+        func done(_ msg: String) -> String { if let h = hash { FiledHashes.add(h) }; return msg }
+        // A message's attachments go into the drop folder to be filed on their own.
+        if ext == "eml", let mail = try? Mail.parse(Data(contentsOf: url)) {
+            for a in mail.attachments where Drop.supported.contains((a.name as NSString).pathExtension.lowercased()) {
+                try? a.data.write(to: unique(dir.appendingPathComponent(a.name.replacingOccurrences(of: "/", with: "-")), ifExists: true))
+            }
+        }
         if !Config.inPlace {
             if audioExtensions.contains(url.pathExtension.lowercased()) {
                 let n = try await ingestAudio(url, title: nil, tags: [])
-                return "Imported \(n.title)"
+                return done("Imported \(n.title)")
             }
             let n = try ingestDocument(url, root: nil, tags: [])
-            return "Imported \(n.title)"
+            return done("Imported \(n.title)")
         }
         let text = try await self.text(of: url)
         guard text.trimmingCharacters(in: .whitespacesAndNewlines).count >= 20 else {
@@ -390,9 +456,9 @@ enum Drop {
         let (n, flags, rule) = try await propose(url, text: text, embedder: embedder, llm: llm, model: model)
         if rule?.auto == true, flags.isEmpty {  // an automatic rule: file now (undo is in the Inbox)
             let saved = try approve(n.id)
-            return "Filed to \(Drop.relative(saved.path)) by rule"
+            return done("Filed to \(Drop.relative(saved.path)) by rule")
         }
-        return "Proposed \(n.meta["target"] ?? "")"
+        return done("Proposed \(n.meta["target"] ?? "")")
     }
 }
 

@@ -124,8 +124,10 @@ enum FilingLog {
 
     static func add(_ r: FilingRecord) { save([r] + load()) }
 
-    static func hash(_ s: String) -> String {
-        SHA256.hash(data: Data(s.utf8)).map { String(format: "%02x", $0) }.joined()
+    static func hash(_ s: String) -> String { hashData(Data(s.utf8)) }
+
+    static func hashData(_ d: Data) -> String {
+        SHA256.hash(data: d).map { String(format: "%02x", $0) }.joined()
     }
 
     /// Reverts a filing and puts its proposal back in the inbox. A note edited

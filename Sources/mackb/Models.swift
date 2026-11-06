@@ -17,6 +17,8 @@ final class Embedder: @unchecked Sendable {
 
     static func load() async throws -> Embedder? {
         let spec = Config.embedSpec
+        // MACKB_EMBED=none: keyword search only (to measure what embeddings add).
+        if ProcessInfo.processInfo.environment["MACKB_EMBED"] == "none" { return nil }
         guard let dir = Config.embedModelDir else {
             log("no \(spec.label) in the HF cache; keyword search only")
             return nil
