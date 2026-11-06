@@ -242,7 +242,7 @@ struct NoteHeader: View {
                      icon: note.domain == nil ? Theme.icon(kind) : "folder", color: note.domain.map(domainColor) ?? Theme.color(kind))
                 ForEach(chips, id: \.self) { Pill(text: $0) }
                 Spacer()
-                Text(note.relPath).font(.caption2).foregroundStyle(.tertiary).lineLimit(1).truncationMode(.head)
+                Text(note.relPath).font(Theme.caption2).foregroundStyle(.tertiary).lineLimit(1).truncationMode(.head)
             }
             Text(note.title)
                 .font(.system(size: 26, weight: .bold, design: .serif))
@@ -251,8 +251,8 @@ struct NoteHeader: View {
                 Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 4) {
                     ForEach(properties.prefix(10), id: \.0) { k, v in
                         GridRow {
-                            Text(k).font(.caption).foregroundStyle(.secondary)
-                            Text(v).font(.caption).lineLimit(2)
+                            Text(k).font(Theme.caption).foregroundStyle(.secondary)
+                            Text(v).font(Theme.caption).lineLimit(2)
                         }
                     }
                 }
@@ -279,19 +279,19 @@ struct LinksFooter: View {
             Divider()
             DisclosureGroup(isExpanded: $showBack) {
                 if back.isEmpty {
-                    Text("No other note links here yet.").font(.callout).foregroundStyle(.secondary).padding(.vertical, 4)
+                    Text("No other note links here yet.").font(Theme.callout).foregroundStyle(.secondary).padding(.vertical, 4)
                 } else {
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(back, id: \.id) { src in
                             Button { store.openNote(src) } label: {
                                 VStack(alignment: .leading, spacing: 3) {
                                     HStack(spacing: 6) {
-                                        Image(systemName: "arrow.turn.down.right").font(.caption).foregroundStyle(Theme.accent)
-                                        Text(src.title).font(.callout.weight(.semibold))
-                                        Text(src.relPath).font(.caption2).foregroundStyle(.tertiary).lineLimit(1)
+                                        Image(systemName: "arrow.turn.down.right").font(Theme.caption).foregroundStyle(Theme.accent)
+                                        Text(src.title).font(Theme.callout.weight(.semibold))
+                                        Text(src.relPath).font(Theme.caption2).foregroundStyle(.tertiary).lineLimit(1)
                                     }
                                     ForEach(store.links.mentions(of: note, in: src).prefix(2), id: \.self) { line in
-                                        Text(noteInline(line, size: 12.5)).font(.system(size: 12.5)).foregroundStyle(.secondary).lineLimit(2)
+                                        Text(noteInline(line, size: 12.5)).font(.system(size: 13.5)).foregroundStyle(.secondary).lineLimit(2)
                                             .padding(.leading, 20)
                                     }
                                 }
@@ -307,7 +307,7 @@ struct LinksFooter: View {
                     .padding(.top, 6)
                 }
             } label: {
-                Label("Linked mentions · \(back.count)", systemImage: "link").font(.headline)
+                Label("Linked mentions · \(back.count)", systemImage: "link").font(Theme.headline)
             }
             DisclosureGroup(isExpanded: $showOut) {
                 FlowChips(items: out.map { ($0.id, $0.title) } + missing.map { ("?" + $0, $0) }) { id in
@@ -318,7 +318,7 @@ struct LinksFooter: View {
                 .padding(.top, 6)
             } label: {
                 Label("Links from this note · \(out.count)\(missing.isEmpty ? "" : " (+\(missing.count) not yet created)")",
-                      systemImage: "arrow.up.right").font(.headline)
+                      systemImage: "arrow.up.right").font(Theme.headline)
             }
         }
     }
@@ -332,7 +332,7 @@ struct FlowChips: View {
         FlowLayout(spacing: 6) {
             ForEach(items, id: \.id) { it in
                 Button { onTap(it.id) } label: {
-                    Text(it.label).font(.caption.weight(.medium))
+                    Text(it.label).font(Theme.caption.weight(.medium))
                         .foregroundStyle(it.id.hasPrefix("?") ? AnyShapeStyle(.secondary) : AnyShapeStyle(Theme.accent))
                         .padding(.horizontal, 9).padding(.vertical, 4)
                         .background(Capsule().fill(it.id.hasPrefix("?") ? Color.primary.opacity(0.05) : Theme.accent.opacity(0.1)))
@@ -385,7 +385,7 @@ struct EditorStatusBar: View {
             Text(path).lineLimit(1).truncationMode(.head)
         }
         .labelStyle(TightLabel())
-        .font(.caption).foregroundStyle(.secondary)
+        .font(Theme.caption).foregroundStyle(.secondary)
         .padding(.horizontal, 16).padding(.vertical, 6)
         .background(.bar)
     }
@@ -419,10 +419,10 @@ struct OutlinePanel: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 1) {
-                Text(headings.isEmpty ? "NO HEADINGS" : "ON THIS PAGE").font(.caption2.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
+                Text(headings.isEmpty ? "NO HEADINGS" : "ON THIS PAGE").font(Theme.caption2.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
                     .padding(.horizontal, 10).padding(.bottom, 6)
                 Button { jump(-1) } label: {
-                    Text(title).font(.callout.weight(.semibold)).lineLimit(2).multilineTextAlignment(.leading)
+                    Text(title).font(Theme.callout.weight(.semibold)).lineLimit(2).multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 10).padding(.vertical, 4).contentShape(Rectangle())
                 }

@@ -9,9 +9,25 @@ enum Theme {
     static let accent = Color(red: 0.40, green: 0.33, blue: 0.88)
     static let accent2 = Color(red: 0.62, green: 0.36, blue: 0.93)
     static let gradient = LinearGradient(colors: [accent, accent2], startPoint: .topLeading, endPoint: .bottomTrailing)
-    static let canvas = Color(nsColor: .windowBackgroundColor)
-    static let card = Color(nsColor: .controlBackgroundColor)
-    static let radius: CGFloat = 12
+    static let canvas = Color(nsColor: NSColor(name: nil) { a in
+        a.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? NSColor(white: 0.115, alpha: 1) : NSColor(red: 0.965, green: 0.965, blue: 0.975, alpha: 1)
+    })
+    static let card = Color(nsColor: NSColor(name: nil) { a in
+        a.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? NSColor(white: 0.16, alpha: 1) : .white
+    })
+    static let radius: CGFloat = 14
+
+    // Type scale: macOS's defaults (12pt callout, 10pt caption) read small for a reading app.
+    static let body = Font.system(size: 15)
+    static let callout = Font.system(size: 14)
+    static let caption = Font.system(size: 12.5)
+    static let caption2 = Font.system(size: 11.5)
+    static let headline = Font.system(size: 15.5, weight: .semibold)
+    static let title3 = Font.system(size: 19, weight: .semibold)
+    static let title2 = Font.system(size: 22, weight: .semibold)
+
+    /// Card surfaces: a soft fill with a hairline and a faint shadow.
+    static let cardStroke = Color.primary.opacity(0.07)
 
     static func kind(of n: Note) -> String {
         n.meta["doc_type"] == "case-report" ? "case-report" : (n.meta["kind"] ?? "document")
@@ -56,7 +72,7 @@ struct CardStyle: ViewModifier {
                 RoundedRectangle(cornerRadius: Theme.radius, style: .continuous)
                     .strokeBorder(highlighted ? Theme.accent.opacity(0.6) : Color.primary.opacity(0.08), lineWidth: highlighted ? 1.5 : 1)
             )
-            .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
+            .shadow(color: .black.opacity(0.045), radius: 14, y: 4)
     }
 }
 
@@ -87,7 +103,7 @@ struct Pill: View {
             if let icon { Image(systemName: icon) }
             Text(text)
         }
-        .font(.caption.weight(.medium))
+        .font(Theme.caption.weight(.medium))
         .foregroundStyle(color)
         .padding(.horizontal, 8).padding(.vertical, 3)
         .background(Capsule().fill(color.opacity(0.12)))
@@ -144,7 +160,7 @@ struct RootView: View {
                 .navigationSplitViewColumnWidth(min: 200, ideal: 220)
         } detail: {
             HStack(spacing: 0) {
-                if store.opened == nil && store.pane != .ask && store.pane != nil {
+                if store.opened == nil {
                     paneView.background(Theme.canvas)  // nothing open: the pane gets the room
                 } else {
                     if store.showList {
@@ -224,8 +240,8 @@ struct EmptyState: View {
                 .fill(Theme.accent.opacity(0.1))
                 .frame(width: 76, height: 76)
                 .overlay(Image(systemName: icon).font(.system(size: 30, weight: .light)).foregroundStyle(Theme.gradient))
-            Text(title).font(.title3.weight(.semibold))
-            Text(message).font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 280)
+            Text(title).font(Theme.title3.weight(.semibold))
+            Text(message).font(Theme.callout).foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 280)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -241,6 +257,8 @@ struct Sidebar: View {
             Section {
                 ForEach(Pane.allCases) { p in
                     Label(p.rawValue, systemImage: p.icon)
+                        .font(.system(size: 14, weight: .medium))
+                        .padding(.vertical, 3)
                         .badge(p == .inbox ? store.inboxItems.count : 0)
                         .tag(p)
                 }
@@ -248,8 +266,8 @@ struct Sidebar: View {
                 HStack(spacing: 10) {
                     AppMark(size: 30)
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("Holdfast").font(.system(size: 14, weight: .semibold)).foregroundStyle(.primary)
-                        Text("Your notes never leave home").font(.system(size: 10.5)).foregroundStyle(.secondary)
+                        Text("Holdfast").font(.system(size: 15.5, weight: .semibold)).foregroundStyle(.primary)
+                        Text("Your notes never leave home").font(.system(size: 11.5)).foregroundStyle(.secondary)
                     }
                 }
                 .textCase(nil)
@@ -269,16 +287,16 @@ struct VaultCard: View {
             if let b = store.busy, store.pane != .ask {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.mini)
-                    Text(b).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                    Text(b).font(Theme.caption).foregroundStyle(.secondary).lineLimit(2)
                 }
                 Divider()
             }
             Button { store.chooseVault() } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "folder.fill").foregroundStyle(Theme.accent)
-                    Text(store.vault.lastPathComponent).font(.callout.weight(.medium)).lineLimit(1)
+                    Text(store.vault.lastPathComponent).font(Theme.callout.weight(.medium)).lineLimit(1)
                     Spacer(minLength: 0)
-                    Image(systemName: "chevron.up.chevron.down").font(.caption2).foregroundStyle(.tertiary)
+                    Image(systemName: "chevron.up.chevron.down").font(Theme.caption2).foregroundStyle(.tertiary)
                 }
                 .contentShape(Rectangle())
             }
@@ -288,12 +306,12 @@ struct VaultCard: View {
                 Label("\(store.notes.count)", systemImage: "doc.on.doc").help("Notes")
                 Label("\(store.indexCounts.chunks)", systemImage: "text.alignleft").help("Indexed passages")
             }
-            .font(.caption).foregroundStyle(.secondary).labelStyle(TightLabel())
+            .font(Theme.caption).foregroundStyle(.secondary).labelStyle(TightLabel())
             HStack(spacing: 5) {
                 Image(systemName: "lock.fill")
                 Text("Stays on this Mac")
             }
-            .font(.caption2.weight(.medium)).foregroundStyle(.green)
+            .font(Theme.caption2.weight(.medium)).foregroundStyle(.green)
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -329,7 +347,7 @@ struct AskView: View {
                         if !store.answer.isEmpty || !store.steps.isEmpty { AnswerCard() }
                         if !store.sources.isEmpty { SourcesSection() }
                     }
-                    .padding(24)
+                    .padding(.horizontal, 28).padding(.vertical, 26)
                     .frame(maxWidth: 820, alignment: .leading)
                     .frame(maxWidth: .infinity)
                 }
@@ -337,8 +355,8 @@ struct AskView: View {
                 AskHero()
             }
             Composer()
-                .padding(.horizontal, 20).padding(.bottom, 16).padding(.top, 8)
-                .frame(maxWidth: 860)
+                .padding(.horizontal, 24).padding(.bottom, 18).padding(.top, 8)
+                .frame(maxWidth: 820)
         }
         .navigationTitle("Ask")
         .toolbar {
@@ -368,37 +386,37 @@ struct AskHero: View {
                     Text(store.profile == .counseling
                          ? "Answers come only from the notes in this vault, and every claim cites its source."
                          : "Drop in receipts, records and letters. Ask anything. Everything stays on your Mac.")
-                        .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                        .font(Theme.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 }
-                AddFilesCard()
-                ImportProgressBar().frame(maxWidth: 560)
+                AddFilesCard().frame(maxWidth: 640)
+                ImportProgressBar().frame(maxWidth: 640)
                 UpcomingCard()
-                    .frame(maxWidth: 560)
+                    .frame(maxWidth: 640)
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 210), spacing: 10)], spacing: 10) {
                     ForEach(suggestions, id: \.1) { icon, q in SuggestionCard(icon: icon, text: q) { store.askSuggested(q) } }
                 }
-                .frame(maxWidth: 560)
+                .frame(maxWidth: 640)
                 if !store.history.isEmpty {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
-                            Text("RECENT").font(.caption.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
+                            Text("RECENT").font(Theme.caption.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
                             Spacer()
-                            Button("See all") { store.pane = .history }.buttonStyle(.link).font(.caption)
+                            Button("See all") { store.pane = .history }.buttonStyle(.link).font(Theme.caption)
                         }
                         ForEach(store.conversations.prefix(3), id: \.latest.id) { c in
                             Button { store.openHistory(c.latest) } label: {
                                 HStack(spacing: 8) {
-                                    Image(systemName: c.count > 1 ? "bubble.left.and.bubble.right" : "clock.arrow.circlepath").foregroundStyle(.secondary).font(.caption)
-                                    Text(c.first.question).font(.callout).lineLimit(1).foregroundStyle(.primary)
+                                    Image(systemName: c.count > 1 ? "bubble.left.and.bubble.right" : "clock.arrow.circlepath").foregroundStyle(.secondary).font(Theme.caption)
+                                    Text(c.first.question).font(Theme.callout).lineLimit(1).foregroundStyle(.primary)
                                     Spacer()
-                                    Text(c.latest.date, format: .relative(presentation: .named)).font(.caption).foregroundStyle(.tertiary)
+                                    Text(c.latest.date, format: .relative(presentation: .named)).font(Theme.caption).foregroundStyle(.tertiary)
                                 }
                                 .padding(.vertical, 4).contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
                         }
                     }
-                    .frame(maxWidth: 560)
+                    .frame(maxWidth: 640)
                     .padding(.top, 6)
                 }
                 Spacer(minLength: 20)
@@ -422,14 +440,14 @@ struct AddFilesCard: View {
                 .font(.system(size: 20)).foregroundStyle(Theme.accent)
                 .symbolEffect(.pulse, isActive: store.dropStatus != nil)
             VStack(alignment: .leading, spacing: 2) {
-                Text(store.dropStatus ?? "Add files to your knowledge base").font(.callout.weight(.semibold))
+                Text(store.dropStatus ?? "Add files to your knowledge base").font(Theme.callout.weight(.semibold))
                 Text(Config.inPlace ? "Drop documents, photos or recordings here; the model proposes where each belongs."
                                     : "Drop documents or recordings here to import them.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(Theme.caption).foregroundStyle(.secondary)
             }
             Spacer()
             if waiting > 0 {
-                Button("\(waiting) to review") { store.pane = .inbox }.buttonStyle(.link).font(.caption)
+                Button("\(waiting) to review") { store.pane = .inbox }.buttonStyle(.link).font(Theme.caption)
             }
             Button("Bulk Import…") { store.showBulkImport = true }.buttonStyle(.bordered).controlSize(.regular)
             Button("Add Files…") { store.chooseFilesToAdd() }.buttonStyle(.borderedProminent).controlSize(.regular)
@@ -458,7 +476,7 @@ struct SuggestionCard: View {
         Button(action: action) {
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: icon).foregroundStyle(Theme.accent).frame(width: 18)
-                Text(text).font(.callout).multilineTextAlignment(.leading).foregroundStyle(.primary)
+                Text(text).font(Theme.callout).multilineTextAlignment(.leading).foregroundStyle(.primary)
                 Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity, minHeight: 40, alignment: .topLeading)
@@ -474,10 +492,12 @@ struct SuggestionCard: View {
 struct QuestionHeader: View {
     var text: String
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Image(systemName: "person.crop.circle.fill").font(.title2).foregroundStyle(.secondary)
-            Text(text).font(.title3.weight(.semibold)).textSelection(.enabled)
-        }
+        Text(text)
+            .font(.system(size: 17, weight: .semibold))
+            .textSelection(.enabled)
+            .padding(.horizontal, 16).padding(.vertical, 11)
+            .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Theme.accent.opacity(0.09)))
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -487,10 +507,10 @@ struct StatusPill: View {
     var body: some View {
         HStack(spacing: 8) {
             ProgressView().controlSize(.small)
-            Text(text).font(.callout).foregroundStyle(.secondary)
+            Text(text).font(Theme.callout).foregroundStyle(.secondary)
             if let since {
                 TimelineView(.periodic(from: .now, by: 1)) { ctx in
-                    Text("\(Int(ctx.date.timeIntervalSince(since)))s").font(.caption.monospacedDigit()).foregroundStyle(.tertiary)
+                    Text("\(Int(ctx.date.timeIntervalSince(since)))s").font(Theme.caption.monospacedDigit()).foregroundStyle(.tertiary)
                 }
             }
         }
@@ -506,7 +526,7 @@ struct ErrorBanner: View {
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             Image(systemName: icon).foregroundStyle(color)
-            Text(text).font(.callout).textSelection(.enabled)
+            Text(text).font(Theme.callout).textSelection(.enabled)
             Spacer(minLength: 0)
         }
         .padding(12)
@@ -522,7 +542,7 @@ struct AnswerCard: View {
             if !store.answer.isEmpty {
             HStack(spacing: 8) {
                 Image(systemName: "sparkles").foregroundStyle(Theme.gradient)
-                Text("Answer").font(.headline)
+                Text("Answer").font(Theme.headline)
                 Spacer()
                 Button {
                     NSPasteboard.general.clearContents()
@@ -542,7 +562,7 @@ struct AnswerCard: View {
             if let s = store.answerStats {
                 Divider()
                 if let r = store.routeNote {
-                    Label(r, systemImage: "arrow.triangle.branch").font(.caption).foregroundStyle(.secondary)
+                    Label(r, systemImage: "arrow.triangle.branch").font(Theme.caption).foregroundStyle(.secondary)
                 }
                 HStack(spacing: 14) {
                     Label("\(s.passages) passages", systemImage: "text.quote")
@@ -553,7 +573,7 @@ struct AnswerCard: View {
                     Label(store.history.first { $0.id == store.currentHistoryId }?.model ?? store.modelLabel, systemImage: "cpu")
                 }
                 .labelStyle(TightLabel())
-                .font(.caption).foregroundStyle(.secondary)
+                .font(Theme.caption).foregroundStyle(.secondary)
             }
         }
         .card(padding: 20)
@@ -565,8 +585,8 @@ struct SourcesSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("Sources").font(.headline)
-                Text("\(store.sources.count)").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                Text("Sources").font(Theme.headline)
+                Text("\(store.sources.count)").font(Theme.caption.weight(.semibold)).foregroundStyle(.secondary)
                     .padding(.horizontal, 6).padding(.vertical, 1).background(Capsule().fill(.quaternary))
             }
             // Most relevant first; each card keeps the number the answer cites it by.
@@ -598,7 +618,7 @@ struct SourceCard: View {
             HStack(alignment: .top, spacing: 12) {
                 if let n {
                     Text("\(n)")
-                        .font(.system(size: 11, weight: .bold, design: .rounded)).monospacedDigit()
+                        .font(.system(size: 12, weight: .bold, design: .rounded)).monospacedDigit()
                         .foregroundStyle(Theme.accent)
                         .frame(width: 22, height: 22)
                         .background(Circle().fill(Theme.accent.opacity(0.12)))
@@ -607,15 +627,15 @@ struct SourceCard: View {
                 }
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(alignment: .firstTextBaseline) {
-                        Text(chunk.title).font(.callout.weight(.semibold)).lineLimit(1)
+                        Text(chunk.title).font(Theme.callout.weight(.semibold)).lineLimit(1)
                         Spacer(minLength: 8)
                         if let s = chunk.score { RelevanceMeter(score: s) }
                     }
                     if chunk.anchor != chunk.title {
-                        Text(chunk.anchor).font(.caption.weight(.medium)).foregroundStyle(Theme.accent).lineLimit(1)
+                        Text(chunk.anchor).font(Theme.caption.weight(.medium)).foregroundStyle(Theme.accent).lineLimit(1)
                     }
                     if !snippet.isEmpty {
-                        Text(snippet).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                        Text(snippet).font(Theme.caption).foregroundStyle(.secondary).lineLimit(2)
                     }
                 }
             }
@@ -638,7 +658,7 @@ struct RelevanceMeter: View {
                 Capsule().fill(Theme.gradient).frame(width: max(3, 36 * min(max(score, 0), 1)))
             }
             .frame(width: 36, height: 4)
-            Text(String(format: "%.0f%%", score * 100)).font(.caption2).monospacedDigit().foregroundStyle(.secondary)
+            Text(String(format: "%.0f%%", score * 100)).font(Theme.caption2).monospacedDigit().foregroundStyle(.secondary)
         }
         .help("How relevant the reranker judged this passage to your question (0–100%). Not a probability of being right: passages that score low next to the best one are left out, so a lower one still made the cut.")
     }
@@ -657,8 +677,8 @@ struct Composer: View {
                           : store.profile == .counseling ? "Ask about your materials and case reports…" : "Ask, or tell Holdfast what to do…",
                           text: $store.question, axis: .vertical)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 14))
-                    .lineLimit(1...6)
+                    .font(.system(size: 16))
+                    .lineLimit(1...8)
                     .focused($focused)
                     .onSubmit { store.runAsk() }
                     .padding(.vertical, 5)
@@ -666,7 +686,7 @@ struct Composer: View {
                     // While an answer is being written: Stop (keeps what's written so far).
                     Button { store.stopAsk() } label: {
                         Image(systemName: "stop.fill")
-                            .font(.system(size: 11, weight: .bold))
+                            .font(.system(size: 12, weight: .bold))
                             .foregroundStyle(.white)
                             .frame(width: 28, height: 28)
                             .background(Circle().fill(Theme.gradient))
@@ -677,7 +697,7 @@ struct Composer: View {
                 } else {
                 Button { store.runAsk() } label: {
                     Image(systemName: "arrow.up")
-                        .font(.system(size: 13, weight: .bold))
+                        .font(.system(size: 14.5, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(width: 28, height: 28)
                         .background(Circle().fill(canSend ? AnyShapeStyle(Theme.gradient) : AnyShapeStyle(Color.secondary.opacity(0.35))))
@@ -688,9 +708,9 @@ struct Composer: View {
                 .help("Ask (Return)")
                 }
             }
-            .padding(.leading, 16).padding(.trailing, 8).padding(.vertical, 8)
-            .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.card))
-            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous)
+            .padding(.leading, 18).padding(.trailing, 10).padding(.vertical, 12)
+            .background(RoundedRectangle(cornerRadius: 22, style: .continuous).fill(Theme.card))
+            .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .strokeBorder(focused ? Theme.accent.opacity(0.55) : Color.primary.opacity(0.1), lineWidth: focused ? 1.5 : 1))
             .shadow(color: .black.opacity(focused ? 0.1 : 0.06), radius: 12, y: 3)
             .animation(.easeOut(duration: 0.15), value: focused)
@@ -719,7 +739,7 @@ struct Composer: View {
                 }
                 .menuStyle(.borderlessButton)
                 .fixedSize()
-                .font(.caption)
+                .font(Theme.caption)
                 Button { store.chooseFilesToAdd() } label: {
                     Label("Add Files", systemImage: "tray.and.arrow.down")
                 }
@@ -731,7 +751,7 @@ struct Composer: View {
                 Spacer()
                 Label("Private · nothing leaves this Mac", systemImage: "lock.fill")
                     .labelStyle(TightLabel())
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(Theme.caption).foregroundStyle(.secondary)
             }
             .padding(.horizontal, 6)
         }
@@ -807,8 +827,8 @@ struct SectionTitle: View {
     var count: Int
     var body: some View {
         HStack(spacing: 6) {
-            Text(title.uppercased()).font(.caption.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
-            Text("\(count)").font(.caption).foregroundStyle(.tertiary)
+            Text(title.uppercased()).font(Theme.caption.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
+            Text("\(count)").font(Theme.caption).foregroundStyle(.tertiary)
         }
         .padding(.top, 12).padding(.bottom, 2).padding(.leading, 4)
     }
@@ -851,7 +871,7 @@ struct FilterChip: View {
                 Text(title)
                 Text("\(count)").foregroundStyle(selected ? .white.opacity(0.75) : .secondary)
             }
-            .font(.caption.weight(.medium))
+            .font(Theme.caption.weight(.medium))
             .foregroundStyle(selected ? .white : .primary)
             .padding(.horizontal, 10).padding(.vertical, 5)
             .background(Capsule().fill(selected ? AnyShapeStyle(Theme.gradient) : AnyShapeStyle(Color.primary.opacity(0.06))))
@@ -882,13 +902,13 @@ struct NoteRow: View {
             HStack(spacing: 12) {
                 KindTile(kind: Theme.kind(of: note), size: 32)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(note.title).font(.callout.weight(.medium)).lineLimit(1)
+                    Text(note.title).font(Theme.callout.weight(.medium)).lineLimit(1)
                     if !subtitle.isEmpty {
-                        Text(subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                        Text(subtitle).font(Theme.caption).foregroundStyle(.secondary).lineLimit(1)
                     }
                 }
                 Spacer(minLength: 0)
-                Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
+                Image(systemName: "chevron.right").font(Theme.caption.weight(.semibold)).foregroundStyle(.tertiary)
                     .opacity(hover || selected ? 1 : 0)
             }
             .padding(.horizontal, 12).padding(.vertical, 9)
@@ -923,7 +943,7 @@ struct InboxView: View {
                         .frame(minHeight: 260)
                 } else {
                     Text("Nothing is written until you approve.")
-                        .font(.callout).foregroundStyle(.secondary)
+                        .font(Theme.callout).foregroundStyle(.secondary)
                     let groups = Dictionary(grouping: store.inboxItems.filter { filingPlace($0) != nil }, by: { filingPlace($0)! })
                     let grouped = groups.filter { $0.value.count > 1 }
                     ForEach(grouped.keys.sorted(), id: \.self) { place in
@@ -952,11 +972,11 @@ struct DropZone: View {
                     .font(.system(size: 26)).foregroundStyle(Theme.accent)
                     .symbolEffect(.pulse, isActive: store.dropStatus != nil)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(store.dropStatus ?? "Drop files to add them to the vault").font(.headline)
+                    Text(store.dropStatus ?? "Drop files to add them to the vault").font(Theme.headline)
                     Text(Config.inPlace
                          ? "PDFs, Word, Markdown, images (read on-device), recordings. The model proposes a note or a log entry; you approve it below."
                          : "Documents and recordings are imported as sources and indexed.")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(Theme.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
                 Button("Open Drop Folder") { store.revealDrop() }.buttonStyle(.bordered)
@@ -998,9 +1018,9 @@ struct InboxCard: View {
             HStack(spacing: 10) {
                 KindTile(kind: isFiling ? "document" : "memory", size: 30)
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(note.title).font(.headline)
+                    Text(note.title).font(Theme.headline)
                     Text("Proposed by \(note.meta["proposed_by"] ?? "an agent")\(note.meta["proposed"].map { " · \($0)" } ?? "")")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(Theme.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
             }
@@ -1008,30 +1028,30 @@ struct InboxCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Label {
                         Text(note.meta["action"] == "link" ? "Add a link in " : note.meta["action"] == "append" ? "Append to " : "New note ")
-                            + Text(target).font(.callout.monospaced()).foregroundColor(Theme.accent)
+                            + Text(target).font(Theme.callout.monospaced()).foregroundColor(Theme.accent)
                     } icon: {
                         Image(systemName: note.meta["action"] == "link" ? "link" : note.meta["action"] == "append" ? "text.append" : "doc.badge.plus")
                     }
-                    .font(.callout)
-                    if let why = note.meta["why"] { Text(why).font(.caption).foregroundStyle(.secondary) }
+                    .font(Theme.callout)
+                    if let why = note.meta["why"] { Text(why).font(Theme.caption).foregroundStyle(.secondary) }
                     if let o = note.meta["original"] {
-                        Text("From \(o)" + (note.meta["from"].map { " · sent by \($0)" } ?? "")).font(.caption).foregroundStyle(.tertiary)
+                        Text("From \(o)" + (note.meta["from"].map { " · sent by \($0)" } ?? "")).font(Theme.caption).foregroundStyle(.tertiary)
                     }
                     if let r = note.meta["rule"] {
-                        Label("Filing rule: \(r)", systemImage: "wand.and.stars").font(.caption).foregroundStyle(Theme.accent)
+                        Label("Filing rule: \(r)", systemImage: "wand.and.stars").font(Theme.caption).foregroundStyle(Theme.accent)
                     }
                     let props = Drop.properties(note)
                     if !props.isEmpty {
                         HStack(spacing: 4) {
                             ForEach(props.sorted { $0.key < $1.key }, id: \.key) { k, v in
-                                Text("\(k): \(v)").font(.caption.monospaced()).lineLimit(1)
+                                Text("\(k): \(v)").font(Theme.caption.monospaced()).lineLimit(1)
                                     .padding(.horizontal, 6).padding(.vertical, 2)
                                     .background(Capsule().fill(Color.primary.opacity(0.06)))
                             }
                         }
                     }
                     ForEach(Array(Drop.followUps(note).enumerated()), id: \.offset) { _, f in
-                        Label((f.date.isEmpty ? "" : f.date + " · ") + f.what, systemImage: "circle").font(.caption).foregroundStyle(.secondary)
+                        Label((f.date.isEmpty ? "" : f.date + " · ") + f.what, systemImage: "circle").font(Theme.caption).foregroundStyle(.secondary)
                     }
                 }
             }
@@ -1041,14 +1061,14 @@ struct InboxCard: View {
             if isFiling {
                 ScrollView {
                     Text(note.body.trimmingCharacters(in: .whitespacesAndNewlines))
-                        .font(.callout.monospaced()).textSelection(.enabled)
+                        .font(Theme.callout.monospaced()).textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(maxHeight: 220)
                 .padding(10)
                 .background(RoundedRectangle(cornerRadius: 8).fill(.quaternary.opacity(0.5)))
             } else {
-                Text(preview).font(.callout).lineLimit(5).foregroundStyle(.primary.opacity(0.85))
+                Text(preview).font(Theme.callout).lineLimit(5).foregroundStyle(.primary.opacity(0.85))
             }
             HStack(spacing: 8) {
                 Button { store.approveItem(note) } label: { Label(isFiling ? "File It" : "Approve", systemImage: "checkmark") }
@@ -1081,13 +1101,13 @@ struct LinkSheet: View {
             HStack(spacing: 12) {
                 KindTile(kind: "video", size: 40)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Add a link").font(.title3.weight(.semibold))
-                    Text("YouTube or another video or podcast page").font(.callout).foregroundStyle(.secondary)
+                    Text("Add a link").font(Theme.title3.weight(.semibold))
+                    Text("YouTube or another video or podcast page").font(Theme.callout).foregroundStyle(.secondary)
                 }
             }
             SearchFieldLike(text: $store.linkText)
             Text("Captions are used when available; otherwise the audio is transcribed on this Mac.")
-                .font(.caption).foregroundStyle(.secondary)
+                .font(Theme.caption).foregroundStyle(.secondary)
             HStack {
                 Spacer()
                 Button("Cancel") { store.showLinkSheet = false }.keyboardShortcut(.cancelAction)
@@ -1129,7 +1149,7 @@ func inlineMarkdown(_ s: String, linkCitations: Bool = false) -> AttributedStrin
     if linkCitations {
         let ranges = out.runs.filter { $0.link?.scheme == "mackb" }.map(\.range)
         for r in ranges {
-            out[r].font = .system(size: 10, weight: .bold, design: .rounded)
+            out[r].font = .system(size: 11, weight: .bold, design: .rounded)
             out[r].foregroundColor = Theme.accent
             out[r].backgroundColor = Theme.accent.opacity(0.13)
             out[r].baselineOffset = 3
@@ -1153,23 +1173,23 @@ struct MarkdownBlocks: View {
                 let trimmed = line.trimmingCharacters(in: .whitespaces)
                 if trimmed.hasPrefix("#") {
                     Text(inlineMarkdown(trimmed.drop(while: { $0 == "#" }).trimmingCharacters(in: .whitespaces), linkCitations: linkCitations))
-                        .font(.system(size: 15, weight: .semibold)).padding(.top, 6)
+                        .font(.system(size: 16.5, weight: .semibold)).padding(.top, 6)
                 } else if let r = trimmed.range(of: #"^([*\-•]|\d+\.)\s+"#, options: .regularExpression) {
                     let marker = trimmed[r].trimmingCharacters(in: .whitespaces)
                     let indent = line.prefix(while: { $0 == " " }).count >= 2
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         if marker.first?.isNumber == true {
-                            Text(marker).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.accent).monospacedDigit()
+                            Text(marker).font(.system(size: 15.5, weight: .semibold)).foregroundStyle(Theme.accent).monospacedDigit()
                         } else {
                             Circle().fill(Theme.accent.opacity(0.7)).frame(width: 5, height: 5).alignmentGuide(.firstTextBaseline) { $0[.bottom] + 4 }
                         }
                         Text(inlineMarkdown(String(trimmed[r.upperBound...]), linkCitations: linkCitations))
-                            .font(.system(size: 14)).lineSpacing(3)
+                            .font(.system(size: 15.5)).lineSpacing(3)
                     }
                     .padding(.leading, indent ? 20 : 2)
                 } else {
                     Text(inlineMarkdown(trimmed, linkCitations: linkCitations))
-                        .font(.system(size: 14)).lineSpacing(3)
+                        .font(.system(size: 15.5)).lineSpacing(3)
                 }
             }
         }
@@ -1244,21 +1264,21 @@ struct HistoryRow: View {
         Button { store.openHistory(entry) } label: {
             VStack(alignment: .leading, spacing: 5) {
                 HStack(alignment: .firstTextBaseline) {
-                    Text(convo?.first.question ?? entry.question).font(.callout.weight(.semibold)).lineLimit(2)
+                    Text(convo?.first.question ?? entry.question).font(Theme.callout.weight(.semibold)).lineLimit(2)
                     if let n = convo?.count, n > 1 {
-                        Text("\(n) turns").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+                        Text("\(n) turns").font(Theme.caption2.weight(.semibold)).foregroundStyle(.secondary)
                             .padding(.horizontal, 6).padding(.vertical, 1).background(Capsule().fill(.quaternary))
                     }
                     Spacer(minLength: 8)
-                    Text(entry.date, format: .dateTime.hour().minute()).font(.caption).foregroundStyle(.tertiary)
+                    Text(entry.date, format: .dateTime.hour().minute()).font(Theme.caption).foregroundStyle(.tertiary)
                 }
-                Text(preview).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                Text(preview).font(Theme.caption).foregroundStyle(.secondary).lineLimit(2)
                 HStack(spacing: 12) {
                     Label("\(entry.sources.count) sources", systemImage: "text.quote")
                     Label(entry.model, systemImage: "cpu")
                 }
                 .labelStyle(TightLabel())
-                .font(.caption2).foregroundStyle(.tertiary)
+                .font(Theme.caption2).foregroundStyle(.tertiary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(12)
@@ -1298,11 +1318,11 @@ struct StepsList: View {
                             if detail != nil { if expanded.contains(i) { expanded.remove(i) } else { expanded.insert(i) } }
                         } label: {
                             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                                Image(systemName: icon(title)).font(.caption).foregroundStyle(Theme.accent).frame(width: 14)
-                                Text(title).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                                Image(systemName: icon(title)).font(Theme.caption).foregroundStyle(Theme.accent).frame(width: 14)
+                                Text(title).font(Theme.caption).foregroundStyle(.secondary).lineLimit(2)
                                 if detail != nil {
                                     Image(systemName: expanded.contains(i) ? "chevron.down" : "chevron.right")
-                                        .font(.system(size: 8, weight: .semibold)).foregroundStyle(.tertiary)
+                                        .font(.system(size: 9, weight: .semibold)).foregroundStyle(.tertiary)
                                 }
                                 if running && i == steps.count - 1 { ProgressView().controlSize(.mini) }
                             }
@@ -1313,7 +1333,7 @@ struct StepsList: View {
                         .help(detail == nil ? "" : "Show the exact call and what came back")
                         if let detail, expanded.contains(i) {
                             ScrollView {
-                                Text(detail).font(.system(size: 11, design: .monospaced)).textSelection(.enabled)
+                                Text(detail).font(.system(size: 12, design: .monospaced)).textSelection(.enabled)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }
                             .frame(maxHeight: 200)
@@ -1326,7 +1346,7 @@ struct StepsList: View {
             }
             .padding(.top, 4)
         } label: {
-            Text(running ? "Working…" : "\(steps.count) step\(steps.count == 1 ? "" : "s")").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            Text(running ? "Working…" : "\(steps.count) step\(steps.count == 1 ? "" : "s")").font(Theme.caption.weight(.semibold)).foregroundStyle(.secondary)
         }
         .padding(10)
         .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Theme.accent.opacity(0.05)))

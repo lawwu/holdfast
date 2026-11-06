@@ -213,7 +213,7 @@ struct MDTableView: View {
 
     func cell(_ text: String, bold: Bool) -> some View {
         Text(noteInline(text, size: 13))
-            .font(.system(size: 13, weight: bold ? .semibold : .regular))
+            .font(.system(size: 14.5, weight: bold ? .semibold : .regular))
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .topLeading)
             .padding(.horizontal, 10).padding(.vertical, bold ? 7 : 6)
@@ -228,23 +228,23 @@ struct MDBlockView: View {
             Text(noteInline(block.text))
                 .font(l == 1 ? .system(size: 22, weight: .bold, design: .serif)
                       : l == 2 ? .system(size: 18, weight: .semibold) : l == 3 ? .system(size: 15.5, weight: .semibold)
-                      : .system(size: 14.5, weight: .semibold))
+                      : .system(size: 16, weight: .semibold))
                 .foregroundStyle(l >= 4 ? AnyShapeStyle(.secondary) : AnyShapeStyle(.primary))
                 .padding(.top, l <= 2 ? 14 : 8)
         case .paragraph:
-            Text(noteInline(block.text)).font(.system(size: 14.5)).lineSpacing(4)
+            Text(noteInline(block.text)).font(.system(size: 16)).lineSpacing(4)
         case .listItem(let level, let marker, let checked):
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 if let checked {
                     Image(systemName: checked ? "checkmark.square.fill" : "square")
                         .foregroundStyle(checked ? AnyShapeStyle(Theme.accent) : AnyShapeStyle(.secondary))
                 } else if marker.first?.isNumber == true {
-                    Text(marker).font(.system(size: 14.5, weight: .semibold)).foregroundStyle(Theme.accent).monospacedDigit()
+                    Text(marker).font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.accent).monospacedDigit()
                 } else {
                     Circle().fill(Theme.accent.opacity(0.7)).frame(width: 5, height: 5)
                         .alignmentGuide(.firstTextBaseline) { $0[.bottom] + 4 }
                 }
-                Text(noteInline(block.text)).font(.system(size: 14.5)).lineSpacing(3)
+                Text(noteInline(block.text)).font(.system(size: 16)).lineSpacing(3)
                     .strikethrough(checked == true, color: .secondary)
                     .foregroundStyle(checked == true ? AnyShapeStyle(.secondary) : AnyShapeStyle(.primary))
             }
@@ -254,7 +254,7 @@ struct MDBlockView: View {
                 if let callout {
                     Image(systemName: calloutIcon(callout)).foregroundStyle(calloutColor(callout))
                 }
-                Text(noteInline(block.text)).font(.system(size: 14.5)).lineSpacing(3)
+                Text(noteInline(block.text)).font(.system(size: 16)).lineSpacing(3)
                     .foregroundStyle(callout == nil ? AnyShapeStyle(.secondary) : AnyShapeStyle(.primary))
                 Spacer(minLength: 0)
             }
@@ -268,9 +268,9 @@ struct MDBlockView: View {
             .clipShape(RoundedRectangle(cornerRadius: 4))
         case .code(let lang):
             VStack(alignment: .leading, spacing: 4) {
-                if !lang.isEmpty { Text(lang).font(.caption2.weight(.medium)).foregroundStyle(.tertiary) }
+                if !lang.isEmpty { Text(lang).font(Theme.caption2.weight(.medium)).foregroundStyle(.tertiary) }
                 ScrollView(.horizontal, showsIndicators: false) {
-                    Text(block.text).font(.system(size: 12.5, design: .monospaced)).lineSpacing(2)
+                    Text(block.text).font(.system(size: 13.5, design: .monospaced)).lineSpacing(2)
                 }
             }
             .padding(12)

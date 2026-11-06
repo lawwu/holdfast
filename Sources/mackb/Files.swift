@@ -60,7 +60,7 @@ struct FilesView: View {
             HStack(spacing: 8) {
                 SearchField(text: $filter, placeholder: "Filter files…")
                 Button { store.createNote(near: store.opened?.note) } label: {
-                    Image(systemName: "square.and.pencil").font(.system(size: 14))
+                    Image(systemName: "square.and.pencil").font(.system(size: 15.5))
                 }
                 .buttonStyle(.borderless)
                 .help("New note next to the open one (⇧⌘N)")
@@ -87,9 +87,9 @@ struct FilesView: View {
                 .listStyle(.sidebar)
             }
             HStack {
-                Text("\(store.notes.count) notes · \(store.links.edgeCount) links").font(.caption).foregroundStyle(.secondary)
+                Text("\(store.notes.count) notes · \(store.links.edgeCount) links").font(Theme.caption).foregroundStyle(.secondary)
                 Spacer()
-                Button("Quick Open ⌘O") { store.showQuickOpen = true }.buttonStyle(.link).font(.caption)
+                Button("Quick Open ⌘O") { store.showQuickOpen = true }.buttonStyle(.link).font(Theme.caption)
             }
             .padding(.horizontal, 14).padding(.vertical, 8)
         }
@@ -102,7 +102,7 @@ struct FolderLabel: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack(spacing: 6) {
             configuration.icon.foregroundStyle(color.opacity(0.85))
-            configuration.title.font(.callout.weight(.medium))
+            configuration.title.font(Theme.callout.weight(.medium))
         }
     }
 }
@@ -119,13 +119,13 @@ struct FileRow: View {
             HStack(spacing: 6) {
                 Image(systemName: "doc.text").foregroundStyle(selected ? AnyShapeStyle(Theme.accent) : AnyShapeStyle(.secondary))
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(name).font(.callout).lineLimit(1)
-                    if let detail { Text(detail).font(.caption2).foregroundStyle(.tertiary).lineLimit(1) }
+                    Text(name).font(Theme.callout).lineLimit(1)
+                    if let detail { Text(detail).font(Theme.caption2).foregroundStyle(.tertiary).lineLimit(1) }
                 }
                 Spacer(minLength: 0)
                 let back = store.links.incoming[note.id]?.count ?? 0
                 if back > 0 {
-                    Text("\(back)").font(.caption2.weight(.medium)).foregroundStyle(.tertiary)
+                    Text("\(back)").font(Theme.caption2.weight(.medium)).foregroundStyle(.tertiary)
                         .help("\(back) notes link here")
                 }
             }
@@ -190,7 +190,7 @@ struct QuickOpen: View {
             HStack(spacing: 10) {
                 Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
                 TextField("Find or create a note…", text: $query)
-                    .textFieldStyle(.plain).font(.system(size: 16))
+                    .textFieldStyle(.plain).font(.system(size: 17.5))
                     .focused($focused)
                     .onSubmit { open(rs) }
                     .onChange(of: query) { _, _ in index = 0 }
@@ -209,7 +209,7 @@ struct QuickOpen: View {
                                 .id(i)
                         }
                         if !query.isEmpty && rs.isEmpty {
-                            Text("Return creates “\(query)”").font(.callout).foregroundStyle(.secondary).padding(14)
+                            Text("Return creates “\(query)”").font(Theme.callout).foregroundStyle(.secondary).padding(14)
                         }
                     }
                     .padding(6)
@@ -245,8 +245,8 @@ struct QuickOpenRow: View {
         HStack(spacing: 10) {
             Image(systemName: "doc.text").foregroundStyle(sub)
             VStack(alignment: .leading, spacing: 1) {
-                Text(note.title).font(.callout.weight(.medium)).lineLimit(1).foregroundStyle(fg)
-                Text(note.relPath).font(.caption).lineLimit(1).foregroundStyle(sub)
+                Text(note.title).font(Theme.callout.weight(.medium)).lineLimit(1).foregroundStyle(fg)
+                Text(note.relPath).font(Theme.caption).lineLimit(1).foregroundStyle(sub)
             }
             Spacer()
         }
