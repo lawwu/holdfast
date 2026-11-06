@@ -74,13 +74,15 @@ struct TabChip: View {
 // MARK: - Right sidebar
 
 enum RightTab: String, CaseIterable, Identifiable {
-    case outline, backlinks, links, graph
+    case outline, backlinks, links, related, history, graph
     var id: String { rawValue }
     var icon: String {
         switch self {
         case .outline: return "list.bullet.indent"
         case .backlinks: return "arrow.turn.down.right"
         case .links: return "arrow.up.right"
+        case .related: return "sparkles"
+        case .history: return "clock.arrow.circlepath"
         case .graph: return "point.3.connected.trianglepath.dotted"
         }
     }
@@ -89,6 +91,8 @@ enum RightTab: String, CaseIterable, Identifiable {
         case .outline: return "Outline"
         case .backlinks: return "Backlinks"
         case .links: return "Outgoing links"
+        case .related: return "Related notes"
+        case .history: return "History"
         case .graph: return "Local graph"
         }
     }
@@ -128,6 +132,10 @@ struct RightPanel: View {
                 BacklinksPanel(note: note)
             case .links:
                 OutgoingPanel(note: note)
+            case .related:
+                RelatedPanel(note: note)
+            case .history:
+                HistoryPanel(note: note)
             case .graph:
                 GraphView(compact: true)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

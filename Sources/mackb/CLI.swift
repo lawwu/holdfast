@@ -10,6 +10,10 @@ mackb — local knowledge base for counseling materials (POC)
   mackb remember "<title>" "<text>"            propose a memory (goes to the inbox)
   mackb inbox | approve <id> | reject <id>     review agent-proposed memories and filings
   mackb drop [file...]                         file what is in the drop folder (adding these files first)
+  mackb filings | undo <n>                     recent filings; undo the nth (1 = newest)
+  mackb upcoming                               open follow-ups due soon or overdue
+  mackb related <note.md>                      notes closest to a note (search embeddings)
+  mackb rules                                  filing rules, and rules suggested from approvals
   mackb mcp                                    run the MCP server on stdio (for Claude Code etc.)
   mackb bench                                  measure LLM speed on a fixed prompt
   mackb eval [questions.json] --label <name>   score Q&A against a question set (see eval/)
@@ -116,6 +120,25 @@ do {
     case "reject":
         try reject(args.first ?? "")
         print("moved to Trash")
+    case "filings":
+        for (i, r) in FilingLog.load().prefix(20).enumerated() {
+            print("\(i + 1). \(r.undone ? "[undone] " : "")\(r.action) \(r.target)  \(r.title)\(r.rule.map { "  (rule: \($0))" } ?? "")")
+        }
+    case "undo":
+        let rs = FilingLog.load()
+        guard let k = Int(args.first ?? "1"), k >= 1, k <= rs.count else { throw MacKBError("undo <n>: see `mackb filings`") }
+        print(try FilingLog.undo(rs[k - 1].id))
+    case "upcoming":
+        let items = Upcoming.scan(allNotes())
+        if items.isEmpty { print("nothing due in the next \(Upcoming.horizonDays) days") }
+        for f in items { print("\(f.due)\(f.overdue ? " (overdue)" : "")  \(f.text)  — \(f.note.relPath)") }
+    case "related":
+        for r in try Related.find(args.first ?? "") { print(String(format: "%3.0f%%  %@", r.score * 100, r.relPath)) }
+    case "rules":
+        let rules = Rules.load()
+        print(rules.isEmpty ? "no rules (\(Rules.url.path))" : "rules (\(Rules.url.path)):")
+        for r in rules { print("  \"\(r.match)\" → \(r.action) \(r.target)\(r.auto ? " (auto)" : "")") }
+        for c in Rules.suggestions() { print("  suggested: \"\(c.from)\" → \(c.action) \(c.target) (\(c.count) approvals)") }
     case "drop":
         try Drop.add(args.map { URL(fileURLWithPath: $0) })
         let files = Drop.pending(settled: false)

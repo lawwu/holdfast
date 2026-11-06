@@ -84,7 +84,7 @@ enum Agent {
         // each step only processes the new tool results, not the whole
         // conversation again (that made the first version 12 minutes a question).
         let session = ChatSession(backend.container, instructions: system, generateParameters: params,
-                                  additionalContext: ["enable_thinking": false], tools: tools)
+                                  additionalContext: Config.templateContext, tools: tools)
         let ctx = ToolContext(embedder: embedder)
         var stats = GenStats(promptTokens: 0, promptSeconds: 0, outputTokens: 0, outputSeconds: 0)
         var final = ""
@@ -237,11 +237,49 @@ final class CSVTables {
         return (lines.first.map { CSV.parse(String($0)).first ?? [] } ?? [], max(lines.count - 1, 0))
     }
 
+    /// Every note's properties (frontmatter) as one table: path, title, then a column per property.
+    static let propsTable = "note_properties"
+    private var propsLoaded = false
+
+    private func propertyNotes() -> [Note] { Config.inPlace ? allNotes().filter { !$0.relPath.hasPrefix("@") && !Properties.of($0).isEmpty } : [] }
+
+    private func loadProperties() throws {
+        guard !propsLoaded else { return }
+        let notes = propertyNotes()
+        var keys = Set<String>()
+        for n in notes { keys.formUnion(Properties.of(n).keys) }
+        let cols = ["path", "title"] + keys.subtracting(["path", "title"]).sorted()
+        try exec("CREATE TABLE \(Self.propsTable) (" + cols.map { "\"\($0)\" NUMERIC" }.joined(separator: ", ") + ")")
+        var st: OpaquePointer?
+        sqlite3_prepare_v2(db, "INSERT INTO \(Self.propsTable) VALUES (" + Array(repeating: "?", count: cols.count).joined(separator: ",") + ")", -1, &st, nil)
+        let T = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+        for n in notes {
+            sqlite3_reset(st)
+            let p = Properties.of(n)
+            for (i, c) in cols.enumerated() {
+                let v = c == "path" ? n.relPath : c == "title" ? n.title : p[c]
+                if let v, !v.isEmpty { sqlite3_bind_text(st, Int32(i + 1), v, -1, T) } else { sqlite3_bind_null(st, Int32(i + 1)) }
+            }
+            sqlite3_step(st)
+        }
+        sqlite3_finalize(st)
+        propsLoaded = true
+    }
+
     func catalog(under folder: String) -> String {
         let prefix = folder.isEmpty ? "" : folder + "/"
         let picked = files.filter { $0.hasPrefix(prefix) }
-        if picked.isEmpty { return "No CSV tables under \(folder)." }
-        return picked.prefix(40).map { f in
+        var props = ""
+        if folder.isEmpty {
+            let notes = propertyNotes()
+            if !notes.isEmpty {
+                var keys = Set<String>()
+                for n in notes { keys.formUnion(Properties.of(n).keys) }
+                props = "\(Self.propsTable) — every note's properties, \(notes.count) rows: path, title, " + keys.sorted().prefix(25).joined(separator: ", ") + "\n"
+            }
+        }
+        if picked.isEmpty { return props.isEmpty ? "No CSV tables under \(folder)." : props }
+        return props + picked.prefix(40).map { f in
             let h = header(f)
             return "\(Self.tableName(f)) — \(f), \(h.rows) rows: " + h.cols.prefix(25).joined(separator: ", ")
         }.joined(separator: "\n") + (picked.count > 40 ? "\n(+\(picked.count - 40) more; narrow the folder)" : "")
@@ -291,7 +329,9 @@ final class CSVTables {
             throw MacKBError("only a single SELECT is allowed")
         }
         let used = files.filter { lower.contains(Self.tableName($0)) }
-        guard !used.isEmpty else { throw MacKBError("no known table in the query; call list_tables first") }
+        let wantsProps = lower.contains(Self.propsTable)
+        guard !used.isEmpty || wantsProps else { throw MacKBError("no known table in the query; call list_tables first") }
+        if wantsProps { try loadProperties() }
         for f in used { try load(f) }
         var st: OpaquePointer?
         guard sqlite3_prepare_v2(db, trimmed, -1, &st, nil) == SQLITE_OK else {

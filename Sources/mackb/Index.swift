@@ -225,6 +225,36 @@ final class Index {
         return scored.sorted { $0.0 > $1.0 }.prefix(limit).map { ($0.1, $0.2) }
     }
 
+    /// Cosine scores too (for Related notes, which shows how close each one is).
+    func vectorScored(_ q: [Float], limit: Int) throws -> [(Float, Chunk)] {
+        let st = try prepare("SELECT \(Self.cols), c.vec FROM chunks c WHERE c.vec IS NOT NULL")
+        defer { sqlite3_finalize(st) }
+        var scored: [(Float, Chunk)] = []
+        while sqlite3_step(st) == SQLITE_ROW {
+            let n = Int(sqlite3_column_bytes(st, 9)) / 4
+            guard n == q.count, let p = sqlite3_column_blob(st, 9) else { continue }
+            let v = p.assumingMemoryBound(to: Float.self)
+            var dot: Float = 0
+            for i in 0..<n { dot += v[i] * q[i] }
+            scored.append((dot, chunk(from: st).1))
+        }
+        return Array(scored.sorted { $0.0 > $1.0 }.prefix(limit))
+    }
+
+    /// The embedding of each passage of one note.
+    func vectors(of relPath: String) throws -> [[Float]] {
+        let st = try prepare("SELECT vec FROM chunks WHERE rel_path = ? AND vec IS NOT NULL ORDER BY ord")
+        defer { sqlite3_finalize(st) }
+        sqlite3_bind_text(st, 1, relPath, -1, TRANSIENT)
+        var out: [[Float]] = []
+        while sqlite3_step(st) == SQLITE_ROW {
+            let n = Int(sqlite3_column_bytes(st, 0)) / 4
+            guard n > 0, let p = sqlite3_column_blob(st, 0) else { continue }
+            out.append(Array(UnsafeBufferPointer(start: p.assumingMemoryBound(to: Float.self), count: n)))
+        }
+        return out
+    }
+
     /// All passages of the given sessions (used when a question names a session).
     func bySessions(_ sessions: Set<Int>) throws -> [(Int64, Chunk)] {
         guard !sessions.isEmpty else { return [] }

@@ -131,6 +131,7 @@ struct RootView: View {
         case .inbox: InboxView()
         case .history: HistoryView()
         case .files: FilesView()
+        case .tables: TablesView()
         case .graph: GraphView()
         }
     }
@@ -239,8 +240,8 @@ struct Sidebar: View {
                 HStack(spacing: 10) {
                     AppMark(size: 30)
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("MacKB").font(.system(size: 14, weight: .semibold)).foregroundStyle(.primary)
-                        Text("A private second brain").font(.system(size: 10.5)).foregroundStyle(.secondary)
+                        Text("Holdfast").font(.system(size: 14, weight: .semibold)).foregroundStyle(.primary)
+                        Text("Your notes never leave home").font(.system(size: 10.5)).foregroundStyle(.secondary)
                     }
                 }
                 .textCase(nil)
@@ -352,10 +353,13 @@ struct AskHero: View {
                 VStack(spacing: 6) {
                     Text(store.profile == .counseling ? "Ask your case notes" : "Ask your knowledge base")
                         .font(.system(size: 26, weight: .semibold, design: .rounded))
-                    Text("Answers come only from the notes in this vault, and every claim cites its source.")
+                    Text(store.profile == .counseling
+                         ? "Answers come only from the notes in this vault, and every claim cites its source."
+                         : "Drop in receipts, records and letters. Ask anything. Everything stays on your Mac.")
                         .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 }
                 AddFilesCard()
+                UpcomingCard()
                     .frame(maxWidth: 560)
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 210), spacing: 10)], spacing: 10) {
                     ForEach(suggestions, id: \.1) { icon, q in SuggestionCard(icon: icon, text: q) { store.askSuggested(q) } }
@@ -867,6 +871,8 @@ struct InboxView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 DropZone()
+                NoticeBanner()
+                ForEach(store.ruleSuggestions) { c in RuleSuggestionCard(c: c) }
                 if store.inboxItems.isEmpty {
                     EmptyState(icon: "tray", title: "All caught up",
                                message: Config.inPlace
@@ -878,6 +884,7 @@ struct InboxView: View {
                         .font(.callout).foregroundStyle(.secondary)
                     ForEach(store.inboxItems, id: \.path) { n in InboxCard(note: n) }
                 }
+                RecentFilings()
             }
             .padding(20)
         }
@@ -960,7 +967,23 @@ struct InboxCard: View {
                     .font(.callout)
                     if let why = note.meta["why"] { Text(why).font(.caption).foregroundStyle(.secondary) }
                     if let o = note.meta["original"] {
-                        Text("From \(o)").font(.caption).foregroundStyle(.tertiary)
+                        Text("From \(o)" + (note.meta["from"].map { " · sent by \($0)" } ?? "")).font(.caption).foregroundStyle(.tertiary)
+                    }
+                    if let r = note.meta["rule"] {
+                        Label("Filing rule: \(r)", systemImage: "wand.and.stars").font(.caption).foregroundStyle(Theme.accent)
+                    }
+                    let props = Drop.properties(note)
+                    if !props.isEmpty {
+                        HStack(spacing: 4) {
+                            ForEach(props.sorted { $0.key < $1.key }, id: \.key) { k, v in
+                                Text("\(k): \(v)").font(.caption.monospaced()).lineLimit(1)
+                                    .padding(.horizontal, 6).padding(.vertical, 2)
+                                    .background(Capsule().fill(Color.primary.opacity(0.06)))
+                            }
+                        }
+                    }
+                    ForEach(Array(Drop.followUps(note).enumerated()), id: \.offset) { _, f in
+                        Label((f.date.isEmpty ? "" : f.date + " · ") + f.what, systemImage: "circle").font(.caption).foregroundStyle(.secondary)
                     }
                 }
             }

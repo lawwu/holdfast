@@ -1,4 +1,8 @@
-# mac-kb (POC)
+# Holdfast (codename mac-kb, POC)
+
+*Your notes never leave home.* Holdfast is the name people see: the window, the
+menus, the About box (which carries 1 Thessalonians 5:21). `mackb` stays the
+codename for the binary, the CLI, the bundle id, `MACKB_*` settings and the data folders.
 
 A local knowledge base for **biblical counselors**: import lessons, homework sheets,
 supervision recordings and past case reports, then search and ask questions of them
@@ -7,7 +11,7 @@ Nothing is sent to a cloud service.
 
 This is the Phase 0–3 proof of concept from the Mac KB plan (kept in a
 separate notes repo). One binary is the CLI, the MCP server and a SwiftUI
-window: `mackb app`, or `scripts/make_app.sh` → `build/MacKB.app`.
+window: `mackb app`, or `scripts/make_app.sh` → `build/Holdfast.app`.
 
 ## What it does
 
