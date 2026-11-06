@@ -594,3 +594,27 @@ struct ConversationReader: View {
         .frame(minWidth: 620, idealWidth: 720, minHeight: 480, idealHeight: 640)
     }
 }
+
+
+/// A panel over the window that closes on a click outside it (or Esc, handled by its content).
+struct FloatingPanel<Content: View>: View {
+    var close: () -> Void
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            Color.black.opacity(0.12)
+                .ignoresSafeArea()
+                .contentShape(Rectangle())
+                .onTapGesture(perform: close)
+            content
+                .frame(width: 560)
+                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(.regularMaterial))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color.primary.opacity(0.1)))
+                .shadow(color: .black.opacity(0.25), radius: 24, y: 8)
+                .padding(.top, 70)
+        }
+        .transition(.opacity)
+    }
+}

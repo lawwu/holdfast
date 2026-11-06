@@ -402,7 +402,7 @@ func paletteCommands(_ store: Store) -> [PaletteCommand] {
 
 struct CommandPalette: View {
     @EnvironmentObject var store: Store
-    @Environment(\.dismiss) var dismiss
+    func dismiss() { store.showPalette = false }
     @State private var query = ""
     @State private var index = 0
     @FocusState private var focused: Bool
