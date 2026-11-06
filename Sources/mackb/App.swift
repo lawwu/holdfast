@@ -85,6 +85,7 @@ enum Pane: String, CaseIterable, Identifiable {
 enum Backend: String, CaseIterable, Identifiable {
     case mlx = "Qwen 3.8 27B · MLX (in app)"
     case ollama = "Qwen 3.8 27B · Ollama"
+    case remote = "A model on another Mac"
     var id: String { rawValue }
 }
 
@@ -97,6 +98,14 @@ struct AnswerStats: Codable {
 
 /// One tab: the note it shows and where it has been.
 struct ThreadRef: Identifiable { var id: UUID }
+
+/// Research with whichever model answers: in-process MLX, or a model on another Mac.
+func runResearch(_ q: String, embedder: Embedder?, llm: LLMBackend, prior: [(q: String, a: String)],
+                 onEvent: @escaping @Sendable (Agent.Event) -> Void) async throws -> Answer {
+    if llm is RemoteBackend { return try await RemoteAgent.run(q, embedder: embedder, prior: prior, onEvent: onEvent) }
+    guard let mlx = llm as? MLXBackend else { throw MacKBError("Research needs an MLX model or a model on another Mac") }
+    return try await Agent.run(q, embedder: embedder, backend: mlx, prior: prior, onEvent: onEvent)
+}
 
 struct NoteTab: Identifiable {
     let id = UUID()
@@ -225,6 +234,7 @@ final class Store: ObservableObject {
     /// "Bring in as-is" import progress (done, total, current file).
     @Published var importProgress: (done: Int, total: Int, file: String)?
     @Published var showBulkImport = false
+    @Published var showRemoteSetup = false
     /// What the progress bar is counting ("Importing", "Checking pairs"…), and a stop request.
     @Published var jobTitle = "Importing"
     private var jobStop = false
@@ -273,6 +283,7 @@ final class Store: ObservableObject {
     /// Short label for the model answering now, e.g. "Qwen 3.8 27B · 4-bit".
     var modelLabel: String {
         if backend == .ollama { return "Qwen 3.8 27B · Ollama" }
+        if backend == .remote { return "\(Remote.model.split(separator: "/").last.map(String.init) ?? "Model") · on \(Remote.host)" }
         guard let spec = MLXModelSpec.find(mlxRepo) else { return mlxRepo.components(separatedBy: "/").last ?? mlxRepo }
         return "\(spec.name) · \(spec.detail)"
     }
@@ -313,6 +324,9 @@ final class Store: ObservableObject {
     private func getLLM() async throws -> LLMBackend {
         switch backend {
         case .ollama: return OllamaBackend()
+        case .remote:
+            guard Remote.url != nil, !Remote.model.isEmpty else { throw MacKBError("Set up the model on another Mac first (model menu → Another Mac → Set Up…)") }
+            return RemoteBackend()
         case .mlx:
             if !(MLXBackend.isLoaded && MLXBackend.loadedRepo == mlxRepo) {
                 busy = "Loading \(modelLabel) into memory…"
@@ -356,7 +370,7 @@ final class Store: ObservableObject {
             return
         default: break
         }
-        let useAgent = route == .research && backend == .mlx  // the old Research toggle no longer applies
+        let useAgent = route == .research && (backend == .mlx || backend == .remote)  // the old Research toggle no longer applies
         askTask = Task {
             do {
                 let emb = await getEmbedder()
@@ -365,10 +379,10 @@ final class Store: ObservableObject {
                 let t0 = Date()
                 var a: Answer
                 var escalated = false
-                if useAgent, let mlx = llm as? MLXBackend {
+                if useAgent, llm is MLXBackend || llm is RemoteBackend {
                     busy = "Researching…"
                     steps.append("Planning: this needs several notes or the tables")
-                    a = try await Agent.run(q, embedder: emb, backend: mlx, prior: prior) { ev in
+                    a = try await runResearch(q, embedder: emb, llm: llm, prior: prior) { ev in
                         Task { @MainActor in
                             switch ev {
                             case .step(let s): self.steps.append(s); self.busy = Steps.split(s).title + "…"
@@ -399,13 +413,13 @@ final class Store: ObservableObject {
                                   : "Read \(a.sources.count) passages from \(noteCount) note\(noteCount == 1 ? "" : "s")")
                                  + (a.sources.isEmpty ? "" : Steps.sep + a.sources.enumerated().map { "[\($0.offset + 1)] \($0.element.relPath) › \($0.element.anchor)" }.joined(separator: "\n")))
                     // Found nothing? Look deeper before giving up.
-                    if !Task.isCancelled, Router.shouldEscalate(a), let mlx = llm as? MLXBackend {
+                    if !Task.isCancelled, Router.shouldEscalate(a), llm is MLXBackend || llm is RemoteBackend {
                         escalated = true
                         answer = ""
                         sources = []
                         busy = "Looking deeper…"
                         steps.append("No direct answer: looking deeper (reading notes, checking tables)")
-                        a = try await Agent.run(q, embedder: emb, backend: mlx, prior: prior) { ev in
+                        a = try await runResearch(q, embedder: emb, llm: llm, prior: prior) { ev in
                             Task { @MainActor in
                                 switch ev {
                                 case .step(let s): self.steps.append(s); self.busy = Steps.split(s).title + "…"
@@ -427,6 +441,10 @@ final class Store: ObservableObject {
                     warning = "The answer cites passages that don't exist: " + a.badCitations.map { "[\($0)]" }.joined(separator: ", ")
                 }
                 var entry = HistoryEntry(question: q, answer: a.text, model: model, stats: answerStats!, sources: a.sources)
+                if Remote.fellBack {
+                    steps.append("\(Remote.host) didn't answer, so this Mac's model answered")
+                    Remote.fellBack = false
+                }
                 steps.append(String(format: Task.isCancelled ? "Stopped after %.0f s" : "Done in %.0f s", Date().timeIntervalSince(t0)))
                 entry.steps = steps
                 entry.conversationId = convo

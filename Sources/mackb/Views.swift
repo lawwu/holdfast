@@ -195,6 +195,7 @@ struct RootView: View {
         }
         .sheet(isPresented: $store.showLinkSheet) { LinkSheet() }
         .sheet(isPresented: $store.showBulkImport) { BulkImportSheet().environmentObject(store) }
+        .sheet(isPresented: $store.showRemoteSetup) { RemoteSetupSheet().environmentObject(store) }
         .sheet(item: $store.reading) { t in ConversationReader(thread: t.id).environmentObject(store) }
         .overlay {
             // Quick Open and the command palette float like Spotlight: a click outside closes them.
@@ -723,6 +724,14 @@ struct Composer: View {
                                 get: { store.backend == .mlx && store.mlxRepo == spec.repo },
                                 set: { if $0 { store.selectMLX(spec.repo) } }))
                         }
+                    }
+                    Section("Another Mac") {
+                        if let u = Remote.url, !Remote.model.isEmpty {
+                            Toggle("\(Remote.model) · \(u.host ?? "")", isOn: Binding(
+                                get: { store.backend == .remote },
+                                set: { if $0 { store.backend = .remote } }))
+                        }
+                        Button("Set Up…") { store.showRemoteSetup = true }
                     }
                     Section("Ollama") {
                         Toggle("Qwen 3.8 27B · 8-bit", isOn: Binding(

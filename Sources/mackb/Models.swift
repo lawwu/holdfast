@@ -191,6 +191,7 @@ func makeBackend() async throws -> LLMBackend {
     switch ProcessInfo.processInfo.environment["MACKB_BACKEND"] ?? "ollama" {
     case "mlx": return try await MLXBackend.shared()
     case "gemini": return try GeminiBackend()
+    case "remote": return RemoteBackend()
     default: return OllamaBackend()
     }
 }

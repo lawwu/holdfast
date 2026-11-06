@@ -106,3 +106,13 @@ Qwen would be faster still.
 - Batched embeddings (currently one passage at a time); a background job queue
 - Case-report templates (ACBC structure: data gathering, problem, hope, plan, homework)
   so questions can filter by section
+
+## A model on another Mac
+
+Holdfast can send its questions to a model served by another Mac (say a Mac Studio)
+while the vault, the index and search stay on this one. On the other Mac run LM Studio
+(port 1234), `mlx_lm.server` (8080) or Ollama (11434) with its server on; in Holdfast,
+model menu → Another Mac → Set Up…, enter its address (its Tailscale name keeps the
+traffic encrypted), Connect, pick the model. Research's tools still run here; only the
+model's decisions come over the network. If that Mac doesn't answer, this Mac's model
+answers instead and the steps say so. CLI: `MACKB_BACKEND=remote MACKB_REMOTE_URL=http://studio:1234 MACKB_REMOTE_MODEL=<id>`.
