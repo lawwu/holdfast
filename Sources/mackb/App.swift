@@ -96,6 +96,8 @@ struct AnswerStats: Codable {
 }
 
 /// One tab: the note it shows and where it has been.
+struct ThreadRef: Identifiable { var id: UUID }
+
 struct NoteTab: Identifiable {
     let id = UUID()
     var opened: Opened
@@ -195,6 +197,8 @@ final class Store: ObservableObject {
     @Published var conversationId: UUID?
     /// When the current turn started, for the elapsed-time readout.
     @Published var turnStarted: Date?
+    /// A past conversation opened for reading while another is still generating.
+    @Published var reading: ThreadRef?
 
     /// Past conversations, newest first: each with its first question, latest turn and length.
     var conversations: [(first: HistoryEntry, latest: HistoryEntry, count: Int)] {
@@ -440,7 +444,9 @@ final class Store: ObservableObject {
     // MARK: history
 
     func openHistory(_ e: HistoryEntry) {
-        guard busy == nil else { return }
+        // While an answer is being written, read the other conversation in its own window
+        // instead of replacing the one in progress.
+        guard busy == nil else { reading = ThreadRef(id: e.thread); return }
         // The whole conversation: earlier turns above, its latest turn live, ready for a follow-up.
         let thread = history.filter { $0.thread == e.thread }.sorted { $0.date < $1.date }
         let last = thread.last ?? e
