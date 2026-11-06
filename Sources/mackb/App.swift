@@ -9,7 +9,7 @@ struct MacKBApp: App {
     @StateObject private var store = Store()
 
     var body: some Scene {
-        WindowGroup("MacKB") {
+        WindowGroup("Holdfast") {
             RootView()
                 .environmentObject(store)
                 .frame(minWidth: 1120, minHeight: 700)
@@ -63,13 +63,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 enum Pane: String, CaseIterable, Identifiable {
-    case ask = "Ask", history = "History", files = "Files", graph = "Graph", library = "Library", inbox = "Inbox"
+    case ask = "Ask", history = "History", files = "Files", tables = "Tables", graph = "Graph", library = "Library", inbox = "Inbox"
     var id: String { rawValue }
     var icon: String {
         switch self {
         case .ask: return "bubble.left.and.text.bubble.right"
         case .history: return "clock.arrow.circlepath"
         case .files: return "folder"
+        case .tables: return "tablecells"
         case .graph: return "point.3.connected.trianglepath.dotted"
         case .library: return "books.vertical"
         case .inbox: return "tray"
@@ -178,6 +179,13 @@ final class Store: ObservableObject {
     @Published var indexCounts = (chunks: 0, notes: 0, vectors: 0)
     /// The drop folder: what is being filed now, and files that failed.
     @Published var dropStatus: String?
+    /// Approved filings, newest first (undo lives here).
+    @Published var filings: [FilingRecord] = []
+    /// Open follow-ups due soon or overdue, from every note.
+    @Published var upcoming: [FollowUp] = []
+    /// Senders filed to the same place often enough to offer a rule.
+    @Published var ruleSuggestions: [Rules.Candidate] = []
+    @Published var notice: String?
     @Published var dropErrors: [String] = []
     private var dropTimer: Timer?
     private var filing = false
@@ -210,6 +218,9 @@ final class Store: ObservableObject {
             }
         }
         inboxItems = inbox()
+        filings = FilingLog.load()
+        upcoming = Upcoming.scan(notes)
+        ruleSuggestions = Rules.suggestions()
         indexCounts = (try? Index().count()) ?? (0, 0, 0)
         history = History.load()
         if profile != Profile.vaultDefault { profile = Profile.vaultDefault }
@@ -440,10 +451,12 @@ final class Store: ObservableObject {
     /// Writes an edited note, refreshes notes and links, and re-indexes it
     /// quietly a few seconds later (so search and Ask see the change).
     func saveNote(at path: URL, text: String) throws {
+        Versions.snapshot(path, reason: "edit")
         try text.write(to: path, atomically: true, encoding: .utf8)
         if let fresh = try? Note.read(path) {
             if let i = notes.firstIndex(where: { $0.path == path }) { notes[i] = fresh } else { notes.append(fresh) }
             links = LinkGraph(notes: notes)
+            upcoming = Upcoming.scan(notes)
             for i in tabs.indices where tabs[i].opened.note.path == path {
                 tabs[i].opened = Opened(note: fresh, anchor: nil)
             }
@@ -699,6 +712,50 @@ final class Store: ObservableObject {
     func rejectItem(_ n: Note) {
         do { try reject(n.id) } catch { self.error = "\(error)" }
         reload()
+    }
+
+    // MARK: keeping
+
+    func undoFiling(_ r: FilingRecord) {
+        do { notice = try FilingLog.undo(r.id) } catch { self.error = "\(error)" }
+        reload()
+        rebuildIndex()
+    }
+
+    func restore(_ v: Versions.Version, of note: Note) {
+        do {
+            try Versions.restore(v, to: note.path)
+            notice = "Restored \(note.title) to the copy from \(v.date.formatted(date: .abbreviated, time: .shortened))."
+        } catch { self.error = "\(error)" }
+        reload()
+        rebuildIndex()
+    }
+
+    func complete(_ f: FollowUp) {
+        do { try Upcoming.complete(f) } catch { self.error = "\(error)" }
+        reload()
+    }
+
+    func acceptRule(_ c: Rules.Candidate, auto: Bool) {
+        do {
+            try Rules.add(FilingRule(match: c.from, target: c.target, action: c.action, auto: auto))
+            notice = "New rule: documents from \(c.from) go to \(c.target)\(auto ? ", filed automatically" : "")."
+        } catch { self.error = "\(error)" }
+        reload()
+    }
+
+    func dismissRule(_ c: Rules.Candidate) {
+        Rules.dismiss(c)
+        reload()
+    }
+
+    /// The rules file, opened in the editor (it lives with the app's state, not in the vault).
+    func openRules() {
+        if !FileManager.default.fileExists(atPath: Rules.url.path) {
+            try? FileManager.default.createDirectory(at: Rules.url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try? (Rules.header + "\n").write(to: Rules.url, atomically: true, encoding: .utf8)
+        }
+        if let n = try? Note.read(Rules.url) { openNote(n, newTab: true) }
     }
 }
 

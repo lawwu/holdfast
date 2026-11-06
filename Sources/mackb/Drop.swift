@@ -104,6 +104,12 @@ enum Drop {
         var title: String
         var markdown: String
         var why: String
+        /// Who sent it or where it came from (a business, clinic, school): what filing rules key on.
+        var from: String
+        /// Properties for a new note's frontmatter (type, date, amount, provider…).
+        var properties: [String: String]
+        /// Things to do or watch for, written into the note as Tasks lines.
+        var followUps: [(date: String, what: String)]
 
         /// Small models drop or null fields; only the action is required
         /// (a path and Markdown too, unless skipping: checked in `decide`).
@@ -114,8 +120,29 @@ enum Drop {
             title = (try? c.decodeIfPresent(String.self, forKey: .title)) ?? ""
             markdown = (try? c.decodeIfPresent(String.self, forKey: .markdown)) ?? ""
             why = (try? c.decodeIfPresent(String.self, forKey: .why)) ?? ""
+            from = (try? c.decodeIfPresent(LooseString.self, forKey: .from))?.value ?? ""
+            let props = (try? c.decodeIfPresent([String: LooseString].self, forKey: .properties)) ?? [:]
+            var clean: [String: String] = [:]
+            for (k, v) in props {
+                let key = Properties.key(k), val = v.value.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !key.isEmpty, !val.isEmpty, !Properties.hidden.contains(key) { clean[key] = val.replacingOccurrences(of: "\n", with: " ") }
+            }
+            properties = clean
+            let fus = (try? c.decodeIfPresent([[String: LooseString]].self, forKey: .follow_ups)) ?? []
+            followUps = fus.compactMap { f in
+                let what = (f["what"]?.value ?? f["task"]?.value ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                var date = (f["date"]?.value ?? f["due"]?.value ?? "").trimmingCharacters(in: .whitespaces)
+                if date.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) == nil { date = "" }
+                return what.isEmpty ? nil : (date, what)
+            }
         }
-        enum CodingKeys: String, CodingKey { case action, path, title, markdown, why }
+        enum CodingKeys: String, CodingKey { case action, path, title, markdown, why, from, properties, follow_ups }
+
+        /// The text a filing saves, for scoring: title, entry, properties, follow-ups.
+        var savedText: String {
+            ([title, markdown] + properties.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value)" }
+                + followUps.map { "\($0.what) \($0.date)" }).joined(separator: "\n")
+        }
     }
 
     static let instructions = """
@@ -130,9 +157,12 @@ enum Drop {
     - Anything about counseling or the care of a person (ministry folders): initials only, never full names.
     - Dates as YYYY-MM-DD, America/Los_Angeles.
     - If the notes shown below already record this document (same date and event), reply with "action": "skip" and say where in "why".
+    - "from": who sent it or where it came from: the business, clinic, school or person, as named on the document (initials only for a counselee).
+    - "properties" (for "new" only; {} for "append"): a few short fields to sort and find the note by: "type" (one lowercase word: visit, invoice, receipt, statement, policy, letter, event, recipe, report…), "date" (YYYY-MM-DD), and when the document has them "amount" (a number, no currency sign), "provider" (the business or clinic), "person" (who it's about; initials in counseling).
+    - "follow_ups": things to do or watch for that the document asks for or implies (a renewal, a next visit, a bill due, a form to return), each {"date": "YYYY-MM-DD" or "", "what": "short imperative"}. [] if none.
 
     Reply with one JSON object and nothing else:
-    {"action": "new" | "append" | "skip", "path": "folder/sub/file.md", "title": "…", "markdown": "…", "why": "one sentence: why this place"}
+    {"action": "new" | "append" | "skip", "path": "folder/sub/file.md", "title": "…", "markdown": "…", "why": "one sentence: why this place", "from": "…", "properties": {"type": "…", "date": "…"}, "follow_ups": [{"date": "…", "what": "…"}]}
     """
 
     /// What the model decided for one file, before anything is written.
@@ -141,6 +171,8 @@ enum Drop {
         var flags: [String]
         var stats: GenStats
         var reply: String
+        /// The filing rule that fixed the destination, if one matched.
+        var rule: FilingRule? = nil
     }
 
     /// Asks the model where a dropped file belongs. Writes nothing.
@@ -159,7 +191,13 @@ enum Drop {
             if related.count == relatedNotes { break }
         }
         let manuals = Manuals.forPassages(hits).map { "## \($0.path)\n\n\($0.text)" }.joined(separator: "\n\n")
-        let user = """
+        let rule = Rules.match(doc, name: url.lastPathComponent)
+        let ruleLine = rule.map { r in
+            r.action == "new"
+                ? "Filing rule: documents that mention \"\(r.match)\" go in a new note in \(r.target)/. Use that folder and \"new\".\n\n"
+                : "Filing rule: documents that mention \"\(r.match)\" are appended to \(r.target). Use that path and \"append\".\n\n"
+        } ?? ""
+        let user = ruleLine + """
         \(Agent.vaultOverview())
         Notes that look related:
         \(related.isEmpty ? "(none found)" : related.joined(separator: "\n"))
@@ -180,11 +218,16 @@ enum Drop {
         let system = [instructions, todayLine()].joined(separator: "\n\n")
         let out = OutputBuffer()
         let stats = try await llm.chat(system: system, user: user, temperature: Config.filingTemperature) { out.append($0) }
-        var f = try parse(out.text)
+        var f = try parse(stripThoughts(out.text))
         if f.action.lowercased() == "skip" {
             f.action = "skip"
-            return Decision(filing: f, flags: [], stats: stats, reply: out.text)
+            return Decision(filing: f, flags: [], stats: stats, reply: out.text, rule: rule)
         }
+        if let r = rule {  // the rule decides the place; the model only writes the entry
+            f.action = r.action
+            f.path = r.action == "new" ? r.target + "/" + (f.path as NSString).lastPathComponent : r.target
+        }
+        if f.action.lowercased() != "new" { f.properties = [:] }
         if f.markdown.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             throw MacKBError("the model proposed \(f.action) \(f.path) but wrote nothing to save")
         }
@@ -194,12 +237,12 @@ enum Drop {
         }
         // Names matter in counseling folders (initials only); elsewhere a shop or clinic name is the point.
         let counseling = Profile.forPath(f.path).id == Profile.counseling.id
-        let flags = privacyFlags(f.title + "\n" + f.markdown, names: counseling)
-        return Decision(filing: f, flags: flags, stats: stats, reply: out.text)
+        let flags = privacyFlags(f.savedText, names: counseling)
+        return Decision(filing: f, flags: flags, stats: stats, reply: out.text, rule: rule)
     }
 
     /// Asks the model where a dropped file belongs; the proposal goes to the inbox.
-    static func propose(_ url: URL, text: String, embedder: Embedder?, llm: LLMBackend, model: String) async throws -> (Note, [String]) {
+    static func propose(_ url: URL, text: String, embedder: Embedder?, llm: LLMBackend, model: String) async throws -> (Note, [String], FilingRule?) {
         let d = try await decide(url, text: text, embedder: embedder, llm: llm)
         let f = d.filing, flags = d.flags
         if f.action == "skip" { throw AlreadyFiled(why: f.why) }
@@ -207,11 +250,34 @@ enum Drop {
         var meta = ["title": f.title, "kind": "filing", "proposed_by": "Drop folder · \(model)", "proposed": today,
                     "target": f.path, "action": f.action, "why": f.why, "original": url.lastPathComponent]
         if !flags.isEmpty { meta["privacy_flags"] = flags.joined(separator: "; ") }
+        if !f.from.isEmpty { meta["from"] = f.from }
+        for (k, v) in f.properties { meta["prop_" + k] = v }
+        if !f.followUps.isEmpty { meta["follow_ups"] = f.followUps.map { ($0.date.isEmpty ? "" : $0.date + " ") + $0.what }.joined(separator: "; ") }
+        if let r = d.rule { meta["rule"] = r.match + (r.auto ? " (auto)" : "") }
         let slug = slugify(f.title).isEmpty ? "filing" : slugify(f.title)
         let path = Config.inboxDir.appendingPathComponent("\(today.replacingOccurrences(of: "-", with: ""))-\(slug).md")
         let note = Note(path: Drop.unique(path, ifExists: true), meta: meta, body: "\n" + f.markdown.trimmingCharacters(in: .whitespacesAndNewlines) + "\n")
         try note.write()
-        return (note, flags)
+        return (note, flags, d.rule)
+    }
+
+    /// A proposal's follow-ups, back from its "YYYY-MM-DD what; …" form.
+    static func followUps(_ item: Note) -> [(date: String, what: String)] {
+        (item.meta["follow_ups"] ?? "").components(separatedBy: "; ").compactMap { s in
+            let t = s.trimmingCharacters(in: .whitespaces)
+            guard !t.isEmpty else { return nil }
+            if t.range(of: #"^\d{4}-\d{2}-\d{2} "#, options: .regularExpression) != nil {
+                return (String(t.prefix(10)), String(t.dropFirst(11)))
+            }
+            return ("", t)
+        }
+    }
+
+    /// A proposal's properties (stored as prop_* in the inbox note).
+    static func properties(_ item: Note) -> [String: String] {
+        var out: [String: String] = [:]
+        for (k, v) in item.meta where k.hasPrefix("prop_") { out[String(k.dropFirst(5))] = v }
+        return out
     }
 
     /// The JSON object in the model's reply (it may wrap it in a code fence).
@@ -258,9 +324,12 @@ enum Drop {
     /// otherwise at the end of the note.
     static func apply(_ item: Note) throws -> URL {
         guard let target = item.meta["target"] else { throw MacKBError("filing has no target") }
-        let dest = Config.vault.appendingPathComponent(target)
-        let addition = item.body.trimmingCharacters(in: .whitespacesAndNewlines)
+        var dest = Config.vault.appendingPathComponent(target)
+        let entry = item.body.trimmingCharacters(in: .whitespacesAndNewlines)
+        let before = Versions.snapshot(dest, reason: "filing")
+        let written: String
         if item.meta["action"] == "append", var text = try? String(contentsOf: dest, encoding: .utf8) {
+            let addition = entry
             if addition.hasPrefix("|") {
                 var lines = text.components(separatedBy: "\n")
                 if let last = lines.lastIndex(where: { $0.hasPrefix("|") }) {
@@ -272,13 +341,28 @@ enum Drop {
             } else {
                 text = text.trimmingCharacters(in: .newlines) + "\n\n" + addition + "\n"
             }
+            text = Upcoming.append(followUps(item), to: text)
             try text.write(to: dest, atomically: true, encoding: .utf8)
+            written = addition
         } else {
-            let dest = FileManager.default.fileExists(atPath: dest.path) ? unique(dest) : dest
+            if FileManager.default.fileExists(atPath: dest.path) { dest = unique(dest) }
             try FileManager.default.createDirectory(at: dest.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try (addition + "\n").write(to: dest, atomically: true, encoding: .utf8)
-            return dest
+            let body = Upcoming.append(followUps(item), to: entry + "\n")
+            let props = properties(item)
+            if props.isEmpty {
+                try body.write(to: dest, atomically: true, encoding: .utf8)
+            } else {
+                try Note(path: dest, meta: props, body: body).write()
+            }
+            written = (try? String(contentsOf: dest, encoding: .utf8)) ?? body
         }
+        let after = (try? String(contentsOf: dest, encoding: .utf8)) ?? ""
+        var proposal = item.meta
+        proposal["target"] = relative(dest)
+        FilingLog.add(FilingRecord(title: item.meta["title"] ?? relative(dest), target: relative(dest), action: item.meta["action"] ?? "new",
+                                   original: item.meta["original"], snapshot: item.meta["action"] == "append" ? before?.path : nil,
+                                   after: FilingLog.hash(after), addition: written, proposal: proposal, proposalBody: item.body,
+                                   rule: item.meta["rule"]))
         return dest
     }
 
@@ -303,8 +387,24 @@ enum Drop {
             throw MacKBError("\(url.lastPathComponent): no readable text")
         }
         guard let llm else { throw MacKBError("no model loaded to file \(url.lastPathComponent)") }
-        let (n, _) = try await propose(url, text: text, embedder: embedder, llm: llm, model: model)
+        let (n, flags, rule) = try await propose(url, text: text, embedder: embedder, llm: llm, model: model)
+        if rule?.auto == true, flags.isEmpty {  // an automatic rule: file now (undo is in the Inbox)
+            let saved = try approve(n.id)
+            return "Filed to \(Drop.relative(saved.path)) by rule"
+        }
         return "Proposed \(n.meta["target"] ?? "")"
+    }
+}
+
+/// A JSON value read as text: models write amounts and dates as numbers or strings.
+struct LooseString: Decodable {
+    var value: String
+    init(from d: Decoder) throws {
+        let c = try d.singleValueContainer()
+        if let s = try? c.decode(String.self) { value = s }
+        else if let n = try? c.decode(Double.self) { value = n == n.rounded() && abs(n) < 1e15 ? String(Int(n)) : String(n) }
+        else if let b = try? c.decode(Bool.self) { value = b ? "true" : "false" }
+        else { value = "" }
     }
 }
 

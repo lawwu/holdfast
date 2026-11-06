@@ -136,6 +136,10 @@ func approve(_ id: String) throws -> Note {
     if n.meta["kind"] == "filing" {  // a dropped file: write it where the model proposed
         let dest = try Drop.apply(n)
         try FileManager.default.removeItem(at: n.path)
+        // Learn: the same sender approved to the same place often enough becomes a suggested rule.
+        if n.meta["rule"] == nil, let from = n.meta["from"], let action = n.meta["action"] {
+            Rules.record(from: from, target: Drop.relative(dest), action: action)
+        }
         return (try? Note.read(dest)) ?? Note(path: dest, meta: [:], body: "")
     }
     var m = n
@@ -155,6 +159,11 @@ func reject(_ id: String) throws {
 /// Gemma 4 sometimes emits an empty thought channel even with thinking off:
 /// "<|channel>thought …<channel|>". Keep only what follows it.
 func stripThoughts(_ s: String) -> String {
-    s.replacingOccurrences(of: #"<\|channel\>[\s\S]*?<channel\|>"#, with: "", options: .regularExpression)
+    var s = s
+    // gpt-oss (harmony format): reasoning in the analysis channel, the answer in "final".
+    if let r = s.range(of: "<|channel|>final<|message|>", options: .backwards) { s = String(s[r.upperBound...]) }
+    else if s.hasPrefix("analysis"), let r = s.range(of: "assistantfinal", options: .backwards) { s = String(s[r.upperBound...]) }
+    s = s.replacingOccurrences(of: "<|return|>", with: "").replacingOccurrences(of: "<|end|>", with: "")
+    return s.replacingOccurrences(of: #"<\|channel\>[\s\S]*?<channel\|>"#, with: "", options: .regularExpression)
         .trimmingCharacters(in: .whitespacesAndNewlines)
 }
