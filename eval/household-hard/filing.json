@@ -1,0 +1,301 @@
+[
+ {
+  "id": "f01",
+  "file": "drops/fairbanks-corrected-invoice-2026-10-30.txt",
+  "convert": "pdf",
+  "expect_action": "append",
+  "expect_path": "^home/maintenance-log\\.md$",
+  "expect_facts": [
+   "2026-10-30",
+   "Fairbanks",
+   "\\$?386(\\.00)?",
+   "correct"
+  ],
+  "forbid": [
+   "4417",
+   "FHC-?20931",
+   "1418"
+  ]
+ },
+ {
+  "id": "f02",
+  "file": "drops/timberline-homeowners-renewal-2026.txt",
+  "convert": "pdf",
+  "expect_action": "append",
+  "expect_path": "^finance/policies\\.md$",
+  "expect_facts": [
+   "Timberline",
+   "\\$?1,?688",
+   "2027-12-15|Dec(ember)?\\.? 15,? 2027"
+  ],
+  "forbid": [
+   "5520",
+   "918-?44",
+   "HO-?TM"
+  ]
+ },
+ {
+  "id": "f03",
+  "file": "drops/cascade-mutual-we-miss-you.txt",
+  "convert": "none",
+  "expect_action": "skip",
+  "expect_path": ".*",
+  "expect_facts": [],
+  "forbid": [
+   "77310",
+   "CM-?HO"
+  ]
+ },
+ {
+  "id": "f04",
+  "file": "drops/little-oaks-receipt-2026-11-02.txt",
+  "convert": "png",
+  "expect_action": "new",
+  "expect_path": "^health/visits/2026-11-02_(greta|soren)_[a-z0-9-]+\\.md$",
+  "expect_facts": [
+   "2026-11-02",
+   "Little Oaks"
+  ],
+  "forbid": [
+   "88231457",
+   "4417",
+   "NHP"
+  ]
+ },
+ {
+  "id": "f05",
+  "file": "drops/jp-case-report-session-5.txt",
+  "convert": "docx",
+  "expect_action": "new",
+  "expect_path": "^ministry/counseling/jp/jp-session-0?5\\.md$",
+  "expect_facts": [
+   "2026-11-03",
+   "money meeting",
+   "J\\.P\\."
+  ],
+  "forbid": [
+   "Jared",
+   "Pellham",
+   "Corinne",
+   "Hannah"
+  ]
+ },
+ {
+  "id": "f06",
+  "file": "drops/text-soren-tooth.txt",
+  "convert": "png",
+  "expect_action": "skip",
+  "expect_path": "^life/journal/2026-10-30\\.md$",
+  "expect_facts": [],
+  "forbid": []
+ },
+ {
+  "id": "f07",
+  "file": "drops/alder-creek-elementary-winter-flyer.txt",
+  "convert": "png",
+  "expect_action": "append",
+  "expect_path": "^life/calendar\\.md$",
+  "expect_facts": [
+   "2026-11-19|Nov(ember)?\\.? 19",
+   "2026-12-10|Dec(ember)?\\.? 10"
+  ],
+  "forbid": []
+ },
+ {
+  "id": "f08",
+  "file": "drops/becca-wild-rice-soup.txt",
+  "convert": "none",
+  "expect_action": "new",
+  "expect_path": "^life/recipes/[a-z0-9-]*wild-rice[a-z0-9-]*\\.md$",
+  "expect_facts": [
+   "wild rice",
+   "Becca"
+  ],
+  "forbid": [
+   "555-0199",
+   "becca\\.lindqvist"
+  ]
+ },
+ {
+  "id": "f09",
+  "file": "drops/summit-peak-statement-oct-2026.txt",
+  "convert": "pdf",
+  "expect_action": "append",
+  "expect_path": "^finance/(statements/2026\\.md|open-items\\.md)$",
+  "expect_facts": [
+   "9,?412",
+   "\\$?35",
+   "revers|refund|credit"
+  ],
+  "forbid": [
+   "0049221077315",
+   "221077315",
+   "323075880",
+   "7315"
+  ]
+ },
+ {
+  "id": "f10",
+  "file": "drops/cascade-orthopedics-statement-leif.txt",
+  "convert": "pdf",
+  "expect_action": "append",
+  "expect_path": "^(finance/open-items\\.md|health/visits/2026-10-22_leif_cascade-orthopedics\\.md)$",
+  "expect_facts": [
+   "\\$?145",
+   "2026-11-30|Nov(ember)?\\.? 30"
+  ],
+  "forbid": [
+   "88231460",
+   "5571923",
+   "NHP"
+  ]
+ },
+ {
+  "id": "f11",
+  "file": "drops/corvell-cf3400-use-care-warranty.txt",
+  "convert": "pdf",
+  "expect_action": "append",
+  "expect_path": "^home/refrigerator-corvell\\.md$",
+  "expect_facts": [
+   "5[- ]year|five",
+   "10[- ]year|ten",
+   "compressor"
+  ],
+  "forbid": [
+   "555-0123",
+   "anna\\.halvorsen\\.test@example\\.com"
+  ]
+ },
+ {
+  "id": "f12",
+  "file": "drops/texts-soren-bike.txt",
+  "convert": "png",
+  "expect_action": "new|append",
+  "expect_path": "^life/journal/2026-11-04\\.md$",
+  "expect_facts": [
+   "Soren",
+   "training wheels|bike"
+  ],
+  "forbid": []
+ },
+ {
+  "id": "f13",
+  "file": "drops/alder-creek-strings-viola-buyout.txt",
+  "convert": "png",
+  "expect_action": "append",
+  "expect_path": "^finance/large-purchases\\.md$",
+  "expect_facts": [
+   "\\$?640",
+   "viola"
+  ],
+  "forbid": [
+   "9902"
+  ]
+ },
+ {
+  "id": "f14",
+  "file": "drops/juniper-animal-clinic-2026-11-03.txt",
+  "convert": "png",
+  "expect_action": "append",
+  "expect_path": "^life/pets/pepper\\.md$",
+  "expect_facts": [
+   "2026-11-03",
+   "\\$?164(\\.20)?",
+   "ear"
+  ],
+  "forbid": [
+   "4417",
+   "JAC-?40021"
+  ]
+ },
+ {
+  "id": "f15",
+  "file": "drops/willamette-heart-holter-results.txt",
+  "convert": "pdf",
+  "expect_action": "new",
+  "expect_path": "^health/erik-sr/visits/2026-1[01]-\\d\\d_erik-sr_[a-z0-9-]+\\.md$",
+  "expect_facts": [
+   "Holter",
+   "PVC|premature"
+  ],
+  "forbid": [
+   "00731188",
+   "731188",
+   "1954-03-08"
+  ]
+ },
+ {
+  "id": "f16",
+  "file": "drops/firehole-cabins-confirmation.txt",
+  "convert": "pdf",
+  "expect_action": "append",
+  "expect_path": "^life/trips/202706_yellowstone/plan\\.md$",
+  "expect_facts": [
+   "2027-07-11|July 11",
+   "\\$?1,?650",
+   "2027-06-11|June 11"
+  ],
+  "forbid": [
+   "FC-?88412",
+   "4417"
+  ]
+ },
+ {
+  "id": "f17",
+  "file": "drops/harbor-401k-q3-2026.txt",
+  "convert": "pdf",
+  "expect_action": "append",
+  "expect_path": "^finance/statements/2026\\.md$",
+  "expect_facts": [
+   "251,?380",
+   "10 ?%"
+  ],
+  "forbid": [
+   "4410-?2231-?90",
+   "223190"
+  ]
+ },
+ {
+  "id": "f18",
+  "file": "drops/leif-q1-progress-report.txt",
+  "convert": "docx",
+  "expect_action": "append",
+  "expect_path": "^life/school/leif\\.md$",
+  "expect_facts": [
+   "Q1|first quarter|quarter 1",
+   "A-|B\\+"
+  ],
+  "forbid": [
+   "118842"
+  ]
+ },
+ {
+  "id": "f19",
+  "file": "drops/hollis-fence-warranty-certificate.txt",
+  "convert": "pdf",
+  "expect_action": "append",
+  "expect_path": "^home/fence-project\\.md$",
+  "expect_facts": [
+   "2028-08-19",
+   "2036|10[- ]year"
+  ],
+  "forbid": [
+   "HF-?2026-?0817"
+  ]
+ },
+ {
+  "id": "f20",
+  "file": "drops/food-pantry-receipt-2026-11-02.txt",
+  "convert": "none",
+  "expect_action": "append",
+  "expect_path": "^finance/(giving\\.md|data/giving\\.csv)$",
+  "expect_facts": [
+   "2026-11-02",
+   "\\$?250",
+   "Food Pantry"
+  ],
+  "forbid": [
+   "4417"
+  ]
+ }
+]

@@ -1,0 +1,437 @@
+[
+  {
+    "answer" : "- **2026 giving goal:** $20,400 (12 % of the household’s $170,000 gross income)【4】.  \n- **Total given to date (through 2026‑10‑04):** $15,050【1】.",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h21",
+    "kind" : "synthesis",
+    "missed" : [
+
+    ],
+    "mode" : "research",
+    "model" : "gpt-oss-20b-MXFP4-Q8",
+    "outputTokens" : 429,
+    "pathRecall" : 1,
+    "promptTokens" : 2929,
+    "question" : "What is our 2026 giving goal in dollars, and how much have we given so far?",
+    "reranker" : true,
+    "rerankerModel" : "Qwen3-Reranker-0.6B",
+    "seconds" : 29.190030097961426,
+    "sources" : [
+      "[[finance\/giving#Giving log]]",
+      "[[health\/goals#Fitness goal]]",
+      "[[finance\/README#Files]]",
+      "[[finance\/profile#Household profile]]"
+    ],
+    "tokPerSec" : 40.343255023505996
+  },
+  {
+    "answer" : "The San Diego plan is explicitly borrowing several practical lessons from the Glacier trip:\n\n1. **Car‑sickness precautions** – Soren got car sick on the long drives to Glacier, so for the San Diego drive he will sit in the middle row by a window, bring ginger chews, and plan stops every 90 minutes. This is noted in the San Diego budget section【1】.\n\n2. **Budget cushion** – Glacier went $350 over budget, so the San Diego budget includes a $300 cushion. This is also listed in the San Diego plan【1】.\n\n3. **Packing for weather** – The Glacier trip’s low‑40 °F nights taught the need for a “real warm layer for every kid.” The San Diego plan, while not repeating the exact wording, inherits this lesson by ensuring appropriate clothing for the kids (implied in the overall planning). The original lesson appears in Glacier’s budget section【4】.\n\n4. **Advance motel booking** – The Glacier experience showed that booking the Missoula motel at the same time as the campsite (rather than a week later) saved time and money. This practice is carried forward in the San Diego plan’s “Reserve minivan” and “Book beach hotel” items, echoing the earlier lesson【4】.",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h22",
+    "kind" : "synthesis",
+    "missed" : [
+
+    ],
+    "mode" : "research",
+    "model" : "gpt-oss-20b-MXFP4-Q8",
+    "outputTokens" : 408,
+    "pathRecall" : 1,
+    "promptTokens" : 1566,
+    "question" : "What lessons from the Glacier trip are being applied to the San Diego trip?",
+    "reranker" : true,
+    "rerankerModel" : "Qwen3-Reranker-0.6B",
+    "seconds" : 22.93432605266571,
+    "sources" : [
+      "[[life\/trips\/202612_san-diego-christmas\/plan#Budget]]",
+      "[[life\/trips\/README#Trips]]",
+      "[[life\/trips\/202607_glacier-camping\/plan#Plan as run]]",
+      "[[life\/trips\/202607_glacier-camping\/plan#Budget]]"
+    ],
+    "tokPerSec" : 38.45576344922535
+  },
+  {
+    "answer" : "I don’t have a record of how much was spent on groceries in September 2026.  \nIf that information were tracked, it would likely be found in the finance folder—specifically in the `finance\/data\/transactions.csv` file where grocery purchases would be logged.",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h23",
+    "kind" : "table",
+    "missed" : [
+      "\\$?722\\.85|\\$?723"
+    ],
+    "mode" : "research",
+    "model" : "gpt-oss-20b-MXFP4-Q8",
+    "outputTokens" : 226,
+    "pathRecall" : 0,
+    "promptTokens" : 859,
+    "question" : "How much did we spend on groceries in September 2026?",
+    "reranker" : true,
+    "rerankerModel" : "Qwen3-Reranker-0.6B",
+    "seconds" : 23.29399800300598,
+    "sources" : [
+
+    ],
+    "tokPerSec" : 47.85607887367717
+  },
+  {
+    "answer" : "I couldn’t find any month‑end net‑worth figures in the current knowledge base. The note `finance\/net-worth.md` refers to a CSV file `finance\/data\/net-worth.csv`, but that table is empty in the current data set. Therefore, I can’t determine when the net worth first exceeded $900,000. That information would be found in `finance\/data\/net-worth.csv` once it contains the monthly totals.",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h24",
+    "kind" : "table",
+    "missed" : [
+      "July 2026|2026-07|July"
+    ],
+    "mode" : "research",
+    "model" : "gpt-oss-20b-MXFP4-Q8",
+    "outputTokens" : 264,
+    "pathRecall" : 0,
+    "promptTokens" : 1336,
+    "question" : "In which month did our net worth first go above $900,000?",
+    "reranker" : true,
+    "rerankerModel" : "Qwen3-Reranker-0.6B",
+    "seconds" : 20.436763048171997,
+    "sources" : [
+      "[[finance\/net-worth#Net worth — narrative]]"
+    ],
+    "tokPerSec" : 35.0749546681682
+  },
+  {
+    "answer" : "I couldn’t find the exact numeric values for February 2026 and March 2026 investments in the current data. The month‑end figures are stored in `finance\/data\/net-worth.csv`, but that file is currently empty in the knowledge base. The narrative note `finance\/net-worth.md` describes that March 2026 was a dip, but it does not give the specific dollar amounts. If you need those numbers, they would be in `finance\/data\/net-worth.csv`.",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h25",
+    "kind" : "table",
+    "missed" : [
+      "\\$?18,?700|18\\.7 ?k"
+    ],
+    "mode" : "research",
+    "model" : "gpt-oss-20b-MXFP4-Q8",
+    "outputTokens" : 298,
+    "pathRecall" : 0,
+    "promptTokens" : 1592,
+    "question" : "How much did our investments fall from February to March 2026?",
+    "reranker" : true,
+    "rerankerModel" : "Qwen3-Reranker-0.6B",
+    "seconds" : 22.549743056297302,
+    "sources" : [
+      "[[finance\/net-worth#Net worth — narrative]]",
+      "[[finance\/README#Files]]"
+    ],
+    "tokPerSec" : 42.68110151570866
+  },
+  {
+    "answer" : "I don’t have enough data to answer that question. The transactions CSV is present, but the file appears empty in the query results, so there are no gas‑related entries for Q3 2026 to sum. The information would likely be in `finance\/data\/transactions.csv` if it had been populated. [4][5]",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h26",
+    "kind" : "table",
+    "missed" : [
+      "\\$?343\\.44|\\$?343"
+    ],
+    "mode" : "research",
+    "model" : "gpt-oss-20b-MXFP4-Q8",
+    "outputTokens" : 487,
+    "pathRecall" : 1,
+    "promptTokens" : 2094,
+    "question" : "How much did we spend on gas in Q3 2026 (July through September)?",
+    "reranker" : true,
+    "rerankerModel" : "Qwen3-Reranker-0.6B",
+    "seconds" : 34.7014240026474,
+    "sources" : [
+      "[[life\/trips\/202607_glacier-camping\/plan#Plan as run]]",
+      "[[home\/maintenance-log#Maintenance log]]",
+      "[[finance\/README#Files]]",
+      "[[finance\/data\/transactions.csv#SELECT * FROM finance_data_transactions LIMIT 5]]",
+      "[[finance\/data\/transactions.csv#SELECT SUM(amount) FROM finance_data_transactions WHERE category='Gas' AND date >= 2026-07-01 AND date <= 2026-09-30]]"
+    ],
+    "tokPerSec" : 39.79967197936281
+  },
+  {
+    "answer" : "I couldn’t find any recorded runs for August 2026 in the available data. The file that should contain Erik’s workout logs is `health\/data\/activities.csv`, but it currently has no rows for that month. If the information exists, it would be found there.",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h27",
+    "kind" : "table",
+    "missed" : [
+      "55\\.2"
+    ],
+    "mode" : "research",
+    "model" : "gpt-oss-20b-MXFP4-Q8",
+    "outputTokens" : 340,
+    "pathRecall" : 0,
+    "promptTokens" : 2469,
+    "question" : "How many miles did Erik run in August 2026?",
+    "reranker" : true,
+    "rerankerModel" : "Qwen3-Reranker-0.6B",
+    "seconds" : 26.29715597629547,
+    "sources" : [
+      "[[health\/goals#Fitness goal]]",
+      "[[health\/README#Files]]",
+      "[[life\/trips\/202607_glacier-camping\/plan#Lessons]]",
+      "[[health\/visits\/2026-06-04_erik_ridgeview-family-medicine#2026-06-04 — Erik — Ridgeview Family Medicine]]",
+      "[[health\/README#Visits so far in 2026]]"
+    ],
+    "tokPerSec" : 38.48943506551307
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "h28",
+    "kind" : "table",
+    "missed" : [
+      "\\b7\\b.{0,40}(strength|session)|(strength|session).{0,60}\\b7\\b|seven"
+    ],
+    "mode" : "research",
+    "model" : "gpt-oss-20b-MXFP4-Q8",
+    "outputTokens" : 112,
+    "pathRecall" : 0,
+    "promptTokens" : 1846,
+    "question" : "How many strength sessions did Erik log in October 2026?",
+    "reranker" : true,
+    "rerankerModel" : "Qwen3-Reranker-0.6B",
+    "seconds" : 11.908043026924133,
+    "sources" : [
+      "[[health\/goals#Fitness goal]]",
+      "[[health\/README#Files]]",
+      "[[health\/visits\/2026-06-04_erik_ridgeview-family-medicine#2026-06-04 — Erik — Ridgeview Family Medicine]]",
+      "[[health\/README#Visits so far in 2026]]",
+      "[[career\/notes#Pending decision: the regional director role]]"
+    ],
+    "tokPerSec" : 43.71606809295115
+  },
+  {
+    "answer" : "The only item on the master money checklist that is past its due date as of today (November 5 2026) is:\n\n- **Update wills and name guardians for the kids** – due 2026‑10‑31【1】.",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h29",
+    "kind" : "temporal",
+    "missed" : [
+
+    ],
+    "mode" : "research",
+    "model" : "gpt-oss-20b-MXFP4-Q8",
+    "outputTokens" : 248,
+    "pathRecall" : 1,
+    "promptTokens" : 1322,
+    "question" : "Which items on the money checklist are overdue?",
+    "reranker" : true,
+    "rerankerModel" : "Qwen3-Reranker-0.6B",
+    "seconds" : 16.166041016578674,
+    "sources" : [
+      "[[finance\/open-items#Open items — money checklist]]",
+      "[[finance\/README#Files]]"
+    ],
+    "tokPerSec" : 36.53726347262061
+  },
+  {
+    "answer" : "The next scheduled event on the family calendar is:\n\n- **2026‑11‑08 at 12:15 pm – Hillcrest fall potluck after the second service** (all family members)【1】",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0.5,
+    "id" : "h30",
+    "kind" : "temporal",
+    "missed" : [
+      "2026-11-08|November 8|Nov\\.? 8|Sunday"
+    ],
+    "mode" : "research",
+    "model" : "gpt-oss-20b-MXFP4-Q8",
+    "outputTokens" : 108,
+    "pathRecall" : 1,
+    "promptTokens" : 1239,
+    "question" : "What is the next thing on the family calendar?",
+    "reranker" : true,
+    "rerankerModel" : "Qwen3-Reranker-0.6B",
+    "seconds" : 11.135393023490906,
+    "sources" : [
+      "[[life\/calendar#Family calendar — upcoming]]",
+      "[[life\/calendar#December 2026]]"
+    ],
+    "tokPerSec" : 43.475269517306614
+  },
+  {
+    "answer" : "Later this month, the following money‑related deadlines remain:\n\n- Raise Erik’s 401(k) contribution from 8 % to 12 % at open enrollment – **due 2026‑11‑15** [2].\n- Choose the 2027 health plan during Bluestem open enrollment (window 2026‑11‑03 to 2026‑11‑20) – **due 2026‑11‑20** [2].",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 1,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0.6666666666666666,
+    "id" : "h33",
+    "kind" : "temporal",
+    "missed" : [
+      "2026-11-15|November 15|Nov\\.? 15"
+    ],
+    "mode" : "research",
+    "model" : "gpt-oss-20b-MXFP4-Q8",
+    "outputTokens" : 210,
+    "pathRecall" : 1,
+    "promptTokens" : 1383,
+    "question" : "Which money deadlines fall later this month?",
+    "reranker" : true,
+    "rerankerModel" : "Qwen3-Reranker-0.6B",
+    "seconds" : 14.291276931762695,
+    "sources" : [
+      "[[finance\/README#Files]]",
+      "[[finance\/open-items#Open items — money checklist]]"
+    ],
+    "tokPerSec" : 40.54300602018207
+  },
+  {
+    "answer" : "If Erik takes the regional director role, his salary would increase by about $28,000 per year.  \nAdding that to the current household gross income of $170,000 (Erik $140,000 + Anna $30,000) gives a new gross household income of **$198,000** per year.  \n\nSources: [1] career\/notes.md – “regional director … pays about $28,000 more a year”;  \n[2] finance\/profile.md – current household gross income table.",
+    "badCitations" : [
+
+    ],
+    "cited" : true,
+    "contextRecall" : 0.5,
+    "domain" : "cross",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h34",
+    "kind" : "cross",
+    "missed" : [
+
+    ],
+    "mode" : "research",
+    "model" : "gpt-oss-20b-MXFP4-Q8",
+    "outputTokens" : 305,
+    "pathRecall" : 1,
+    "promptTokens" : 1547,
+    "question" : "If Erik accepted the regional director role, what would our gross household income become?",
+    "reranker" : true,
+    "rerankerModel" : "Qwen3-Reranker-0.6B",
+    "seconds" : 25.86759102344513,
+    "sources" : [
+      "[[career\/notes#Current role]]",
+      "[[finance\/profile#Household profile]]"
+    ],
+    "tokPerSec" : 43.17255618172717
+  },
+  {
+    "answer" : "Erik’s workout log shows no entries from **July 11 to July 18, 2026**.  \nThe reason is that the family spent that week on a camping trip to Glacier National Park, and Erik intentionally skipped running or strength training during the trip as part of his rest‑and‑recovery plan for the month【4】.",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "cross",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h35",
+    "kind" : "cross",
+    "missed" : [
+
+    ],
+    "mode" : "research",
+    "model" : "gpt-oss-20b-MXFP4-Q8",
+    "outputTokens" : 302,
+    "pathRecall" : 1,
+    "promptTokens" : 1551,
+    "question" : "There is a gap in Erik's workout log in July 2026. When was it and why?",
+    "reranker" : true,
+    "rerankerModel" : "Qwen3-Reranker-0.6B",
+    "seconds" : 17.71239197254181,
+    "sources" : [
+      "[[life\/trips\/202607_glacier-camping\/plan#Glacier National Park camping — July 2026]]",
+      "[[health\/README#Files]]",
+      "[[life\/trips\/202607_glacier-camping\/plan#Lessons]]",
+      "[[health\/data\/activities.csv#SELECT * FROM \"health_data_activities\" WHERE date BETWEEN '2026-07-01' AND '2026-07-31';]]"
+    ],
+    "tokPerSec" : 41.056484357941564
+  },
+  {
+    "answer" : "The fence quote we selected is the **Cedarline Fence** proposal at **$8,900**【1】.  \nThe home‑projects savings bucket currently holds about **$7,600**【2】, which is **less than the $8,900 quote**, so there isn’t enough in that account to cover the fence cost.",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "cross",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 1,
+    "id" : "h36",
+    "kind" : "cross",
+    "missed" : [
+
+    ],
+    "mode" : "research",
+    "model" : "gpt-oss-20b-MXFP4-Q8",
+    "outputTokens" : 161,
+    "pathRecall" : 1,
+    "promptTokens" : 1528,
+    "question" : "Which fence quote did we pick, and is there enough in the home-projects savings to cover it?",
+    "reranker" : true,
+    "rerankerModel" : "Qwen3-Reranker-0.6B",
+    "seconds" : 17.160261034965515,
+    "sources" : [
+      "[[home\/projects#Back fence replacement (planned, spring 2027)]]",
+      "[[finance\/profile#The house]]",
+      "[[finance\/profile#Income]]",
+      "[[home\/projects#Decision]]"
+    ],
+    "tokPerSec" : 44.37325427032721
+  }
+]

@@ -17,7 +17,9 @@ regex), facts kept, leaks (forbidden ids or full names saved), errors.
 """
 import json, pathlib, statistics
 
-HERE = pathlib.Path(__file__).parent
+import os
+# The fixture: this folder, or another with the same layout (MACKB_FIXTURE=eval/household-hard).
+HERE = pathlib.Path(os.environ.get("MACKB_FIXTURE") or pathlib.Path(__file__).parent).resolve()
 RES = HERE / "results"
 
 
@@ -73,6 +75,10 @@ for rs in qa.values():
         if q and r.get("mode") != "retrieval":
             hits = [p for p in q["expect"] if re.search(p, r["answer"], re.I)]
             r["facts"] = len(hits) / max(len(q["expect"]), 1)
+            # A wrong-answer signature (a superseded value, the other Erik's number) zeroes it.
+            r["wrong"] = [p for p in q.get("reject", []) if re.search(p, r["answer"], re.I)]
+            if r["wrong"]:
+                r["facts"] = 0.0
 answer_runs = {k: v for k, v in qa.items() if v and v[0].get("mode") != "retrieval"}
 retrieval_runs = {k: v for k, v in qa.items() if v and v[0].get("mode") == "retrieval"}
 
@@ -115,7 +121,7 @@ if retrieval_runs:
             "| Run | Embedder | Reranker | Context | Files | Median s |", "| --- | --- | --- | --- | --- | --- |"]
     for lab, rs in retrieval_runs.items():
         s, r0 = qa_summary(rs), rs[0]
-        out.append(f"| {lab} | {r0.get('embedder', '?')} | {'on' if r0.get('reranker') else 'off'} | "
+        out.append(f"| {lab} | {r0.get('embedder', '?')} | {r0.get('rerankerModel') or ('on' if r0.get('reranker') else 'off')} | "
                    f"{pct(s['context'])} | {pct(s['files'])} | {s['median_s']:.1f} |")
     out.append("")
 
@@ -129,6 +135,7 @@ for rs in filing.values():
             r["actionOK"] = r["action"] in c["expect_action"].split("|")
         if c and c["expect_action"] != "skip" and not r.get("error"):
             r["placeOK"] = r["action"] != "skip" and re.search(c["expect_path"], r["path"], re.I) is not None
+            r["leaks"] = [x for x in c["forbid"] if re.search(x, r.get("markdown", ""), re.I)]
 if filing:
     out += ["## Filing dropped documents", "",
             "| Run | Model | Action | Place | Facts kept | Leaks | Errors | Median s |",

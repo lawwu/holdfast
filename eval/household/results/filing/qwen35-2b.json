@@ -1,0 +1,312 @@
+[
+  {
+    "action" : "new",
+    "actionOK" : false,
+    "expectAction" : "append",
+    "facts" : 1,
+    "file" : "ridgeline-invoice-2026-11-02.pdf",
+    "flags" : [
+
+    ],
+    "id" : "f01",
+    "leaks" : [
+      "4417",
+      "08812B"
+    ],
+    "markdown" : "# Ridgeline Heating & Air - November 2, 2026\n\n## Invoice Summary\n| Date | Vendor | Work Performed | Total Cost |\n| --- | --- | --- | --- |\n| 2026-11-02 | Ridgeline Heating & Air | Annual furnace safety inspection and tune-up; Hot surface igniter replacement | $312.40 |\n\n## Details\n- **Technician**: Marco D.\n- **Customer**: Erik Halvorsen, Juniper Lane, Alder Creek\n- **Work performed**: Annual furnace safety inspection and tune-up; Hot surface igniter replacement (was cracked); Furnace filter 16x25x1 MERV 11; Labor, igniter replacement (0.5 hr)\n- **Subtotal**: $287.00\n- **Tax**: $25.40\n- **Total**: $312.40\n\n## Notes\n- Heat exchanger looks good.\n- Blower motor bearings starting to get noisy; recommend replacement within 1-2 years (est. $650).\n\n## Payment\n- Visa ending 4417, auth code 08812B, 11\/02\/2026 3:47 PM\n\n## Follow-up\n- Monitor blower motor bearings for noise; plan replacement within 1-2 years.",
+    "missed" : [
+
+    ],
+    "model" : "Qwen3.5-2B-4bit",
+    "outputTokens" : 409,
+    "path" : "career\/ridgeline-invoice-2026-11-02.pdf.md",
+    "placeOK" : false,
+    "seconds" : 6.7761629819869995,
+    "why" : "This invoice represents a service visit for furnace maintenance and repair, requiring notes on work performed, costs, and follow-up recommendations."
+  },
+  {
+    "action" : "new",
+    "actionOK" : true,
+    "expectAction" : "new",
+    "facts" : 0.75,
+    "file" : "corvell-washer-warranty-registration.docx",
+    "flags" : [
+      "long number (account or id?)"
+    ],
+    "id" : "f02",
+    "leaks" : [
+
+    ],
+    "markdown" : "# Corvell front-load washer\n\n- **Model:** CW-5200\n- **Serial:** CW52-2610-77341\n- **Purchase date:** 10\/30\/2026\n- **Retailer:** Alder Appliance Center\n- **Purchase price:** $899.00\n- **Delivery and installation:** 11\/01\/2026 (haul-away of old washer included)\n- **Warranty:**\n  - Limited warranty: 1 year parts and labor (through 10\/30\/2027)\n  - Direct-drive motor: 10 years parts only (through 10\/30\/2036)\n  - Stainless drum: lifetime, parts only\n- **Care tips:**\n  - Run the Clean Washer cycle monthly\n  - Leave the door ajar between loads\n  - Clean the drain pump filter every 3 months",
+    "missed" : [
+      "2026-10-30"
+    ],
+    "model" : "Qwen3.5-2B-4bit",
+    "outputTokens" : 286,
+    "path" : "home\/washing-machine.md",
+    "placeOK" : true,
+    "seconds" : 5.493451952934265,
+    "why" : "This is a synthetic test document for the knowledge base; it represents a new appliance purchase and warranty registration that does not exist in existing notes."
+  },
+  {
+    "action" : "new",
+    "actionOK" : true,
+    "expectAction" : "new",
+    "facts" : 1,
+    "file" : "greta-after-visit-summary-2026-11-03.pdf",
+    "flags" : [
+
+    ],
+    "id" : "f03",
+    "leaks" : [
+      "2290"
+    ],
+    "markdown" : "# 2026-11-03 — Greta Halvorsen — Alder Creek Pediatrics\n\n**Visit:** sore throat and fever (101.4°F) since yesterday.\n\n- **Assessment:** Streptococcal pharyngitis (strep throat). Rapid strep test POSITIVE.\n- **Plan:**\n  - Amoxicillin 400 mg\/5 mL, 6 mL by mouth twice daily for 10 days. Finish the whole course.\n  - Acetaminophen or ibuprofen for fever and pain.\n  - May return to school after 24 hours on antibiotics AND fever-free. Replace toothbrush after 48 hours on antibiotics.\n  - Call if not improving in 48-72 hours, rash, or trouble swallowing.\n\n**Paid:** $25.00 (Mastercard ending 2290).\n\n**Next:** March 2027 well visit.\n\n---\n\n*Note: Full name and insurance details were excluded per confidentiality rules.*",
+    "missed" : [
+
+    ],
+    "model" : "Qwen3.5-2B-4bit",
+    "outputTokens" : 342,
+    "path" : "health\/visits\/2026-11-03_greta_halvorsen-priya-patel.md",
+    "placeOK" : true,
+    "seconds" : 7.084336996078491,
+    "why" : "This is a new patient visit requiring documentation of diagnosis, treatment plan, and payment as per the health\/README.md rules."
+  },
+  {
+    "action" : "new",
+    "actionOK" : false,
+    "expectAction" : "append",
+    "facts" : 0.75,
+    "file" : "hillcrest-donation-receipt-2026-11-01.txt",
+    "flags" : [
+      "possible name: \"Christmas Outreach\"",
+      "possible name: \"Church Donation\"",
+      "possible name: \"Hillcrest Bible\""
+    ],
+    "id" : "f04",
+    "leaks" : [
+      "4417"
+    ],
+    "markdown" : "# Hillcrest Bible Church Donation Receipt\n\n**Date received:** November 1, 2026\n\n| Fund | Amount | Payment method | Transaction ID |\n| --- | --- | --- | --- |\n| Christmas Outreach (food boxes) | $750.00 | card (Visa ending 4417) | HBC-TXN-559102 |\n\nNo goods or services were provided in exchange for this contribution. Thank you for your generosity!",
+    "missed" : [
+      "2026-11-01"
+    ],
+    "model" : "Qwen3.5-2B-4bit",
+    "outputTokens" : 199,
+    "path" : "ministry\/hillcrest-donation-receipt-2026-11-01.txt.md",
+    "placeOK" : false,
+    "seconds" : 5.3707499504089355,
+    "why" : "This is a synthetic test document dropped into the ministry folder to verify handling of donation receipts."
+  },
+  {
+    "action" : "new",
+    "actionOK" : false,
+    "expectAction" : "append",
+    "facts" : 0.75,
+    "file" : "cascade-mutual-home-renewal.pdf",
+    "flags" : [
+      "long number (account or id?)",
+      "phone number"
+    ],
+    "id" : "f05",
+    "leaks" : [
+      "HO-?4471-?889-?2210",
+      "4471",
+      "7731"
+    ],
+    "markdown" : "# Cascade Mutual Homeowners Policy Renewal Notice\n\n**Named Insured:** Erik and Anna Halvorsen\n**Policy Number:** HO-4471-889-2210\n**Property:** Juniper Lane, Alder Creek, OR\n\nYour policy will renew on December 15, 2026 for the term 12\/15\/2026 - 12\/15\/2027.\n\nCurrent term Renewal terms:\n- Dwelling coverage (A): $520,000 → $545,000\n- Deductible: $2,500 → $2,500\n- Annual premium: $1,420.00 → $1,568.00\n\n**Why did my premium change?**\nYour dwelling coverage was increased 5% to keep pace with rebuilding costs in your area, and regional wildfire and wind rates increased.\n\n**Payment of $1,568.00 is due by 12\/15\/2026.** Autopay is set up from the account ending 7731.",
+    "missed" : [
+      "2026-12-15|2027-12-15"
+    ],
+    "model" : "Qwen3.5-2B-4bit",
+    "outputTokens" : 323,
+    "path" : "finance\/insurance-2.md",
+    "placeOK" : false,
+    "seconds" : 5.714195013046265,
+    "why" : "This document contains a renewal notice for the home insurance policy, including updated coverage amounts and premium."
+  },
+  {
+    "action" : "new",
+    "actionOK" : true,
+    "expectAction" : "append|new",
+    "facts" : 1,
+    "file" : "summit-peak-statement-oct-2026.pdf",
+    "flags" : [
+      "long number (account or id?)"
+    ],
+    "id" : "f06",
+    "leaks" : [
+      "0049221077315"
+    ],
+    "markdown" : "# Summit Peak Credit Union Statement\n\n**Date Range:** 2026-10-01 to 2026-10-31\n\n| Member | Account | Balance |\n|---|---|---|\n| Erik Halvorsen | Joint Checking (0049221077315) | $18,607.17 |\n\n## Fee Detail\n\n| Date | Description | Amount |\n|---|---|---|\n| 2026-10-17 | Overdraft fee | $35.00 |\n\n## Dividends Earned (Year to Date)\n| Period | Amount |\n|---|---|\n| YTD | $3.12 |",
+    "missed" : [
+
+    ],
+    "model" : "Qwen3.5-2B-4bit",
+    "outputTokens" : 260,
+    "path" : "finance\/summit-peak-statement-oct-2026.pdf.md",
+    "placeOK" : false,
+    "seconds" : 5.399672985076904,
+    "why" : "This is a synthetic statement document for testing purposes, containing member balances and fee details."
+  },
+  {
+    "action" : "new",
+    "actionOK" : true,
+    "expectAction" : "new",
+    "facts" : 1,
+    "file" : "rs-case-report-session-4.docx",
+    "flags" : [
+      "possible name: \"Case Report\"",
+      "possible name: \"Memorize Psalm\"",
+      "possible name: \"Read Welch\"",
+      "possible name: \"Rebecca\"",
+      "possible name: \"Tentative Counseling\"",
+      "possible name: \"Tomas Sandoval\"",
+      "possible name: \"Tomas\"",
+      "possible name: \"Welch\"",
+      "possible name: \"What Biblical\"",
+      "possible name: \"What Scripture\""
+    ],
+    "id" : "f07",
+    "leaks" : [
+      "Rebecca",
+      "Sandoval",
+      "Tomas"
+    ],
+    "markdown" : "# Case Report — R.S. — Session 4\n\nSYNTHETIC case report for testing. R.S. and her family are fictional.\n\nDate: 2026-10-22 · Session: 4 · Length of Session: 60 minutes\n\n## What can you highlight as significant background information?\nNo new background. Rebecca's husband Tomas Sandoval did not attend this time.\n\n## Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).\nSame as before: anxiety, panic at the August retreat, fear of man.\n\n## What was gained by performing the homework from last session? What change?\nRebecca made the call to her mother-in-law with Tomas beside her. She told her they would not host Thanksgiving this year and offered to bring two pies. Her mother-in-law was quiet and short on the phone but called back two days later to ask what kind of pie. Rebecca read chapters 1-4 of Welch and prayed aloud once in small group. No panic episodes in four weeks.\n\n## What was your planned agenda for this session? Was it accomplished? If not, why not?\nHear how the call went; begin addressing the fear beneath the panic attacks. Accomplished.\n\n## What main problems were discussed in this session?\nThe fear that if she is not liked she is not safe; how this traces back to her mother.\n\n## What Biblical solutions were presented in this session? What Scripture?\nPsalm 34:4 (\"I sought the LORD, and he answered me and delivered me from all my fears\").\nRomans 8:15, a spirit of adoption, not of fear.\n\n## What specific applications to the counselee's life did you discuss from your Scripture?\nThat her safety rests in being God's adopted daughter, not in others' approval.\n\n## What are you seeing (or not) about the counselee's faith in who God is, about their relationship with Jesus, and\/or about the role of the Gospel in their daily life and problem?\nShe is beginning to speak of God as Father rather than evaluator.\n\n## What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the counselee?\nStill over-explains when anxious, but less.\n\n## What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?\nDesire for approval, weakening.\n\n## What homework was given and how did it specifically apply to problems?\n1. Memorize Psalm 34:4.\n2. Read Welch chapters 5-8.\n3. Write a letter (not to send) to her mother about how her criticism shaped her fear.\n\n## If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?\n\"I am safe because I am God's daughter.\" Challenge: the letter.\n\n## How was hope or encouragement given in this session?\nFour weeks without panic; the phone call went better than she feared.\n\n## How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?\nVery encouraging. Fear of man with her mother-in-law is changing.\n\n## What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?\nDiscuss the letter to her mother; yes, follows the plan (session 6 is the planned wrap-up).\n\n## Thinking back on\/listening to this session, what could you have done better?\nI should have asked how Tomas responded to his mother's coldness.",
+    "missed" : [
+
+    ],
+    "model" : "Qwen3.5-2B-4bit",
+    "outputTokens" : 902,
+    "path" : "ministry\/counseling\/rs\/rs-session-04.md",
+    "placeOK" : true,
+    "seconds" : 13.590265989303589,
+    "why" : "This document represents a completed counseling session for R.S., following the previous sessions, and requires saving as a new note in the ministry folder."
+  },
+  {
+    "action" : "new",
+    "actionOK" : false,
+    "expectAction" : "append",
+    "facts" : 0.25,
+    "file" : "pacific-coast-airlines-confirmation.pdf",
+    "flags" : [
+
+    ],
+    "id" : "f08",
+    "leaks" : [
+
+    ],
+    "markdown" : "# San Diego Christmas Trip Plan\n\n**Dates:** 2026-12-21 → 2026-12-29\n**Status:** Planning\n**Who:** all five (Erik, Anna, Leif, Greta, Soren)\n\n## Bookings\n\n| Item | Status | Notes |\n| --- | --- | --- |\n| Flights PDX → SAN round trip, 5 people | **open** | watching fares; aim under $350 per person |\n| Minivan rental at SAN, 12\/21–12\/29 | **open** | need three car seats? No — only Soren needs a booster; bring ours |\n| Hotel near the beach, 12\/27–12\/29 (2 nights) | **open** | Pacific Beach or Coronado; one room with two queens + rollaway |\n| Ruth and Dale's guest rooms, 12\/21–12\/27 | confirmed | |\n\n## Budget\n\nAbout $2,800 total: flights ~$1,700, car ~$450, hotel ~$550, food and extras covered by gifts budget.\n\n## Lessons carried over from Glacier\n\nFrom the [Glacier trip](..\/202607_glacier-camping\/plan.md): Soren gets car sick, so he sits in the middle row by a window, and pack ginger chews for the drive down to Chula Vista. That trip went over budget by $350, so this budget has a $300 cushion built in.\n\n## To do before we leave\n\n- [ ] Book flights (by 2026-11-20 for fares)\n- [ ] Reserve minivan\n- [ ] Book beach hotel\n- [ ] Ask Nils to collect the mail",
+    "missed" : [
+      "PC ?482",
+      "\\$?1,?642\\.50",
+      "QX7R2M"
+    ],
+    "model" : "Qwen3.5-2B-4bit",
+    "outputTokens" : 492,
+    "path" : "trips\/202612_san-diego-christmas\/plan.md",
+    "placeOK" : false,
+    "seconds" : 8.809247016906738,
+    "why" : "This document details the logistics, budget, and prior lessons for the upcoming family trip to San Diego."
+  },
+  {
+    "action" : "new",
+    "actionOK" : true,
+    "expectAction" : "new",
+    "facts" : 1,
+    "file" : "joanna-lentil-soup.txt",
+    "flags" : [
+      "long number (account or id?)",
+      "phone number"
+    ],
+    "id" : "f09",
+    "leaks" : [
+      "541-555-0142",
+      "555-0142"
+    ],
+    "markdown" : "# Joanna's Red Lentil Soup\n\n**Source:** Anna, adapted from a magazine clipping.\n**Serves:** 6 (about 40 minutes)\n\n## Ingredients\n- 2 tbsp olive oil\n- 1 onion, 2 carrots, 2 celery stalks, chopped\n- 3 cloves garlic\n- 1 tsp cumin, 1 tsp smoked paprika, 1\/2 tsp turmeric\n- 1 1\/2 cups red lentils, rinsed\n- 1 can (14 oz) diced tomatoes\n- 6 cups chicken or vegetable broth\n- juice of 1 lemon\n- salt and pepper\n- spinach (a couple handfuls)\n\n## Steps\n1. Saute onion, carrot and celery in the oil for 8 minutes. Add garlic and spices for 1 minute.\n2. Add lentils, tomatoes and broth. Simmer for 25 minutes until the lentils fall apart.\n3. Blend half of the mixture with a stick blender, stir in spinach and lemon juice.\n\n## Notes\nMy kids like it with a swirl of yogurt and crusty bread. Freezes great!\nCall me anytime - 541-555-0142\n",
+    "missed" : [
+
+    ],
+    "model" : "Qwen3.5-2B-4bit",
+    "outputTokens" : 343,
+    "path" : "life\/recipes\/joanna-lentil-soup.md",
+    "placeOK" : true,
+    "seconds" : 7.812061071395874,
+    "why" : "This is a new recipe from Anna that fits the recipes folder structure and follows the documented format for family meals."
+  },
+  {
+    "action" : "new",
+    "actionOK" : false,
+    "expectAction" : "skip",
+    "facts" : 0,
+    "file" : "barlow-plumbing-invoice-faucet.pdf",
+    "flags" : [
+
+    ],
+    "id" : "f10",
+    "leaks" : [
+
+    ],
+    "markdown" : "| Date | What | Who | Cost | Notes |\n| --- | --- | --- | --- | --- |\n| 2026-10-03 | Kitchen faucet leak fixed | Barlow Plumbing | $185 | Cartridge replaced.",
+    "missed" : [
+
+    ],
+    "model" : "Qwen3.5-2B-4bit",
+    "outputTokens" : 136,
+    "path" : "home\/maintenance-log-2.md",
+    "placeOK" : false,
+    "seconds" : 4.114789009094238,
+    "why" : "This document is a new repair entry for the kitchen faucet, matching the existing maintenance log format with date, what, who, cost, and notes columns."
+  },
+  {
+    "action" : "new",
+    "actionOK" : false,
+    "expectAction" : "append",
+    "facts" : 0.5,
+    "file" : "alder-creek-elementary-flyer.png",
+    "flags" : [
+
+    ],
+    "id" : "f11",
+    "leaks" : [
+
+    ],
+    "markdown" : "# ALDER CREEK ELEMENTARY - FAMILY NEWS, NOVEMBER 2026\n\n> **SYNTHETIC TEST DOCUMENT**\n\n*** FALL BOOK FAIR FAMILY NIGHT ***\nNovember 18\nNeap the book fair, hot 2020a in the Zafeteria, candl reading by our librarian.\n*** WINTER CONCERT, 10'\nGRADES 3-5 ***\nThursday,\nDecember\nTudents Deive by 3:302PM in dak pants and a white top.\nVolunteers needed for both events! Sign up at the front office.\nReminder: no school Nov 25-27 for Thanksgiving break.",
+    "missed" : [
+      "2026-11-18",
+      "2026-12-10"
+    ],
+    "model" : "Qwen3.5-2B-4bit",
+    "outputTokens" : 227,
+    "path" : "home\/README-2.md",
+    "placeOK" : false,
+    "seconds" : 29.174548029899597,
+    "why" : "This document is a synthetic test file with nonsensical content and formatting errors, which does not fit the family's actual life or ministry records."
+  },
+  {
+    "action" : "new",
+    "actionOK" : true,
+    "expectAction" : "new",
+    "facts" : 0.75,
+    "file" : "bright-smile-receipt-erik-2026-11-04.png",
+    "flags" : [
+
+    ],
+    "id" : "f12",
+    "leaks" : [
+      "30412"
+    ],
+    "markdown" : "# 2026-11-04 — Erik Halvorsen: Bright Smile Dental Receipt\n\n**Patient:** Erik Halvorsen (ID: 30412)\n**Provider:** Karin Lindgren, DDS\n**Date of service:** 11\/04\/2026\n\n| Item | Description | Amount |\n| :--- | :--- | :--- |\n| D1110 Adult prophylaxis (cleaning) | Cleaning and exam | $62.00 |\n| D0120 Periodic oral exam | Exam | $74.00 |\n| Bitewing x-rays, four films | X-rays | $128.00 |\n| **Total charges** | | **$364.00** |\n\n**Payment Status:**\n- Insurance paid (Northstar Dental, Subscriber)\n- Patient paid: $128.00\n\n**Next steps:**\n- Filling scheduled for 2026-11-12 at 9:00 am.\n\n**Follow-up:**\n- Gums healthy; keep flossing at night.",
+    "missed" : [
+      "\\$?48"
+    ],
+    "model" : "Qwen3.5-2B-4bit",
+    "outputTokens" : 343,
+    "path" : "finance\/open-items-2.md",
+    "placeOK" : false,
+    "seconds" : 5.923001050949097,
+    "why" : "This document is a synthetic receipt for a dental visit that was already recorded in the health\/visits folder, so it is skipped."
+  }
+]

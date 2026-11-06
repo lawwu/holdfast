@@ -1,0 +1,298 @@
+[
+  {
+    "action" : "append",
+    "actionOK" : true,
+    "expectAction" : "append",
+    "facts" : 1,
+    "file" : "ridgeline-invoice-2026-11-02.pdf",
+    "flags" : [
+
+    ],
+    "id" : "f01",
+    "leaks" : [
+
+    ],
+    "markdown" : "| 2026-11-02 | Furnace safety inspection and tune-up, hot surface igniter replaced | Ridgeline Heating & Air | $312.40 | Heat exchanger looks good; blower motor bearings noisy (plan to replace in 1-2 years). See [hvac](hvac.md).\n",
+    "missed" : [
+
+    ],
+    "model" : "Qwen3.5-9B-4bit",
+    "outputTokens" : 139,
+    "path" : "home\/maintenance-log.md",
+    "placeOK" : true,
+    "seconds" : 15.879125952720642,
+    "why" : "The dropped invoice is for a furnace service visit by the same vendor already listed in the maintenance log, so it must be appended as a new dated row following the existing table format."
+  },
+  {
+    "action" : "new",
+    "actionOK" : true,
+    "expectAction" : "new",
+    "facts" : 1,
+    "file" : "corvell-washer-warranty-registration.docx",
+    "flags" : [
+      "long number (account or id?)"
+    ],
+    "id" : "f02",
+    "leaks" : [
+
+    ],
+    "markdown" : "# Washing Machine\n\n- **Model:** Corvell front-load washer, 4.5 cu ft, white, model CW-5200.\n- **Serial:** CW52-2610-77341\n- **Purchase Date:** 2026-10-30 from Alder Appliance Center for $899.\n- **Installation:** Installed 2026-11-01 with haul-away of old unit.\n- **Warranty:**\n  - Limited (parts and labor): 1 year through 2027-10-30.\n  - Direct-drive motor: 10 years parts only through 2036-10-30.\n  - Stainless drum: Lifetime, parts only.\n- **Care Tips:** Run Clean Washer cycle monthly; leave door ajar between loads; clean drain pump filter every 3 months.\n- **Registration ID:** REG-8841-2290-CV",
+    "missed" : [
+
+    ],
+    "model" : "Qwen3.5-9B-4bit",
+    "outputTokens" : 286,
+    "path" : "home\/washing-machine.md",
+    "placeOK" : true,
+    "seconds" : 19.667574048042297,
+    "why" : "This document contains the registration details for a new washing machine purchased in October 2026, which fits the home\/appliance folder structure defined in the READMEs."
+  },
+  {
+    "action" : "new",
+    "actionOK" : true,
+    "expectAction" : "new",
+    "facts" : 1,
+    "file" : "greta-after-visit-summary-2026-11-03.pdf",
+    "flags" : [
+
+    ],
+    "id" : "f03",
+    "leaks" : [
+
+    ],
+    "markdown" : "# 2026-11-03 — Greta — Alder Creek Pediatrics\n\n**Visit:** sick visit with Dr. Patel — sore throat and fever 101.4°F for one day.\n\n- Diagnosis: streptococcal pharyngitis (strep throat). Rapid strep test positive.\n- Treatment: amoxicillin 400 mg\/5 mL, 6 mL by mouth twice daily for 10 days; acetaminophen or ibuprofen for fever and pain.\n- Plan: return to school after 24 hours on antibiotics AND fever-free; replace toothbrush after 48 hours on antibiotics. Call if not improving in 48-72 hours, rash, or trouble swallowing.\n\n**Paid:** $25 copay.\n**Next:** return if not improving in 48-72 hours.",
+    "missed" : [
+
+    ],
+    "model" : "Qwen3.5-9B-4bit",
+    "outputTokens" : 299,
+    "path" : "health\/visits\/2026-11-03_greta_alder-creek-pediatrics.md",
+    "placeOK" : true,
+    "seconds" : 24.27298605442047,
+    "why" : "This is a new pediatric visit record for Greta on 2026-11-03 that needs to be added to the existing visit log following the health folder's naming and content conventions."
+  },
+  {
+    "action" : "append",
+    "actionOK" : true,
+    "expectAction" : "append",
+    "facts" : 1,
+    "file" : "hillcrest-donation-receipt-2026-11-01.txt",
+    "flags" : [
+
+    ],
+    "id" : "f04",
+    "leaks" : [
+
+    ],
+    "markdown" : "| 2026-11-01 | Hillcrest Bible Church (Christmas Outreach) | $750 | card | Christmas outreach fund |\n",
+    "missed" : [
+
+    ],
+    "model" : "Qwen3.5-9B-4bit",
+    "outputTokens" : 88,
+    "path" : "finance\/giving.md",
+    "placeOK" : true,
+    "seconds" : 17.918372988700867,
+    "why" : "The document is a dated receipt for a donation to Hillcrest Bible Church that must be logged in the giving log per finance rules."
+  },
+  {
+    "action" : "append",
+    "actionOK" : true,
+    "expectAction" : "append",
+    "facts" : 1,
+    "file" : "cascade-mutual-home-renewal.pdf",
+    "flags" : [
+
+    ],
+    "id" : "f05",
+    "leaks" : [
+
+    ],
+    "markdown" : "\n\n| Coverage | Carrier | Covers | Annual premium | Renews |\n| --- | --- | --- | --- | --- |\n| Homeowners | Cascade Mutual | Dwelling $545,000, $2,500 deductible | $1,568 | 2027-12-15 |\n\n## Gaps and decisions\n\n- **No umbrella policy.** Cascade Mutual quoted $1M of umbrella coverage at about $310\/yr bundled with auto and home. Decision is on the [open items](open-items.md) list, due 2026-12-01.\n- Homeowners premium increased from $1,420 to $1,568 due to 5% dwelling coverage increase and regional rate hikes. If the December renewal jumps again, get one competing quote.",
+    "missed" : [
+
+    ],
+    "model" : "Qwen3.5-9B-4bit",
+    "outputTokens" : 245,
+    "path" : "finance\/insurance.md",
+    "placeOK" : true,
+    "seconds" : 26.056293964385986,
+    "why" : "Updates the homeowners policy row in the insurance log with the new premium and renewal date from the dropped renewal notice, per finance\/README.md rules."
+  },
+  {
+    "action" : "new",
+    "actionOK" : true,
+    "expectAction" : "append|new",
+    "facts" : 0.3333333333333333,
+    "file" : "summit-peak-statement-oct-2026.pdf",
+    "flags" : [
+
+    ],
+    "id" : "f06",
+    "leaks" : [
+
+    ],
+    "markdown" : "- 2026-10-17,Overdraft fee,35.00\n",
+    "missed" : [
+      "Summit Peak",
+      "18,?607"
+    ],
+    "model" : "Qwen3.5-9B-4bit",
+    "outputTokens" : 84,
+    "path" : "finance\/data\/transactions.csv.md",
+    "placeOK" : false,
+    "seconds" : 19.672754049301147,
+    "why" : "The dropped document is a monthly bank statement containing transaction details that belong in the finance data folder per the operating manual."
+  },
+  {
+    "action" : "new",
+    "actionOK" : true,
+    "expectAction" : "new",
+    "facts" : 1,
+    "file" : "rs-case-report-session-4.docx",
+    "flags" : [
+      "possible name: \"Case Report\"",
+      "possible name: \"Memorize Psalm\"",
+      "possible name: \"Read Welch\"",
+      "possible name: \"Tentative Counseling\"",
+      "possible name: \"Welch\"",
+      "possible name: \"What Biblical\"",
+      "possible name: \"What Scripture\""
+    ],
+    "id" : "f07",
+    "leaks" : [
+
+    ],
+    "markdown" : "# Case Report — R.S. — Session 4\n\nDate: 2026-10-22 · Session: 4 · Length of Session: 60 minutes\n\n## What can you highlight as significant background information?\nNo new background. T.S. did not attend this time.\n\n## Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).\nSame as before: anxiety, panic at the August retreat, fear of man.\n\n## What was gained by performing the homework from last session? What change?\nR.S. made the call to E.S. with T.S. beside her. She told her they would not host Thanksgiving this year and offered to bring two pies. E.S. was quiet and short on the phone but called back two days later to ask what kind of pie. R.S. read chapters 1-4 of Welch and prayed aloud once in small group. No panic episodes in four weeks.\n\n## What was your planned agenda for this session? Was it accomplished? If not, why not?\nHear how the call went; begin addressing the fear beneath the panic attacks. Accomplished.\n\n## What main problems were discussed in this session?\nThe fear that if she is not liked she is not safe; how this traces back to her mother.\n\n## What Biblical solutions were presented in this session? What Scripture?\nPsalm 34:4 (\"I sought the LORD, and he answered me and delivered me from all my fears\"). Romans 8:15 (a spirit of adoption, not of fear).\n\n## What specific applications to the counselee's life did you discuss from your Scripture?\nThat her safety rests in being God's adopted daughter, not in others' approval.\n\n## What are you seeing (or not) about the counselee's faith in who God is, about their relationship with Jesus, and\/or about the role of the Gospel in the counselee's daily life and problem?\nShe is beginning to speak of God as Father rather than evaluator.\n\n## What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the counselee?\nStill over-explains when anxious, but less.\n\n## What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?\nDesire for approval, weakening.\n\n## What homework was given and how did it specifically apply to problems?\n1. Memorize Psalm 34:4.\n2. Read Welch chapters 5-8.\n3. Write a letter (not to send) to her mother about how her criticism shaped her fear.\n\n## If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?\n\"I am safe because I am God's daughter.\" Challenge: write the letter.\n\n## How was hope or encouragement given in this session?\nFour weeks without panic; the phone call went better than she feared.\n\n## How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?\nVery encouraging. Fear of man with E.S. is changing.\n\n## What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?\nDiscuss the letter to her mother; yes, follows the plan (session 6 is the planned wrap-up).\n\n## Thinking back on\/listening to this session, what could you have done better?\nI should have asked how T.S. responded to E.S.'s coldness.",
+    "missed" : [
+
+    ],
+    "model" : "Qwen3.5-9B-4bit",
+    "outputTokens" : 874,
+    "path" : "ministry\/counseling\/rs\/rs-session-04.md",
+    "placeOK" : true,
+    "seconds" : 59.59837198257446,
+    "why" : "This is the next session report for counselee R.S., following the existing session 3 file in the ministry\/counseling\/rs\/ folder."
+  },
+  {
+    "action" : "append",
+    "actionOK" : true,
+    "expectAction" : "append",
+    "facts" : 0.5,
+    "file" : "pacific-coast-airlines-confirmation.pdf",
+    "flags" : [
+
+    ],
+    "id" : "f08",
+    "leaks" : [
+
+    ],
+    "markdown" : "| Flights PDX → SAN round trip, 5 people | **confirmed** (Pacific Coast Airlines) | Code: QX7R2M · Total $1,642.50 |",
+    "missed" : [
+      "PC ?482",
+      "2026-12-21"
+    ],
+    "model" : "Qwen3.5-9B-4bit",
+    "outputTokens" : 111,
+    "path" : "life\/trips\/202612_san-diego-christmas\/plan.md",
+    "placeOK" : true,
+    "seconds" : 22.142385005950928,
+    "why" : "The document contains the confirmed flight booking for the San Diego trip, which updates the status and adds details to the existing plan."
+  },
+  {
+    "action" : "new",
+    "actionOK" : true,
+    "expectAction" : "new",
+    "facts" : 1,
+    "file" : "joanna-lentil-soup.txt",
+    "flags" : [
+
+    ],
+    "id" : "f09",
+    "leaks" : [
+
+    ],
+    "markdown" : "# Joanna's red lentil soup\n\nSource: Joanna (from small group). Serves 6. About 40 minutes.\n\n## Ingredients\n\n- 2 tbsp olive oil\n- 1 onion, 2 carrots, 2 celery stalks, chopped\n- 3 cloves garlic\n- 1 tsp cumin, 1 tsp smoked paprika, 1\/2 tsp turmeric\n- 1 1\/2 cups red lentils, rinsed\n- 1 can (14 oz) diced tomatoes\n- 6 cups chicken or vegetable broth\n- Juice of 1 lemon, salt and pepper, spinach (a couple handfuls)\n\n## Steps\n\n1. Saute onion, carrot and celery in the oil 8 minutes. Add garlic and spices for 1 minute.\n2. Add lentils, tomatoes and broth. Simmer 25 minutes until the lentils fall apart.\n3. Blend half of it with a stick blender, stir in spinach and lemon juice.\n\n## Notes\n\nKids like it with a swirl of yogurt and crusty bread. Freezes great!\n",
+    "missed" : [
+
+    ],
+    "model" : "Qwen3.5-9B-4bit",
+    "outputTokens" : 304,
+    "path" : "life\/recipes\/joanna-lentil-soup.md",
+    "placeOK" : true,
+    "seconds" : 33.18159198760986,
+    "why" : "This is a recipe note matching the 'recipes' folder rules, sourced from Joanna as indicated in the text."
+  },
+  {
+    "action" : "append",
+    "actionOK" : false,
+    "expectAction" : "skip",
+    "facts" : 0,
+    "file" : "barlow-plumbing-invoice-faucet.pdf",
+    "flags" : [
+
+    ],
+    "id" : "f10",
+    "leaks" : [
+
+    ],
+    "markdown" : "| 2026-10-03 | Kitchen faucet leak fixed | Barlow Plumbing | $185 | Cartridge replaced. |\n",
+    "missed" : [
+
+    ],
+    "model" : "Qwen3.5-9B-4bit",
+    "outputTokens" : 110,
+    "path" : "home\/maintenance-log.md",
+    "placeOK" : false,
+    "seconds" : 18.201063990592957,
+    "why" : "The dropped invoice matches the existing maintenance log entry for a kitchen faucet repair by Barlow Plumbing on 2026-10-03, so I am appending the row to maintain the log's sorted order and content consistency."
+  },
+  {
+    "action" : "append",
+    "actionOK" : true,
+    "expectAction" : "append",
+    "facts" : 1,
+    "file" : "alder-creek-elementary-flyer.png",
+    "flags" : [
+
+    ],
+    "id" : "f11",
+    "leaks" : [
+
+    ],
+    "markdown" : "| 2026-11-18 | — | Fall Book Fair Family Night, Alder Creek Elementary | all | Sign up at front office |\n| 2026-12-10 | 3:30 pm | Winter Concert, Alder Creek Elementary (Grades 3-5) | all | Wear dark pants and white top |\n| 2026-12-10 | — | Winter Concert, Alder Creek Elementary (Grades 3-5) | all | Volunteers needed; sign up at front office |\n",
+    "missed" : [
+
+    ],
+    "model" : "Qwen3.5-9B-4bit",
+    "outputTokens" : 175,
+    "path" : "life\/calendar.md",
+    "placeOK" : true,
+    "seconds" : 23.343771934509277,
+    "why" : "School event flyer details (dates, times, requirements) map to the family calendar per life\/README.md rules."
+  },
+  {
+    "action" : "new",
+    "actionOK" : true,
+    "expectAction" : "new",
+    "facts" : 0.75,
+    "file" : "bright-smile-receipt-erik-2026-11-04.png",
+    "flags" : [
+
+    ],
+    "id" : "f12",
+    "leaks" : [
+
+    ],
+    "markdown" : "# 2026-11-04 — Erik — Bright Smile Dental\n\n**Visit:** Adult prophylaxis (cleaning) and periodic oral exam with Dr. Lindgren.\n\n- **Findings:** No cavities found (previous cavity on tooth #19 was filled). Recession noted on lower front teeth.\n- **Recommendation:** Use a soft brush. Schedule follow-up in 6 months (May 2029).\n\n**Paid:** $128.00 total ($62.00 insurance, $74.00 patient).",
+    "missed" : [
+      "\\$?48"
+    ],
+    "model" : "Qwen3.5-9B-4bit",
+    "outputTokens" : 254,
+    "path" : "health\/visits\/2026-11-04_erik_bright-smile-dental.md",
+    "placeOK" : true,
+    "seconds" : 26.06773602962494,
+    "why" : "Appending payment details and updated clinical findings for Erik's dental visit on 2026-11-04 to the existing note for Anna's visit at the same clinic on 2026-09-30, as they are separate events requiring distinct records per the health folder rules."
+  }
+]

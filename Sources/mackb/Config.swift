@@ -56,6 +56,9 @@ enum Config {
     static var indexPath: URL {
         stateDir.appendingPathComponent(embedSpec == .qwen3 ? "index.sqlite" : "index-\(embedSpec.rawValue).sqlite")
     }
+    /// Chat-template switches: Qwen's thinking off, gpt-oss's reasoning low.
+    /// Templates ignore switches they don't use.
+    nonisolated(unsafe) static let templateContext: [String: any Sendable] = ["enable_thinking": false, "reasoning_effort": "low"]
     /// Filing a dropped file wants exact JSON and a steady choice of place.
     static let filingTemperature = 0.2
 
