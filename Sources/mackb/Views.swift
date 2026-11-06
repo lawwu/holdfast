@@ -312,8 +312,12 @@ struct AskView: View {
             if hasConversation {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
+                        ForEach(store.turns) { t in
+                            TurnView(entry: t)
+                            Divider()
+                        }
                         QuestionHeader(text: store.askedQuestion)
-                        if let b = store.busy { StatusPill(text: b) }
+                        if let b = store.busy { StatusPill(text: b, since: store.turnStarted) }
                         if let e = store.error { ErrorBanner(text: e) }
                         if !store.answer.isEmpty || !store.steps.isEmpty { AnswerCard() }
                         if !store.sources.isEmpty { SourcesSection() }
@@ -333,9 +337,9 @@ struct AskView: View {
         .toolbar {
             if hasConversation {
                 ToolbarItem {
-                    Button { store.newQuestion() } label: { Label("New Question", systemImage: "square.and.pencil") }
+                    Button { store.newQuestion() } label: { Label("New Conversation", systemImage: "square.and.pencil") }
                         .disabled(store.busy != nil)
-                        .help("Clear and start a new question (⌘N)")
+                        .help("Start a new conversation (⌘N). This one is saved in History; open it there to pick it up again.")
                         .keyboardShortcut("n")
                 }
             }
@@ -374,13 +378,13 @@ struct AskHero: View {
                             Spacer()
                             Button("See all") { store.pane = .history }.buttonStyle(.link).font(.caption)
                         }
-                        ForEach(store.history.prefix(3)) { e in
-                            Button { store.openHistory(e) } label: {
+                        ForEach(store.conversations.prefix(3), id: \.latest.id) { c in
+                            Button { store.openHistory(c.latest) } label: {
                                 HStack(spacing: 8) {
-                                    Image(systemName: "clock.arrow.circlepath").foregroundStyle(.secondary).font(.caption)
-                                    Text(e.question).font(.callout).lineLimit(1).foregroundStyle(.primary)
+                                    Image(systemName: c.count > 1 ? "bubble.left.and.bubble.right" : "clock.arrow.circlepath").foregroundStyle(.secondary).font(.caption)
+                                    Text(c.first.question).font(.callout).lineLimit(1).foregroundStyle(.primary)
                                     Spacer()
-                                    Text(e.date, format: .relative(presentation: .named)).font(.caption).foregroundStyle(.tertiary)
+                                    Text(c.latest.date, format: .relative(presentation: .named)).font(.caption).foregroundStyle(.tertiary)
                                 }
                                 .padding(.vertical, 4).contentShape(Rectangle())
                             }
@@ -472,10 +476,16 @@ struct QuestionHeader: View {
 
 struct StatusPill: View {
     var text: String
+    var since: Date? = nil
     var body: some View {
         HStack(spacing: 8) {
             ProgressView().controlSize(.small)
             Text(text).font(.callout).foregroundStyle(.secondary)
+            if let since {
+                TimelineView(.periodic(from: .now, by: 1)) { ctx in
+                    Text("\(Int(ctx.date.timeIntervalSince(since)))s").font(.caption.monospacedDigit()).foregroundStyle(.tertiary)
+                }
+            }
         }
         .padding(.horizontal, 12).padding(.vertical, 7)
         .background(Capsule().fill(Theme.accent.opacity(0.09)))
@@ -631,7 +641,9 @@ struct Composer: View {
     var body: some View {
         VStack(spacing: 8) {
             HStack(alignment: .bottom, spacing: 10) {
-                TextField(store.profile == .counseling ? "Ask about your materials and case reports…" : "Ask your knowledge base…", text: $store.question, axis: .vertical)
+                TextField(store.conversationId != nil && !store.askedQuestion.isEmpty ? "Ask a follow-up…"
+                          : store.profile == .counseling ? "Ask about your materials and case reports…" : "Ask, or tell Holdfast what to do…",
+                          text: $store.question, axis: .vertical)
                     .textFieldStyle(.plain)
                     .font(.system(size: 14))
                     .lineLimit(1...6)
@@ -1140,7 +1152,10 @@ struct MarkdownBlocks: View {
 struct HistoryView: View {
     @EnvironmentObject var store: Store
 
-    var filtered: [HistoryEntry] { store.history.filter { $0.matches(store.historySearch) } }
+    /// The latest turn of each conversation with any turn matching the search.
+    var filtered: [HistoryEntry] {
+        store.conversations.filter { c in store.history.contains { $0.thread == c.latest.thread && $0.matches(store.historySearch) } }.map(\.latest)
+    }
 
     /// Entries grouped under Today / Yesterday / the date, newest first.
     var groups: [(String, [HistoryEntry])] {
@@ -1195,11 +1210,16 @@ struct HistoryRow: View {
     }
 
     var body: some View {
-        let selected = store.currentHistoryId == entry.id
+        let selected = store.conversationId == entry.thread
+        let convo = store.conversations.first { $0.latest.id == entry.id }
         Button { store.openHistory(entry) } label: {
             VStack(alignment: .leading, spacing: 5) {
                 HStack(alignment: .firstTextBaseline) {
-                    Text(entry.question).font(.callout.weight(.semibold)).lineLimit(2)
+                    Text(convo?.first.question ?? entry.question).font(.callout.weight(.semibold)).lineLimit(2)
+                    if let n = convo?.count, n > 1 {
+                        Text("\(n) turns").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+                            .padding(.horizontal, 6).padding(.vertical, 1).background(Capsule().fill(.quaternary))
+                    }
                     Spacer(minLength: 8)
                     Text(entry.date, format: .dateTime.hour().minute()).font(.caption).foregroundStyle(.tertiary)
                 }
@@ -1250,7 +1270,7 @@ struct StepsList: View {
             }
             .padding(.top, 4)
         } label: {
-            Text("\(steps.count) research step\(steps.count == 1 ? "" : "s")").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            Text(running ? "Working…" : "\(steps.count) step\(steps.count == 1 ? "" : "s")").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
         }
         .padding(10)
         .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Theme.accent.opacity(0.05)))
@@ -1261,6 +1281,10 @@ struct StepsList: View {
         if s.hasPrefix("Listed tables") { return "tablecells" }
         if s.hasPrefix("Listed") { return "folder" }
         if s.hasPrefix("Queried") { return "function" }
+        if s.hasPrefix("Searching") { return "magnifyingglass" }
+        if s.hasPrefix("Planning") { return "list.bullet.indent" }
+        if s.hasPrefix("No direct") || s.hasPrefix("Found nothing") { return "arrow.down.right.circle" }
+        if s.hasPrefix("Done") { return "checkmark.circle" }
         return "circle"
     }
 }

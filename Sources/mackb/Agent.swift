@@ -73,7 +73,7 @@ enum Agent {
         return out
     }
 
-    static func run(_ question: String, embedder: Embedder?, backend: MLXBackend,
+    static func run(_ question: String, embedder: Embedder?, backend: MLXBackend, prior: [(q: String, a: String)] = [],
                     onEvent: @escaping @Sendable (Event) -> Void) async throws -> Answer {
         let t0 = Date()
         let profile = Profile.vaultDefault
@@ -88,7 +88,9 @@ enum Agent {
         let ctx = ToolContext(embedder: embedder)
         var stats = GenStats(promptTokens: 0, promptSeconds: 0, outputTokens: 0, outputSeconds: 0)
         var final = ""
-        var next: [Chat.Message] = [.user(question)]
+        // Earlier turns of the conversation come first, so follow-ups make sense.
+        var next: [Chat.Message] = prior.suffix(Conversation.turns).flatMap { [Chat.Message.user($0.q), .assistant(String($0.a.prefix(Conversation.answerChars)))] }
+        next.append(.user(question))
         for step in 0...maxSteps {
             if step == maxSteps {
                 session.tools = nil
@@ -122,7 +124,12 @@ enum Agent {
         let cited = (try? NSRegularExpression(pattern: #"\[(\d+)\]"#))?
             .matches(in: final, range: NSRange(final.startIndex..., in: final))
             .compactMap { Range($0.range(at: 1), in: final).flatMap { Int(final[$0]) } } ?? []
-        let bad = Array(Set(cited.filter { $0 < 1 || $0 > ctx.sources.count })).sorted()
+        var bad = Array(Set(cited.filter { $0 < 1 || $0 > ctx.sources.count })).sorted()
+        // Answered from folder listings or tables alone: there are no passages to cite, so [n] markers mean nothing.
+        if ctx.sources.isEmpty {
+            final = final.replacingOccurrences(of: #"\s?\[\d+\]"#, with: "", options: .regularExpression)
+            bad = []
+        }
         return Answer(text: stripThoughts(final), badCitations: bad, sources: ctx.sources, stats: stats,
                       retrievalSeconds: Date().timeIntervalSince(t0), steps: ctx.log)
     }

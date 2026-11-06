@@ -190,6 +190,25 @@ final class Store: ObservableObject {
     @Published var notice: String?
     /// How the last request was handled (direct answer, research, a job), shown under the answer.
     @Published var routeNote: String?
+    /// The conversation on screen: its earlier turns (the live turn is askedQuestion/answer/sources).
+    @Published var turns: [HistoryEntry] = []
+    @Published var conversationId: UUID?
+    /// When the current turn started, for the elapsed-time readout.
+    @Published var turnStarted: Date?
+
+    /// Past conversations, newest first: each with its first question, latest turn and length.
+    var conversations: [(first: HistoryEntry, latest: HistoryEntry, count: Int)] {
+        var order: [UUID] = []
+        var byThread: [UUID: [HistoryEntry]] = [:]
+        for e in history {  // newest first
+            if byThread[e.thread] == nil { order.append(e.thread) }
+            byThread[e.thread, default: []].append(e)
+        }
+        return order.compactMap { t in
+            guard let es = byThread[t], let latest = es.first, let first = es.last else { return nil }
+            return (first, latest, es.count)
+        }
+    }
     /// Filing queue progress: files handled since the queue was last empty, and pause.
     @Published var queueDone = 0
     @Published var queueLeft = 0
@@ -301,10 +320,18 @@ final class Store: ObservableObject {
         answerStats = nil
         warning = nil
         error = nil
+        // A follow-up: the finished turn on screen becomes part of the conversation.
+        if let id = currentHistoryId, let done = history.first(where: { $0.id == id }), !turns.contains(where: { $0.id == id }) {
+            turns.append(done)
+        }
+        let convo = conversationId ?? UUID()
+        conversationId = convo
+        let prior = turns.map { (q: $0.question, a: $0.answer) }
         askedQuestion = q
         question = ""
         currentHistoryId = nil
         steps = []
+        turnStarted = Date()
         let model = modelLabel
         // One box: the router decides how to handle the request (see Router.swift).
         let route = Router.route(q)
@@ -320,7 +347,7 @@ final class Store: ObservableObject {
             return
         default: break
         }
-        let useAgent = (route == .research || research) && backend == .mlx
+        let useAgent = route == .research && backend == .mlx  // the old Research toggle no longer applies
         Task {
             do {
                 let emb = await getEmbedder()
@@ -331,7 +358,8 @@ final class Store: ObservableObject {
                 var escalated = false
                 if useAgent, let mlx = llm as? MLXBackend {
                     busy = "Researching…"
-                    a = try await Agent.run(q, embedder: emb, backend: mlx) { ev in
+                    steps.append("Planning: this needs several notes or the tables")
+                    a = try await Agent.run(q, embedder: emb, backend: mlx, prior: prior) { ev in
                         Task { @MainActor in
                             switch ev {
                             case .step(let s): self.steps.append(s); self.busy = s + "…"
@@ -341,15 +369,24 @@ final class Store: ObservableObject {
                         }
                     }
                 } else {
-                    a = try await ask(q, embedder: emb, llm: llm) { tok in
-                        Task { @MainActor in self.answer += tok }
+                    steps.append("Searching your notes" + (prior.isEmpty ? "" : " (with the conversation so far)"))
+                    busy = "Searching your notes…"
+                    a = try await ask(q, embedder: emb, llm: llm, prior: prior) { tok in
+                        Task { @MainActor in
+                            if self.busy == "Searching your notes…" { self.busy = "Writing the answer…" }
+                            self.answer += tok
+                        }
                     }
+                    let noteCount = Set(a.sources.map(\.relPath)).count
+                    steps.append(a.sources.isEmpty ? "Found nothing close enough to answer from"
+                                 : "Read \(a.sources.count) passages from \(noteCount) note\(noteCount == 1 ? "" : "s")")
                     // Found nothing? Look deeper before giving up.
                     if Router.shouldEscalate(a), let mlx = llm as? MLXBackend {
                         escalated = true
                         answer = ""
                         busy = "Looking deeper…"
-                        a = try await Agent.run(q, embedder: emb, backend: mlx) { ev in
+                        steps.append("No direct answer: looking deeper (reading notes, checking tables)")
+                        a = try await Agent.run(q, embedder: emb, backend: mlx, prior: prior) { ev in
                             Task { @MainActor in
                                 switch ev {
                                 case .step(let s): self.steps.append(s); self.busy = s + "…"
@@ -369,7 +406,10 @@ final class Store: ObservableObject {
                     warning = "The answer cites passages that don't exist: " + a.badCitations.map { "[\($0)]" }.joined(separator: ", ")
                 }
                 var entry = HistoryEntry(question: q, answer: a.text, model: model, stats: answerStats!, sources: a.sources)
-                entry.steps = a.steps.isEmpty ? nil : a.steps
+                steps.append(String(format: "Done in %.0f s", Date().timeIntervalSince(t0)))
+                entry.steps = steps
+                entry.conversationId = convo
+                entry.route = routeNote
                 history.insert(entry, at: 0)
                 currentHistoryId = entry.id
                 History.save(history)
@@ -389,6 +429,16 @@ final class Store: ObservableObject {
 
     func openHistory(_ e: HistoryEntry) {
         guard busy == nil else { return }
+        // The whole conversation: earlier turns above, its latest turn live, ready for a follow-up.
+        let thread = history.filter { $0.thread == e.thread }.sorted { $0.date < $1.date }
+        let last = thread.last ?? e
+        turns = Array(thread.dropLast())
+        conversationId = e.thread
+        routeNote = last.route
+        openTurn(last)
+    }
+
+    private func openTurn(_ e: HistoryEntry) {
         askedQuestion = e.question
         answer = e.answer
         sources = e.sources.map(\.chunk)
@@ -408,6 +458,9 @@ final class Store: ObservableObject {
 
     func newQuestion() {
         guard busy == nil else { return }
+        turns = []
+        conversationId = nil
+        routeNote = nil
         currentHistoryId = nil
         answer = ""
         sources = []
