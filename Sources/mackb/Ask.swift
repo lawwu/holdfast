@@ -70,6 +70,7 @@ final class TextBox: @unchecked Sendable {
 func citation(_ c: Chunk) -> String { "[[\(c.noteId)#\(c.anchor)]]" }
 
 func ask(_ question: String, embedder: Embedder?, llm: LLMBackend = OllamaBackend(), prior: [(q: String, a: String)] = [],
+         onSources: (@Sendable ([Chunk]) -> Void)? = nil,
          stream: (@Sendable (String) -> Void)? = nil) async throws -> Answer {
     let t0 = Date()
     // A short follow-up ("what about Greta?") is searched together with the question before it.
@@ -84,6 +85,7 @@ func ask(_ question: String, embedder: Embedder?, llm: LLMBackend = OllamaBacken
         return Answer(text: msg, sources: [],
                       stats: GenStats(promptTokens: 0, promptSeconds: 0, outputTokens: 0, outputSeconds: 0), retrievalSeconds: rt)
     }
+    onSources?(hits)  // citations can be opened while the answer is still being written
     var ctx = ""
     for (i, c) in hits.enumerated() {
         ctx += "[\(i + 1)] (\(c.title) — \(c.anchor))\n\(c.text)\n\n"
