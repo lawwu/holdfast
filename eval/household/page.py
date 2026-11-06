@@ -12,7 +12,9 @@ HARDWARE is where the numbers were measured.
 """
 import html, json, pathlib, re, statistics
 
-HERE = pathlib.Path(__file__).parent
+import os
+# The fixture: this folder, or another with the same layout (MACKB_FIXTURE=eval/household-hard).
+HERE = pathlib.Path(os.environ.get("MACKB_FIXTURE") or pathlib.Path(__file__).parent).resolve()
 RES = HERE / "results"
 HARDWARE = "MacBook Pro, M1 Max, 64 GB"
 RUN_DATE = "2026-11-05"
@@ -24,13 +26,33 @@ NAMES = {
     "google26b": ("Google only", "Gemma 4 26B + EmbeddingGemma, no reranker"),
     "qwen27b-research": ("Qwen 3.8 27B", "Research mode"),
     "gemma26b-research": ("Gemma 4 26B A4B", "Research mode"),
-    "search-qwen3emb-rerank": ("Qwen3-Embedding 0.6B", "+ Qwen3-Reranker"),
+    "search-qwen3emb-rerank": ("Qwen3-Embedding 0.6B", "+ Qwen3-Reranker 0.6B"),
     "search-qwen3emb-norerank": ("Qwen3-Embedding 0.6B", "no reranker"),
-    "search-embgemma-rerank": ("EmbeddingGemma 300M", "+ Qwen3-Reranker"),
+    "search-embgemma-rerank": ("EmbeddingGemma 300M", "+ Qwen3-Reranker 0.6B"),
     "search-embgemma-norerank": ("EmbeddingGemma 300M", "no reranker"),
+    "qwen36moe": ("Qwen 3.6 35B A3B", "4-bit · mixture of experts"),
+    "gptoss20b": ("gpt-oss 20B", "MXFP4 · mixture of experts"),
+    "gemma31b": ("Gemma 4 31B", "4-bit · dense"),
+    "qwen36d27b": ("Qwen 3.6 27B", "4-bit · dense"),
+    "qwen35-9b": ("Qwen 3.5 9B", "4-bit · small"),
+    "qwen35-4b": ("Qwen 3.5 4B", "4-bit · small"),
+    "qwen35-2b": ("Qwen 3.5 2B", "4-bit · small"),
+    "gemmae2b": ("Gemma 4 E2B", "4-bit · small"),
+    "qwen36moe-research": ("Qwen 3.6 35B A3B", "Research mode"),
+    "gptoss20b-research": ("gpt-oss 20B", "Research mode"),
+    "gemma31b-research": ("Gemma 4 31B", "Research mode"),
+    "qwen36d27b-research": ("Qwen 3.6 27B", "Research mode"),
+    "search-qwen3emb-rr4b": ("Qwen3-Embedding 0.6B", "+ Qwen3-Reranker 4B"),
+    "search-qwen3emb-rr8b": ("Qwen3-Embedding 0.6B", "+ Qwen3-Reranker 8B"),
+    "search-embgemma-rr4b": ("EmbeddingGemma 300M", "+ Qwen3-Reranker 4B"),
+    "search-embgemma-rr8b": ("EmbeddingGemma 300M", "+ Qwen3-Reranker 8B"),
+    "claude-haiku": ("Claude Haiku 5.5", "Claude Code · cloud"),
+    "claude-sonnet": ("Claude Sonnet 5.5", "Claude Code · cloud"),
+    "claude-opus": ("Claude Opus 5.5", "Claude Code · cloud"),
+    "claude-fable": ("Claude Fable 5.1", "Claude Code · cloud"),
     "gemini": ("Gemini", "cloud baseline"),
 }
-ORDER = ["qwen27b", "gemma26b", "gemmae4b", "google26b", "gemini"]
+ORDER = ["claude-fable", "claude-opus", "claude-sonnet", "claude-haiku", "qwen27b", "qwen36d27b", "qwen36moe", "gemma31b", "gemma26b", "gemmae4b", "qwen35-9b", "qwen35-4b", "qwen35-2b", "gemmae2b", "gptoss20b", "google26b", "gemini"]
 
 
 def name(lab):
@@ -61,6 +83,10 @@ for rs in qa.values():
         q = QS.get(r["id"])
         if q and r.get("mode") != "retrieval":
             r["facts"] = sum(1 for p in q["expect"] if re.search(p, r["answer"], re.I)) / max(len(q["expect"]), 1)
+            # A wrong-answer signature (a superseded value, the other Erik's number) zeroes it.
+            r["wrong"] = [p for p in q.get("reject", []) if re.search(p, r["answer"], re.I)]
+            if r["wrong"]:
+                r["facts"] = 0.0
 for rs in filing.values():
     for r in rs:
         c = CASES.get(r["id"])
@@ -68,10 +94,12 @@ for rs in filing.values():
             r["actionOK"] = r["action"] in c["expect_action"].split("|")
             if c["expect_action"] != "skip":
                 r["placeOK"] = r["action"] != "skip" and re.search(c["expect_path"], r["path"], re.I) is not None
+                r["leaks"] = [x for x in c["forbid"] if re.search(x, r.get("markdown", ""), re.I)]
 
 plain = {k: v for k, v in qa.items() if v and v[0].get("mode") == "plain"}
 research = {k: v for k, v in qa.items() if v and v[0].get("mode") == "research"}
 search = {k: v for k, v in qa.items() if v and v[0].get("mode") == "retrieval"}
+cloud = {k: v for k, v in qa.items() if v and v[0].get("mode") == "claude-code"}
 
 
 def ordered(d):
@@ -87,7 +115,7 @@ def qa_row(rs):
         "abstain": mean(r["facts"] for r in un) if un else None,
         "context": mean(r.get("contextRecall") for r in ans), "files": mean(r.get("pathRecall") for r in ans),
         "cited": mean(1.0 if r["cited"] else 0.0 for r in ans), "median": median(r["seconds"] for r in rs),
-        "n": len(rs),
+        "n": len(rs), "cost": sum(r.get("costUSD") or 0 for r in rs) if any("costUSD" in r for r in rs) else None,
     }
 
 
@@ -95,7 +123,8 @@ def filing_row(rs):
     n = len(rs)
     return {"action": sum(r["actionOK"] for r in rs) / n, "place": sum(r["placeOK"] for r in rs) / n,
             "facts": mean(r["facts"] for r in rs), "leaks": sum(len(r["leaks"]) for r in rs),
-            "errors": sum(1 for r in rs if r.get("error")), "median": median(r["seconds"] for r in rs), "n": n}
+            "errors": sum(1 for r in rs if r.get("error")), "median": median(r["seconds"] for r in rs), "n": n,
+            "cost": sum(r.get("costUSD") or 0 for r in rs) if any("costUSD" in r for r in rs) else None}
 
 
 # ---- rendering helpers
@@ -151,11 +180,13 @@ def chart_pair(labels, left, right):
 
 # ---- sections
 P = {k: qa_row(v) for k, v in plain.items()}
+C = {k: qa_row(v) for k, v in cloud.items()}
+cl = ordered(C)
 R = {k: qa_row(v) for k, v in research.items()}
 S = {k: qa_row(v) for k, v in search.items()}
 F = {k: filing_row(v) for k, v in filing.items()}
 pl, rl, sl, fl = ordered(P), ordered(R), ordered(S), ordered(F)
-max_s = max([P[k]["median"] for k in pl] + [R[k]["median"] for k in rl] + [1])
+max_s = max([P[k]["median"] for k in pl] + [R[k]["median"] for k in rl] + [C[k]["median"] for k in cl] + [1])
 max_fs = max([F[k]["median"] for k in fl] + [1])
 
 
@@ -173,12 +204,17 @@ qa_section = chart_pair(
 )
 research_section = chart_pair(
     rl,
-    bars("Facts found", [(name(k)[0], name(k)[1], R[k]["facts"]) for k in rl], 1, pct, "14 hardest questions"),
+    bars("Facts found", [(name(k)[0], name(k)[1], R[k]["facts"]) for k in rl], 1, pct, f"{max((len(v) for v in research.values()), default=0)} hardest questions"),
     bars("Seconds per answer", [(name(k)[0], name(k)[1], R[k]["median"]) for k in rl], nice(max_s), lambda v: f"{v:.0f}", "median"),
 )
+cloud_section = chart_pair(
+    cl,
+    bars("Facts found", [(name(k)[0], name(k)[1], C[k]["facts"]) for k in cl], 1, pct, "all answerable questions"),
+    bars("Seconds per answer", [(name(k)[0], name(k)[1], C[k]["median"]) for k in cl], nice(max_s), lambda v: f"{v:.0f}", "median"),
+) if cl else ""
 filing_section = chart_pair(
     fl,
-    bars("Filed in the right place", [(name(k)[0], name(k)[1], F[k]["place"]) for k in fl], 1, pct, "12 documents"),
+    bars("Filed in the right place", [(name(k)[0], name(k)[1], F[k]["place"]) for k in fl], 1, pct, f"{len(CASES)} documents"),
     bars("Seconds per document", [(name(k)[0], name(k)[1], F[k]["median"]) for k in fl], nice(max_fs), lambda v: f"{v:.0f}", "median"),
 )
 search_section = chart_pair(
@@ -201,8 +237,16 @@ def setup_cell(k):
 qa_table = table(["Setup", "Facts", "Simple facts", "Says “not in your notes”", "Facts in passages", "Cited", "s / answer"],
                  [[setup_cell(k), pct(P[k]["facts"]), pct(P[k]["simple"]), pct(P[k]["abstain"]), pct(P[k]["context"]),
                    pct(P[k]["cited"]), secs(P[k]["median"])] for k in pl] +
-                 [[setup_cell(k), pct(R[k]["facts"]), "—", "—", pct(R[k]["context"]), pct(R[k]["cited"]), secs(R[k]["median"])] for k in rl],
+                 [[setup_cell(k), pct(R[k]["facts"]), "—", "—", pct(R[k]["context"]), pct(R[k]["cited"]), secs(R[k]["median"])] for k in rl] +
+                 [[setup_cell(k), pct(C[k]["facts"]), pct(C[k]["simple"]), pct(C[k]["abstain"]), "—", pct(C[k]["cited"]), secs(C[k]["median"])] for k in cl],
                  "num")
+def money(x):
+    return "—" if x is None else f"${x:.2f}"
+cloud_table = table(["Setup", "Facts", "Says “not in your notes”", "s / answer", "Filing: right place", "Filing: facts kept", "Leaks",
+                     "API price, 40 questions + 12 documents"],
+                    [[setup_cell(k), pct(C[k]["facts"]), pct(C[k]["abstain"]), secs(C[k]["median"]),
+                      pct(F.get(k, {}).get("place")), pct(F.get(k, {}).get("facts")), str(F.get(k, {}).get("leaks", "—")),
+                      money((C[k]["cost"] or 0) + (F.get(k, {}).get("cost") or 0))] for k in cl], "num") if cl else ""
 filing_table = table(["Setup", "Right action", "Right place", "Facts kept", "IDs or names leaked", "s / document"],
                      [[setup_cell(k), pct(F[k]["action"]), pct(F[k]["place"]), pct(F[k]["facts"]),
                        f'<span class="{"bad" if F[k]["leaks"] else ""}">{F[k]["leaks"]}</span>', secs(F[k]["median"])] for k in fl], "num")
@@ -211,9 +255,10 @@ domains = sorted({r.get("domain") or "?" for rs in plain.values() for r in rs})
 domain_table = table(["Setup"] + domains,
                      [[setup_cell(k)] + [pct(mean(r["facts"] for r in plain[k] if (r.get("domain") or "?") == d and r["kind"] != "unanswerable")) for d in domains] for k in pl],
                      "num")
-kinds = ["fact", "synthesis", "table", "temporal", "cross", "unanswerable"]
+KIND_ORDER = ["fact", "synthesis", "table", "temporal", "cross"]  # household; other fixtures sort their own
+kinds = sorted({q["kind"] for q in QS.values()}, key=lambda k: (k == "unanswerable", KIND_ORDER.index(k) if k in KIND_ORDER else 9, k))
 kind_table = table(["Setup"] + kinds,
-                   [[setup_cell(k)] + [pct(mean(r["facts"] for r in qa[k] if r["kind"] == kd)) for kd in kinds] for k in pl + rl], "num")
+                   [[setup_cell(k)] + [pct(mean(r["facts"] for r in qa[k] if r["kind"] == kd)) for kd in kinds] for k in cl + pl + rl], "num")
 
 docs = []
 for cid, c in CASES.items():
@@ -232,6 +277,48 @@ for cid, c in CASES.items():
                          f'<code>{esc(r["path"] or r["action"]).replace("/", "/<wbr>")}</code>{leak}')
     docs.append(cells)
 doc_table = table(["Document", "Expected"] + [name(k)[0] + (" (Google only)" if k == "google26b" else "") for k in fl], docs, "docs")
+
+# ---- which Mac: peak memory from memory.py; speed on other chips scaled by memory bandwidth.
+# Token generation on Apple silicon is bound by memory bandwidth, so tok/s scales roughly with it.
+# An estimate, not a measurement: prompt processing (compute-bound) slows down more on base chips.
+MEM = json.loads((RES / "memory.json").read_text()) if (RES / "memory.json").exists() else {}
+MACS_GB = [8, 16, 24, 32, 64]
+MEASURED_BW = 400  # GB/s, M1 Max: the machine every run here used
+OTHER_CHIPS = [("M4", 120), ("M4 Pro", 273)]  # GB/s, Apple's published figures
+
+
+def worst_gb(k):
+    xs = [MEM.get(k, {}).get(m, {}).get("peakGB") for m in ("plain", "research")]
+    xs = [x for x in xs if x]
+    return max(xs) if xs else None
+
+
+def tok_s(k):
+    return median(r.get("tokPerSec") for r in plain.get(k, []) if r.get("tokPerSec"))
+
+
+def fit_cell(v):
+    cls = {"fits": "ok", "no": "bad"}.get(v, "")
+    return f'<span class="{cls}">{esc(v)}</span>'
+
+
+ml = sorted((k for k in MEM if k != "search" and worst_gb(k)), key=worst_gb)
+mem_table = table(
+    ["Setup", "Peak memory", "Facts", "Filed right"] + [f"{g} GB Mac" for g in MACS_GB] + [f"tok/s, {c}" for c, _ in OTHER_CHIPS],
+    [[setup_cell(k), f"{worst_gb(k):.1f} GB", pct(P.get(k, {}).get("facts")), pct(F.get(k, {}).get("place"))]
+     + [fit_cell(MEM[k]["fit"].get(str(g), "?")) for g in MACS_GB]
+     + [("~" + f"{tok_s(k) * bw / MEASURED_BW:.0f}") if tok_s(k) else "—" for _, bw in OTHER_CHIPS] for k in ml],
+    "num") if ml else ""
+search_gb = MEM.get("search", {}).get("plain", {}).get("peakGB")
+mem_section = f"""<section>
+  <h2>Which Mac can run this?</h2>
+  <p>Peak memory of the whole app process (answer model, embedder, reranker and the context) on the longest prompt it
+  makes, Research mode. macOS lets the GPU use about two-thirds of memory on Macs up to 36 GB, and macOS with a browser
+  open needs about 4 GB, so a setup <b>fits</b> when it peaks under 90% of the smaller of those two limits and is
+  <b>tight</b> up to 100%. Search alone{f" peaks at {search_gb:.1f} GB" if search_gb else ""}. Speeds on other chips are
+  the M1 Max's measured speed scaled by memory bandwidth, an estimate.</p>
+  {mem_table}
+</section>""" if ml else ""
 
 nq = len(QS)
 nd = len(CASES)
@@ -356,6 +443,15 @@ table.docs td {{ min-width: 150px; }}
   {kind_table}
 </section>
 
+{'' if not cl else f'''<section>
+  <h2>Claude Code as a baseline</h2>
+  <p>The same questions and documents, given to Claude Code in a scratch copy of the vault: it reads the READMEs, searches and
+  opens notes, and queries the CSVs itself, with read-only tools. These models run in the cloud, so they show what the local
+  setups are aiming at, not something the app sends data to. Prices are what the run would cost on the API.</p>
+  {cloud_section}
+  {cloud_table}
+</section>'''}
+
 <section>
   <h2>Filing dropped documents</h2>
   <p>{nd} documents dropped into the knowledge base: invoices, receipts, a clinic visit summary, an insurance renewal, a bank
@@ -374,14 +470,16 @@ table.docs td {{ min-width: 150px; }}
   {search_section}
 </section>
 
+{mem_section}
+
 <section class="card">
   <h2>How this was run</h2>
   <p>The knowledge base is invented: a family of five with finance notes and spending CSVs, home maintenance logs,
   health visits and a workout CSV, trips, a career note, and biblical-counseling case reports that follow an initials-only rule.
   Today's date is fixed at {RUN_DATE}. Answers and filings are scored by text patterns, with no model judging another.
   Each setup ran once on {esc(HARDWARE)}; with {nq} questions and {nd} documents, differences of a few points are noise.</p>
-  <p>Not yet run: Gemini as a cloud ceiling, and the next local candidates (Qwen 3.6 35B A3B, gpt-oss 20B,
-  Gemma 4 31B, larger Qwen embedders and rerankers).</p>
+  <p>Not yet run: Gemini (no API key set), larger Qwen embedders, and a harder fixture with longer histories,
+  superseded facts and more CSV arithmetic.</p>
 </section>
 </main>
 <div id="tip" role="tooltip"></div>

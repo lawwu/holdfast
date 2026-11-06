@@ -1,0 +1,11 @@
+JUNIPER ANIMAL CLINIC — Invoice
+Client: Anna Halvorsen (client ID JAC-40021)   Patient: Pepper (canine, lab mix)
+Date: 2026-11-03   Doctor: Dr. Lund
+
+Exam — head shaking, scratching right ear            $68.00
+Ear cytology                                          $46.00
+Otic ointment, 10-day course                          $50.20
+TOTAL                                                $164.20   Paid Visa ending 4417
+
+Diagnosis: right ear yeast infection. Recheck in 2 weeks if not resolved.
+Reminder: annual exam and DHPP due March 2027.

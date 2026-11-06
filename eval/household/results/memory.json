@@ -1,0 +1,253 @@
+{
+  "gemma26b": {
+    "fit": {
+      "16": "no",
+      "24": "no",
+      "32": "tight",
+      "64": "fits",
+      "8": "no"
+    },
+    "plain": {
+      "ok": true,
+      "peakGB": 20.11684536,
+      "tail": "",
+      "tokPerSec": 53.4
+    },
+    "repo": "mlx-community/gemma-4-26b-a4b-it-4bit",
+    "research": {
+      "ok": true,
+      "peakGB": 17.738691472,
+      "tail": "",
+      "tokPerSec": 36.9
+    }
+  },
+  "gemma31b": {
+    "fit": {
+      "16": "no",
+      "24": "no",
+      "32": "no",
+      "64": "fits",
+      "8": "no"
+    },
+    "plain": {
+      "ok": true,
+      "peakGB": 23.288380488,
+      "tail": "",
+      "tokPerSec": 8.3
+    },
+    "repo": "mlx-community/gemma-4-31b-it-4bit",
+    "research": {
+      "ok": true,
+      "peakGB": 21.84576936,
+      "tail": "",
+      "tokPerSec": 8.7
+    }
+  },
+  "gemmae2b": {
+    "fit": {
+      "16": "fits",
+      "24": "fits",
+      "32": "fits",
+      "64": "fits",
+      "8": "no"
+    },
+    "plain": {
+      "ok": true,
+      "peakGB": 8.672530968,
+      "tail": "",
+      "tokPerSec": 84.8
+    },
+    "repo": "mlx-community/gemma-4-e2b-it-4bit",
+    "research": {
+      "ok": true,
+      "peakGB": 5.55881752,
+      "tail": "",
+      "tokPerSec": 83.2
+    }
+  },
+  "gemmae4b": {
+    "fit": {
+      "16": "tight",
+      "24": "fits",
+      "32": "fits",
+      "64": "fits",
+      "8": "no"
+    },
+    "plain": {
+      "ok": true,
+      "peakGB": 10.363278904,
+      "tail": "",
+      "tokPerSec": 36.7
+    },
+    "repo": "mlx-community/gemma-4-e4b-it-4bit",
+    "research": {
+      "ok": true,
+      "peakGB": 7.362435024,
+      "tail": "",
+      "tokPerSec": 43.5
+    }
+  },
+  "gptoss20b": {
+    "fit": {
+      "16": "no",
+      "24": "no",
+      "32": "fits",
+      "64": "fits",
+      "8": "no"
+    },
+    "plain": {
+      "ok": true,
+      "peakGB": 18.000243368,
+      "tail": "",
+      "tokPerSec": 46.1
+    },
+    "repo": "mlx-community/gpt-oss-20b-MXFP4-Q8",
+    "research": {
+      "ok": true,
+      "peakGB": 18.08201608,
+      "tail": "",
+      "tokPerSec": 50.1
+    }
+  },
+  "qwen27b": {
+    "fit": {
+      "16": "no",
+      "24": "no",
+      "32": "tight",
+      "64": "fits",
+      "8": "no"
+    },
+    "plain": {
+      "ok": true,
+      "peakGB": 21.042377856,
+      "tail": "",
+      "tokPerSec": 11.9
+    },
+    "repo": "mlx-community/Qwen3.8-27B-4bit",
+    "research": {
+      "ok": true,
+      "peakGB": 19.751007264,
+      "tail": "",
+      "tokPerSec": 13.7
+    }
+  },
+  "qwen35-2b": {
+    "fit": {
+      "16": "fits",
+      "24": "fits",
+      "32": "fits",
+      "64": "fits",
+      "8": "no"
+    },
+    "plain": {
+      "ok": true,
+      "peakGB": 7.11329728,
+      "tail": "",
+      "tokPerSec": 136.1
+    },
+    "repo": "mlx-community/Qwen3.5-2B-4bit",
+    "research": {
+      "ok": true,
+      "peakGB": 7.22018676,
+      "tail": "",
+      "tokPerSec": 117.5
+    }
+  },
+  "qwen35-4b": {
+    "fit": {
+      "16": "fits",
+      "24": "fits",
+      "32": "fits",
+      "64": "fits",
+      "8": "no"
+    },
+    "plain": {
+      "ok": true,
+      "peakGB": 8.319242632,
+      "tail": "",
+      "tokPerSec": 61.6
+    },
+    "repo": "mlx-community/Qwen3.5-4B-4bit",
+    "research": {
+      "ok": true,
+      "peakGB": 6.005150352,
+      "tail": "",
+      "tokPerSec": 56.0
+    }
+  },
+  "qwen35-9b": {
+    "fit": {
+      "16": "no",
+      "24": "fits",
+      "32": "fits",
+      "64": "fits",
+      "8": "no"
+    },
+    "plain": {
+      "ok": true,
+      "peakGB": 11.066579304,
+      "tail": "",
+      "tokPerSec": 38.5
+    },
+    "repo": "mlx-community/Qwen3.5-9B-4bit",
+    "research": {
+      "ok": true,
+      "peakGB": 9.047743016,
+      "tail": "",
+      "tokPerSec": 48.8
+    }
+  },
+  "qwen36d27b": {
+    "fit": {
+      "16": "no",
+      "24": "no",
+      "32": "tight",
+      "64": "fits",
+      "8": "no"
+    },
+    "plain": {
+      "ok": true,
+      "peakGB": 21.069050984,
+      "tail": "",
+      "tokPerSec": 12.5
+    },
+    "repo": "mlx-community/Qwen3.6-27B-4bit",
+    "research": {
+      "ok": true,
+      "peakGB": 19.749827592,
+      "tail": "",
+      "tokPerSec": 13.6
+    }
+  },
+  "qwen36moe": {
+    "fit": {
+      "16": "no",
+      "24": "no",
+      "32": "no",
+      "64": "fits",
+      "8": "no"
+    },
+    "plain": {
+      "ok": true,
+      "peakGB": 25.44792408,
+      "tail": "",
+      "tokPerSec": 43.7
+    },
+    "repo": "mlx-community/Qwen3.6-35B-A3B-4bit",
+    "research": {
+      "ok": true,
+      "peakGB": 22.997533112,
+      "tail": "",
+      "tokPerSec": 54.1
+    }
+  },
+  "search": {
+    "plain": {
+      "ok": true,
+      "peakGB": 5.868603408,
+      "tail": "",
+      "tokPerSec": null
+    },
+    "repo": "Qwen3-Embedding-0.6B + Qwen3-Reranker-0.6B"
+  }
+}

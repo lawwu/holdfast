@@ -1,0 +1,303 @@
+[
+  {
+    "action" : "new",
+    "actionOK" : false,
+    "expectAction" : "append",
+    "facts" : 1,
+    "file" : "ridgeline-invoice-2026-11-02.pdf",
+    "flags" : [
+
+    ],
+    "id" : "f01",
+    "leaks" : [
+
+    ],
+    "markdown" : "# ridgeline-invoice-2026-11-02\n\n| Date | What | Who | Cost | Notes |\n| --- | --- | --- | --- | --- |\n| 2026-11-02 | Annual furnace safety inspection and tune-up | Marco D. (Ridgeline Heating & Air) | $312.40 | Hot surface igniter replaced (was cracked). Blower motor bearings starting to get noisy; recommend replacement within 1-2 years (est. $650).",
+    "missed" : [
+
+    ],
+    "model" : "gemma-4-e2b-it-4bit",
+    "outputTokens" : 196,
+    "path" : "home\/maintenance-log-2.md",
+    "placeOK" : false,
+    "seconds" : 3.3549801111221313,
+    "why" : "This is an invoice for a furnace service visit."
+  },
+  {
+    "action" : "new",
+    "actionOK" : true,
+    "expectAction" : "new",
+    "facts" : 1,
+    "file" : "corvell-washer-warranty-registration.docx",
+    "flags" : [
+      "long number (account or id?)"
+    ],
+    "id" : "f02",
+    "leaks" : [
+
+    ],
+    "markdown" : "# Corvell Washer Warranty Registration\n\n- **Product:** Corvell front-load washer, 4.5 cu ft, white\n- **Model:** CW-5200\n- **Serial:** CW52-2610-77341\n- **Purchase date:** 2026-10-30\n- **Retailer:** Alder Appliance Center\n- **Purchase price:** $899.00\n- **Warranty Coverage:**\n  - Limited warranty: 1 year parts and labor (through 2027-10-30)\n  - Direct-drive motor: 10 years parts only (through 2036-10-30)\n  - Stainless drum: lifetime, parts only\n- **Care tips:** Run the Clean Washer cycle monthly; leave the door ajar between loads; clean the drain pump filter every 3 months.\n- **Registration ID:** REG-8841-2290-CV",
+    "missed" : [
+
+    ],
+    "model" : "gemma-4-e2b-it-4bit",
+    "outputTokens" : 280,
+    "path" : "home\/corvell-washer-warranty-registration.md",
+    "placeOK" : false,
+    "seconds" : 4.678934931755066,
+    "why" : ""
+  },
+  {
+    "action" : "new",
+    "actionOK" : true,
+    "expectAction" : "new",
+    "facts" : 1,
+    "file" : "greta-after-visit-summary-2026-11-03.pdf",
+    "flags" : [
+
+    ],
+    "id" : "f03",
+    "leaks" : [
+      "2290"
+    ],
+    "markdown" : "# 2026-11-03 — Greta — Alder Creek Pediatrics\n\n**Visit:** Sore throat and fever (101.4 F) since yesterday.\n\n- Diagnosis: Streptococcal pharyngitis (strep throat). Rapid strep test POSITIVE.\n- Treatment: Amoxicillin 400 mg\/5 mL, 6 mL by mouth twice daily for 10 days. Acetaminophen or ibuprofen for fever and pain. May return to school after 24 hours on antibiotics AND fever-free. Replace toothbrush after 48 hours on antibiotics. Call if not improving in 48-72 hours, rash, or trouble swallowing.\n\n**Paid:** $25.00 (Mastercard ending 2290). Next well visit: March 2027.",
+    "missed" : [
+
+    ],
+    "model" : "gemma-4-e2b-it-4bit",
+    "outputTokens" : 258,
+    "path" : "health\/visits\/2026-11-03_greta_alder-creek-pediatrics.md",
+    "placeOK" : true,
+    "seconds" : 4.413712978363037,
+    "why" : ""
+  },
+  {
+    "action" : "new",
+    "actionOK" : false,
+    "expectAction" : "append",
+    "facts" : 1,
+    "file" : "hillcrest-donation-receipt-2026-11-01.txt",
+    "flags" : [
+
+    ],
+    "id" : "f04",
+    "leaks" : [
+      "4417"
+    ],
+    "markdown" : "# hillcrest-donation-receipt-2026-11-01\n\n## Summary\nThis document is a receipt for a contribution made to Hillcrest Bible Church.\n\n## Facts\n- **Date Received:** 2026-11-01\n- **Recipient:** Hillcrest Bible Church\n- **Amount:** $750.00\n- **Fund:** Christmas Outreach (food boxes)\n- **Payment Method:** Card (Visa ending 4417)\n- **Transaction ID:** HBC-TXN-559102",
+    "missed" : [
+
+    ],
+    "model" : "gemma-4-e2b-it-4bit",
+    "outputTokens" : 206,
+    "path" : "finance\/hillcrest-donation-receipt-2026-11-01.md",
+    "placeOK" : false,
+    "seconds" : 3.7653820514678955,
+    "why" : ""
+  },
+  {
+    "action" : "new",
+    "actionOK" : false,
+    "expectAction" : "append",
+    "facts" : 0.75,
+    "file" : "cascade-mutual-home-renewal.pdf",
+    "flags" : [
+      "long number (account or id?)",
+      "phone number"
+    ],
+    "id" : "f05",
+    "leaks" : [
+      "HO-?4471-?889-?2210",
+      "4471",
+      "7731"
+    ],
+    "markdown" : "# Cascade Mutual Homeowners Policy Renewal Notice\n\n**Named insured:** Erik and Anna Halvorsen\n**Policy number:** HO-4471-889-2210\n**Property:** Juniper Lane, Alder Creek, OR\nYour policy will renew on December 15, 2026 for the term 12\/15\/2026 - 12\/15\/2027\n\n**Current term Renewal term**\nDwelling coverage (A) $520,000 to $545,000 Deductible $2,500 to $2,500 Annual premium $1,420.00 to $1,568.00\n\n**Why did my premium change?** Your dwelling coverage was increased 5% to keep pace with rebuilding costs in your area, and regional wildfire and wind rates increased.\nPayment of $1,568.00 is due by 12\/15\/2026. Autopay is set up from the account ending 7731.",
+    "missed" : [
+      "2026-12-15|2027-12-15"
+    ],
+    "model" : "gemma-4-e2b-it-4bit",
+    "outputTokens" : 297,
+    "path" : "finance\/insurance-2.md",
+    "placeOK" : false,
+    "seconds" : 4.992272973060608,
+    "why" : ""
+  },
+  {
+    "action" : "new",
+    "actionOK" : true,
+    "expectAction" : "append|new",
+    "facts" : 1,
+    "file" : "summit-peak-statement-oct-2026.pdf",
+    "flags" : [
+
+    ],
+    "id" : "f06",
+    "leaks" : [
+
+    ],
+    "markdown" : "# Summit Peak Statement October 2026\n\n## Summary\nThis is a monthly statement for the joint checking account from 10\/01\/2026 to 10\/31\/2026.\n\n## Facts Worth Finding\n- **Institution**: Summit Peak Credit Union\n- **Account Type**: Joint Checking Account\n- **Period**: 2026-10-01 to 2026-10-31\n- **Beginning Balance**: $14,208.55\n- **Total Deposits\/Credits**: $12,946.30\n- **Total Withdrawals\/Debits**: $8,512.68\n- **Fees**: $35.00 (including an overdraft fee on 10\/17\/2026)\n- **Ending Balance**: $18,607.17\n- **Dividends Earned YTD**: $3.12",
+    "missed" : [
+
+    ],
+    "model" : "gemma-4-e2b-it-4bit",
+    "outputTokens" : 289,
+    "path" : "finance\/summit-peak-statement-oct-2026.md",
+    "placeOK" : true,
+    "seconds" : 5.017673015594482,
+    "why" : ""
+  },
+  {
+    "action" : "error",
+    "actionOK" : false,
+    "error" : "couldn't read the model's filing reply: DecodingError.dataCorrupted: Data was corrupted. Debug description: The given data was not valid JSON.. Underlying error: Error Domain=NSCocoaErrorDomain Code=3840 \"Unexpected character '}' after top-level value around line 7, column 1.\" UserInfo={NSDebugDescription=Unexpected character '}' after top-level value around line 7, column 1., NSJSONSerializationErrorIndex=3552}",
+    "expectAction" : "new",
+    "facts" : 0,
+    "file" : "rs-case-report-session-4.docx",
+    "flags" : [
+
+    ],
+    "id" : "f07",
+    "leaks" : [
+
+    ],
+    "markdown" : "",
+    "missed" : [
+      "R\\.S\\.",
+      "2026-10-22",
+      "Psalm 34:4",
+      "Session: 4"
+    ],
+    "model" : "gemma-4-e2b-it-4bit",
+    "outputTokens" : 0,
+    "path" : "",
+    "placeOK" : false,
+    "seconds" : 14.183865904808044,
+    "why" : ""
+  },
+  {
+    "action" : "new",
+    "actionOK" : false,
+    "expectAction" : "append",
+    "facts" : 0.75,
+    "file" : "pacific-coast-airlines-confirmation.pdf",
+    "flags" : [
+      "long number (account or id?)"
+    ],
+    "id" : "f08",
+    "leaks" : [
+      "8823",
+      "CR ?4410 ?2289 ?51",
+      "4410"
+    ],
+    "markdown" : "# Pacific Coast Airlines — Booking Confirmation\n\nConfirmation code: QX7R2M\nBooked: 11\/04\/2026\nPassengers (5): Erik Halvorsen, Anna Halvorsen, Leif Halvorsen, Greta Halvorsen, Soren Halvorsen\nCoast Rewards #: CR 4410 2289 51 (Erik)\nOutbound — Mon, Dec 21, 2026 Flight PC 482 Portland (PDX) 7:15 AM -> San Diego (SAN) 9:40 AM\nReturn — Tue, Dec 29, 2026 Flight PC 517 San Diego (SAN) 4:05 PM -> Portland (PDX) 6:25 PM\nFare summary: 5 x $328.50 = $1,642.50 (taxes and fees included) One checked bag per passenger included.\nPaid with Visa ending 8823.",
+    "missed" : [
+      "2026-12-21"
+    ],
+    "model" : "gemma-4-e2b-it-4bit",
+    "outputTokens" : 300,
+    "path" : "life\/trips\/202612_san-diego-christmas\/pacific-coast-airlines-confirmation.md",
+    "placeOK" : false,
+    "seconds" : 5.387734055519104,
+    "why" : ""
+  },
+  {
+    "action" : "new",
+    "actionOK" : true,
+    "expectAction" : "new",
+    "facts" : 1,
+    "file" : "joanna-lentil-soup.txt",
+    "flags" : [
+      "long number (account or id?)",
+      "phone number"
+    ],
+    "id" : "f09",
+    "leaks" : [
+      "541-555-0142",
+      "555-0142"
+    ],
+    "markdown" : "# Joanna's Red Lentil Soup\n\nSource: Anna, provided after small group.\nServes 6. Prep time approx. 40 minutes.\n\n## Ingredients\n- 2 tbsp olive oil\n- 1 onion, 2 carrots, 2 celery stalks, chopped\n- 3 cloves garlic\n- 1 tsp cumin, 1 tsp smoked paprika, 1\/2 tsp turmeric\n- 1 1\/2 cups red lentils, rinsed\n- 1 can (14 oz) diced tomatoes\n- 6 cups chicken or vegetable broth\n- Juice of 1 lemon, salt and pepper, spinach (a couple handfuls)\n\n## Steps\n1. Saute onion, carrot and celery in the oil for 8 minutes. Add garlic and spices for 1 minute.\n2. Add lentils, tomatoes and broth. Simmer for 25 minutes until the lentils fall apart.\n3. Blend half of it with a stick blender, stir in spinach and lemon juice.\n\n## Notes\nMy kids like it with a swirl of yogurt and crusty bread. Freezes great.\n\nCall me anytime - 541-555-0142",
+    "missed" : [
+
+    ],
+    "model" : "gemma-4-e2b-it-4bit",
+    "outputTokens" : 326,
+    "path" : "life\/recipes\/joanna-lentil-soup.md",
+    "placeOK" : true,
+    "seconds" : 6.002879977226257,
+    "why" : ""
+  },
+  {
+    "action" : "append",
+    "actionOK" : false,
+    "expectAction" : "skip",
+    "facts" : 0,
+    "file" : "barlow-plumbing-invoice-faucet.pdf",
+    "flags" : [
+
+    ],
+    "id" : "f10",
+    "leaks" : [
+
+    ],
+    "markdown" : "| 2026-10-03 | Kitchen faucet leak fixed | Barlow Plumbing | $185 | Cartridge replaced. Paid by card ending 4417 on 10\/03\/2026. |",
+    "missed" : [
+
+    ],
+    "model" : "gemma-4-e2b-it-4bit",
+    "outputTokens" : 108,
+    "path" : "home\/maintenance-log.md",
+    "placeOK" : false,
+    "seconds" : 2.3721729516983032,
+    "why" : ""
+  },
+  {
+    "action" : "new",
+    "actionOK" : false,
+    "expectAction" : "append",
+    "facts" : 0.5,
+    "file" : "alder-creek-elementary-flyer.png",
+    "flags" : [
+
+    ],
+    "id" : "f11",
+    "leaks" : [
+
+    ],
+    "markdown" : "# Alder Creek Elementary Flyer - November 2026\n\n**Event 1: Fall Book Fair Family Night**\n- Date: November 18\n- Event: Book fair in the Zafeteria\n- Activity: Candle reading by the librarian.\n\n**Event 2: Winter Concert (Grades 3-5)**\n- Date: December\n- Activity: Students performing by 3:30 PM in dark pants and a white top.\n\n**Note:** Volunteers needed for both events. Sign up at the front office. Reminder: No school November 25-27 for Thanksgiving break.",
+    "missed" : [
+      "2026-11-18",
+      "2026-12-10"
+    ],
+    "model" : "gemma-4-e2b-it-4bit",
+    "outputTokens" : 230,
+    "path" : "life\/alder-creek-elementary-flyer_20261118.md",
+    "placeOK" : false,
+    "seconds" : 4.437138915061951,
+    "why" : "This file contains information from a flyer regarding upcoming events at Alder Creek Elementary."
+  },
+  {
+    "action" : "new",
+    "actionOK" : true,
+    "expectAction" : "new",
+    "facts" : 1,
+    "file" : "bright-smile-receipt-erik-2026-11-04.png",
+    "flags" : [
+      "long number (account or id?)"
+    ],
+    "id" : "f12",
+    "leaks" : [
+      "NSD-?55102948",
+      "55102948"
+    ],
+    "markdown" : "# Bright Smile Receipt for Erik Halvorsen\n\n**Provider:** Karin Lindgren, DDS\n**Date of Service:** 2026-11-04\n**Services:** D1110 Adult prophylaxis (cleaning), Periodic oral exam, Bitewing x-rays (four films).\n**Charges:** $128.00 total.\n**Insurance Paid:** $62.00 (Northstar Dental, Subscriber ID NSD-55102948).\n**Patient Paid:** $74.00.\n\n**Notes:** No cavities found. Next cleaning due May 2029; use a soft brush for lower front teeth recession.",
+    "missed" : [
+
+    ],
+    "model" : "gemma-4-e2b-it-4bit",
+    "outputTokens" : 239,
+    "path" : "finance\/bright-smile-receipt-erik-2026-11-04.png.md",
+    "placeOK" : false,
+    "seconds" : 4.213648080825806,
+    "why" : "This file contains a receipt from a dental visit for Erik Halvorsen."
+  }
+]

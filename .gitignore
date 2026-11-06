@@ -5,3 +5,7 @@ DerivedData/
 build/
 eval/household/run.log
 eval/household/run2.log
+eval/household/run3.log
+eval/household/run4.log
+eval/household/memory.log
+eval/household/.run-snapshot.sh

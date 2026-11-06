@@ -17,6 +17,8 @@ struct EvalQuestion: Codable {
     /// Household fixture: the domain, and the vault paths that hold the answer.
     var domain: String?
     var paths: [String]?
+    /// Wrong-answer signatures (a superseded value, another person's number): a match zeroes `facts`.
+    var reject: [String]?
 }
 
 struct EvalResult: Codable {
@@ -26,6 +28,8 @@ struct EvalResult: Codable {
     var answer: String
     var facts: Double
     var missed: [String]
+    /// `reject` patterns the answer matched.
+    var wrong: [String]?
     var recall: Double?
     /// Share of expected facts present in the passages given to the model:
     /// a section-level retrieval score (session-level `recall` hid misses).
@@ -45,6 +49,7 @@ struct EvalResult: Codable {
     var mode: String?
     var embedder: String?
     var reranker: Bool?
+    var rerankerModel: String?
 }
 
 /// Which model and embedder answered, from the environment the eval ran in.
@@ -88,6 +93,7 @@ func runEval(questionsPath: String, label: String, outDir: URL, only: Set<String
         for pat in q.expect {
             if a.text.range(of: pat, options: [.regularExpression, .caseInsensitive]) != nil { hit += 1 } else { missed.append(pat) }
         }
+        let wrong = (q.reject ?? []).filter { a.text.range(of: $0, options: [.regularExpression, .caseInsensitive]) != nil }
         let ids = Set(a.sources.map { ($0.noteId as NSString).lastPathComponent })
         let recall: Double? = q.sessions.isEmpty ? nil
             : Double(q.sessions.filter { ids.contains(sessionNoteId($0)) }.count) / Double(q.sessions.count)
@@ -100,11 +106,13 @@ func runEval(questionsPath: String, label: String, outDir: URL, only: Set<String
         let pathRecall: Double? = (q.paths ?? []).isEmpty ? nil
             : Double(q.paths!.filter { p in srcPaths.contains { $0 == p || $0.hasSuffix("/" + p) || p.hasSuffix($0) } }.count) / Double(q.paths!.count)
         let r = EvalResult(id: q.id, kind: q.kind, question: q.question, answer: a.text,
-                           facts: retrievalOnly ? 0 : Double(hit) / Double(max(q.expect.count, 1)), missed: missed, recall: recall,
+                           facts: retrievalOnly || !wrong.isEmpty ? 0 : Double(hit) / Double(max(q.expect.count, 1)), missed: missed,
+                           wrong: wrong.isEmpty ? nil : wrong, recall: recall,
                            contextRecall: contextRecall, badCitations: a.badCitations, cited: cited, promptTokens: a.stats.promptTokens, outputTokens: a.stats.outputTokens,
                            tokPerSec: a.stats.tokPerSec, seconds: secs, sources: a.sources.map { citation($0) },
                            domain: q.domain, pathRecall: pathRecall, model: model, mode: mode,
-                           embedder: Config.embedSpec.label, reranker: await Reranker.shared() != nil)
+                           embedder: Config.embedSpec.label, reranker: await Reranker.shared() != nil,
+                           rerankerModel: await Reranker.shared() != nil ? Reranker.label : nil)
         results.append(r)
         log(String(format: "%@ facts %.0f%% context %@ recall %@ cited %@ · %d tok at %.1f tok/s · %.0fs", q.id, r.facts * 100,
                    contextRecall.map { String(format: "%.0f%%", $0 * 100) } ?? "—",
@@ -205,7 +213,7 @@ func runFilingEval(casesPath: String, label: String, outDir: URL, only: Set<Stri
                 r.missed = []
             } else {
                 r.placeOK = f.action != "skip" && found(c.expect_path, f.path)
-                let saved = f.title + "\n" + f.markdown
+                let saved = f.savedText  // title, entry, properties and follow-ups
                 r.missed = c.expect_facts.filter { !found($0, saved) }
                 r.facts = c.expect_facts.isEmpty ? 1 : Double(c.expect_facts.count - r.missed.count) / Double(c.expect_facts.count)
                 r.leaks = c.forbid.filter { found($0, saved) }

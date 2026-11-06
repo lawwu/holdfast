@@ -72,10 +72,19 @@ final class Reranker: @unchecked Sendable {
     // Instruction-aware reranking adds a few points for Qwen3-Reranker; the
     // instruction comes from the vault's profile (Profile.swift).
 
+    /// Which reranker: MACKB_RERANK_REPO (e.g. mlx-community/Qwen3-Reranker-4B-mxfp8), else 0.6B 4-bit.
+    static var repo: String {
+        ProcessInfo.processInfo.environment["MACKB_RERANK_REPO"] ?? "mlx-community/Qwen3-Reranker-0.6B-4bit"
+    }
+    /// Short name for reports, e.g. "Qwen3-Reranker-4B".
+    static var label: String {
+        (repo.components(separatedBy: "/").last ?? repo).replacingOccurrences(of: #"-(4bit|8bit|mxfp8|bf16)$"#, with: "", options: .regularExpression)
+    }
+
     static var modelDir: URL? {
         if let p = ProcessInfo.processInfo.environment["MACKB_RERANK_DIR"] { return URL(fileURLWithPath: p) }
         let snaps = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".cache/huggingface/hub/models--mlx-community--Qwen3-Reranker-0.6B-4bit/snapshots")
+            .appendingPathComponent(".cache/huggingface/hub/models--\(repo.replacingOccurrences(of: "/", with: "--"))/snapshots")
         guard let s = try? FileManager.default.contentsOfDirectory(atPath: snaps.path).sorted().last else { return nil }
         return snaps.appendingPathComponent(s)
     }
@@ -292,7 +301,7 @@ final class MLXBackend: LLMBackend, @unchecked Sendable {
                                         topK: Config.topK, presencePenalty: Float(Config.presencePenalty))
         let (text, info) = try await container.perform { (context: ModelContext) -> (String, GenerateCompletionInfo?) in
             let input = try await context.processor.prepare(
-                input: UserInput(chat: [.system(system), .user(user)], additionalContext: ["enable_thinking": false]))
+                input: UserInput(chat: [.system(system), .user(user)], additionalContext: Config.templateContext))
             var text = ""
             var info: GenerateCompletionInfo?
             for await g in try generate(input: input, parameters: params, context: context) {

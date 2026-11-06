@@ -1,0 +1,9 @@
+CASCADE ORTHOPEDICS — Patient Statement
+Patient: Leif Halvorsen     Guarantor: Erik Halvorsen
+Account: CO-5571923        Insurance: Northstar Health Plan, member ID NHP-88231460
+
+Date of service 2026-10-22 — office visit, wrist X-ray (3 views), wrist brace
+Charges                    $410.00
+Insurance paid            -$215.00
+Copay paid at visit        -$50.00
+BALANCE DUE                $145.00   Please pay by 2026-11-30.
