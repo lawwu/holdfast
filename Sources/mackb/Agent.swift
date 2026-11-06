@@ -20,6 +20,7 @@ enum Agent {
         case token(String)  // streamed text of the current turn
         case resetText      // the streamed text was a preamble to tool calls
         case stepDetail(String)  // the exact call and what it returned, for the step just announced
+        case sources([Chunk])    // passages gathered so far, so [n] links work before the answer is done
     }
 
     static let instructions = """
@@ -126,6 +127,7 @@ enum Agent {
                 let preamble = stripThoughts(said).trimmingCharacters(in: .whitespacesAndNewlines)
                 if k == 0, !preamble.isEmpty { detail = "Model: \(preamble)\n\n" + detail }
                 onEvent(.stepDetail(detail))
+                onEvent(.sources(ctx.sources))
                 next.append(.tool(result, name: call.function.name))
             }
         }

@@ -364,6 +364,7 @@ final class Store: ObservableObject {
                             switch ev {
                             case .step(let s): self.steps.append(s); self.busy = Steps.split(s).title + "…"
                             case .stepDetail(let d): self.attachDetail(d)
+                            case .sources(let c): self.sources = c
                             case .token(let t): self.answer += t
                             case .resetText: self.answer = ""
                             }
@@ -374,7 +375,8 @@ final class Store: ObservableObject {
                                  + Steps.sep + "search(\"\(q)\")" + (prior.isEmpty ? "" : "\nwith earlier turns: \(prior.count)"))
                     busy = "Searching your notes…"
                     let raw = TextBox()
-                    a = try await ask(q, embedder: emb, llm: llm, prior: prior) { tok in
+                    a = try await ask(q, embedder: emb, llm: llm, prior: prior,
+                                      onSources: { hits in Task { @MainActor in self.sources = hits } }) { tok in
                         raw.append(tok)
                         let shown = Thinking.visible(raw.text)
                         Task { @MainActor in
@@ -391,6 +393,7 @@ final class Store: ObservableObject {
                     if Router.shouldEscalate(a), let mlx = llm as? MLXBackend {
                         escalated = true
                         answer = ""
+                        sources = []
                         busy = "Looking deeper…"
                         steps.append("No direct answer: looking deeper (reading notes, checking tables)")
                         a = try await Agent.run(q, embedder: emb, backend: mlx, prior: prior) { ev in
@@ -398,6 +401,7 @@ final class Store: ObservableObject {
                                 switch ev {
                                 case .step(let s): self.steps.append(s); self.busy = Steps.split(s).title + "…"
                                 case .stepDetail(let d): self.attachDetail(d)
+                                case .sources(let c): self.sources = c
                                 case .token(let t): self.answer += t
                                 case .resetText: self.answer = ""
                                 }
