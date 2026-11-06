@@ -22,10 +22,13 @@ final class TextBox: @unchecked Sendable {
 
 func citation(_ c: Chunk) -> String { "[[\(c.noteId)#\(c.anchor)]]" }
 
-func ask(_ question: String, embedder: Embedder?, llm: LLMBackend = OllamaBackend(),
+func ask(_ question: String, embedder: Embedder?, llm: LLMBackend = OllamaBackend(), prior: [(q: String, a: String)] = [],
          stream: (@Sendable (String) -> Void)? = nil) async throws -> Answer {
     let t0 = Date()
-    let hits = try await search(question, embedder: embedder, reranker: await Reranker.shared(), limit: Config.contextChunks)
+    // A short follow-up ("what about Greta?") is searched together with the question before it.
+    let short = question.split(whereSeparator: \.isWhitespace).count <= Conversation.shortFollowUpWords
+    let query = short && !prior.isEmpty ? prior.last!.q + " " + question : question
+    let hits = try await search(query, embedder: embedder, reranker: await Reranker.shared(), limit: Config.contextChunks)
     let rt = Date().timeIntervalSince(t0)
     guard !hits.isEmpty else {
         // Abstain before generating: nothing relevant enough, so don't ask the 27B to guess.
@@ -43,7 +46,7 @@ func ask(_ question: String, embedder: Embedder?, llm: LLMBackend = OllamaBacken
         manuals += "Folder manual — \(m.path):\n\(m.text)\n\n"
     }
     let profile = Profile.forPassages(hits)
-    let user = (manuals.isEmpty ? "" : manuals + "---\n\n") + "Passages:\n\n\(ctx)Question: \(question)"
+    let user = Conversation.context(prior) + (manuals.isEmpty ? "" : manuals + "---\n\n") + "Passages:\n\n\(ctx)Question: \(question)"
     let system = profile.systemPrompt + "\n\n" + todayLine()
     let box = TextBox()
     let stats = try await llm.chat(system: system, user: user) { tok in
@@ -56,6 +59,22 @@ func ask(_ question: String, embedder: Embedder?, llm: LLMBackend = OllamaBacken
         .compactMap { Range($0.range(at: 1), in: box.text).flatMap { Int(box.text[$0]) } } ?? []
     let bad = Array(Set(cited.filter { $0 < 1 || $0 > hits.count })).sorted()
     return Answer(text: stripThoughts(box.text), badCitations: bad, sources: hits, stats: stats, retrievalSeconds: rt)
+}
+
+/// Follow-ups: what earlier turns of a conversation the model sees.
+enum Conversation {
+    /// Earlier turns given to the model (newest last).
+    static let turns = 3
+    /// Characters of each earlier answer it sees.
+    static let answerChars = 900
+    /// A follow-up this short is searched together with the question before it.
+    static let shortFollowUpWords = 12
+
+    static func context(_ prior: [(q: String, a: String)]) -> String {
+        guard !prior.isEmpty else { return "" }
+        let turns = prior.suffix(turns).map { "Q: \($0.q)\nA: \(String($0.a.prefix(answerChars)))" }.joined(separator: "\n\n")
+        return "Earlier in this conversation (for context; answer the new question from the passages):\n\n\(turns)\n\n---\n\n"
+    }
 }
 
 func formatSources(_ a: Answer) -> String {

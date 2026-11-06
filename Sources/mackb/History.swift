@@ -14,6 +14,12 @@ struct HistoryEntry: Codable, Identifiable {
     var sources: [HistorySource]
     /// Research mode's tool steps, if it was used.
     var steps: [String]?
+    /// The conversation this turn belongs to (nil: a conversation of its own, as before conversations existed).
+    var conversationId: UUID?
+    /// How the router handled it ("Answered from the closest passages", "Looked deeper…").
+    var route: String?
+
+    var thread: UUID { conversationId ?? id }
 
     init(question: String, answer: String, model: String, stats: AnswerStats, sources: [Chunk]) {
         self.question = question

@@ -529,3 +529,32 @@ struct PacksSection: View {
         counts = Dictionary(uniqueKeysWithValues: packs.compactMap { m in Packs.count(m.id).map { (m.id, $0.chunks) } })
     }
 }
+
+// MARK: - Earlier turns of a conversation
+
+struct TurnView: View {
+    @EnvironmentObject var store: Store
+    var entry: HistoryEntry
+    @State private var showSources = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            QuestionHeader(text: entry.question)
+            if let steps = entry.steps, !steps.isEmpty { StepsList(steps: steps, running: false) }
+            MarkdownBlocks(text: entry.answer)
+            HStack(spacing: 12) {
+                if !entry.sources.isEmpty {
+                    Button(showSources ? "Hide sources" : "\(entry.sources.count) sources") { showSources.toggle() }.buttonStyle(.link).font(.caption)
+                }
+                if let r = entry.route { Label(r, systemImage: "arrow.triangle.branch").font(.caption).foregroundStyle(.tertiary) }
+            }
+            if showSources {
+                ForEach(Array(entry.sources.enumerated()), id: \.offset) { i, s in
+                    Button { store.open(s.chunk) } label: {
+                        Text("[\(i + 1)] \(s.title) — \(s.anchor)").font(.caption).lineLimit(1)
+                    }.buttonStyle(.link)
+                }
+            }
+        }
+    }
+}
