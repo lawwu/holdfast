@@ -750,6 +750,7 @@ struct LibraryView: View {
                             SectionTitle(title: "Results", count: store.results.count)
                             ForEach(Array(store.results.enumerated()), id: \.offset) { _, c in SourceCard(chunk: c) }
                         } else {
+                            PacksSection().padding(.bottom, 8)
                             ForEach(grouped, id: \.0) { kind, notes in
                                 SectionTitle(title: Theme.label(kind), count: notes.count)
                                 ForEach(notes, id: \.path) { n in NoteRow(note: n) }

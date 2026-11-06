@@ -473,3 +473,57 @@ func filingPlace(_ n: Note) -> String? {
     guard n.meta["kind"] == "filing", let t = n.meta["target"] else { return nil }
     return n.meta["action"] == "new" ? (t as NSString).deletingLastPathComponent + "/" : t
 }
+
+// MARK: - Knowledge packs (Library)
+
+struct PacksSection: View {
+    @EnvironmentObject var store: Store
+    @State private var packs: [PackManifest] = Packs.installed()
+    @State private var enabled = Packs.enabled()
+    @State private var counts: [String: Int] = [:]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("KNOWLEDGE PACKS").font(.caption.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
+                Spacer()
+                Button("Show in Finder") {
+                    try? FileManager.default.createDirectory(at: Packs.dir, withIntermediateDirectories: true)
+                    NSWorkspace.shared.open(Packs.dir)
+                }.buttonStyle(.link).font(.caption)
+            }
+            if packs.isEmpty {
+                Text("Reference collections (a Bible, a wiki) that Ask can quote beside your notes. None installed.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+            ForEach(packs) { m in
+                HStack(alignment: .top, spacing: 10) {
+                    Toggle("", isOn: Binding(get: { enabled.contains(m.id) }, set: { on in
+                        Packs.setEnabled(m.id, on); enabled = Packs.enabled()
+                    })).toggleStyle(.switch).labelsHidden().controlSize(.small)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(m.name).font(.callout.weight(.semibold))
+                        Text(m.description).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                        Text("\(m.license) · \(m.attribution)").font(.caption2).foregroundStyle(.tertiary).lineLimit(2)
+                    }
+                    Spacer()
+                    if let n = counts[m.id] {
+                        Text("\(n) passages").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                    } else {
+                        Button("Index") { store.indexPack(m.id) }.buttonStyle(.bordered).controlSize(.small)
+                    }
+                }
+                .padding(10)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.primary.opacity(0.035)))
+            }
+        }
+        .onAppear(perform: refresh)
+        .onChange(of: store.indexCounts.chunks) { refresh() }
+    }
+
+    func refresh() {
+        packs = Packs.installed()
+        enabled = Packs.enabled()
+        counts = Dictionary(uniqueKeysWithValues: packs.compactMap { m in Packs.count(m.id).map { (m.id, $0.chunks) } })
+    }
+}

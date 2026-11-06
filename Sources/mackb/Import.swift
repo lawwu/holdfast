@@ -211,12 +211,12 @@ enum BulkImport {
     /// "Bring in as-is": Markdown and CSV are copied; spreadsheets become CSV
     /// tables; everything else becomes a Markdown note of its text (originals kept
     /// outside the vault). No model: only OCR and transcription where needed.
-    static func asIs(_ sources: [URL], into folder: String,
+    static func asIs(_ sources: [URL], into folder: String, root: URL = Config.vault, keepOriginals: Bool = true,
                      progress: @escaping @Sendable (Int, Int, String) async -> Void) async -> Report {
         var report = Report(folder: folder)
         let (items, skipped) = plan(sources)
         report.skipped = skipped.map(\.lastPathComponent)
-        let dest = Config.vault.appendingPathComponent(folder)
+        let dest = root.appendingPathComponent(folder)
         let fm = FileManager.default
         for (i, item) in items.enumerated() {
             await progress(i, items.count, item.rel)
@@ -255,8 +255,10 @@ enum BulkImport {
                         base = base.deletingLastPathComponent().appendingPathComponent(day + subj.replacingOccurrences(of: "/", with: "-").prefix(80))
                     }
                     let keep = originals.appendingPathComponent(folder).appendingPathComponent(item.rel)
-                    try fm.createDirectory(at: keep.deletingLastPathComponent(), withIntermediateDirectories: true)
-                    try? fm.copyItem(at: item.file, to: Drop.unique(keep, ifExists: true))
+                    if keepOriginals {
+                        try fm.createDirectory(at: keep.deletingLastPathComponent(), withIntermediateDirectories: true)
+                        try? fm.copyItem(at: item.file, to: Drop.unique(keep, ifExists: true))
+                    }
                     let note = Note(path: Drop.unique(base.appendingPathExtension("md"), ifExists: true),
                                     meta: ["title": title, "source": item.file.lastPathComponent, "imported": Drop.dayString(mackb.today())],
                                     body: "\n# \(title)\n\n" + text + "\n")

@@ -161,7 +161,7 @@ final class ToolContext: @unchecked Sendable {
             case "read_note":
                 let p = str(call, "path").trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
                 step("Read \(p)"); log.append("read: \(p)")
-                guard let n = findNote(p) else { return "No note at \(p). Use list_folder to see what exists." }
+                guard let n = findNote(p) ?? Packs.note(p) else { return "No note at \(p). Use list_folder to see what exists." }
                 var text = n.body
                 if text.count > Agent.readChars { text = String(text.prefix(Agent.readChars)) + "\n[… truncated]" }
                 let c = Chunk(noteId: n.id, relPath: n.relPath, title: n.title, anchor: n.title, text: text)

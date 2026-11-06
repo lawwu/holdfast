@@ -47,7 +47,7 @@ struct Note {
     /// folder (imports, memories, inbox) are shown as "@sources/…" etc.
     var relPath: String {
         let p = path.standardizedFileURL.path
-        for (root, prefix) in [(Config.vault, ""), (Config.stateDir, "@")] {
+        for (root, prefix) in [(Config.vault, ""), (Config.stateDir, "@"), (Packs.dir, Packs.prefix)] {
             let r = root.standardizedFileURL.path + "/"
             if p.hasPrefix(r) { return prefix + String(p.dropFirst(r.count)) }
         }

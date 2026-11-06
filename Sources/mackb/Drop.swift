@@ -181,7 +181,7 @@ enum Drop {
     static func decide(_ url: URL, text: String, embedder: Embedder?, llm: LLMBackend) async throws -> Decision {
         let doc = String(text.prefix(maxDocChars))
         let probe = url.deletingPathExtension().lastPathComponent + "\n" + String(doc.prefix(1500))
-        let hits = (try? await search(probe, embedder: embedder, limit: 24)) ?? []
+        let hits = (try? await search(probe, embedder: embedder, limit: 24, packs: false)) ?? []  // filing goes into your notes, never a pack
         var seen = Set<String>(), related: [String] = [], shown: [String] = []
         for h in hits where !h.relPath.hasPrefix("@") && seen.insert(h.relPath).inserted {
             related.append("- \(h.relPath) — \(h.title)")
