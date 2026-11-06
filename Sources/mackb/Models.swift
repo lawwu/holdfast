@@ -307,6 +307,7 @@ final class MLXBackend: LLMBackend, @unchecked Sendable {
             var text = ""
             var info: GenerateCompletionInfo?
             for await g in try generate(input: input, parameters: params, context: context) {
+                if Task.isCancelled { break }  // Stop: keep what was written so far
                 switch g {
                 case .chunk(let s):
                     text += s

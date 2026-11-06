@@ -569,7 +569,9 @@ struct SourcesSection: View {
                 Text("\(store.sources.count)").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
                     .padding(.horizontal, 6).padding(.vertical, 1).background(Capsule().fill(.quaternary))
             }
-            ForEach(Array(store.sources.enumerated()), id: \.offset) { i, c in
+            // Most relevant first; each card keeps the number the answer cites it by.
+            let ranked = store.sources.enumerated().sorted { ($0.element.score ?? 0) > ($1.element.score ?? 0) }
+            ForEach(ranked, id: \.offset) { i, c in
                 SourceCard(n: i + 1, chunk: c)
             }
         }
@@ -660,6 +662,19 @@ struct Composer: View {
                     .focused($focused)
                     .onSubmit { store.runAsk() }
                     .padding(.vertical, 5)
+                if store.busy != nil && !store.askedQuestion.isEmpty {
+                    // While an answer is being written: Stop (keeps what's written so far).
+                    Button { store.stopAsk() } label: {
+                        Image(systemName: "stop.fill")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 28, height: 28)
+                            .background(Circle().fill(Theme.gradient))
+                    }
+                    .buttonStyle(.plain)
+                    .keyboardShortcut(".", modifiers: .command)
+                    .help("Stop generating (⌘.)")
+                } else {
                 Button { store.runAsk() } label: {
                     Image(systemName: "arrow.up")
                         .font(.system(size: 13, weight: .bold))
@@ -671,6 +686,7 @@ struct Composer: View {
                 .keyboardShortcut(.return, modifiers: .command)
                 .disabled(!canSend)
                 .help("Ask (Return)")
+                }
             }
             .padding(.leading, 16).padding(.trailing, 8).padding(.vertical, 8)
             .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.card))
@@ -1325,6 +1341,7 @@ struct StepsList: View {
         if s.hasPrefix("Planning") { return "list.bullet.indent" }
         if s.hasPrefix("No direct") || s.hasPrefix("Found nothing") { return "arrow.down.right.circle" }
         if s.hasPrefix("Done") { return "checkmark.circle" }
+        if s.hasPrefix("Stopped") { return "stop.circle" }
         if s.hasPrefix("Thinking") { return "brain" }
         return "circle"
     }

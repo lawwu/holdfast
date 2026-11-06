@@ -199,6 +199,11 @@ final class Store: ObservableObject {
     @Published var turnStarted: Date?
     /// A past conversation opened for reading while another is still generating.
     @Published var reading: ThreadRef?
+    /// The answer being generated, so Stop can cancel it.
+    private var askTask: Task<Void, Never>?
+
+    /// Stops the answer mid-way; what was written so far is kept (and saved, marked as stopped).
+    func stopAsk() { askTask?.cancel() }
 
     /// Past conversations, newest first: each with its first question, latest turn and length.
     var conversations: [(first: HistoryEntry, latest: HistoryEntry, count: Int)] {
@@ -352,7 +357,7 @@ final class Store: ObservableObject {
         default: break
         }
         let useAgent = route == .research && backend == .mlx  // the old Research toggle no longer applies
-        Task {
+        askTask = Task {
             do {
                 let emb = await getEmbedder()
                 let llm = try await getLLM()
@@ -394,7 +399,7 @@ final class Store: ObservableObject {
                                   : "Read \(a.sources.count) passages from \(noteCount) note\(noteCount == 1 ? "" : "s")")
                                  + (a.sources.isEmpty ? "" : Steps.sep + a.sources.enumerated().map { "[\($0.offset + 1)] \($0.element.relPath) › \($0.element.anchor)" }.joined(separator: "\n")))
                     // Found nothing? Look deeper before giving up.
-                    if Router.shouldEscalate(a), let mlx = llm as? MLXBackend {
+                    if !Task.isCancelled, Router.shouldEscalate(a), let mlx = llm as? MLXBackend {
                         escalated = true
                         answer = ""
                         sources = []
@@ -422,7 +427,7 @@ final class Store: ObservableObject {
                     warning = "The answer cites passages that don't exist: " + a.badCitations.map { "[\($0)]" }.joined(separator: ", ")
                 }
                 var entry = HistoryEntry(question: q, answer: a.text, model: model, stats: answerStats!, sources: a.sources)
-                steps.append(String(format: "Done in %.0f s", Date().timeIntervalSince(t0)))
+                steps.append(String(format: Task.isCancelled ? "Stopped after %.0f s" : "Done in %.0f s", Date().timeIntervalSince(t0)))
                 entry.steps = steps
                 entry.conversationId = convo
                 entry.route = routeNote

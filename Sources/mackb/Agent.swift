@@ -101,6 +101,7 @@ enum Agent {
             var text = ""
             var calls: [ToolCall] = []
             for try await g in session.streamDetails(to: next) {
+                if Task.isCancelled { break }
                 switch g {
                 case .chunk(let c): text += c; onEvent(.token(c))
                 case .toolCall(let c): calls.append(c)
@@ -110,6 +111,7 @@ enum Agent {
                 default: break
                 }
             }
+            if Task.isCancelled { final = text; break }  // Stop: no more steps
             let (thought, said) = Thinking.split(text)
             if !thought.isEmpty { onEvent(.step("Thinking" + Steps.sep + thought)) }
             if calls.isEmpty || step == maxSteps {
