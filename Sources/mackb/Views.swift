@@ -179,6 +179,7 @@ struct RootView: View {
         }
         .sheet(isPresented: $store.showLinkSheet) { LinkSheet() }
         .sheet(isPresented: $store.showBulkImport) { BulkImportSheet().environmentObject(store) }
+        .sheet(item: $store.reading) { t in ConversationReader(thread: t.id).environmentObject(store) }
         .sheet(isPresented: $store.showQuickOpen) { QuickOpen().environmentObject(store) }
         .sheet(isPresented: $store.showPalette) { CommandPalette().environmentObject(store) }
         .sheet(item: $store.preview) { o in

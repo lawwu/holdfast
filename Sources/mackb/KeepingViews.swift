@@ -558,3 +558,39 @@ struct TurnView: View {
         }
     }
 }
+
+/// A past conversation, read-only, opened while another one is generating.
+struct ConversationReader: View {
+    @EnvironmentObject var store: Store
+    @Environment(\.dismiss) private var dismiss
+    var thread: UUID
+
+    var body: some View {
+        let turns = store.history.filter { $0.thread == thread }.sorted { $0.date < $1.date }
+        VStack(spacing: 0) {
+            HStack {
+                Text(turns.first?.question ?? "Conversation").font(.headline).lineLimit(1)
+                Spacer()
+                Button("Continue This Conversation") {
+                    if let last = turns.last { dismiss(); store.openHistory(last) }
+                }
+                .disabled(store.busy != nil)
+                .help(store.busy != nil ? "Available when the current answer finishes" : "Open it in Ask to ask a follow-up")
+                Button("Done") { dismiss() }.keyboardShortcut(.cancelAction)
+            }
+            .padding(14)
+            Divider()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    ForEach(turns) { t in
+                        TurnView(entry: t)
+                        Divider()
+                    }
+                }
+                .padding(20)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .frame(minWidth: 620, idealWidth: 720, minHeight: 480, idealHeight: 640)
+    }
+}
