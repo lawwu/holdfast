@@ -21,12 +21,14 @@ func extractText(_ url: URL) throws -> String {
         return try Formats.text(url)
     case "pdf":
         guard let doc = PDFDocument(url: url) else { throw MacKBError("can't open PDF \(url.lastPathComponent)") }
+        // Page by page: a page with no text layer (a scan, a photo of a form) is read
+        // with on-device OCR, so a PDF that mixes typed and scanned pages reads in full.
         var pages: [String] = []
-        for i in 0..<doc.pageCount { pages.append(doc.page(at: i)?.string ?? "") }
-        let text = pages.joined(separator: "\n\n")
-        // Scanned handouts have no text layer: OCR them on-device with Vision.
-        if text.trimmingCharacters(in: .whitespacesAndNewlines).count < 40 { return ocrPDF(doc) }
-        return text
+        for i in 0..<doc.pageCount {
+            let t = doc.page(at: i)?.string ?? ""
+            pages.append(t.trimmingCharacters(in: .whitespacesAndNewlines).count < 20 ? ocrPDFPage(doc, i) : t)
+        }
+        return pages.joined(separator: "\n\n")
     default:
         return try run("/usr/bin/textutil", ["-convert", "txt", "-stdout", url.path])
     }
@@ -34,20 +36,19 @@ func extractText(_ url: URL) throws -> String {
 
 /// Apple Vision OCR, page by page, at ~2x resolution. Built into macOS; nothing leaves the Mac.
 func ocrPDF(_ doc: PDFDocument) -> String {
-    var out: [String] = []
-    for i in 0..<doc.pageCount {
-        guard let page = doc.page(at: i) else { continue }
-        let bounds = page.bounds(for: .mediaBox)
-        let img = page.thumbnail(of: CGSize(width: bounds.width * 2, height: bounds.height * 2), for: .mediaBox)
-        guard let cg = img.cgImage(forProposedRect: nil, context: nil, hints: nil) else { continue }
-        let req = VNRecognizeTextRequest()
-        req.recognitionLevel = .accurate
-        req.usesLanguageCorrection = true
-        try? VNImageRequestHandler(cgImage: cg).perform([req])
-        let lines = (req.results ?? []).compactMap { $0.topCandidates(1).first?.string }
-        out.append(lines.joined(separator: "\n"))
-    }
-    return out.joined(separator: "\n\n")
+    (0..<doc.pageCount).map { ocrPDFPage(doc, $0) }.joined(separator: "\n\n")
+}
+
+func ocrPDFPage(_ doc: PDFDocument, _ i: Int) -> String {
+    guard let page = doc.page(at: i) else { return "" }
+    let bounds = page.bounds(for: .mediaBox)
+    let img = page.thumbnail(of: CGSize(width: bounds.width * 2, height: bounds.height * 2), for: .mediaBox)
+    guard let cg = img.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return "" }
+    let req = VNRecognizeTextRequest()
+    req.recognitionLevel = .accurate
+    req.usesLanguageCorrection = true
+    try? VNImageRequestHandler(cgImage: cg).perform([req])
+    return (req.results ?? []).compactMap { $0.topCandidates(1).first?.string }.joined(separator: "\n")
 }
 
 /// Word bullets and tabs come through textutil as odd characters; make them Markdown.

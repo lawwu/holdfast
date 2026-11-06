@@ -425,9 +425,11 @@ struct ImportProgressBar: View {
         if let p = store.importProgress {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(p.total == 0 ? "Opening files…" : "Importing \(min(p.done + 1, p.total)) of \(p.total)").font(.callout.weight(.medium))
+                    Text(p.total == 0 ? (store.jobTitle == "Importing" ? "Opening files…" : "Getting ready…")
+                         : "\(store.jobTitle) \(min(p.done + 1, p.total)) of \(p.total)").font(.callout.weight(.medium))
                     Spacer()
                     Text(p.file).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                    if store.jobTitle != "Importing" { Button("Stop") { store.stopJob() }.buttonStyle(.bordered).controlSize(.small) }
                 }
                 if p.total > 0 { ProgressView(value: Double(p.done), total: Double(p.total)) } else { ProgressView().progressViewStyle(.linear) }
             }

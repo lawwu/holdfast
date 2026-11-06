@@ -521,6 +521,9 @@ struct AnswerCard: View {
             }
             if let s = store.answerStats {
                 Divider()
+                if let r = store.routeNote {
+                    Label(r, systemImage: "arrow.triangle.branch").font(.caption).foregroundStyle(.secondary)
+                }
                 HStack(spacing: 14) {
                     Label("\(s.passages) passages", systemImage: "text.quote")
                     Label("\(s.tokens) tokens", systemImage: "number")
@@ -676,13 +679,6 @@ struct Composer: View {
                 .menuStyle(.borderlessButton)
                 .fixedSize()
                 .font(.caption)
-                Toggle(isOn: $store.research) {
-                    Label("Research", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
-                }
-                .toggleStyle(.button)
-                .controlSize(.small)
-                .disabled(store.backend != .mlx)
-                .help("Research mode: the model searches, reads notes, lists folders and queries CSV tables in steps before answering. Slower, better for questions that span files or need numbers. MLX models only.")
                 Button { store.chooseFilesToAdd() } label: {
                     Label("Add Files", systemImage: "tray.and.arrow.down")
                 }
@@ -970,10 +966,10 @@ struct InboxCard: View {
             if isFiling, let target = note.meta["target"] {
                 VStack(alignment: .leading, spacing: 4) {
                     Label {
-                        Text(note.meta["action"] == "append" ? "Append to " : "New note ")
+                        Text(note.meta["action"] == "link" ? "Add a link in " : note.meta["action"] == "append" ? "Append to " : "New note ")
                             + Text(target).font(.callout.monospaced()).foregroundColor(Theme.accent)
                     } icon: {
-                        Image(systemName: note.meta["action"] == "append" ? "text.append" : "doc.badge.plus")
+                        Image(systemName: note.meta["action"] == "link" ? "link" : note.meta["action"] == "append" ? "text.append" : "doc.badge.plus")
                     }
                     .font(.callout)
                     if let why = note.meta["why"] { Text(why).font(.caption).foregroundStyle(.secondary) }

@@ -1,0 +1,2 @@
+  missed: finance/profile.md → finance/net-worth.md
+gemma26b: accuracy 98% · precision 100% · recall 97% · false links 0 · median 4.4s/pair

@@ -24,6 +24,7 @@ struct MacKBApp: App {
             CommandMenu("Vault") {
                 Button("Import Files or Folder…") { store.importFiles() }.keyboardShortcut("i")
                 Button("Bulk Import…") { store.showBulkImport = true }.keyboardShortcut("i", modifiers: [.command, .shift])
+                Button("Suggest Links Between Notes") { store.runCrossLink() }
                 Button("Add Link…") { store.showLinkSheet = true }.keyboardShortcut("l")
                 Button("Rebuild Index") { store.rebuildIndex() }
                 Button("Open Drop Folder") { store.revealDrop() }.keyboardShortcut("d", modifiers: [.command, .shift])
@@ -187,6 +188,8 @@ final class Store: ObservableObject {
     /// Senders filed to the same place often enough to offer a rule.
     @Published var ruleSuggestions: [Rules.Candidate] = []
     @Published var notice: String?
+    /// How the last request was handled (direct answer, research, a job), shown under the answer.
+    @Published var routeNote: String?
     /// Filing queue progress: files handled since the queue was last empty, and pause.
     @Published var queueDone = 0
     @Published var queueLeft = 0
@@ -194,6 +197,9 @@ final class Store: ObservableObject {
     /// "Bring in as-is" import progress (done, total, current file).
     @Published var importProgress: (done: Int, total: Int, file: String)?
     @Published var showBulkImport = false
+    /// What the progress bar is counting ("Importing", "Checking pairs"…), and a stop request.
+    @Published var jobTitle = "Importing"
+    private var jobStop = false
     @Published var dropErrors: [String] = []
     private var dropTimer: Timer?
     private var filing = false
@@ -300,14 +306,29 @@ final class Store: ObservableObject {
         currentHistoryId = nil
         steps = []
         let model = modelLabel
-        let useAgent = research && backend == .mlx
+        // One box: the router decides how to handle the request (see Router.swift).
+        let route = Router.route(q)
+        routeNote = nil
+        switch route {
+        case .crossLink:
+            askedQuestion = ""
+            runCrossLink()
+            return
+        case .bulkImport:
+            askedQuestion = ""
+            showBulkImport = true
+            return
+        default: break
+        }
+        let useAgent = (route == .research || research) && backend == .mlx
         Task {
             do {
                 let emb = await getEmbedder()
                 let llm = try await getLLM()
                 busy = "Searching and writing the answer…"
                 let t0 = Date()
-                let a: Answer
+                var a: Answer
+                var escalated = false
                 if useAgent, let mlx = llm as? MLXBackend {
                     busy = "Researching…"
                     a = try await Agent.run(q, embedder: emb, backend: mlx) { ev in
@@ -323,7 +344,23 @@ final class Store: ObservableObject {
                     a = try await ask(q, embedder: emb, llm: llm) { tok in
                         Task { @MainActor in self.answer += tok }
                     }
+                    // Found nothing? Look deeper before giving up.
+                    if Router.shouldEscalate(a), let mlx = llm as? MLXBackend {
+                        escalated = true
+                        answer = ""
+                        busy = "Looking deeper…"
+                        a = try await Agent.run(q, embedder: emb, backend: mlx) { ev in
+                            Task { @MainActor in
+                                switch ev {
+                                case .step(let s): self.steps.append(s); self.busy = s + "…"
+                                case .token(let t): self.answer += t
+                                case .resetText: self.answer = ""
+                                }
+                            }
+                        }
+                    }
                 }
+                routeNote = Router.label(useAgent || escalated ? .research : .answer, escalated: escalated)
                 answer = a.text
                 sources = a.sources
                 answerStats = AnswerStats(passages: a.sources.count, tokens: a.stats.outputTokens,
@@ -783,6 +820,37 @@ final class Store: ObservableObject {
         reload()
         rebuildIndex()
     }
+
+    /// The cross-link job: close notes that don't link yet, one yes/no per pair, proposals to the Inbox.
+    func runCrossLink() {
+        guard importProgress == nil else { return }
+        jobTitle = "Checking"
+        jobStop = false
+        importProgress = (0, 0, "Finding close notes…")
+        Task {
+            do {
+                let llm = try await getLLM()
+                busy = "Suggesting links…"
+                let model = modelLabel
+                let verdicts = await CrossLink.run(llm: llm, model: model) { done, total, label in
+                    await MainActor.run {
+                        self.importProgress = (done, total, label)
+                        if done % 5 == 0 { self.inboxItems = inbox() }
+                    }
+                    return await MainActor.run { !self.jobStop }
+                }
+                let yes = verdicts.filter(\.link).count
+                notice = "Checked \(verdicts.count) pairs of close notes; proposed \(yes) links."
+            } catch { self.error = "\(error)" }
+            busy = nil
+            importProgress = nil
+            jobTitle = "Importing"
+            reload()
+            pane = .inbox
+        }
+    }
+
+    func stopJob() { jobStop = true }
 
     /// Builds a knowledge pack's search index (minutes for a whole Bible).
     func indexPack(_ id: String) {

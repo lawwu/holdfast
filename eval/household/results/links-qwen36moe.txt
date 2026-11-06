@@ -1,0 +1,2 @@
+  false link: life/calendar.md → career/notes.md (Note B details Erik's pending career decision with a deadline of 2026-11-20, which directly relates to the '401(k) change deadline' event for Erik on 2026-11-15 in Note A, as both involve his major life and financial planning for that period.)
+qwen36moe: accuracy 98% · precision 97% · recall 100% · false links 1 · median 3.7s/pair
