@@ -351,3 +351,125 @@ struct HistoryPanel: View {
         }
     }
 }
+
+// MARK: - Bulk import
+
+struct BulkImportSheet: View {
+    @EnvironmentObject var store: Store
+    @Environment(\.dismiss) private var dismiss
+    @State private var sources: [URL] = []
+    @State private var asIs = true
+    @State private var folder = "imported"
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Bulk Import").font(.title2.weight(.semibold))
+            HStack {
+                Button("Choose Files or Folders…") {
+                    let picked = store.chooseBulkImport()
+                    sources += picked
+                    if folder == "imported", let first = picked.first {
+                        folder = "imported/" + slugify(first.deletingPathExtension().lastPathComponent)
+                    }
+                }
+                if !sources.isEmpty { Button("Clear") { sources = [] }.buttonStyle(.link) }
+            }
+            if !sources.isEmpty {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 3) {
+                        ForEach(sources, id: \.self) { u in
+                            Label(u.lastPathComponent, systemImage: u.hasDirectoryPath ? "folder" : "doc").font(.callout).lineLimit(1)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(maxHeight: 120)
+            }
+            Picker("", selection: $asIs) {
+                Text("Bring in as-is").tag(true)
+                Text("File each one").tag(false)
+            }
+            .pickerStyle(.segmented).labelsHidden()
+            if asIs {
+                Text("Markdown and CSV files are copied. Spreadsheets become CSV tables. Documents, PDFs, mail, slides, ebooks, photos and recordings become Markdown notes of their text (originals stay outside the vault). Zip archives and Evernote, Day One and mailbox exports are opened first. No model is used, so it's fast; recordings still need transcribing.")
+                    .font(.callout).foregroundStyle(.secondary)
+                HStack {
+                    Text("Into folder").font(.callout)
+                    TextField("imported/…", text: $folder).textFieldStyle(.roundedBorder)
+                }
+            } else {
+                Text("Every file goes through the drop folder: the model reads it with the folder READMEs and proposes where it belongs, and you approve proposals in groups in the Inbox. Filing rules and duplicate checks apply. Roughly 10–60 seconds per document depending on the model; you can pause anytime.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+            HStack {
+                Spacer()
+                Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+                Button(asIs ? "Import" : "Start Filing") {
+                    store.bulkImport(sources, asIs: asIs, folder: folder.trimmingCharacters(in: CharacterSet(charactersIn: "/ ")))
+                    dismiss()
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(sources.isEmpty || (asIs && folder.trimmingCharacters(in: .whitespaces).isEmpty))
+            }
+        }
+        .padding(22)
+        .frame(width: 520)
+    }
+}
+
+/// Progress of an import or of the filing queue, with pause for filing.
+struct ImportProgressBar: View {
+    @EnvironmentObject var store: Store
+
+    var body: some View {
+        if let p = store.importProgress {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(p.total == 0 ? "Opening files…" : "Importing \(min(p.done + 1, p.total)) of \(p.total)").font(.callout.weight(.medium))
+                    Spacer()
+                    Text(p.file).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                }
+                if p.total > 0 { ProgressView(value: Double(p.done), total: Double(p.total)) } else { ProgressView().progressViewStyle(.linear) }
+            }
+            .padding(12)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Theme.accent.opacity(0.06)))
+        } else if store.queueDone + store.queueLeft > 1 {
+            let total = store.queueDone + store.queueLeft
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(store.dropPaused ? "Filing paused · \(store.queueDone) of \(total)" : "Filing \(min(store.queueDone + 1, total)) of \(total)")
+                        .font(.callout.weight(.medium))
+                    Spacer()
+                    Button(store.dropPaused ? "Resume" : "Pause") { store.pauseFiling(!store.dropPaused) }
+                        .buttonStyle(.bordered).controlSize(.small)
+                }
+                ProgressView(value: Double(store.queueDone), total: Double(total))
+            }
+            .padding(12)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Theme.accent.opacity(0.06)))
+        }
+    }
+}
+
+/// Proposals that go to the same place, approved together.
+struct FilingGroupHeader: View {
+    @EnvironmentObject var store: Store
+    var place: String
+    var items: [Note]
+    var body: some View {
+        HStack {
+            Image(systemName: "square.stack.3d.up").foregroundStyle(.secondary)
+            Text("\(items.count) proposals → ") + Text(place).font(.callout.monospaced()).foregroundColor(Theme.accent)
+            Spacer()
+            Button("File All \(items.count)") { store.approveAll(items) }.buttonStyle(.borderedProminent).tint(.green).controlSize(.small)
+        }
+        .font(.callout)
+        .padding(.top, 6)
+    }
+}
+
+/// The place a filing proposal goes: its note, or for a new note its folder.
+func filingPlace(_ n: Note) -> String? {
+    guard n.meta["kind"] == "filing", let t = n.meta["target"] else { return nil }
+    return n.meta["action"] == "new" ? (t as NSString).deletingLastPathComponent + "/" : t
+}

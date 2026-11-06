@@ -178,6 +178,7 @@ struct RootView: View {
             }
         }
         .sheet(isPresented: $store.showLinkSheet) { LinkSheet() }
+        .sheet(isPresented: $store.showBulkImport) { BulkImportSheet().environmentObject(store) }
         .sheet(isPresented: $store.showQuickOpen) { QuickOpen().environmentObject(store) }
         .sheet(isPresented: $store.showPalette) { CommandPalette().environmentObject(store) }
         .sheet(item: $store.preview) { o in
@@ -359,6 +360,7 @@ struct AskHero: View {
                         .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 }
                 AddFilesCard()
+                ImportProgressBar().frame(maxWidth: 560)
                 UpcomingCard()
                     .frame(maxWidth: 560)
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 210), spacing: 10)], spacing: 10) {
@@ -418,6 +420,7 @@ struct AddFilesCard: View {
             if waiting > 0 {
                 Button("\(waiting) to review") { store.pane = .inbox }.buttonStyle(.link).font(.caption)
             }
+            Button("Bulk Import…") { store.showBulkImport = true }.buttonStyle(.bordered).controlSize(.regular)
             Button("Add Files…") { store.chooseFilesToAdd() }.buttonStyle(.borderedProminent).controlSize(.regular)
         }
         .padding(14)
@@ -871,6 +874,7 @@ struct InboxView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 DropZone()
+                ImportProgressBar()
                 NoticeBanner()
                 ForEach(store.ruleSuggestions) { c in RuleSuggestionCard(c: c) }
                 if store.inboxItems.isEmpty {
@@ -882,7 +886,13 @@ struct InboxView: View {
                 } else {
                     Text("Nothing is written until you approve.")
                         .font(.callout).foregroundStyle(.secondary)
-                    ForEach(store.inboxItems, id: \.path) { n in InboxCard(note: n) }
+                    let groups = Dictionary(grouping: store.inboxItems.filter { filingPlace($0) != nil }, by: { filingPlace($0)! })
+                    let grouped = groups.filter { $0.value.count > 1 }
+                    ForEach(grouped.keys.sorted(), id: \.self) { place in
+                        FilingGroupHeader(place: place, items: grouped[place]!)
+                        ForEach(grouped[place]!, id: \.path) { n in InboxCard(note: n) }
+                    }
+                    ForEach(store.inboxItems.filter { filingPlace($0).map { grouped[$0] == nil } ?? true }, id: \.path) { n in InboxCard(note: n) }
                 }
                 RecentFilings()
             }

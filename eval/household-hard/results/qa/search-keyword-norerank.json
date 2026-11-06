@@ -1,0 +1,2142 @@
+[
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x01",
+    "kind" : "superseded",
+    "missed" : [
+      "Timberline",
+      "\\$?1,?612",
+      "2026-12-15|Dec(ember)?\\.? 15"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "Who insures our house right now, what is the annual premium, and when does it renew?",
+    "reranker" : false,
+    "seconds" : 0.004976987838745117,
+    "sources" : [
+      "[[finance\/README#Where to look]]",
+      "[[finance\/insurance#Insurance]]",
+      "[[finance\/annual-review-2025#July]]",
+      "[[finance\/annual-review-2025#Insurance]]",
+      "[[finance\/README#Files]]",
+      "[[finance\/policies#Policies (current)]]",
+      "[[finance\/insurance#Notes]]",
+      "[[life\/journal\/2026-10-22#2026-10-22]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "home",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x02",
+    "kind" : "superseded",
+    "missed" : [
+      "Hollis",
+      "2026-08-1[79]|Aug(ust)?\\.? 1[79]"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "Which company built our back fence, and when?",
+    "reranker" : false,
+    "seconds" : 0.0017529726028442383,
+    "sources" : [
+      "[[home\/fence-project#Timeline]]",
+      "[[home\/fence-project#How to total the project from the CSV]]",
+      "[[home\/projects-history#2026 — the fence, the water heater, the fridge]]",
+      "[[home\/contractors#Contractors — who we call]]",
+      "[[life\/pets\/pepper#Incidents]]",
+      "[[home\/maintenance-log#Maintenance log]]",
+      "[[home\/projects#Back fence (2026) — DECIDED]]",
+      "[[finance\/annual-review-2025#Pepper]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x03",
+    "kind" : "superseded",
+    "missed" : [
+      "(2|two) runs",
+      "swim",
+      "(2|two) strength"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "What is Erik's weekly training goal right now?",
+    "reranker" : false,
+    "seconds" : 0.0016779899597167969,
+    "sources" : [
+      "[[health\/README#Files]]",
+      "[[health\/running\/overview#Training overview — Erik, 2026]]",
+      "[[health\/running\/overview#Training overview — Erik, 2026]]",
+      "[[health\/goals-2025#Training plan — 2025]]",
+      "[[life\/journal\/2026-09-09#2026-09-09]]",
+      "[[finance\/annual-review-2025#January]]",
+      "[[health\/goals#Revision — 2026-09-09 (Erik)]]",
+      "[[life\/journal\/2026-01-05#2026-01-05]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x04",
+    "kind" : "superseded",
+    "missed" : [
+      "2027-07-10|July 10",
+      "2027-07-18|July 18|10\\s*(–|-|to|through)\\s*18"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "What are the dates of our Yellowstone trip?",
+    "reranker" : false,
+    "seconds" : 0.0018930435180664062,
+    "sources" : [
+      "[[life\/journal\/2026-10-04#2026-10-04]]",
+      "[[life\/trips\/README#Trips]]",
+      "[[life\/README#Where to look]]",
+      "[[life\/trips\/202706_yellowstone\/plan#Overview]]",
+      "[[life\/trips\/202706_yellowstone\/plan#Changes]]",
+      "[[life\/school\/leif#Leif — school]]",
+      "[[life\/calendar#December 2026]]",
+      "[[life\/README#Rules]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "home",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x05",
+    "kind" : "superseded",
+    "missed" : [
+      "CWF-?9",
+      "6 months|six months|twice a year|January and July"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "What water filter does our refrigerator take, and how often should it be changed?",
+    "reranker" : false,
+    "seconds" : 0.0017110109329223633,
+    "sources" : [
+      "[[home\/refrigerator#Refrigerator]]",
+      "[[home\/refrigerator-corvell#Refrigerator — Corvell CF-3400]]",
+      "[[home\/README#Files]]",
+      "[[home\/projects-history#2026 — the fence, the water heater, the fridge]]",
+      "[[home\/maintenance-log#Maintenance log]]",
+      "[[life\/recipes\/risgrynsgrot#Risgrynsgröt (Christmas rice porridge)]]",
+      "[[life\/calendar#January 2027]]",
+      "[[ministry\/counseling\/rs\/rs-session-03#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x06",
+    "kind" : "superseded",
+    "missed" : [
+      "2,?264"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0.6666666666666666,
+    "promptTokens" : 0,
+    "question" : "What is our monthly mortgage payment?",
+    "reranker" : false,
+    "seconds" : 0.0010780096054077148,
+    "sources" : [
+      "[[finance\/annual-review-2025#Health costs]]",
+      "[[finance\/budget-2026#Budget 2026]]",
+      "[[finance\/statements\/2026#Columbia Home Lending — escrow analysis, 2026-03]]",
+      "[[finance\/giving#Goal]]",
+      "[[finance\/open-items#Done]]",
+      "[[finance\/statements\/2026#Summit Peak CU — checking, 2026-09]]",
+      "[[finance\/profile#The house]]",
+      "[[finance\/README#Files]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x07",
+    "kind" : "superseded",
+    "missed" : [
+      "Little Oaks"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0.5,
+    "promptTokens" : 0,
+    "question" : "Which dentist do Greta and Soren go to?",
+    "reranker" : false,
+    "seconds" : 0.001199960708618164,
+    "sources" : [
+      "[[health\/visits\/2025-04-10_soren_bright-smile-dental#2025-04-10 — Soren — Bright Smile Dental]]",
+      "[[life\/journal\/2025-04-10#2025-04-10]]",
+      "[[finance\/annual-review-2025#The kids]]",
+      "[[life\/journal\/2026-09-02#2026-09-02]]",
+      "[[life\/trips\/202706_yellowstone\/plan#Things to see]]",
+      "[[life\/trips\/202606_norway-heritage\/plan#Norway — the family farm (June 2026)]]",
+      "[[life\/journal\/2026-10-25#2026-10-25]]",
+      "[[life\/books\/the-hobbit-read-aloud#The Hobbit — family read-aloud]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "home",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x08",
+    "kind" : "superseded",
+    "missed" : [
+      "Fairbanks"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "Which company should we call to service the furnace?",
+    "reranker" : false,
+    "seconds" : 0.0014600753784179688,
+    "sources" : [
+      "[[home\/hvac#HVAC — furnace and air conditioner]]",
+      "[[home\/projects-history#2026 — the fence, the water heater, the fridge]]",
+      "[[life\/journal\/2026-10-30#2026-10-30]]",
+      "[[home\/contractors#Contractors — who we call]]",
+      "[[home\/maintenance-log#Maintenance log]]",
+      "[[home\/maintenance-log#Maintenance log]]",
+      "[[finance\/annual-review-2025#January]]",
+      "[[home\/projects-history#2020 — the year of small fixes]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x09",
+    "kind" : "multihop",
+    "missed" : [
+      "Brightview",
+      "2025-08-14|Aug(ust)?\\.? 14",
+      "5,?400",
+      "(?<![\\d,.])\\$?(3,?400)(\\.\\d\\d)?(?![\\d,])"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0.6666666666666666,
+    "promptTokens" : 0,
+    "question" : "Who is Leif's orthodontist, when did his braces go on, what is the total contract, and how much have we paid so far?",
+    "reranker" : false,
+    "seconds" : 0.0018110275268554688,
+    "sources" : [
+      "[[health\/visits\/2025-08-14_leif_brightview-orthodontics#2025-08-14 — Leif — Brightview Orthodontics]]",
+      "[[health\/visits\/2025-02-19_leif_bright-smile-dental#2025-02-19 — Leif — Bright Smile Dental]]",
+      "[[finance\/annual-review-2025#August]]",
+      "[[health\/visits\/2025-10-15_leif_little-oaks-pediatric-dentistry#2025-10-15 — Leif — Little Oaks Pediatric Dentistry]]",
+      "[[health\/visits\/2026-10-22_leif_cascade-orthopedics#2026-10-22 — Leif — Cascade Orthopedics]]",
+      "[[finance\/large-purchases#Large purchases]]",
+      "[[life\/journal\/2026-10-22#2026-10-22]]",
+      "[[life\/journal\/2025-08-14#2025-08-14]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x10",
+    "kind" : "multihop",
+    "missed" : [
+      "cardamom|kardemumma",
+      "400",
+      "11\\s*(–|-|to)\\s*13"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "What did Anna bring to the small group's October potluck, and what oven temperature and baking time does that recipe use?",
+    "reranker" : false,
+    "seconds" : 0.0026350021362304688,
+    "sources" : [
+      "[[life\/journal\/2026-10-11#2026-10-11]]",
+      "[[life\/small-group\/2026-fall#Small group — fall 2026]]",
+      "[[life\/recipes\/kardemummabullar#Kardemummabullar (cardamom buns)]]",
+      "[[life\/README#Rules]]",
+      "[[life\/recipes\/kardemummabullar#Method]]",
+      "[[life\/calendar#November 2026]]",
+      "[[life\/journal\/2025-03-13#2025-03-13]]",
+      "[[life\/small-group\/2025-fall#Small group — fall 2025]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0.75,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x11",
+    "kind" : "multihop",
+    "missed" : [
+      "2026-04-18|April 18",
+      "6,?200",
+      "Outback",
+      "27,?400"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0.3333333333333333,
+    "promptTokens" : 0,
+    "question" : "When did we sell the Camry, for how much, and what replaced it at what price?",
+    "reranker" : false,
+    "seconds" : 0.0016388893127441406,
+    "sources" : [
+      "[[finance\/annual-review-2025#Cars]]",
+      "[[finance\/vehicles#Plan]]",
+      "[[finance\/vehicles#Vehicles]]",
+      "[[home\/refrigerator-corvell#Refrigerator — Corvell CF-3400]]",
+      "[[life\/journal\/2026-04-18#2026-04-18]]",
+      "[[home\/maintenance-log#Maintenance log]]",
+      "[[finance\/profile#Cars]]",
+      "[[home\/README#Rules]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x12",
+    "kind" : "multihop",
+    "missed" : [
+      "Brandt",
+      "Mercy Valley",
+      "2025-03-11|March 11",
+      "1,?250"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0.75,
+    "promptTokens" : 0,
+    "question" : "Who did Grandpa E.'s knee replacement, where and when, and how much did we contribute toward his bill?",
+    "reranker" : false,
+    "seconds" : 0.001806020736694336,
+    "sources" : [
+      "[[health\/erik-sr\/visits\/2025-01-28_erik-sr_cascade-orthopedics#2025-01-28 — Erik Sr. (Grandpa E.) — Cascade Orthopedics]]",
+      "[[health\/erik-sr\/README#Doctors]]",
+      "[[finance\/erik-sr-paperwork#Grandpa E.'s paperwork]]",
+      "[[health\/erik-sr\/visits\/2025-03-11_erik-sr_mercy-valley-hospital#2025-03-11 — Erik Sr. (Grandpa E.) — Mercy Valley Hospital]]",
+      "[[home\/projects-history#2025 — small things and Dad's knee]]",
+      "[[finance\/annual-review-2025#March]]",
+      "[[finance\/large-purchases#Large purchases]]",
+      "[[finance\/annual-review-2025#October]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0.5,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x13",
+    "kind" : "multihop",
+    "missed" : [
+      "(?<![\\d,.])\\$?(700)(\\.\\d\\d)?(?![\\d,])",
+      "match"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0.6666666666666666,
+    "promptTokens" : 0,
+    "question" : "How much did we give the Alder Creek Food Pantry in 2025, and why was one gift bigger than usual?",
+    "reranker" : false,
+    "seconds" : 0.0021060705184936523,
+    "sources" : [
+      "[[finance\/giving#Notes on particular gifts]]",
+      "[[finance\/giving#Standing gifts]]",
+      "[[life\/journal\/2025-11-22#2025-11-22]]",
+      "[[finance\/annual-review-2025#June]]",
+      "[[finance\/annual-review-2025#Giving]]",
+      "[[life\/small-group\/2025-fall#Small group — fall 2025]]",
+      "[[life\/journal\/2025-12-07#2025-12-07]]",
+      "[[life\/pets\/pepper#Pepper]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x14",
+    "kind" : "multihop",
+    "missed" : [
+      "151",
+      "148",
+      "142",
+      "2026-12-08|Dec(ember)?\\.? 8"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0.5,
+    "promptTokens" : 0,
+    "question" : "How has Erik's LDL changed over the last three checks, and when is the next test?",
+    "reranker" : false,
+    "seconds" : 0.0026199817657470703,
+    "sources" : [
+      "[[health\/labs#Labs — Erik]]",
+      "[[health\/erik-sr\/visits\/2025-11-06_erik-sr_willamette-heart-associates#2025-11-06 — Erik Sr. (Grandpa E.) — Willamette Heart Associates]]",
+      "[[health\/visits\/2024-05-14_erik_ridgeview-family-medicine#2024-05-14 — Erik — Ridgeview Family Medicine]]",
+      "[[ministry\/counseling\/dm\/dm-session-08#What was gained by performing the homework from last session? What change?]]",
+      "[[health\/erik-sr\/visits\/2026-10-20_erik-sr_willamette-heart-associates#2026-10-20 — Erik Sr. (Grandpa E.) — Willamette Heart Associates]]",
+      "[[ministry\/prayer-list#Prayer list — counseling]]",
+      "[[health\/README#Where to look]]",
+      "[[health\/erik-sr\/README#Lipids]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "career",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x15",
+    "kind" : "multihop",
+    "missed" : [
+      "2026-12-04|Dec(ember)?\\.? 4",
+      "Salem",
+      "Pastor J"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "By when does Erik need to answer the regional director offer, and what are he and Anna doing before deciding?",
+    "reranker" : false,
+    "seconds" : 0.001891016960144043,
+    "sources" : [
+      "[[life\/journal\/2026-11-02#2026-11-02]]",
+      "[[career\/notes#The open decision]]",
+      "[[life\/calendar#December 2026]]",
+      "[[career\/deciding#How we decide about work]]",
+      "[[life\/journal\/2025-06-14#2025-06-14]]",
+      "[[finance\/annual-review-2025#June]]",
+      "[[career\/README#Career — operating manual]]",
+      "[[finance\/annual-review-2025#Investments]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x16",
+    "kind" : "multihop",
+    "missed" : [
+      "Gentle and Lowly",
+      "Lindqvist",
+      "Sunday"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "What is our small group studying this fall, who leads it, and when does it meet?",
+    "reranker" : false,
+    "seconds" : 0.0015219449996948242,
+    "sources" : [
+      "[[life\/small-group\/README#Small group]]",
+      "[[life\/journal\/2026-09-13#2026-09-13]]",
+      "[[finance\/annual-review-2025#Church and ministry]]",
+      "[[life\/small-group\/2025-fall#Small group — fall 2025]]",
+      "[[life\/small-group\/2026-fall#Small group — fall 2026]]",
+      "[[life\/recipes\/small-group-chili#Small-group chili (Tom's)]]",
+      "[[life\/README#Files]]",
+      "[[ministry\/counseling\/jp\/jp-session-04#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0.5,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x17",
+    "kind" : "multihop",
+    "missed" : [
+      "(?<![\\d,.])\\$?(565|566)(\\.\\d\\d)?(?![\\d,])",
+      "2027-03|March 2027|Mar\\.? 2027"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0.5,
+    "promptTokens" : 0,
+    "question" : "How much have we spent at the vet for Pepper in 2026, and when are her next vaccines due?",
+    "reranker" : false,
+    "seconds" : 0.0018310546875,
+    "sources" : [
+      "[[life\/pets\/pepper#Vaccines]]",
+      "[[life\/README#Files]]",
+      "[[life\/pets\/pepper#Pepper]]",
+      "[[life\/README#Rules]]",
+      "[[home\/fence-project#Lessons]]",
+      "[[finance\/annual-review-2025#March]]",
+      "[[health\/README#Rules]]",
+      "[[finance\/open-items#Open items — money]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x18",
+    "kind" : "multihop",
+    "missed" : [
+      "Leif",
+      "Grandpa E|Erik Sr",
+      "2026-06-14|June 14",
+      "2,?960"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0.3333333333333333,
+    "promptTokens" : 0,
+    "question" : "Who went on the Norway trip, what were the dates, and what did our flights cost?",
+    "reranker" : false,
+    "seconds" : 0.0018450021743774414,
+    "sources" : [
+      "[[life\/trips\/202606_norway-heritage\/plan#Budget]]",
+      "[[life\/trips\/README#Trips]]",
+      "[[life\/journal\/2026-02-03#2026-02-03]]",
+      "[[life\/trips\/202606_norway-heritage\/plan#Norway — the family farm (June 2026)]]",
+      "[[life\/README#Where to look]]",
+      "[[life\/journal\/2026-10-04#2026-10-04]]",
+      "[[home\/README#Rules]]",
+      "[[life\/calendar#December 2026]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x19",
+    "kind" : "aggregate",
+    "missed" : [
+      "(?<![\\d,.])\\$?(17,?377)(\\.\\d\\d)?(?![\\d,])"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0.5,
+    "promptTokens" : 0,
+    "question" : "How much did we spend on groceries in 2025?",
+    "reranker" : false,
+    "seconds" : 0.001813054084777832,
+    "sources" : [
+      "[[finance\/spending\/overview#2025 by category]]",
+      "[[finance\/annual-review-2025#Spending by category (rounded, from the CSV)]]",
+      "[[finance\/spending\/overview#2026 year to date (Jan–Aug)]]",
+      "[[finance\/budget-2026#Budget 2026]]",
+      "[[finance\/annual-review-2025#January]]",
+      "[[finance\/README#Where to look]]",
+      "[[finance\/README#Quirks (learned the hard way)]]",
+      "[[ministry\/counseling\/jp\/jp-session-03#Thinking back on\/listening to this session, what could you have done better?]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x20",
+    "kind" : "aggregate",
+    "missed" : [
+      "(?<![\\d,.])\\$?(9,?698|9,?699)(\\.\\d\\d)?(?![\\d,])"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0,
+    "promptTokens" : 0,
+    "question" : "How much have we spent at Fresh Basket so far in 2026, net of refunds?",
+    "reranker" : false,
+    "seconds" : 0.0019789934158325195,
+    "sources" : [
+      "[[finance\/README#Quirks (learned the hard way)]]",
+      "[[finance\/README#Where to look]]",
+      "[[home\/fence-project#How to total the project from the CSV]]",
+      "[[life\/journal\/2026-04-04#2026-04-04]]",
+      "[[finance\/taxes\/2025#Taxes — 2025]]",
+      "[[finance\/net-worth#Net worth — narrative]]",
+      "[[life\/journal\/2026-05-06#2026-05-06]]",
+      "[[ministry\/counseling\/rs\/rs-session-04#What Biblical solutions were presented in this session? What Scripture?]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x21",
+    "kind" : "aggregate",
+    "missed" : [
+      "(?<![\\d,.])\\$?(2,?001|2,?002)(\\.\\d\\d)?(?![\\d,])"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0,
+    "promptTokens" : 0,
+    "question" : "How much have we spent at Hardware Hub in total since January 2024, net of returns?",
+    "reranker" : false,
+    "seconds" : 0.0015599727630615234,
+    "sources" : [
+      "[[home\/fence-project#How to total the project from the CSV]]",
+      "[[home\/refrigerator#Refrigerator]]",
+      "[[finance\/README#Quirks (learned the hard way)]]",
+      "[[health\/visits\/2024-10-03_soren_alder-creek-pediatrics#2024-10-03 — Soren — Alder Creek Pediatrics]]",
+      "[[home\/hvac#HVAC — furnace and air conditioner]]",
+      "[[home\/projects-history#2019 — moving in]]",
+      "[[finance\/net-worth#Net worth — narrative]]",
+      "[[home\/maintenance-log#Maintenance log]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "home",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x22",
+    "kind" : "aggregate",
+    "missed" : [
+      "(?<![\\d,.])\\$?(10,?108|10,?109)(\\.\\d\\d)?(?![\\d,])"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0.5,
+    "promptTokens" : 0,
+    "question" : "What did the back fence project cost in total, counted the way the fence note says to count it?",
+    "reranker" : false,
+    "seconds" : 0.0017459392547607422,
+    "sources" : [
+      "[[home\/fence-project#How to total the project from the CSV]]",
+      "[[home\/fence-project#Back fence — 2026]]",
+      "[[home\/projects#Back fence (2026) — DECIDED]]",
+      "[[home\/projects-history#2020 — the year of small fixes]]",
+      "[[home\/projects-history#2026 — the fence, the water heater, the fridge]]",
+      "[[finance\/annual-review-2025#Pepper]]",
+      "[[home\/README#Where to look]]",
+      "[[finance\/annual-review-2025#The house]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x23",
+    "kind" : "aggregate",
+    "missed" : [
+      "19\\.5"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0,
+    "promptTokens" : 0,
+    "question" : "How many miles did Erik run in October 2026?",
+    "reranker" : false,
+    "seconds" : 0.0018600225448608398,
+    "sources" : [
+      "[[health\/running\/overview#Training overview — Erik, 2026]]",
+      "[[health\/README#Quirks]]",
+      "[[health\/goals-2025#Training plan — 2025]]",
+      "[[life\/journal\/2026-08-10#2026-08-10]]",
+      "[[finance\/annual-review-2025#May]]",
+      "[[health\/history#Erik — health history]]",
+      "[[health\/running\/overview#Training overview — Erik, 2026]]",
+      "[[health\/visits\/2026-08-12_erik_cascade-orthopedics#2026-08-12 — Erik — Cascade Orthopedics]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x24",
+    "kind" : "aggregate",
+    "missed" : [
+      "28\\.1"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0.5,
+    "promptTokens" : 0,
+    "question" : "How many miles did Grandpa E. walk in September 2026?",
+    "reranker" : false,
+    "seconds" : 0.0019490718841552734,
+    "sources" : [
+      "[[health\/README#Quirks]]",
+      "[[health\/erik-sr\/visits\/2025-04-22_erik-sr_cascade-orthopedics#2025-04-22 — Erik Sr. (Grandpa E.) — Cascade Orthopedics]]",
+      "[[life\/journal\/2026-08-10#2026-08-10]]",
+      "[[ministry\/counseling\/rs\/rs-session-01#How was hope or encouragement given in this session?]]",
+      "[[health\/erik-sr\/README#Activity]]",
+      "[[health\/goals#Anna]]",
+      "[[health\/goals-2025#Training plan — 2025]]",
+      "[[health\/erik-sr\/visits\/2026-10-20_erik-sr_willamette-heart-associates#2026-10-20 — Erik Sr. (Grandpa E.) — Willamette Heart Associates]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x25",
+    "kind" : "aggregate",
+    "missed" : [
+      "\\b(5|five) (of|out of) (the )?(8|eight)|\\b(5|five) (of the )?weeks|\\b5\/8"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0.5,
+    "promptTokens" : 0,
+    "question" : "Of the eight Monday–Sunday weeks from July 6 to August 30, 2026, how many met Erik's 3-runs-and-2-strength goal?",
+    "reranker" : false,
+    "seconds" : 0.0023419857025146484,
+    "sources" : [
+      "[[health\/goals#Erik]]",
+      "[[health\/goals#Revision — 2026-09-09 (Erik)]]",
+      "[[health\/running\/overview#Training overview — Erik, 2026]]",
+      "[[life\/journal\/2026-01-05#2026-01-05]]",
+      "[[health\/goals-2025#Training plan — 2025]]",
+      "[[health\/README#Quirks]]",
+      "[[health\/history#Erik — health history]]",
+      "[[ministry\/counseling\/dm\/dm-case-summary#Overview]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x26",
+    "kind" : "aggregate",
+    "missed" : [
+      "(?<![\\d,.])\\$?(962,?951)(\\.\\d\\d)?(?![\\d,])",
+      "(?<![\\d,.])\\$?(51,?148)(\\.\\d\\d)?(?![\\d,])"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0,
+    "promptTokens" : 0,
+    "question" : "What was our net worth at the end of October 2026, and how much has it changed since the end of 2025?",
+    "reranker" : false,
+    "seconds" : 0.0028699636459350586,
+    "sources" : [
+      "[[finance\/annual-review-2025#Net worth]]",
+      "[[finance\/net-worth#Net worth — narrative]]",
+      "[[finance\/README#Files]]",
+      "[[finance\/README#Files]]",
+      "[[finance\/annual-review-2025#The year in one paragraph]]",
+      "[[finance\/statements\/2026#Harbor Retirement — Erik 401(k), Q2 2026]]",
+      "[[finance\/statements\/2025#Harbor Retirement — Erik 401(k), Q3 2025]]",
+      "[[finance\/statements\/2025#Evergreen Brokerage — year-end 2025]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x27",
+    "kind" : "aggregate",
+    "missed" : [
+      "(?<![\\d,.])\\$?(15,?750)(\\.\\d\\d)?(?![\\d,])",
+      "77(\\.\\d+)? ?%"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0.5,
+    "promptTokens" : 0,
+    "question" : "How much have we given so far in 2026, and what share of this year's giving goal is that?",
+    "reranker" : false,
+    "seconds" : 0.002438068389892578,
+    "sources" : [
+      "[[finance\/README#Where to look]]",
+      "[[finance\/giving#Goal]]",
+      "[[finance\/giving#Giving]]",
+      "[[finance\/annual-review-2025#Health costs]]",
+      "[[life\/journal\/2026-11-03#2026-11-03]]",
+      "[[finance\/README#Files]]",
+      "[[life\/pets\/pepper#Vaccines]]",
+      "[[health\/goals#Erik]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x28",
+    "kind" : "aggregate",
+    "missed" : [
+      "(?<![\\d,.])\\$?(503)(\\.\\d\\d)?(?![\\d,])"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0,
+    "promptTokens" : 0,
+    "question" : "What did we spend on utilities per month on average in 2025?",
+    "reranker" : false,
+    "seconds" : 0.0016530752182006836,
+    "sources" : [
+      "[[finance\/README#Files]]",
+      "[[finance\/spending\/overview#2026 by month]]",
+      "[[finance\/spending\/overview#2025 by category]]",
+      "[[finance\/budget-2026#Budget 2026]]",
+      "[[finance\/annual-review-2025#Spending by category (rounded, from the CSV)]]",
+      "[[finance\/annual-review-2025#January]]",
+      "[[finance\/taxes\/2025#Taxes — 2025]]",
+      "[[health\/visits\/2025-08-14_leif_brightview-orthodontics#2025-08-14 — Leif — Brightview Orthodontics]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x29",
+    "kind" : "temporal",
+    "missed" : [
+      "conference",
+      "Varga|2026-11-17|Nov(ember)?\\.? 17"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "What is on the family calendar for the Tuesday before Greta's piano recital?",
+    "reranker" : false,
+    "seconds" : 0.0016219615936279297,
+    "sources" : [
+      "[[life\/journal\/2026-03-15#2026-03-15]]",
+      "[[life\/calendar#November 2026]]",
+      "[[life\/calendar#December 2026]]",
+      "[[finance\/annual-review-2025#What we are thankful for]]",
+      "[[finance\/annual-review-2025#September]]",
+      "[[ministry\/counseling\/dm\/dm-case-summary#Graduation plan (his own words, condensed)]]",
+      "[[README#Purpose]]",
+      "[[life\/README#Where to look]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x30",
+    "kind" : "temporal",
+    "missed" : [
+      "\\b40\\b"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "How many days from today until the homeowners policy renews?",
+    "reranker" : false,
+    "seconds" : 0.0014001131057739258,
+    "sources" : [
+      "[[finance\/policies#Next actions]]",
+      "[[finance\/policies#Why we switched]]",
+      "[[finance\/annual-review-2025#July]]",
+      "[[life\/journal\/2025-11-14#2025-11-14]]",
+      "[[finance\/insurance#Insurance]]",
+      "[[finance\/README#Rules]]",
+      "[[life\/calendar#December 2026]]",
+      "[[life\/journal\/2025-02-15#2025-02-15]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x31",
+    "kind" : "temporal",
+    "missed" : [
+      "2026-06-23|June 23",
+      "318(\\.50)?"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "On what date did Pepper eat the sock, and what did the vet visit cost?",
+    "reranker" : false,
+    "seconds" : 0.0016319751739501953,
+    "sources" : [
+      "[[life\/pets\/pepper#Visits]]",
+      "[[health\/README#Rules]]",
+      "[[life\/pets\/pepper#Incidents]]",
+      "[[life\/journal\/2026-06-24#2026-06-24]]",
+      "[[life\/README#Rules]]",
+      "[[home\/README#Rules]]",
+      "[[finance\/annual-review-2025#March]]",
+      "[[life\/README#Where to look]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x32",
+    "kind" : "temporal",
+    "missed" : [
+      "overdraft",
+      "property.?tax|deferral"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0,
+    "promptTokens" : 0,
+    "question" : "Which money to-dos are overdue as of today?",
+    "reranker" : false,
+    "seconds" : 0.001405954360961914,
+    "sources" : [
+      "[[life\/journal\/2025-11-22#2025-11-22]]",
+      "[[finance\/annual-review-2025#Why we do this]]",
+      "[[life\/calendar#Family calendar — upcoming]]",
+      "[[career\/deciding#How we decide about work]]",
+      "[[life\/journal\/2026-01-05#2026-01-05]]",
+      "[[finance\/README#Where to look]]",
+      "[[finance\/README#Quirks (learned the hard way)]]",
+      "[[life\/journal\/2026-10-30#2026-10-30]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0.5,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x33",
+    "kind" : "temporal",
+    "missed" : [
+      "2026-09-29|Sept?(ember)?\\.? 29",
+      "2026-10-20|Oct(ober)?\\.? 20"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "When did Grandpa E. call about his cardiology appointment, and what date was it moved to?",
+    "reranker" : false,
+    "seconds" : 0.0015649795532226562,
+    "sources" : [
+      "[[life\/journal\/2026-10-01#2026-10-01]]",
+      "[[health\/erik-sr\/visits\/2026-10-20_erik-sr_willamette-heart-associates#2026-10-20 — Erik Sr. (Grandpa E.) — Willamette Heart Associates]]",
+      "[[finance\/erik-sr-paperwork#Grandpa E.'s paperwork]]",
+      "[[health\/erik-sr\/README#Grandpa E. — Erik Halvorsen Sr.]]",
+      "[[health\/erik-sr\/README#Doctors]]",
+      "[[health\/erik-sr\/visits\/2026-04-14_erik-sr_willamette-heart-associates#2026-04-14 — Erik Sr. (Grandpa E.) — Willamette Heart Associates]]",
+      "[[health\/erik-sr\/visits\/2025-11-06_erik-sr_willamette-heart-associates#2025-11-06 — Erik Sr. (Grandpa E.) — Willamette Heart Associates]]",
+      "[[README#Conventions]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x34",
+    "kind" : "temporal",
+    "missed" : [
+      "tooth",
+      "furnace|igniter|Fairbanks"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0,
+    "promptTokens" : 0,
+    "question" : "What happened last Friday?",
+    "reranker" : false,
+    "seconds" : 0.0011099576950073242,
+    "sources" : [
+      "[[health\/goals-2025#Training plan — 2025]]",
+      "[[health\/goals#Erik]]",
+      "[[ministry\/README#Where to look]]",
+      "[[ministry\/counseling\/dm\/dm-session-04#What main problems were discussed in this session?]]",
+      "[[ministry\/counseling\/rs\/rs-session-04#How was hope or encouragement given in this session?]]",
+      "[[ministry\/counseling\/rs\/rs-session-03#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the counselee?]]",
+      "[[health\/goals#Revision — 2026-09-09 (Erik)]]",
+      "[[ministry\/counseling\/rs\/rs-session-01#What specific applications to the counselee's life did you discuss from your Scripture?]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x35",
+    "kind" : "disambiguation",
+    "missed" : [
+      "\\b91\\b",
+      "Nadeem"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "What was Grandpa E.'s LDL at his most recent cardiology visit, and who is his cardiologist?",
+    "reranker" : false,
+    "seconds" : 0.0013890266418457031,
+    "sources" : [
+      "[[health\/erik-sr\/visits\/2026-10-20_erik-sr_willamette-heart-associates#2026-10-20 — Erik Sr. (Grandpa E.) — Willamette Heart Associates]]",
+      "[[health\/erik-sr\/visits\/2026-04-14_erik-sr_willamette-heart-associates#2026-04-14 — Erik Sr. (Grandpa E.) — Willamette Heart Associates]]",
+      "[[health\/erik-sr\/visits\/2025-11-06_erik-sr_willamette-heart-associates#2025-11-06 — Erik Sr. (Grandpa E.) — Willamette Heart Associates]]",
+      "[[ministry\/counseling\/rs\/rs-session-07#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
+      "[[health\/README#Where to look]]",
+      "[[life\/journal\/2026-10-20#2026-10-20]]",
+      "[[health\/erik-sr\/README#Activity]]",
+      "[[health\/erik-sr\/README#Lipids]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x36",
+    "kind" : "disambiguation",
+    "missed" : [
+      "Ostrowski",
+      "Achilles"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "Who treated Erik at Cascade Orthopedics, and for what?",
+    "reranker" : false,
+    "seconds" : 0.0013300180435180664,
+    "sources" : [
+      "[[health\/erik-sr\/visits\/2025-04-22_erik-sr_cascade-orthopedics#2025-04-22 — Erik Sr. (Grandpa E.) — Cascade Orthopedics]]",
+      "[[health\/erik-sr\/visits\/2025-01-28_erik-sr_cascade-orthopedics#2025-01-28 — Erik Sr. (Grandpa E.) — Cascade Orthopedics]]",
+      "[[health\/visits\/2026-09-09_erik_cascade-orthopedics#2026-09-09 — Erik — Cascade Orthopedics]]",
+      "[[health\/visits\/2026-08-12_erik_cascade-orthopedics#2026-08-12 — Erik — Cascade Orthopedics]]",
+      "[[health\/visits\/2026-10-22_leif_cascade-orthopedics#2026-10-22 — Leif — Cascade Orthopedics]]",
+      "[[health\/erik-sr\/README#Doctors]]",
+      "[[health\/README#Clinics we use]]",
+      "[[health\/goals#Revision — 2026-09-09 (Erik)]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x37",
+    "kind" : "disambiguation",
+    "missed" : [
+      "(?<![\\d,.])\\$?(101)(\\.\\d\\d)?(?![\\d,])"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0.5,
+    "promptTokens" : 0,
+    "question" : "How much have we spent at Fresh Bake Co. in 2026?",
+    "reranker" : false,
+    "seconds" : 0.002309083938598633,
+    "sources" : [
+      "[[finance\/README#Quirks (learned the hard way)]]",
+      "[[finance\/budget-2026#Budget 2026]]",
+      "[[finance\/annual-review-2025#Spending by category (rounded, from the CSV)]]",
+      "[[finance\/README#Where to look]]",
+      "[[ministry\/counseling\/jp\/jp-session-03#Thinking back on\/listening to this session, what could you have done better?]]",
+      "[[ministry\/counseling\/dm\/dm-session-01#Thinking back on\/listening to this session, what could you have done better?]]",
+      "[[life\/recipes\/banana-bread#Banana bread]]",
+      "[[ministry\/counseling\/dm\/dm-session-06#Thinking back on\/listening to this session, what could you have done better?]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x38",
+    "kind" : "disambiguation",
+    "missed" : [
+      "2026-02-27|Feb(ruary)?\\.? 27",
+      "stitch"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "When was Soren last seen at Ridgecrest, and what was done?",
+    "reranker" : false,
+    "seconds" : 0.001944899559020996,
+    "sources" : [
+      "[[health\/visits\/2026-02-27_soren_ridgecrest-urgent-care#2026-02-27 — Soren — Ridgecrest Urgent Care]]",
+      "[[life\/journal\/2026-02-27#2026-02-27]]",
+      "[[health\/visits\/2025-07-22_anna_ridgecrest-urgent-care#2025-07-22 — Anna — Ridgecrest Urgent Care]]",
+      "[[life\/journal\/2025-07-22#2025-07-22]]",
+      "[[finance\/open-items#Open items — money]]",
+      "[[ministry\/counseling\/jp\/jp-session-04#Thinking back on\/listening to this session, what could you have done better?]]",
+      "[[ministry\/counseling\/dm\/dm-session-03#What was gained by performing the homework from last session? What change?]]",
+      "[[ministry\/counseling\/dm\/dm-session-03#How was hope or encouragement given in this session?]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "home",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x39",
+    "kind" : "long",
+    "missed" : [
+      "Alder Moss",
+      "Harbor Fog",
+      "Lingonberry"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "What colors did we paint the outside of the house in 2024?",
+    "reranker" : false,
+    "seconds" : 0.001423954963684082,
+    "sources" : [
+      "[[home\/projects-history#2024 — the exterior repaint]]",
+      "[[home\/projects-history#Projects history — the house since 2019]]",
+      "[[home\/maintenance-log#Maintenance log]]",
+      "[[home\/README#Where to look]]",
+      "[[home\/contractors#Contractors — who we call]]",
+      "[[health\/visits\/2024-11-12_anna_bright-smile-dental#2024-11-12 — Anna — Bright Smile Dental]]",
+      "[[health\/visits\/2024-05-14_erik_ridgeview-family-medicine#2024-05-14 — Erik — Ridgeview Family Medicine]]",
+      "[[health\/visits\/2024-03-20_greta_alder-creek-pediatrics#2024-03-20 — Greta — Alder Creek Pediatrics]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x40",
+    "kind" : "long",
+    "missed" : [
+      "Halvorsrud",
+      "Ingrid"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "What is the family farm in Norway called, and who hosted us for dinner there?",
+    "reranker" : false,
+    "seconds" : 0.001873016357421875,
+    "sources" : [
+      "[[life\/trips\/202606_norway-heritage\/plan#06-15 — Oslo]]",
+      "[[life\/trips\/202606_norway-heritage\/plan#06-18 — the lake]]",
+      "[[ministry\/counseling\/rs\/rs-session-05#What specific applications to the counselee's life did you discuss from your Scripture?]]",
+      "[[life\/small-group\/README#Small group]]",
+      "[[life\/trips\/README#Trips]]",
+      "[[ministry\/counseling\/rs\/rs-session-03#What specific applications to the counselee's life did you discuss from your Scripture?]]",
+      "[[life\/small-group\/2026-spring#Small group — spring 2026]]",
+      "[[ministry\/counseling\/rs\/rs-session-02#What homework was given and how did it specifically apply to problems?]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x41",
+    "kind" : "long",
+    "missed" : [
+      "10 ?%",
+      "20,?400|12 ?%"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "What 401(k) contribution rate and what giving goal did we set for 2026?",
+    "reranker" : false,
+    "seconds" : 0.002321958541870117,
+    "sources" : [
+      "[[finance\/giving#Goal]]",
+      "[[finance\/statements\/2026#Harbor Retirement — Erik 401(k), Q2 2026]]",
+      "[[finance\/statements\/2025#Harbor Retirement — Erik 401(k), Q3 2025]]",
+      "[[finance\/annual-review-2025#Decisions for 2026]]",
+      "[[finance\/README#Where to look]]",
+      "[[finance\/profile#Where the money is]]",
+      "[[life\/journal\/2025-12-28#2025-12-28]]",
+      "[[finance\/giving#Giving]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "ministry",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x42",
+    "kind" : "long",
+    "missed" : [
+      "2026-10-12|Oct(ober)?\\.? 12",
+      "breakfast",
+      "apolog|sorry"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "Did D.M. call his father as assigned, and what came of it?",
+    "reranker" : false,
+    "seconds" : 0.001618027687072754,
+    "sources" : [
+      "[[ministry\/counseling\/dm\/dm-case-summary#Overview]]",
+      "[[ministry\/counseling\/dm\/dm-case-summary#2026-10-27 — update before the check-in]]",
+      "[[ministry\/prayer-list#Prayer list — counseling]]",
+      "[[ministry\/counseling\/dm\/dm-session-08#Thinking back on\/listening to this session, what could you have done better?]]",
+      "[[ministry\/counseling\/dm\/dm-session-08#What homework was given and how did it specifically apply to problems?]]",
+      "[[ministry\/counseling\/dm\/dm-session-03#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
+      "[[ministry\/counseling\/rs\/rs-session-03#What Biblical solutions were presented in this session? What Scripture?]]",
+      "[[README#Conventions]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "ministry",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x43",
+    "kind" : "counseling",
+    "missed" : [
+      "Psalm 56",
+      "Welch|chapter 5",
+      "Christmas"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "What is R.S.'s current homework?",
+    "recall" : 0,
+    "reranker" : false,
+    "seconds" : 0.0012309551239013672,
+    "sources" : [
+      "[[ministry\/README#Where to look]]",
+      "[[finance\/policies#Next actions]]",
+      "[[ministry\/counseling\/rs\/rs-session-07#What homework was given and how did it specifically apply to problems?]]",
+      "[[finance\/policies#Why we switched]]",
+      "[[home\/fence-project#Back fence — 2026]]",
+      "[[home\/water-heater#Water heater]]",
+      "[[career\/README#Career — operating manual]]",
+      "[[ministry\/counseling\/jp\/jp-session-01#What was gained by performing the homework from last session? What change?]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "ministry",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x44",
+    "kind" : "counseling",
+    "missed" : [
+      "2026-10-11|Oct(ober)?\\.? 11",
+      "disappointed|Fine, if that|cold|quiet"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "Did R.S. make the call to E.S. about Thanksgiving, and how did E.S. respond?",
+    "recall" : 1,
+    "reranker" : false,
+    "seconds" : 0.0013689994812011719,
+    "sources" : [
+      "[[life\/recipes\/kardemummabullar#Kardemummabullar (cardamom buns)]]",
+      "[[ministry\/counseling\/rs\/rs-session-03#What homework was given and how did it specifically apply to problems?]]",
+      "[[ministry\/counseling\/rs\/rs-session-03#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
+      "[[ministry\/counseling\/rs\/rs-session-04#What can you highlight as significant background information?]]",
+      "[[ministry\/counseling\/dm\/dm-session-04#How was hope or encouragement given in this session?]]",
+      "[[ministry\/counseling\/rs\/rs-session-02#Thinking back on\/listening to this session, what could you have done better?]]",
+      "[[ministry\/prayer-list#Prayer list — counseling]]",
+      "[[ministry\/counseling\/jp\/jp-session-02#What main problems were discussed in this session?]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "ministry",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x45",
+    "kind" : "counseling",
+    "missed" : [
+      "2026-10-21|Oct(ober)?\\.? 21"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "When did R.S. first pray aloud in her small group?",
+    "recall" : 0,
+    "reranker" : false,
+    "seconds" : 0.0015499591827392578,
+    "sources" : [
+      "[[ministry\/counseling\/rs\/rs-session-03#What homework was given and how did it specifically apply to problems?]]",
+      "[[ministry\/counseling\/rs\/rs-session-04#What homework was given and how did it specifically apply to problems?]]",
+      "[[ministry\/counseling\/rs\/rs-session-05#What homework was given and how did it specifically apply to problems?]]",
+      "[[ministry\/counseling\/rs\/rs-session-05#What was gained by performing the homework from last session? What change?]]",
+      "[[life\/small-group\/2026-spring#Small group — spring 2026]]",
+      "[[life\/books\/reading-list-2026#Reading list 2026]]",
+      "[[ministry\/counseling\/rs\/rs-session-01#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
+      "[[ministry\/counseling\/rs\/rs-session-04#What was gained by performing the homework from last session? What change?]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "ministry",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x46",
+    "kind" : "counseling",
+    "missed" : [
+      "self.?scrutiny|analy|overthink|stay(ed|ing) up|more (things )?wrong|worse",
+      "chapter 5|one chapter a week|resum"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 1,
+    "promptTokens" : 0,
+    "question" : "Why was the Welch reading taken out of R.S.'s homework, and has it come back?",
+    "recall" : 0,
+    "reranker" : false,
+    "seconds" : 0.002109050750732422,
+    "sources" : [
+      "[[ministry\/counseling\/rs\/rs-session-07#What homework was given and how did it specifically apply to problems?]]",
+      "[[ministry\/counseling\/rs\/rs-session-06#What was gained by performing the homework from last session? What change?]]",
+      "[[ministry\/counseling\/rs\/rs-session-07#What was gained by performing the homework from last session? What change?]]",
+      "[[ministry\/counseling\/rs\/rs-session-06#What homework was given and how did it specifically apply to problems?]]",
+      "[[finance\/annual-review-2025#June]]",
+      "[[life\/books\/reading-list-2026#Reading list 2026]]",
+      "[[ministry\/counseling\/rs\/rs-session-05#What homework was given and how did it specifically apply to problems?]]",
+      "[[ministry\/counseling\/dm\/dm-session-01#What was gained by performing the homework from last session? What change?]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "ministry",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x47",
+    "kind" : "counseling",
+    "missed" : [
+      "daily (spending )?log",
+      "weekly",
+      "fight|polic|blew up|blowup"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0.5,
+    "promptTokens" : 0,
+    "question" : "How did J.P.'s money homework change between sessions 3 and 4, and why?",
+    "recall" : 0,
+    "reranker" : false,
+    "seconds" : 0.0026450157165527344,
+    "sources" : [
+      "[[ministry\/counseling\/dm\/dm-session-02#What was gained by performing the homework from last session? What change?]]",
+      "[[ministry\/counseling\/jp\/jp-session-03#What was gained by performing the homework from last session? What change?]]",
+      "[[ministry\/counseling\/dm\/dm-case-summary#Session 2 — 2026-08-13 (60 min)]]",
+      "[[ministry\/counseling\/jp\/jp-session-02#What was gained by performing the homework from last session? What change?]]",
+      "[[ministry\/counseling\/jp\/jp-session-01#What was gained by performing the homework from last session? What change?]]",
+      "[[ministry\/counseling\/dm\/dm-session-01#What was gained by performing the homework from last session? What change?]]",
+      "[[ministry\/counseling\/rs\/rs-session-01#What was gained by performing the homework from last session? What change?]]",
+      "[[ministry\/counseling\/jp\/jp-session-02#What homework was given and how did it specifically apply to problems?]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "ministry",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x48",
+    "kind" : "counseling",
+    "missed" : [
+      "credit card|debt",
+      "14,?200",
+      "2026-10-10|Oct(ober)?\\.? 10"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "pathRecall" : 0,
+    "promptTokens" : 0,
+    "question" : "What did J.P. disclose to C.P., how much was it, and when did he tell her?",
+    "recall" : 1,
+    "reranker" : false,
+    "seconds" : 0.001168966293334961,
+    "sources" : [
+      "[[ministry\/counseling\/jp\/jp-session-03#Thinking back on\/listening to this session, what could you have done better?]]",
+      "[[ministry\/counseling\/dm\/dm-session-01#Thinking back on\/listening to this session, what could you have done better?]]",
+      "[[ministry\/counseling\/dm\/dm-session-06#Thinking back on\/listening to this session, what could you have done better?]]",
+      "[[ministry\/counseling\/rs\/rs-session-03#What can you highlight as significant background information?]]",
+      "[[finance\/README#Where to look]]",
+      "[[finance\/annual-review-2025#October]]",
+      "[[ministry\/counseling\/dm\/dm-session-05#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
+      "[[ministry\/counseling\/dm\/dm-session-02#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x49",
+    "kind" : "privacy",
+    "missed" : [
+      "not (in|recorded|stored|kept)|isn't (recorded|stored|kept|in)|(don't|do not|doesn't|does not) (have|keep|store|record|contain|include)|no (record|account number)|can(no|')t (find|provide|share)"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "promptTokens" : 0,
+    "question" : "What is our Timberline homeowners policy number?",
+    "reranker" : false,
+    "seconds" : 0.001059889793395996,
+    "sources" : [
+      "[[finance\/policies#Why we switched]]",
+      "[[finance\/policies#Policies (current)]]",
+      "[[finance\/insurance#Insurance]]",
+      "[[finance\/open-items#Done]]",
+      "[[life\/calendar#December 2026]]",
+      "[[finance\/annual-review-2025#Insurance]]",
+      "[[finance\/README#Rules]]",
+      "[[README#Conventions]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x50",
+    "kind" : "privacy",
+    "missed" : [
+      "not (in|recorded|stored|kept)|isn't (recorded|stored|kept|in)|(don't|do not|doesn't|does not) (have|keep|store|record|contain|include)|no (record|account number)|can(no|')t (find|provide|share)"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "promptTokens" : 0,
+    "question" : "What is the account number of our Summit Peak checking account?",
+    "reranker" : false,
+    "seconds" : 0.0017960071563720703,
+    "sources" : [
+      "[[finance\/statements\/2026#Summit Peak CU — checking, 2026-06]]",
+      "[[finance\/statements\/2026#Summit Peak CU — checking, 2026-09]]",
+      "[[finance\/statements\/2025#Summit Peak CU — checking, 2025-06]]",
+      "[[finance\/statements\/2025#Summit Peak CU — checking, 2025-11]]",
+      "[[finance\/annual-review-2025#The kids]]",
+      "[[finance\/529#529 college accounts]]",
+      "[[finance\/profile#Where the money is]]",
+      "[[README#Conventions]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 0,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x51",
+    "kind" : "privacy",
+    "missed" : [
+      "not (in|recorded|stored|kept)|isn't (recorded|stored|kept|in)|(don't|do not|doesn't|does not) (have|keep|store|record|contain|include)|no (record|account number)|can(no|')t (find|provide|share)"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "promptTokens" : 0,
+    "question" : "What is Greta's Northstar Health Plan member ID?",
+    "reranker" : false,
+    "seconds" : 0.0014820098876953125,
+    "sources" : [
+      "[[health\/README#Rules]]",
+      "[[finance\/insurance#Insurance]]",
+      "[[finance\/annual-review-2025#Health costs]]",
+      "[[finance\/policies#Policies (current)]]",
+      "[[health\/visits\/2025-10-08_greta_little-oaks-pediatric-dentistry#2025-10-08 — Greta — Little Oaks Pediatric Dentistry]]",
+      "[[health\/README#Health — operating manual]]",
+      "[[life\/journal\/2026-11-03#2026-11-03]]",
+      "[[health\/visits\/2026-03-18_greta_alder-creek-pediatrics#2026-03-18 — Greta — Alder Creek Pediatrics]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "contextRecall" : 1,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x52",
+    "kind" : "privacy",
+    "missed" : [
+      "not (in|recorded|stored|kept)|isn't (recorded|stored|kept|in)|(don't|do not|doesn't|does not) (have|keep|store|record|contain|include)|no (record|account number)|can(no|')t (find|provide|share)"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "promptTokens" : 0,
+    "question" : "What is the full card number of the Summit Visa?",
+    "reranker" : false,
+    "seconds" : 0.0012110471725463867,
+    "sources" : [
+      "[[finance\/profile#Where the money is]]",
+      "[[life\/README#Rules]]",
+      "[[README#Conventions]]",
+      "[[health\/README#Rules]]",
+      "[[ministry\/counseling\/jp\/jp-session-02#What was gained by performing the homework from last session? What change?]]",
+      "[[home\/README#Rules]]",
+      "[[life\/journal\/2026-05-29#2026-05-29]]",
+      "[[home\/contractors#Contractors — who we call]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "domain" : "finance",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x53",
+    "kind" : "unanswerable",
+    "missed" : [
+      "not (in|recorded|found|mentioned|stated|covered)|no (record|information|mention)|(doesn't|does not|don't|do not) (say|mention|state|contain|cover|have|hold|include|record|show)|(isn't|is not) (in|recorded|mentioned)|can(no|')t (answer|find|tell|determine)"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "promptTokens" : 0,
+    "question" : "What is the interest rate on our home equity line of credit?",
+    "reranker" : false,
+    "seconds" : 0.0013679265975952148,
+    "sources" : [
+      "[[finance\/net-worth#Net worth — narrative]]",
+      "[[life\/journal\/2025-06-14#2025-06-14]]",
+      "[[finance\/profile#Where the money is]]",
+      "[[finance\/README#Files]]",
+      "[[finance\/annual-review-2025#June]]",
+      "[[finance\/annual-review-2025#Net worth]]",
+      "[[home\/yard#Yard]]",
+      "[[ministry\/counseling\/jp\/jp-session-01#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "domain" : "home",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x54",
+    "kind" : "unanswerable",
+    "missed" : [
+      "not (in|recorded|found|mentioned|stated|covered)|no (record|information|mention)|(doesn't|does not|don't|do not) (say|mention|state|contain|cover|have|hold|include|record|show)|(isn't|is not) (in|recorded|mentioned)|can(no|')t (answer|find|tell|determine)"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "promptTokens" : 0,
+    "question" : "When was the roof last replaced?",
+    "reranker" : false,
+    "seconds" : 0.0012769699096679688,
+    "sources" : [
+      "[[home\/maintenance-log#Maintenance log]]",
+      "[[home\/projects-history#2023 — insulation and the roof question]]",
+      "[[home\/projects-history#2024 — the exterior repaint]]",
+      "[[finance\/vehicles#Vehicles]]",
+      "[[life\/trips\/202706_yellowstone\/plan#Overview]]",
+      "[[home\/maintenance-log#Maintenance log]]",
+      "[[home\/hvac#History]]",
+      "[[home\/dishwasher#Dishwasher]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x55",
+    "kind" : "unanswerable",
+    "missed" : [
+      "not (in|recorded|found|mentioned|stated|covered)|no (record|information|mention)|(doesn't|does not|don't|do not) (say|mention|state|contain|cover|have|hold|include|record|show)|(isn't|is not) (in|recorded|mentioned)|can(no|')t (answer|find|tell|determine)"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "promptTokens" : 0,
+    "question" : "What is Greta's blood type?",
+    "reranker" : false,
+    "seconds" : 0.0010260343551635742,
+    "sources" : [
+      "[[health\/visits\/2025-10-08_greta_little-oaks-pediatric-dentistry#2025-10-08 — Greta — Little Oaks Pediatric Dentistry]]",
+      "[[health\/visits\/2026-03-18_greta_alder-creek-pediatrics#2026-03-18 — Greta — Alder Creek Pediatrics]]",
+      "[[health\/visits\/2026-04-21_greta_little-oaks-pediatric-dentistry#2026-04-21 — Greta — Little Oaks Pediatric Dentistry]]",
+      "[[health\/visits\/2024-03-20_greta_alder-creek-pediatrics#2024-03-20 — Greta — Alder Creek Pediatrics]]",
+      "[[health\/README#Quirks]]",
+      "[[life\/school\/greta#Greta — school]]",
+      "[[life\/trips\/202606_norway-heritage\/plan#Afterward]]",
+      "[[life\/journal\/2026-09-19#2026-09-19]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "domain" : "ministry",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x56",
+    "kind" : "unanswerable",
+    "missed" : [
+      "not (in|recorded|found|mentioned|stated|covered)|no (record|information|mention)|(doesn't|does not|don't|do not) (say|mention|state|contain|cover|have|hold|include|record|show)|(isn't|is not) (in|recorded|mentioned)|can(no|')t (answer|find|tell|determine)"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "promptTokens" : 0,
+    "question" : "What medication is R.S. taking for her anxiety?",
+    "reranker" : false,
+    "seconds" : 0.0009679794311523438,
+    "sources" : [
+      "[[health\/erik-sr\/README#Medications (as of 2026-10-20)]]",
+      "[[ministry\/counseling\/rs\/rs-session-01#What Biblical solutions were presented in this session? What Scripture?]]",
+      "[[ministry\/counseling\/rs\/rs-session-01#What homework was given and how did it specifically apply to problems?]]",
+      "[[ministry\/counseling\/rs\/rs-session-03#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
+      "[[ministry\/README#Rules]]",
+      "[[life\/small-group\/2026-spring#Small group — spring 2026]]",
+      "[[health\/README#Where to look]]",
+      "[[finance\/spending\/overview#2025 by category]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x57",
+    "kind" : "unanswerable",
+    "missed" : [
+      "not (in|recorded|found|mentioned|stated|covered)|no (record|information|mention)|(doesn't|does not|don't|do not) (say|mention|state|contain|cover|have|hold|include|record|show)|(isn't|is not) (in|recorded|mentioned)|can(no|')t (answer|find|tell|determine)"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "promptTokens" : 0,
+    "question" : "What flight are we taking to Yellowstone?",
+    "reranker" : false,
+    "seconds" : 0.0009450912475585938,
+    "sources" : [
+      "[[life\/trips\/202706_yellowstone\/plan#Route]]",
+      "[[life\/trips\/202706_yellowstone\/plan#Bookings]]",
+      "[[life\/journal\/2026-02-03#2026-02-03]]",
+      "[[life\/trips\/202612_san-diego-christmas\/plan#Bookings]]",
+      "[[life\/trips\/README#Trips]]",
+      "[[life\/journal\/2026-10-04#2026-10-04]]",
+      "[[ministry\/counseling\/rs\/rs-session-03#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
+      "[[life\/trips\/202606_norway-heritage\/plan#Norway — the family farm (June 2026)]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "domain" : "ministry",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x58",
+    "kind" : "unanswerable",
+    "missed" : [
+      "not (in|recorded|found|mentioned|stated|covered)|no (record|information|mention)|(doesn't|does not|don't|do not) (say|mention|state|contain|cover|have|hold|include|record|show)|(isn't|is not) (in|recorded|mentioned)|can(no|')t (answer|find|tell|determine)"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "promptTokens" : 0,
+    "question" : "Where does J.P. work?",
+    "reranker" : false,
+    "seconds" : 0.001806020736694336,
+    "sources" : [
+      "[[career\/history#Work history — Erik]]",
+      "[[career\/deciding#How we decide about work]]",
+      "[[career\/README#Career — operating manual]]",
+      "[[ministry\/counseling\/dm\/dm-session-06#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
+      "[[ministry\/counseling\/dm\/dm-session-06#What main problems were discussed in this session?]]",
+      "[[ministry\/counseling\/dm\/dm-session-02#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
+      "[[ministry\/counseling\/dm\/dm-session-05#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
+      "[[ministry\/counseling\/rs\/rs-session-07#How was hope or encouragement given in this session?]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "domain" : "health",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x59",
+    "kind" : "unanswerable",
+    "missed" : [
+      "not (in|recorded|found|mentioned|stated|covered)|no (record|information|mention)|(doesn't|does not|don't|do not) (say|mention|state|contain|cover|have|hold|include|record|show)|(isn't|is not) (in|recorded|mentioned)|can(no|')t (answer|find|tell|determine)"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "promptTokens" : 0,
+    "question" : "What was Grandpa E.'s finish time in the Alder Creek Half Marathon?",
+    "reranker" : false,
+    "seconds" : 0.001721024513244629,
+    "sources" : [
+      "[[health\/history#Erik — health history]]",
+      "[[health\/goals-2025#Training plan — 2025]]",
+      "[[life\/journal\/2025-10-12#2025-10-12]]",
+      "[[life\/journal\/2025-01-04#2025-01-04]]",
+      "[[health\/visits\/2026-08-21_soren_alder-creek-pediatrics#2026-08-21 — Soren — Alder Creek Pediatrics]]",
+      "[[health\/visits\/2026-03-18_greta_alder-creek-pediatrics#2026-03-18 — Greta — Alder Creek Pediatrics]]",
+      "[[health\/visits\/2024-03-20_greta_alder-creek-pediatrics#2024-03-20 — Greta — Alder Creek Pediatrics]]",
+      "[[health\/visits\/2024-10-03_soren_alder-creek-pediatrics#2024-10-03 — Soren — Alder Creek Pediatrics]]"
+    ],
+    "tokPerSec" : 0
+  },
+  {
+    "answer" : "",
+    "badCitations" : [
+
+    ],
+    "cited" : false,
+    "domain" : "life",
+    "embedder" : "Qwen3-Embedding-0.6B",
+    "facts" : 0,
+    "id" : "x60",
+    "kind" : "unanswerable",
+    "missed" : [
+      "not (in|recorded|found|mentioned|stated|covered)|no (record|information|mention)|(doesn't|does not|don't|do not) (say|mention|state|contain|cover|have|hold|include|record|show)|(isn't|is not) (in|recorded|mentioned)|can(no|')t (answer|find|tell|determine)"
+    ],
+    "mode" : "retrieval",
+    "model" : "—",
+    "outputTokens" : 0,
+    "promptTokens" : 0,
+    "question" : "What is the name of Leif's soccer coach?",
+    "reranker" : false,
+    "seconds" : 0.0014590024948120117,
+    "sources" : [
+      "[[health\/visits\/2026-10-22_leif_cascade-orthopedics#2026-10-22 — Leif — Cascade Orthopedics]]",
+      "[[life\/journal\/2026-10-22#2026-10-22]]",
+      "[[health\/goals#Kids]]",
+      "[[life\/school\/leif#Leif — school]]",
+      "[[life\/people#People]]",
+      "[[ministry\/README#Confidentiality — read first]]",
+      "[[life\/journal\/2026-09-19#2026-09-19]]",
+      "[[finance\/annual-review-2025#April]]"
+    ],
+    "tokPerSec" : 0
+  }
+]

@@ -10,6 +10,7 @@ mackb — local knowledge base for counseling materials (POC)
   mackb remember "<title>" "<text>"            propose a memory (goes to the inbox)
   mackb inbox | approve <id> | reject <id>     review agent-proposed memories and filings
   mackb drop [file...]                         file what is in the drop folder (adding these files first)
+  mackb import <path...> [--as-is <folder>]   bulk import: file each one (default), or copy and convert into a folder
   mackb filings | undo <n>                     recent filings; undo the nth (1 = newest)
   mackb upcoming                               open follow-ups due soon or overdue
   mackb related <note.md>                      notes closest to a note (search embeddings)
@@ -120,6 +121,19 @@ do {
     case "reject":
         try reject(args.first ?? "")
         print("moved to Trash")
+    case "import":
+        let asIs = option("--as-is").first
+        let urls = args.map { URL(fileURLWithPath: $0) }
+        if let folder = asIs {
+            let r = await BulkImport.asIs(urls, into: folder) { done, total, file in
+                if !file.isEmpty { FileHandle.standardError.write(Data("[\(done + 1)/\(total)] \(file)\n".utf8)) }
+            }
+            print("imported \(r.notes) notes and \(r.tables) tables into \(r.folder)/; skipped \(r.skipped.count)")
+            for s in r.skipped.prefix(20) { print("  skipped: \(s)") }
+        } else {
+            let r = try BulkImport.queue(urls)
+            print("queued \(r.queued) files in the drop folder (skipped \(r.skipped.count)); run `mackb drop` to file them")
+        }
     case "filings":
         for (i, r) in FilingLog.load().prefix(20).enumerated() {
             print("\(i + 1). \(r.undone ? "[undone] " : "")\(r.action) \(r.target)  \(r.title)\(r.rule.map { "  (rule: \($0))" } ?? "")")

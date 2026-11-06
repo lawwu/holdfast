@@ -23,6 +23,7 @@ struct MacKBApp: App {
             CommandGroup(replacing: .newItem) {}
             CommandMenu("Vault") {
                 Button("Import Files or Folder…") { store.importFiles() }.keyboardShortcut("i")
+                Button("Bulk Import…") { store.showBulkImport = true }.keyboardShortcut("i", modifiers: [.command, .shift])
                 Button("Add Link…") { store.showLinkSheet = true }.keyboardShortcut("l")
                 Button("Rebuild Index") { store.rebuildIndex() }
                 Button("Open Drop Folder") { store.revealDrop() }.keyboardShortcut("d", modifiers: [.command, .shift])
@@ -186,6 +187,13 @@ final class Store: ObservableObject {
     /// Senders filed to the same place often enough to offer a rule.
     @Published var ruleSuggestions: [Rules.Candidate] = []
     @Published var notice: String?
+    /// Filing queue progress: files handled since the queue was last empty, and pause.
+    @Published var queueDone = 0
+    @Published var queueLeft = 0
+    @Published var dropPaused = false
+    /// "Bring in as-is" import progress (done, total, current file).
+    @Published var importProgress: (done: Int, total: Int, file: String)?
+    @Published var showBulkImport = false
     @Published var dropErrors: [String] = []
     private var dropTimer: Timer?
     private var filing = false
@@ -583,12 +591,14 @@ final class Store: ObservableObject {
     /// Files whatever is waiting in the drop folder, one at a time, when the
     /// model is free (an answer in progress goes first).
     func fileDropped() {
-        guard !filing, busy == nil else { return }
+        guard !filing, busy == nil, !dropPaused else { return }
         let files = Drop.pending()
-        guard !files.isEmpty else { return }
+        guard !files.isEmpty else { queueDone = 0; queueLeft = 0; return }
         filing = true
         Task {
             for u in files {
+                if dropPaused { break }
+                queueLeft = max(Drop.pending(settled: false).count, 1)
                 dropStatus = "Reading \(u.lastPathComponent)…"
                 do {
                     let emb = await getEmbedder()
@@ -602,9 +612,13 @@ final class Store: ObservableObject {
                     dropErrors.append("\(u.lastPathComponent): \(error)")
                 }
                 busy = nil
+                queueDone += 1
+                queueLeft = Drop.pending(settled: false).count
+                if queueDone % 5 == 0, Config.inPlace { inboxItems = inbox() }
             }
             dropStatus = nil
             filing = false
+            if queueLeft == 0 { queueDone = 0 }
             if Config.inPlace { reload() } else { await indexNow() }
         }
     }
@@ -712,6 +726,59 @@ final class Store: ObservableObject {
     func rejectItem(_ n: Note) {
         do { try reject(n.id) } catch { self.error = "\(error)" }
         reload()
+    }
+
+    // MARK: bulk import
+
+    /// Brings files and folders in. `asIs`: copy and convert into `folder` with no
+    /// model; otherwise each file goes through the drop folder to be filed.
+    func bulkImport(_ urls: [URL], asIs: Bool, folder: String) {
+        guard !urls.isEmpty else { return }
+        if asIs {
+            importProgress = (0, 0, "Opening…")
+            Task {
+                let report = await BulkImport.asIs(urls, into: folder) { done, total, file in
+                    await MainActor.run { self.importProgress = (done, total, file) }
+                }
+                importProgress = nil
+                notice = "Imported \(report.notes) notes and \(report.tables) tables into \(report.folder)/"
+                    + (report.skipped.isEmpty ? "." : "; skipped \(report.skipped.count): " + report.skipped.prefix(5).joined(separator: ", "))
+                await indexNow()
+            }
+        } else {
+            do {
+                let r = try BulkImport.queue(urls)
+                queueLeft = Drop.pending(settled: false).count
+                notice = "Queued \(r.queued) files to file" + (r.skipped.isEmpty ? "." : "; skipped \(r.skipped.count) of a type Holdfast can't read yet.")
+                pane = .inbox
+                fileDropped()
+            } catch { self.error = "\(error)" }
+        }
+    }
+
+    func chooseBulkImport() -> [URL] {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = true
+        panel.canChooseDirectories = true
+        panel.message = "Choose files, folders, zip archives or exports (Evernote, Day One, mailboxes)"
+        return panel.runModal() == .OK ? panel.urls : []
+    }
+
+    func pauseFiling(_ paused: Bool) {
+        dropPaused = paused
+        if !paused { fileDropped() }
+    }
+
+    /// Approves several filings at once; one reload and reindex at the end.
+    func approveAll(_ items: [Note]) {
+        var failed: [String] = []
+        for n in items {
+            do { _ = try approve(n.id) } catch { failed.append("\(n.title): \(error)") }
+        }
+        notice = "Filed \(items.count - failed.count) of \(items.count)."
+        if !failed.isEmpty { self.error = failed.joined(separator: "\n") }
+        reload()
+        rebuildIndex()
     }
 
     // MARK: keeping
