@@ -146,6 +146,7 @@ struct RootView: View {
         case .library: LibraryView()
         case .inbox: InboxView()
         case .history: HistoryView()
+        case .listen: ListenView()
         case .files: FilesView()
         case .tables: TablesView()
         case .graph: GraphView()
@@ -283,8 +284,13 @@ struct Sidebar: View {
 
 struct VaultCard: View {
     @EnvironmentObject var store: Store
+    @ObservedObject private var listener = Listener.shared
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            if listener.active, store.pane != .listen {
+                Button { store.pane = .listen } label: { ListeningBadge() }.buttonStyle(.plain)
+                Divider()
+            }
             if let b = store.busy, store.pane != .ask {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.mini)

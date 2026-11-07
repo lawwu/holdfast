@@ -1,5 +1,20 @@
 # Changelog
 
+## Next (after 0.1.0)
+
+- **`mackb listen`: live transcription.** Audio from a stream URL (via ffmpeg), the microphone, or raw
+  audio on stdin is transcribed as it arrives; finished lines print as they become final (JSON events
+  with `--json`), and the transcript is kept and filed like a dropped document when it ends. CLI only
+  for now; `--mic` is untested.
+- **Meetings and other apps' audio:** `--app <name>` (one app) or `--system` (everything the Mac
+  plays) through Core Audio process taps, with `--mic` mixed in for your side of a call; `--apps`
+  lists audio apps; `--mute` keeps the tapped audio off the speakers. From a terminal the capture runs
+  inside Holdfast.app so macOS asks Holdfast for System Audio Recording.
+- **Listen page in the app** (sidebar, ⇧⌘R): a call or app, all Mac audio, the microphone or a stream;
+  live lines, a sidebar badge while listening, Stop, recent transcripts, and filing through the Inbox.
+- Not yet tested: the microphone (alone or mixed into a call), `--mute`, a real call app. Each
+  rebuild asks for the audio permission again (ad-hoc signing).
+
 ## 0.1.0 (unreleased)
 
 The first version with a name: **Holdfast**, a private second brain for a family's notes.

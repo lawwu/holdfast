@@ -27,6 +27,7 @@ struct MacKBApp: App {
                 Button("Bulk Import…") { store.showBulkImport = true }.keyboardShortcut("i", modifiers: [.command, .shift])
                 Button("Suggest Links Between Notes…") { store.pendingJob = .crossLink; store.pane = .ask }
                 Button("Add Link…") { store.showLinkSheet = true }.keyboardShortcut("l")
+                Button("Listen…") { store.pane = .listen }.keyboardShortcut("r", modifiers: [.command, .shift])
                 Button("Rebuild Index") { store.rebuildIndex(force: true) }
                 Button("Open Drop Folder") { store.revealDrop() }.keyboardShortcut("d", modifiers: [.command, .shift])
                 Divider()
@@ -71,12 +72,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 enum Pane: String, CaseIterable, Identifiable {
-    case ask = "Ask", history = "History", files = "Files", tables = "Tables", graph = "Graph", library = "Library", inbox = "Inbox"
+    case ask = "Ask", history = "History", listen = "Listen", files = "Files", tables = "Tables", graph = "Graph", library = "Library", inbox = "Inbox"
     var id: String { rawValue }
     var icon: String {
         switch self {
         case .ask: return "bubble.left.and.text.bubble.right"
         case .history: return "clock.arrow.circlepath"
+        case .listen: return "waveform"
         case .files: return "folder"
         case .tables: return "tablecells"
         case .graph: return "point.3.connected.trianglepath.dotted"

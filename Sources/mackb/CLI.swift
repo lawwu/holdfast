@@ -4,6 +4,12 @@ let usage = """
 mackb — Holdfast's command line: a private knowledge base over a folder of Markdown notes
 
   mackb ingest <file|folder|url> [--tag t]...   import docs (docx/pdf/md/txt), audio/video, or a YouTube URL
+  mackb listen --app <name> | --system | --url <stream|file> | --mic | -
+                                               transcribe audio as it streams in; Ctrl-C stops and files the transcript
+        [--mic] [--mute] [--title T] [--json] [--out file.md] [--no-file] [--seconds N] [--realtime]
+                                               --app zoom --mic: both sides of a call; --system: everything the Mac plays
+                                               - reads raw 16 kHz mono s16le, e.g. ffmpeg … -f s16le -ar 16000 -ac 1 - | mackb listen -
+  mackb listen --apps                          apps that have opened audio (names for --app)
   mackb index [--force] [--no-embed]           (re)build the search index from the vault
   mackb search "<query>"                       hybrid keyword + semantic search
   mackb ask "<question>"                       answer with the local Qwen model, with citations
@@ -269,6 +275,38 @@ do {
             catch let e as AlreadyFiled { print("\(u.lastPathComponent): skipped, \(e)") }
             catch { print("\(u.lastPathComponent): failed — \(error)") }
         }
+    case "listen":
+        let raw = args  // as typed, for a relaunch inside Holdfast.app
+        _ = option("--relay-token")  // marks a relaunched run; nothing to do with it here
+        if flag("--apps") {
+            // Apps Core Audio knows about, for --app: playing ones first.
+            let ps = SystemAudio.processes().filter { $0.pid != ProcessInfo.processInfo.processIdentifier }
+                .sorted { ($0.playing ? 0 : 1, $0.name.lowercased()) < ($1.playing ? 0 : 1, $1.name.lowercased()) }
+            if ps.isEmpty { print("no app has opened audio") }
+            for p in ps { print("\(p.playing ? "playing" : "       ")  \(p.name)\(p.bundleID.isEmpty ? "" : "  (\(p.bundleID))")") }
+            return
+        }
+        let json = flag("--json"), noFile = flag("--no-file"), realtime = flag("--realtime"), mic = flag("--mic")
+        let system = flag("--system"), mute = flag("--mute")
+        let app = option("--app").first
+        let url = option("--url").first
+        let title = option("--title").first
+        let out = option("--out").first.map { URL(fileURLWithPath: $0) }
+        let seconds = option("--seconds").first.flatMap(Double.init)
+        let input: Listen.Input
+        if system || app != nil {
+            // macOS asks only an app that says why it records audio; a terminal gets silence. Unless
+            // this process already has the permission, run the capture inside Holdfast.app.
+            if !launchedAsApp, SystemAudio.audioCapturePermission() != .granted {
+                exit(try Listen.relayThroughApp(raw))
+            }
+            input = .system(app: app, mic: mic, mute: mute)
+        }
+        else if mic { input = .mic }
+        else if let url { input = .url(url, realtime: realtime) }
+        else if args.first == "-" || isatty(STDIN_FILENO) == 0 { input = .stdin }
+        else { throw MacKBError("listen to what? --app <name> or --system (add --mic for your side of a call), --url <stream or file>, --mic, or - for piped audio (mackb help)") }
+        try await Listen.run(input, title: title, json: json, out: out, file: !noFile, maxSeconds: seconds)
     case "mcp":
         await MCPServer().serve()
     case "bench":

@@ -41,6 +41,9 @@ cat > "$APP/Contents/Info.plist" <<PLIST
       </dict>
     </dict>
   </dict>
+  <!-- mackb listen: another app's audio (a call) and the microphone, transcribed on this Mac. -->
+  <key>NSAudioCaptureUsageDescription</key><string>Holdfast transcribes a call or another app's audio on this Mac when you ask it to listen. Nothing is sent anywhere.</string>
+  <key>NSMicrophoneUsageDescription</key><string>Holdfast transcribes your side of a call on this Mac when you ask it to listen. Nothing is sent anywhere.</string>
   <key>NSHumanReadableCopyright</key><string>“Prove all things; hold fast that which is good.” 1 Thessalonians 5:21</string>
 </dict></plist>
 PLIST
