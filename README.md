@@ -20,6 +20,7 @@ window: `mackb app`, or `scripts/make_app.sh` → `build/Holdfast.app`.
 | `mackb ingest <folder>` | `.docx/.doc/.rtf` via `textutil`, `.pdf` via PDFKit, scanned PDFs via Apple Vision OCR, `.md/.txt` as-is. When a lesson exists as both docx and pdf, only one copy is kept |
 | `mackb ingest <audio/video>` | ffmpeg → 16 kHz → **Parakeet v3** (FluidAudio, CoreML) → a note with `[hh:mm:ss]` lines |
 | `mackb ingest <YouTube URL>` | yt-dlp; uses the video's captions when there are any, otherwise transcribes the audio |
+| `mackb listen -` · `--url <stream>` · `--mic` | Transcribes audio while it streams in (below). Finished `[hh:mm:ss]` lines go to stdout as they become final (`--json` for events); Ctrl-C stops, and the transcript is kept and filed like a dropped document |
 | `mackb index` | Chunks each note on headings and timestamps; SQLite FTS5 + **Qwen3-Embedding-0.6B** vectors (in-process, MLX Swift). Only changed notes are re-indexed |
 | `mackb search "…"` | Retrieval pipeline below |
 | `mackb ask "…"` | The top 8 passages go to the answer model (MLX in-process by default, a model on another Mac, or Ollama; thinking off unless Show Thinking is on). The answer cites `[n]`, and each source prints as `[[note#anchor]]` |
@@ -107,6 +108,58 @@ Qwen would be faster still.
 - Batched embeddings (currently one passage at a time); a background job queue
 - Case-report templates (ACBC structure: data gathering, problem, hope, plan, homework)
   so questions can filter by section
+
+## Live transcription (`mackb listen`)
+
+Transcribes audio as it arrives, on this Mac, with the same Parakeet model as recordings
+(FluidAudio's sliding-window manager: 15 s windows, 2 s before, an 11 s chunk, 2 s after).
+A line is printed once its words can no longer change, about 10–25 s after they were spoken.
+
+```bash
+mackb listen --app zoom --mic --title "Elders meeting"     # both sides of a call
+mackb listen --system                                      # everything the Mac plays
+mackb listen --url https://example.org/live/stream.m3u8 --title "Sunday livestream"
+ffmpeg -i <anything> -f s16le -ar 16000 -ac 1 - | mackb listen - --json
+```
+
+- **In:**
+  - `--app <name>` taps one app's audio (Zoom, Teams, Chrome, FaceTime…; helper processes included),
+    `--system` everything the Mac plays. Add `--mic` to mix in the default microphone, which a call
+    needs for your side. Core Audio process taps (macOS 14.2+) in a private aggregate device
+    (`SystemAudio.swift`); no screen recording. `--apps` lists apps that have opened audio. `--mute`
+    keeps the tapped audio off the speakers while it is transcribed.
+  - `--url` takes anything ffmpeg opens (HLS, RTMP, Icecast, a file; `--realtime` plays a file at speed).
+  - `-` reads raw 16 kHz mono s16le from stdin, so any program that makes audio can feed it.
+  - `--mic` alone uses the default input through AVAudioEngine.
+- **In the app:** the Listen page (sidebar, or Vault › Listen…, ⇧⌘R) picks the same sources, shows
+  lines as they become final with words still settling in grey, and a red "Listening" badge stays
+  in the sidebar on other pages. Stop keeps everything heard; the transcript is listed under Recent
+  transcripts and handed to the drop folder, so the Inbox shows the model's filing proposal (or why
+  it skipped it). Choices are remembered.
+- **Permissions:** Holdfast's Info.plist says why it records audio (`NSAudioCaptureUsageDescription`,
+  `NSMicrophoneUsageDescription`), so macOS asks Holdfast once. macOS won't ask on behalf of a
+  terminal that doesn't declare this, and a tap without permission gives silence, so from the command
+  line `--app`/`--system` runs the capture inside Holdfast.app (`open -n -g -W`, output passed back
+  through FIFOs, Ctrl-C forwarded) unless the terminal already has System Audio Recording. The check
+  and request use the private TCC calls AudioCap uses. Ad-hoc signing means each rebuild asks again.
+- **Calls:** a transcript records everyone on the call; ask them first (California needs everyone's
+  consent to record a confidential conversation). Headphones keep the other side out of your microphone.
+- **Out:** finished lines on stdout; with `--json`, `line`, `partial` (words that may still change)
+  and `done` events, one per line. Progress goes to stderr.
+- **When it ends** (end of stream, `--seconds N`, or Ctrl-C): the whole transcript is kept in the
+  state folder's `listening/` (and `--out file.md`), then filed like a dropped document: a proposal in
+  the Inbox in a vault indexed in place, a source note in a managed vault. `--no-file` skips filing.
+
+Measured 2026-11-07 on a 54 s synthetic speech (macOS `say`): every line arrived with the right
+timestamp, and the words matched the script except punctuation at two window seams; piped in at full
+speed it finished in 30 s including model load; over HLS served by HTTP and with Ctrl-C mid-stream it
+kept everything heard; 20 s of silence saved nothing. App and system audio (2026-11-07, speech
+played by ffmpeg into a virtual output device so nothing reached the speakers): `--app ffmpeg` and
+`--system`, each run inside Holdfast.app after its permission prompt, transcribed all of it with
+timestamps; a tap also catches audio sent to a non-default device. The Listen page did the same
+live, with the sidebar badge, Stop, and filing (the model skipped it as already recorded, and said
+why in the Inbox). Not tested: `--mic` and the microphone mixed into a call (not run, to avoid
+recording the room), `--mute`, and a real Zoom or Teams call.
 
 ## A model on another Mac
 

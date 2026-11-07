@@ -212,6 +212,13 @@ func transcribeAudio(_ url: URL) async throws -> (segments: [Segment], duration:
 /// breaking on a pause, end of sentence, or a maximum length.
 func segmentsFromTokens(_ r: ASRResult) -> [Segment] {
     guard let toks = r.tokenTimings, !toks.isEmpty else { return [Segment(start: 0, text: r.text)] }
+    return segments(fromTokens: toks)
+}
+
+/// The grouping itself, shared with live transcription (Listen.swift). A line's boundary depends
+/// only on the tokens before it, so the lines of a prefix never change as more tokens arrive.
+func segments(fromTokens toks: [TokenTiming]) -> [Segment] {
+    guard !toks.isEmpty else { return [] }
     var out: [Segment] = []
     var cur = ""
     var start = toks[0].startTime
