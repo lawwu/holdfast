@@ -3,11 +3,26 @@ import Foundation
 // MARK: - Opening containers
 
 /// The files inside folders and containers: zip archives (including Day One
-/// exports), mailboxes, Evernote exports, and a message's attachments.
-/// Anything written lands in a staging folder in the app state, never the vault.
+/// exports), mailboxes (an .mbox file or Apple Mail's exported .mbox folder),
+/// Evernote exports, and a message's attachments. Anything written lands in a
+/// staging folder in the app state, never the vault; callers remove it when done.
 enum Expand {
     /// Containers inside containers are opened this deep.
     static let maxDepth = 3
+
+    /// A name safe to use as one file name: no path separators, control characters or
+    /// leading dots, at most 120 characters (keeping the extension).
+    static func safeName(_ name: String, fallback: String = "attachment") -> String {
+        var n = name.unicodeScalars.filter { !CharacterSet.controlCharacters.contains($0) }.map(String.init).joined()
+        n = n.replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ":", with: "-").trimmingCharacters(in: .whitespaces)
+        while n.hasPrefix(".") { n.removeFirst() }
+        if n.isEmpty { n = fallback }
+        if n.count > 120 {
+            let ext = (n as NSString).pathExtension
+            n = String(n.prefix(120 - ext.count - 1)) + (ext.isEmpty ? "" : "." + ext)
+        }
+        return n
+    }
 
     static func files(_ url: URL, staging: URL, depth: Int = 0) -> (files: [URL], skipped: [URL]) {
         let fm = FileManager.default
@@ -19,46 +34,52 @@ enum Expand {
                                       options: [.skipsHiddenFiles, .skipsPackageDescendants])?.compactMap { $0 as? URL } ?? []
             for f in items.sorted(by: { $0.path < $1.path }) where (try? f.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true {
                 guard !f.path.contains("/__MACOSX/") else { continue }
+                // Apple Mail's "Export Mailbox": Inbox.mbox/mbox (the messages) plus bookkeeping files.
+                if f.lastPathComponent == "mbox", f.deletingLastPathComponent().pathExtension.lowercased() == "mbox" {
+                    let r = mailbox(f, staging: staging, depth: depth)
+                    files += r.files; skipped += r.skipped
+                    continue
+                }
+                if ["info.plist", "table_of_contents"].contains(f.lastPathComponent.lowercased()),
+                   f.deletingLastPathComponent().pathExtension.lowercased() == "mbox" { continue }
                 let r = Self.files(f, staging: staging, depth: depth)
                 files += r.files; skipped += r.skipped
             }
             return (files, skipped)
         }
         let ext = url.pathExtension.lowercased()
-        let name = url.deletingPathExtension().lastPathComponent
+        let name = safeName(url.deletingPathExtension().lastPathComponent, fallback: "file")
         let out = Drop.unique(staging.appendingPathComponent(name), ifExists: true)
         guard depth < maxDepth || !Formats.containers.contains(ext) else { return ([], [url]) }
         do {
             switch ext {
             case "zip":
                 if let entries = try? DayOne.entries(url), !entries.isEmpty {
-                    return (try write(entries, to: out), [])
+                    return (write(entries, to: out), [])
                 }
+                let z = try Formats.ZipDir(url)   // size-checked, UTF-8 names, no "../"
                 try fm.createDirectory(at: out, withIntermediateDirectories: true)
-                _ = try run("/usr/bin/ditto", ["-x", "-k", url.path, out.path])
+                for e in z.entries {
+                    let dest = out.appendingPathComponent(e)
+                    try? fm.createDirectory(at: dest.deletingLastPathComponent(), withIntermediateDirectories: true)
+                    try? fm.copyItem(at: z.root.appendingPathComponent(e), to: dest)
+                }
                 return files(out, staging: staging, depth: depth + 1)
             case "mbox":
-                try fm.createDirectory(at: out, withIntermediateDirectories: true)
-                var files: [URL] = []
-                for (i, msg) in Mailbox.split(try Data(contentsOf: url)).enumerated() {
-                    let f = out.appendingPathComponent(String(format: "%05d.eml", i + 1))
-                    try msg.write(to: f)
-                    files += Self.files(f, staging: staging, depth: depth + 1).files
-                }
-                return (files, [])
+                return mailbox(url, staging: staging, depth: depth)
             case "enex":
-                return (try write(Evernote.notes(try Data(contentsOf: url)), to: out), [])
+                let (notes, lost) = Evernote.notes(try Data(contentsOf: url))
+                return (write(notes, to: out), lost > 0 ? [url] : [])
             case "eml":
-                // The message itself, then each attachment as its own file.
+                // The message itself, then each attachment as its own file (one bad attachment skips only itself).
                 let mail = Mail.parse(try Data(contentsOf: url))
                 var files = [url], skipped: [URL] = []
                 if !mail.attachments.isEmpty {
                     let dir = Drop.unique(staging.appendingPathComponent(name + " attachments"), ifExists: true)
                     try fm.createDirectory(at: dir, withIntermediateDirectories: true)
                     for a in mail.attachments {
-                        let safe = a.name.replacingOccurrences(of: "/", with: "-")
-                        let f = Drop.unique(dir.appendingPathComponent(safe), ifExists: true)
-                        try a.data.write(to: f)
+                        let f = Drop.unique(dir.appendingPathComponent(safeName(a.name)), ifExists: true)
+                        guard (try? a.data.write(to: f)) != nil else { skipped.append(URL(fileURLWithPath: a.name)); continue }
                         let r = Self.files(f, staging: staging, depth: depth + 1)
                         files += r.files; skipped += r.skipped
                     }
@@ -72,53 +93,99 @@ enum Expand {
         }
     }
 
-    /// Writes generated Markdown notes (Day One entries, Evernote notes) into a folder.
-    static func write(_ notes: [(name: String, text: String)], to dir: URL) throws -> [URL] {
-        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return try notes.map { n in
-            let safe = n.name.replacingOccurrences(of: "/", with: "-").prefix(90)
-            let f = Drop.unique(dir.appendingPathComponent(safe + ".md"), ifExists: true)
-            try n.text.write(to: f, atomically: true, encoding: .utf8)
-            return f
+    /// An mbox, split message by message into .eml files without reading it all into memory.
+    static func mailbox(_ url: URL, staging: URL, depth: Int) -> (files: [URL], skipped: [URL]) {
+        let out = Drop.unique(staging.appendingPathComponent(safeName(url.deletingPathExtension().lastPathComponent, fallback: "mailbox")), ifExists: true)
+        guard (try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)) != nil,
+              let msgs = try? Mailbox.split(url, into: out) else { return ([], [url]) }
+        var files: [URL] = [], skipped: [URL] = []
+        for f in msgs {
+            let r = Self.files(f, staging: staging, depth: depth + 1)
+            files += r.files; skipped += r.skipped
+        }
+        return (files, skipped)
+    }
+
+    /// Writes generated Markdown notes (Day One entries, Evernote notes) into a folder; a bad one is skipped alone.
+    static func write(_ notes: [(name: String, text: String)], to dir: URL) -> [URL] {
+        guard (try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)) != nil else { return [] }
+        return notes.compactMap { n in
+            let f = Drop.unique(dir.appendingPathComponent(safeName(String(n.name.prefix(90)), fallback: "note") + ".md"), ifExists: true)
+            return (try? n.text.write(to: f, atomically: true, encoding: .utf8)) != nil ? f : nil
         }
     }
 }
 
 enum Mailbox {
-    /// Messages of an mbox file: each starts at a "From " line after a blank line.
-    static func split(_ data: Data) -> [Data] {
-        let lines = String(decoding: data, as: UTF8.self).replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n")
-        var msgs: [[String]] = []
+    /// Splits an mbox into .eml files, streaming: each message starts at a "From " line after a blank line.
+    static func split(_ url: URL, into dir: URL) throws -> [URL] {
+        guard let fh = try? FileHandle(forReadingFrom: url) else { throw MacKBError("can't open \(url.lastPathComponent)") }
+        defer { try? fh.close() }
+        var out: [URL] = []
+        var current: FileHandle?
+        var pending = Data()
         var prevBlank = true
-        for l in lines {
-            if l.hasPrefix("From "), prevBlank { msgs.append([]) }
-            else if !msgs.isEmpty { msgs[msgs.count - 1].append(l.hasPrefix(">From ") ? String(l.dropFirst()) : l) }
-            prevBlank = l.isEmpty
+        func startMessage() throws {
+            try current?.close()
+            let f = dir.appendingPathComponent(String(format: "%05d.eml", out.count + 1))
+            FileManager.default.createFile(atPath: f.path, contents: nil)
+            current = try FileHandle(forWritingTo: f)
+            out.append(f)
         }
-        return msgs.map { Data($0.joined(separator: "\n").utf8) }
+        func handle(_ raw: Data) throws {
+            var line = raw
+            if line.last == 0x0D { line.removeLast() }
+            let isFrom = line.starts(with: Array("From ".utf8))
+            if isFrom, prevBlank { try startMessage() }
+            else if let c = current {
+                c.write(line.starts(with: Array(">From ".utf8)) ? line.dropFirst() : line)
+                c.write(Data([0x0A]))
+            }
+            prevBlank = line.isEmpty
+        }
+        while true {
+            let chunk = fh.readData(ofLength: 1 << 20)
+            if chunk.isEmpty { break }
+            pending.append(chunk)
+            while let nl = pending.firstIndex(of: 0x0A) {
+                try handle(pending[pending.startIndex..<nl])
+                pending.removeSubrange(pending.startIndex...nl)
+            }
+        }
+        if !pending.isEmpty { try handle(pending) }
+        try current?.close()
+        return out
     }
 }
 
 /// Day One's JSON export (a zip with Journal.json): one Markdown note per entry.
 enum DayOne {
     static func entries(_ zip: URL) throws -> [(name: String, text: String)] {
-        let jsons = try Formats.zipEntries(zip).filter { $0.hasSuffix(".json") && !$0.contains("/") }
+        let z = try Formats.ZipDir(zip)
+        let jsons = z.entries.filter { $0.lowercased().hasSuffix(".json") && !$0.contains("/") }
         var out: [(String, String)] = []
+        let day = DateFormatter()
+        day.locale = Locale(identifier: "en_US_POSIX")
+        day.timeZone = TimeZone(identifier: "America/Los_Angeles")
+        day.dateFormat = "yyyy-MM-dd"
+        let iso = ISO8601DateFormatter()
         for j in jsons {
-            guard let obj = try? JSONSerialization.jsonObject(with: try Formats.zipRead(zip, j)) as? [String: Any],
+            guard let obj = try? JSONSerialization.jsonObject(with: try z.read(j)) as? [String: Any],
                   let entries = obj["entries"] as? [[String: Any]], entries.first?["creationDate"] != nil else { continue }
             let journal = (j as NSString).deletingPathExtension
             for e in entries {
-                let date = (e["creationDate"] as? String ?? "").prefix(10)
-                let text = (e["text"] as? String ?? "").replacingOccurrences(of: "\\", with: "")
+                let created = e["creationDate"] as? String ?? ""
+                // Dates in local time (an evening entry keeps its own day), not the UTC date.
+                let date = iso.date(from: created).map { day.string(from: $0) } ?? String(created.prefix(10))
+                // Day One escapes Markdown punctuation with backslashes; undo only those.
+                let text = (e["text"] as? String ?? "").replacingOccurrences(of: #"\\([\\`*_{}\[\]()#+\-.!>~|])"#, with: "$1", options: .regularExpression)
                 let tags = (e["tags"] as? [String] ?? [])
                 let first = text.split(separator: "\n").first.map { $0.replacingOccurrences(of: "#", with: "").trimmingCharacters(in: .whitespaces) } ?? "Entry"
-                var fm = "---\ndate: \"\(date)\"\ntype: \"journal\"\nsource: \"Day One · \(journal)\"\n"
-                if !tags.isEmpty { fm += "tags: \"\(tags.joined(separator: ", "))\"\n" }
-                fm += "---\n"
+                var meta = ["date": date, "type": "journal", "source": "Day One · \(journal)"]
+                if !tags.isEmpty { meta["tags"] = tags.joined(separator: ", ") }
                 // The first line becomes the title (and isn't repeated below it).
                 let body = text.hasPrefix("#") ? text : "# \(first.prefix(80))\n\n" + text.split(separator: "\n", omittingEmptySubsequences: false).dropFirst().joined(separator: "\n").trimmingCharacters(in: .newlines)
-                out.append(("\(date) \(first.prefix(50))", fm + body + "\n"))
+                out.append(("\(date) \(first.prefix(50))", Note.frontmatter(meta) + body + "\n"))
             }
         }
         return out
@@ -129,10 +196,12 @@ enum DayOne {
 enum Evernote {
     final class Parser: NSObject, XMLParserDelegate {
         var notes: [[String: String]] = []
+        var resources = 0
         private var cur: [String: String]?
         private var buf = ""
         func parser(_ p: XMLParser, didStartElement n: String, namespaceURI: String?, qualifiedName: String?, attributes: [String: String] = [:]) {
             if n == "note" { cur = [:] }
+            if n == "resource" { resources += 1 }
             buf = ""
         }
         func parser(_ p: XMLParser, foundCharacters s: String) { buf += s }
@@ -149,21 +218,42 @@ enum Evernote {
         }
     }
 
-    static func notes(_ data: Data) throws -> [(name: String, text: String)] {
-        let p = Parser()
-        let x = XMLParser(data: data)
-        x.delegate = p
-        x.parse()
-        return p.notes.map { n in
-            let title = (n["title"] ?? "Untitled").trimmingCharacters(in: .whitespacesAndNewlines)
-            let c = n["created"] ?? ""
-            let date = c.count >= 8 ? "\(c.prefix(4))-\(c.dropFirst(4).prefix(2))-\(c.dropFirst(6).prefix(2))" : ""
-            var fm = "---\ntitle: \"\(title.replacingOccurrences(of: "\"", with: "'"))\"\nsource: \"Evernote\"\n"
-            if !date.isEmpty { fm += "date: \"\(date)\"\n" }
-            if let t = n["tags"] { fm += "tags: \"\(t)\"\n" }
-            fm += "---\n"
-            return ((date.isEmpty ? "" : date + " ") + title, fm + "# \(title)\n\n" + Formats.htmlToText(n["content"] ?? "") + "\n")
+    /// The notes, and how many were lost (XML the parser couldn't read past, even after
+    /// removing control characters XML forbids). Attachments (resources) aren't imported.
+    static func notes(_ data: Data) -> (notes: [(name: String, text: String)], lost: Int) {
+        func parse(_ d: Data) -> Parser {
+            let p = Parser()
+            let x = XMLParser(data: d)
+            x.delegate = p
+            x.parse()
+            return p
         }
+        let expected = String(decoding: data, as: UTF8.self).components(separatedBy: "<note>").count - 1
+        var p = parse(data)
+        if p.notes.count < expected {
+            // A stray control character (often \u{0B}) stops the parser: drop them and try again.
+            let cleaned = String(decoding: data, as: UTF8.self).unicodeScalars
+                .filter { $0.value >= 0x20 || $0 == "\n" || $0 == "\r" || $0 == "\t" }.map(String.init).joined()
+            let q = parse(Data(cleaned.utf8))
+            if q.notes.count > p.notes.count { p = q }
+        }
+        let iso = DateFormatter()
+        iso.locale = Locale(identifier: "en_US_POSIX")
+        iso.timeZone = TimeZone(identifier: "UTC")
+        iso.dateFormat = "yyyyMMdd'T'HHmmss'Z'"
+        let day = DateFormatter()
+        day.locale = Locale(identifier: "en_US_POSIX")
+        day.timeZone = TimeZone(identifier: "America/Los_Angeles")
+        day.dateFormat = "yyyy-MM-dd"
+        let notes = p.notes.map { n -> (name: String, text: String) in
+            let title = (n["title"] ?? "Untitled").trimmingCharacters(in: .whitespacesAndNewlines)
+            let date = (n["created"]).flatMap { iso.date(from: $0) }.map { day.string(from: $0) } ?? ""
+            var meta = ["title": title, "source": "Evernote"]
+            if !date.isEmpty { meta["date"] = date }
+            if let t = n["tags"] { meta["tags"] = t }
+            return ((date.isEmpty ? "" : date + " ") + title, Note.frontmatter(meta) + "# \(title)\n\n" + Formats.htmlToText(n["content"] ?? "") + "\n")
+        }
+        return (notes, max(0, expected - p.notes.count))
     }
 }
 
@@ -175,17 +265,22 @@ enum BulkImport {
         var tables = 0
         var skipped: [String] = []
         var folder = ""
+        /// Imported notes that look like they hold full names (in counseling folders), emails,
+        /// phone or account-like numbers: imported as they were, listed so they can be checked.
+        var flagged: [String] = []
     }
 
+    /// A fresh staging folder for one operation; remove it when done (cleanUp).
     static var staging: URL {
-        Config.stateDir.appendingPathComponent("import-staging").appendingPathComponent(Versions.stamp.string(from: Date()))
+        Config.stateDir.appendingPathComponent("import-staging").appendingPathComponent(UUID().uuidString)
     }
+
+    static func cleanUp(_ stage: URL) { try? FileManager.default.removeItem(at: stage) }
     /// Originals of converted files, kept out of the vault (like the drop folder's).
     static var originals: URL { Config.stateDir.appendingPathComponent("imported-originals") }
 
     /// Every file to import, each with the path it keeps under the destination folder.
-    static func plan(_ sources: [URL]) -> (items: [(file: URL, rel: String)], skipped: [URL]) {
-        let stage = staging
+    static func plan(_ sources: [URL], stage: URL) -> (items: [(file: URL, rel: String)], skipped: [URL]) {
         var items: [(URL, String)] = [], skipped: [URL] = []
         for src in sources {
             let r = Expand.files(src, staging: stage)
@@ -214,7 +309,15 @@ enum BulkImport {
     static func asIs(_ sources: [URL], into folder: String, root: URL = Config.vault, keepOriginals: Bool = true,
                      progress: @escaping @Sendable (Int, Int, String) async -> Void) async -> Report {
         var report = Report(folder: folder)
-        let (items, skipped) = plan(sources)
+        // The destination is a folder inside the vault (or the pack): no "..", no absolute path.
+        let parts = folder.split(separator: "/", omittingEmptySubsequences: false)
+        guard !folder.isEmpty, !folder.hasPrefix("/"), !parts.contains(where: { $0.isEmpty || $0 == ".." || $0 == "." || $0.hasPrefix(".") }) else {
+            report.skipped = ["everything: \"\(folder)\" isn't a folder inside the vault"]
+            return report
+        }
+        let stage = staging
+        defer { cleanUp(stage) }
+        let (items, skipped) = plan(sources, stage: stage)
         report.skipped = skipped.map(\.lastPathComponent)
         let dest = root.appendingPathComponent(folder)
         let fm = FileManager.default
@@ -232,7 +335,7 @@ enum BulkImport {
                     try fm.copyItem(at: item.file, to: Drop.unique(base.appendingPathExtension("csv"), ifExists: true))
                     report.tables += 1
                 case "tsv":
-                    let rows = try String(contentsOf: item.file, encoding: .utf8).components(separatedBy: "\n")
+                    let rows = try Formats.readText(item.file).replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n")
                         .map { $0.components(separatedBy: "\t") }
                     try (rows.map(Formats.csvLine).joined(separator: "\n")).write(to: Drop.unique(base.appendingPathExtension("csv"), ifExists: true),
                                                                                    atomically: true, encoding: .utf8)
@@ -252,7 +355,7 @@ enum BulkImport {
                         // Messages are named by date and subject, not their file name.
                         title = subj
                         let day = m.header("Date").flatMap { Mail.date($0) }.map { Drop.dayString($0) + " " } ?? ""
-                        base = base.deletingLastPathComponent().appendingPathComponent(day + subj.replacingOccurrences(of: "/", with: "-").prefix(80))
+                        base = base.deletingLastPathComponent().appendingPathComponent(Expand.safeName(day + String(subj.prefix(80)), fallback: "message"))
                     }
                     let keep = originals.appendingPathComponent(folder).appendingPathComponent(item.rel)
                     if keepOriginals {
@@ -264,6 +367,8 @@ enum BulkImport {
                                     body: "\n# \(title)\n\n" + text + "\n")
                     try note.write()
                     report.notes += 1
+                    let flags = privacyFlags(text, names: Profile.isCounseling(folder + "/" + item.rel))
+                    if !flags.isEmpty { report.flagged.append("\(item.rel): \(flags.joined(separator: ", "))") }
                 }
             } catch {
                 report.skipped.append("\(item.rel) (\(error))")
@@ -277,8 +382,10 @@ enum BulkImport {
     /// where the model proposes a place for each. Returns how many were queued.
     static func queue(_ sources: [URL]) throws -> (queued: Int, skipped: [String]) {
         Drop.ensure()
-        let (items, skipped) = plan(sources)
-        let stage = staging.standardizedFileURL.path
+        let stageDir = staging
+        defer { cleanUp(stageDir) }
+        let (items, skipped) = plan(sources, stage: stageDir)
+        let stage = stageDir.standardizedFileURL.path
         for item in items {
             let dest = Drop.unique(Drop.dir.appendingPathComponent(item.file.lastPathComponent), ifExists: true)
             // Staged files (opened from containers) move; the person's own files are copied.
@@ -303,7 +410,13 @@ enum FiledHashes {
     }
 
     static func contains(_ h: String) -> Bool {
-        ((try? String(contentsOf: url, encoding: .utf8)) ?? "").contains(h)
+        ((try? String(contentsOf: url, encoding: .utf8)) ?? "").split(separator: "\n").contains(Substring(h))
+    }
+
+    static func remove(_ h: String) {
+        guard let text = try? String(contentsOf: url, encoding: .utf8) else { return }
+        let kept = text.split(separator: "\n").filter { $0 != Substring(h) }.joined(separator: "\n")
+        try? (kept.isEmpty ? "" : kept + "\n").write(to: url, atomically: true, encoding: .utf8)
     }
 
     static func add(_ h: String) {

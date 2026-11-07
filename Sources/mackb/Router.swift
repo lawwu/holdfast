@@ -18,15 +18,17 @@ enum Route: String {
 }
 
 enum Router {
-    static let crossLink = #"(?i)\b(cross[- ]?link|link (up )?(my |the |these |related )?notes|connect (my |the )?notes|suggest (some )?links|add (see also|links))\b"#
-    static let bulkImport = #"(?i)^\s*(bulk )?import\b|\bbring in (a |my )?(folder|files|archive|export)"#
+    /// Requests, not questions: "link my notes", "please cross-link the vault", "suggest links".
+    static let crossLink = #"(?i)^\s*(please\s+)?(cross[- ]?link|link (up )?(all |my |the |these |related )?notes|connect (all |my |the )?notes|suggest (some |more )?links|add (see also )?links)\b"#
+    static let bulkImport = #"(?i)^\s*(please\s+)?((bulk )?import (my|a|an|the|these|some|all|files|folder|everything)\b|bring in (a |my |the )?(folder|files|archive|export))"#
     /// Cues that a question needs numbers from tables, a list across notes, or a comparison over time.
-    static let research = #"(?i)\b(how (much|many|often)|total|sum|average|per (day|week|month|year)|each (week|month|year)|by month|trend|compare|comparison|versus|vs\.?|across|over the (last|past)|since|year[- ]to[- ]date|ytd|all (the|of)|list (all|every|the)|every time|which (months?|weeks?|years?)|most|least|highest|lowest|biggest|largest|spent|spend|spending|miles|workouts?|runs?\b|history of|timeline|changed|change over)"#
+    static let research = #"(?i)\b(how (much|many|often)|total|sum\b|average|per (day|week|month|year)|each (week|month|year)|by month|trend|compare|comparison|versus|vs\.?|across|over the (last|past)|since|year[- ]to[- ]date|ytd|all (the|of)|list (all|every|the)|every time|which (months?|weeks?|years?)|most|least|highest|lowest|biggest|largest|spent|spend|spending|miles|workouts?|runs?\b|history of|timeline|changed|change over)\b"#
 
     static func route(_ q: String) -> Route {
         func has(_ p: String) -> Bool { q.range(of: p, options: .regularExpression) != nil }
-        if has(crossLink) { return .crossLink }
-        if has(bulkImport) { return .bulkImport }
+        let question = q.trimmingCharacters(in: .whitespaces).hasSuffix("?")
+        if has(crossLink), !question { return .crossLink }
+        if has(bulkImport), !question { return .bulkImport }
         if has(research) { return .research }
         return .answer
     }

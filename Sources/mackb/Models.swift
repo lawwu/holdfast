@@ -164,9 +164,13 @@ struct OllamaBackend: LLMBackend {
                         "presence_penalty": Config.presencePenalty, "num_ctx": 16384],
         ]
         req.httpBody = try JSONSerialization.data(withJSONObject: body)
-        let (bytes, resp) = try await URLSession.shared.bytes(for: req)
+        let bytes: URLSession.AsyncBytes, resp: URLResponse
+        do { (bytes, resp) = try await URLSession.shared.bytes(for: req) }
+        catch let e as URLError where e.code == .cannotConnectToHost || e.code == .cannotFindHost {
+            throw MacKBError("Ollama isn't running on this Mac. Start it, or choose an MLX model in the model menu.")
+        }
         guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
-            throw MacKBError("Ollama returned \((resp as? HTTPURLResponse)?.statusCode ?? 0); is `ollama serve` running and \(model) installed?")
+            throw MacKBError("Ollama returned \((resp as? HTTPURLResponse)?.statusCode ?? 0); is the model \(model) installed in Ollama?")
         }
         var stats = GenStats(promptTokens: 0, promptSeconds: 0, outputTokens: 0, outputSeconds: 0)
         for try await line in bytes.lines {
@@ -188,7 +192,8 @@ struct OllamaBackend: LLMBackend {
 
 /// Pick the backend: MACKB_BACKEND=mlx loads the model inside this process.
 func makeBackend() async throws -> LLMBackend {
-    switch ProcessInfo.processInfo.environment["MACKB_BACKEND"] ?? "ollama" {
+    switch ProcessInfo.processInfo.environment["MACKB_BACKEND"] ?? "mlx" {
+    case "ollama": return OllamaBackend()
     case "mlx": return try await MLXBackend.shared()
     case "gemini": return try GeminiBackend()
     case "remote": return RemoteBackend()

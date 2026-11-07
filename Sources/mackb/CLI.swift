@@ -1,7 +1,7 @@
 import Foundation
 
 let usage = """
-mackb — local knowledge base for counseling materials (POC)
+mackb — Holdfast's command line: a private knowledge base over a folder of Markdown notes
 
   mackb ingest <file|folder|url> [--tag t]...   import docs (docx/pdf/md/txt), audio/video, or a YouTube URL
   mackb index [--force] [--no-embed]           (re)build the search index from the vault
@@ -25,8 +25,12 @@ mackb — local knowledge base for counseling materials (POC)
   mackb eval-filing [filing.json] --label <name>  score where dropped documents get filed (eval/household/)
   mackb status                                 vault and index counts
 
-Vault: $MACKB_VAULT (default ~/MacKB). LLM: $MACKB_BACKEND=ollama|mlx; Ollama model $MACKB_LLM
-(default qwen38-27b-q8-32k), MLX model $MACKB_MLX_REPO (default mlx-community/Qwen3.8-27B-4bit).
+Vault: $MACKB_VAULT (default ~/MacKB). Model: $MACKB_BACKEND=mlx (default) | remote | ollama.
+  mlx: $MACKB_MLX_REPO (default mlx-community/Qwen3.8-27B-4bit), run in this process.
+  remote: $MACKB_REMOTE_URL and $MACKB_REMOTE_MODEL, an OpenAI-compatible server on another Mac.
+  ollama: $MACKB_LLM at $MACKB_OLLAMA (default http://localhost:11434).
+Also: MACKB_PACKS=id,id|none, MACKB_EMBED=embeddinggemma|none, MACKB_RERANK=0, MACKB_THINK=1, MACKB_TODAY=YYYY-MM-DD.
+ask also takes --research (the tool loop); index takes --force and --no-embed.
 """
 
 nonisolated(unsafe) var args = Array(CommandLine.arguments.dropFirst())
@@ -91,10 +95,15 @@ do {
         let q = args.joined(separator: " ")
         let a: Answer
         if research {
-            // Tool loop on MLX: steps go to stderr, the answer to stdout at the end.
-            a = try await Agent.run(q, embedder: emb, backend: try await MLXBackend.shared()) { ev in
-                if case .step(let s) = ev { log("  → \(s)") }
+            // Tool loop (this Mac's model or another Mac's): steps go to stderr, the answer to stdout at the end.
+            a = try await runResearch(q, embedder: emb, llm: try await makeBackend(), prior: []) { ev in
+                if case .step(let s) = ev { log("  → \(Steps.split(s).title)") }
             }
+            print(a.text)
+        } else if Thinking.on {
+            // With thinking on, print the answer once it's separated from the reasoning.
+            a = try await ask(q, embedder: emb, llm: try await makeBackend())
+            if !a.thinking.isEmpty { log("(thinking: \(a.thinking.count) characters)") }
             print(a.text)
         } else {
             a = try await ask(q, embedder: emb, llm: try await makeBackend()) { tok in
@@ -133,6 +142,7 @@ do {
             }
             print("imported \(r.notes) notes and \(r.tables) tables into \(r.folder)/; skipped \(r.skipped.count)")
             for s in r.skipped.prefix(20) { print("  skipped: \(s)") }
+            for f in r.flagged.prefix(20) { print("  check for personal details: \(f)") }
         } else {
             let r = try BulkImport.queue(urls)
             print("queued \(r.queued) files in the drop folder (skipped \(r.skipped.count)); run `mackb drop` to file them")
@@ -197,6 +207,9 @@ do {
         struct Labeled: Codable { var a: String; var b: String; var link: Bool; var why: String? }
         let cases = try JSONDecoder().decode([Labeled].self, from: Data(contentsOf: URL(fileURLWithPath: args.first ?? "eval/household/crosslink.json")))
         let byPath = Dictionary(allNotes().map { ($0.relPath, $0) }, uniquingKeysWith: { a, _ in a })
+        guard cases.contains(where: { byPath[$0.a] != nil && byPath[$0.b] != nil }) else {
+            throw MacKBError("none of the labeled pairs are in this vault (set MACKB_VAULT to the fixture's vault)")
+        }
         let llm = try await makeBackend()
         var tp = 0, fp = 0, fn = 0, tn = 0, secs: [Double] = [], wrong: [String] = []
         for c in cases {

@@ -22,7 +22,7 @@ window: `mackb app`, or `scripts/make_app.sh` → `build/Holdfast.app`.
 | `mackb ingest <YouTube URL>` | yt-dlp; uses the video's captions when there are any, otherwise transcribes the audio |
 | `mackb index` | Chunks each note on headings and timestamps; SQLite FTS5 + **Qwen3-Embedding-0.6B** vectors (in-process, MLX Swift). Only changed notes are re-indexed |
 | `mackb search "…"` | Retrieval pipeline below |
-| `mackb ask "…"` | The top 12 passages go to **Qwen 3.8 27B** (MLX 4-bit in-process or Ollama, thinking off). The answer cites `[n]`, and each source prints as `[[note#anchor]]` |
+| `mackb ask "…"` | The top 8 passages go to the answer model (MLX in-process by default, a model on another Mac, or Ollama; thinking off unless Show Thinking is on). The answer cites `[n]`, and each source prints as `[[note#anchor]]` |
 | `mackb app` | The window: Ask (cited answers; click a source to open it), Library (browse and search), Inbox (approve or reject agent memories), and a reader that jumps to the cited section |
 | `mackb eval` | Scores Q&A against a question set; see `eval/README.md` |
 | `mackb mcp` | MCP server: `search`, `get_note`, `ask`, `remember`, `list_inbox` |
@@ -39,7 +39,8 @@ the open-source survey in the kb repo (`projects/202611_mac-kb/oss-best-practice
    reciprocal rank fusion. Each passage starts with a label (title › date › session
    kind › form question), so both searches see which session it is from.
 3. **Rerank** with **Qwen3-Reranker-0.6B** (MLX, in-process). If the best score is
-   below 0.08, decline without calling the LLM.
+   below 0.08, the direct answer declines without calling the LLM; in the app the router then
+   escalates to Research (search, read notes, query tables) before saying the notes don't cover it.
 4. **Select.** Drop passages scoring under half the best. Cap each note at 2, except
    that a note holding 3 of the top 5 gets 5. Add the neighbours of the top 2 hits.
    Merge neighbouring passages. In spread mode, take the best 1–2 per session and
@@ -116,3 +117,14 @@ model menu → Another Mac → Set Up…, enter its address (its Tailscale name 
 traffic encrypted), Connect, pick the model. Research's tools still run here; only the
 model's decisions come over the network. If that Mac doesn't answer, this Mac's model
 answers instead and the steps say so. CLI: `MACKB_BACKEND=remote MACKB_REMOTE_URL=http://studio:1234 MACKB_REMOTE_MODEL=<id>`.
+
+## Privacy, in one place
+
+- Everything runs on this Mac by default: the vault, its index, search, and the answer model.
+- With **a model on another Mac**, the vault, index and search stay here; the other Mac receives
+  each question with the passages found, the conversation so far, folder READMEs, Research's note
+  reads and table results, documents dropped for filing, and note pairs when suggesting links.
+  **Counseling notes never leave this Mac**: anything involving them is answered here instead.
+  The app's labels switch from "nothing leaves this Mac" to "sent to <host>" while it's in use.
+- Link import (YouTube, podcasts) fetches from the web by design. The Gemini backend exists for
+  evals on synthetic data only and isn't offered in the app.

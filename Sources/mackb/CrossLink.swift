@@ -34,8 +34,9 @@ enum CrossLink {
     }
 
     /// Notes worth linking: in the vault proper, not folder READMEs (they are manuals).
+    /// Counseling notes are never cross-linked: a link would carry a counselee into another note.
     static func eligible(_ n: Note) -> Bool {
-        !n.relPath.hasPrefix("@") && !Packs.isPack(n.relPath) && n.name.lowercased() != "readme"
+        !n.relPath.hasPrefix("@") && !Packs.isPack(n.relPath) && n.name.lowercased() != "readme" && !Profile.isCounseling(n.relPath)
     }
 
     /// Pairs of close notes with no link between them, strongest first. Each pair appears once.
@@ -85,6 +86,8 @@ enum CrossLink {
             } else {
                 link = reply.range(of: #""link"\s*:\s*true"#, options: .regularExpression) != nil
             }
+            // The reason is saved into the note: if it carries a name, email or number, save the link without it.
+            if !privacyFlags(reason, names: true).isEmpty { reason = "" }
             return Verdict(a: p.a, b: p.b, score: p.score, link: link, reason: reason, seconds: Date().timeIntervalSince(t0))
         } catch {
             return Verdict(a: p.a, b: p.b, score: p.score, link: false, reason: "", seconds: Date().timeIntervalSince(t0), error: "\(error)")

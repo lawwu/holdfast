@@ -309,10 +309,11 @@ struct VaultCard: View {
             }
             .font(Theme.caption).foregroundStyle(.secondary).labelStyle(TightLabel())
             HStack(spacing: 5) {
-                Image(systemName: "lock.fill")
-                Text("Stays on this Mac")
+                Image(systemName: store.backend == .remote ? "network" : "lock.fill")
+                Text(store.backend == .remote ? "Notes here · model on \(Remote.host)" : "Stays on this Mac")
             }
-            .font(Theme.caption2.weight(.medium)).foregroundStyle(.green)
+            .font(Theme.caption2.weight(.medium)).foregroundStyle(store.backend == .remote ? Color.orange : .green)
+            .help(store.backend == .remote ? "Your vault and search stay on this Mac. Questions, the passages found, the conversation and documents to file go to \(Remote.host); counseling notes never do." : "Notes, search and the model all run on this Mac.")
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -355,6 +356,16 @@ struct AskView: View {
             } else {
                 AskHero()
             }
+            if store.pendingJob == .crossLink {
+                JobConfirmCard(title: "Suggest links between notes?",
+                               detail: "Holdfast finds pairs of closely related notes that don't link yet and asks the model about each pair (a few minutes). Suggestions wait in the Inbox for your approval; counseling notes are left out.",
+                               start: { store.pendingJob = nil; store.runCrossLink() },
+                               cancel: { store.pendingJob = nil })
+                    .frame(maxWidth: 772).padding(.horizontal, 24)
+            }
+            if store.backend == .mlx, !store.isDownloaded(store.mlxRepo) {
+                FirstRunCard().frame(maxWidth: 772).padding(.horizontal, 24)
+            }
             Composer()
                 .padding(.horizontal, 24).padding(.bottom, 18).padding(.top, 8)
                 .frame(maxWidth: 820)
@@ -386,7 +397,9 @@ struct AskHero: View {
                         .font(.system(size: 26, weight: .semibold, design: .rounded))
                     Text(store.profile == .counseling
                          ? "Answers come only from the notes in this vault, and every claim cites its source."
-                         : "Drop in receipts, records and letters. Ask anything. Everything stays on your Mac.")
+                         : store.backend == .remote
+                            ? "Drop in receipts, records and letters. Ask anything. Your notes stay on this Mac; answers come from \(Remote.host)."
+                            : "Drop in receipts, records and letters. Ask anything. Everything stays on your Mac.")
                         .font(Theme.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 }
                 AddFilesCard().frame(maxWidth: 640)
@@ -695,6 +708,7 @@ struct Composer: View {
                     .buttonStyle(.plain)
                     .keyboardShortcut(".", modifiers: .command)
                     .help("Stop generating (⌘.)")
+                    .accessibilityLabel("Stop generating")
                 } else {
                 Button { store.runAsk() } label: {
                     Image(systemName: "arrow.up")
@@ -707,6 +721,7 @@ struct Composer: View {
                 .keyboardShortcut(.return, modifiers: .command)
                 .disabled(!canSend)
                 .help("Ask (Return)")
+                .accessibilityLabel("Ask")
                 }
             }
             .padding(.leading, 18).padding(.trailing, 10).padding(.vertical, 12)
@@ -733,10 +748,12 @@ struct Composer: View {
                         }
                         Button("Set Up…") { store.showRemoteSetup = true }
                     }
-                    Section("Ollama") {
-                        Toggle("Qwen 3.8 27B · 8-bit", isOn: Binding(
-                            get: { store.backend == .ollama },
-                            set: { if $0 { store.backend = .ollama } }))
+                    if store.backend == .ollama {
+                        Section("Ollama") {
+                            Toggle("\(Config.llmModel) · Ollama", isOn: Binding(
+                                get: { store.backend == .ollama },
+                                set: { if $0 { store.backend = .ollama } }))
+                        }
                     }
                     Divider()
                     Toggle("Show Thinking (slower)", isOn: Binding(
@@ -758,9 +775,10 @@ struct Composer: View {
                       ? "Add documents, photos or recordings. The model proposes where each belongs; you approve it in the Inbox."
                       : "Add documents or recordings to the vault as sources.")
                 Spacer()
-                Label("Private · nothing leaves this Mac", systemImage: "lock.fill")
+                Label(store.backend == .remote ? "Sent to \(Remote.host) · counseling stays here" : "Private · nothing leaves this Mac",
+                      systemImage: store.backend == .remote ? "network" : "lock.fill")
                     .labelStyle(TightLabel())
-                    .font(Theme.caption).foregroundStyle(.secondary)
+                    .font(Theme.caption).foregroundStyle(store.backend == .remote ? Color.orange : .secondary)
             }
             .padding(.horizontal, 6)
         }
@@ -807,6 +825,7 @@ struct LibraryView: View {
             .padding(.horizontal, 20).padding(.top, 16).padding(.bottom, 10)
 
             if store.notes.isEmpty {
+                PacksSection().padding(.horizontal, 20)
                 EmptyState(icon: "books.vertical", title: "Your library is empty",
                            message: "Import documents, recordings or a folder with ⌘I, or add a link with ⌘L.")
             } else {

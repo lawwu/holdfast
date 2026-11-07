@@ -366,7 +366,6 @@ func paletteCommands(_ store: Store) -> [PaletteCommand] {
         PaletteCommand(title: "Open a note in a new tab", icon: "plus.square.on.square", shortcut: "⌘T") { store.quickOpenNewTab = true; store.showQuickOpen = true },
         PaletteCommand(title: "New note", icon: "square.and.pencil", shortcut: "⇧⌘N") { store.createNote(near: note) },
         PaletteCommand(title: "Ask a question", icon: "sparkle.magnifyingglass") { store.pane = .ask; store.showList = true },
-        PaletteCommand(title: "Toggle Research mode", icon: "point.topleft.down.to.point.bottomright.curvepath") { store.research.toggle() },
         PaletteCommand(title: "Add files to the knowledge base…", icon: "tray.and.arrow.down") { store.chooseFilesToAdd() },
         PaletteCommand(title: "Open drop folder", icon: "folder", shortcut: "⇧⌘D") { store.revealDrop() },
         PaletteCommand(title: "Go to Files", icon: "folder", shortcut: "⌥⌘1") { store.pane = .files; store.showList = true },

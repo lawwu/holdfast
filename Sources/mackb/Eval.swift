@@ -55,7 +55,7 @@ struct EvalResult: Codable {
 /// Which model and embedder answered, from the environment the eval ran in.
 func evalModelName() -> String {
     let env = ProcessInfo.processInfo.environment
-    switch env["MACKB_BACKEND"] ?? "ollama" {
+    switch env["MACKB_BACKEND"] ?? "mlx" {
     case "mlx": return MLXBackend.currentRepo.components(separatedBy: "/").last ?? MLXBackend.currentRepo
     case "gemini": return env["MACKB_GEMINI_MODEL"] ?? "gemini-flash-latest"
     default: return Config.llmModel

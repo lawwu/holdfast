@@ -159,7 +159,8 @@ final class ToolContext: @unchecked Sendable {
     init(embedder: Embedder?) { self.embedder = embedder }
 
     private func cite(_ c: Chunk) -> Int {
-        if let i = sources.firstIndex(where: { $0.relPath == c.relPath && $0.anchor == c.anchor }) { return i + 1 }
+        // The same passage again gets its number; another passage of the same section gets its own.
+        if let i = sources.firstIndex(where: { $0.relPath == c.relPath && $0.anchor == c.anchor && $0.text == c.text }) { return i + 1 }
         sources.append(c)
         return sources.count
     }

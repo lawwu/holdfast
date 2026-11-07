@@ -4,11 +4,11 @@ question, did a direct answer or Research do better? Stdlib only.
   mackb route --file eval/household/questions.json > /tmp/routes.tsv
   python3 eval/household/route.py /tmp/routes.tsv [--models qwen27b gemma26b ...]
 
-For a question that has both a plain and a research result for a model (the 14
-"hard" questions), the better mode is the one with more facts; ties prefer the
-direct answer (it is 2-4x faster). Questions with only a plain result count as
-"direct is enough" when the plain answer got every fact. Reports how often the
-router picks the better mode, and the facts it would have scored.
+Every answerable question counts. Where a model has both a plain and a research
+result (the 14 "hard" questions), the better mode is the one with more facts;
+ties prefer the direct answer (it is 2-4x faster). Where research wasn't run,
+its score is unknown and taken to equal the direct answer's: the script says
+how many questions that assumption covers.
 Re-scores answers with the same reject rules as report.py.
 """
 import argparse, json, pathlib, re
@@ -40,29 +40,27 @@ def main():
             continue
         plain = {r["id"]: facts(r) for r in json.loads(pf.read_text()) if r["kind"] != "unanswerable"}
         research = {r["id"]: facts(r) for r in json.loads(rf.read_text())} if rf.exists() else {}
-        right = judged = 0
+        # Every answerable question counts. Research was only run on some of them; where it wasn't,
+        # its score is unknown and is taken to equal the direct answer's (reported as "assumed").
         got = {"router": [], "always-direct": [], "always-research": [], "best": []}
+        right = judged = assumed = 0
         for qid, p in plain.items():
             r = research.get(qid)
             route = routes.get(qid, "answer")
             if r is None:
-                if p < 1:
-                    continue  # can't tell whether research would have helped
-                better = "answer"
-                r_eff = p
+                assumed += 1
+                r = p
             else:
-                better = "research" if r > p else "answer"
-                r_eff = r
-            judged += 1
-            right += (route == "research") == (better == "research")
-            got["router"].append(r_eff if route == "research" else p)
+                judged += 1
+                right += (route == "research") == (r > p)
+            got["router"].append(r if route == "research" else p)
             got["always-direct"].append(p)
-            got["always-research"].append(r_eff)
-            got["best"].append(max(p, r_eff))
+            got["always-research"].append(r)
+            got["best"].append(max(p, r))
         avg = {k: sum(v) / max(len(v), 1) * 100 for k, v in got.items()}
-        print(f"{m}: router picks the better mode {right}/{judged} · facts: router {avg['router']:.0f}% · "
-              f"always direct {avg['always-direct']:.0f}% · always research {avg['always-research']:.0f}% · best possible {avg['best']:.0f}%")
-
+        print(f"{m}: {len(plain)} answerable questions · facts: router {avg['router']:.0f}% · always direct {avg['always-direct']:.0f}% · "
+              f"always research {avg['always-research']:.0f}% · best possible {avg['best']:.0f}% · router picked the better mode on "
+              f"{right}/{judged} questions with both results; {assumed} without a research run assume it equals the direct answer")
 
 if __name__ == "__main__":
     main()
