@@ -53,13 +53,16 @@ Everything runs on this Mac by default.
 - Release: search models can be downloaded in Settings, Rebuild Index re-embeds, first-run
   guidance, clear errors for missing ffmpeg / yt-dlp / Ollama, MLX as the CLI default, ⌘W and
   ⇧⌘G / ⇧⌘\ conflicts resolved, closing the window doesn't quit mid-answer.
+- First run: on a Mac with no model downloaded the whole window was blank (the first-run card's
+  text asked for a fixed height outside a scroll view); the job confirmation card had the same text
+  and was fixed with it.
 - Evals: the router score counts all 36 answerable questions (94% vs 74% always-direct with
   Qwen 3.8 27B; 22 questions without a Research run assume it equals the direct answer);
   evals run with knowledge packs off.
 
 ### Known limitations
-- Not clicked through after the fixes: the job confirmation card, first-run card, search-model
-  downloads, ⌘W behaviour, the reader sheet, Stop mid-answer in the app.
+- Not clicked through after the fixes: the job confirmation card, search-model downloads, ⌘W
+  behaviour, the reader sheet, Stop mid-answer in the app. (The first-run card was checked on screen.)
 - Ad-hoc signed for this Mac: another Mac's Gatekeeper will block it until it is signed and
   notarized. Permission prompts reset with each build.
 - Quick Look: Obsidian's preview may win for .md; non-UTF-8 notes preview blank; no size cap.

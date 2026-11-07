@@ -702,7 +702,7 @@ struct JobConfirmCard: View {
             Image(systemName: "link.badge.plus").font(.title3).foregroundStyle(Theme.accent)
             VStack(alignment: .leading, spacing: 6) {
                 Text(title).font(Theme.headline)
-                Text(detail).font(Theme.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Text(detail).font(Theme.callout).foregroundStyle(.secondary)
                 HStack {
                     Button("Start", action: start).buttonStyle(.borderedProminent)
                     Button("Cancel", action: cancel).buttonStyle(.bordered)
@@ -716,6 +716,8 @@ struct JobConfirmCard: View {
 }
 
 /// Shown until the answer model is downloaded: what to do first.
+/// No `.fixedSize(vertical:)` on the text in this card or JobConfirmCard: outside a scroll view it
+/// left the whole window blank (2026-11-07), so the text wraps on its own here.
 struct FirstRunCard: View {
     @EnvironmentObject var store: Store
     var body: some View {
@@ -724,7 +726,7 @@ struct FirstRunCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Download a model to start").font(Theme.headline)
                 Text("Holdfast answers with a model that runs on this Mac. Download one in Settings → Models (the default is about 16 GB; smaller ones work on 16 GB Macs), and the search models in Settings → Search.")
-                    .font(Theme.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    .font(Theme.callout).foregroundStyle(.secondary)
                 SettingsLink { Text("Open Settings…") }.padding(.top, 2)
             }
             Spacer(minLength: 0)
