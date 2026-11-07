@@ -30,7 +30,17 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleVersion</key><string>1</string>
   <key>LSMinimumSystemVersion</key><string>15.0</string>
   <key>NSHighResolutionCapable</key><true/>
-  <key>NSMicrophoneUsageDescription</key><string>Holdfast transcribes recordings on this Mac.</string>
+  <key>CFBundleIconFile</key><string>AppIcon</string>
+  <key>NSAppTransportSecurity</key><dict>
+    <!-- A model on another Mac: plain http on the home network and to Tailscale names (the tailnet encrypts). -->
+    <key>NSAllowsLocalNetworking</key><true/>
+    <key>NSExceptionDomains</key><dict>
+      <key>ts.net</key><dict>
+        <key>NSIncludesSubdomains</key><true/>
+        <key>NSExceptionAllowsInsecureHTTPLoads</key><true/>
+      </dict>
+    </dict>
+  </dict>
   <key>NSHumanReadableCopyright</key><string>“Prove all things; hold fast that which is good.” 1 Thessalonians 5:21</string>
 </dict></plist>
 PLIST
@@ -66,12 +76,17 @@ cat > "$EXT/Contents/Info.plist" <<PLIST
   </dict>
 </dict></plist>
 PLIST
-ENT=$(mktemp -t holdfast-ent).plist
+ENT=$(mktemp -t holdfast-ent)
 cat > "$ENT" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict><key>com.apple.security.app-sandbox</key><true/></dict></plist>
 PLIST
+# App icon: drawn by scripts/make_icon.swift (the same mark the app shows) into AppIcon.icns.
+ICONSET=$(mktemp -d)/AppIcon.iconset
+mkdir -p "$ICONSET"
+swift scripts/make_icon.swift "$ICONSET" >/dev/null && iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns"
+rm -rf "$(dirname "$ICONSET")"
 # Sign inside-out: the resource bundles, the extension (with its sandbox), then the app.
 for b in "$APP"/Contents/MacOS/*.bundle "$APP"/Contents/Resources/*.bundle; do codesign --force --sign - "$b" >/dev/null; done
 codesign --force --sign - --entitlements "$ENT" "$EXT" >/dev/null

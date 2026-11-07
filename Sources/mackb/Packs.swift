@@ -30,6 +30,16 @@ enum Packs {
     static let prefix = "pack:"
 
     static func folder(_ id: String) -> URL { dir.appendingPathComponent(id) }
+
+    /// Pack ids are short lowercase names: anything else (empty, "..", slashes) is refused, so no
+    /// command can reach the packs folder itself or anything outside it.
+    static func validID(_ id: String) -> Bool {
+        id.range(of: #"^[a-z0-9][a-z0-9_-]{0,40}$"#, options: .regularExpression) != nil && id != "vault"  // "vault" names your notes in search
+    }
+
+    static func checkID(_ id: String) throws {
+        guard validID(id) else { throw MacKBError("not a pack id: \"\(id)\" (lowercase letters, digits, - and _)") }
+    }
     static func notesDir(_ id: String) -> URL { folder(id).appendingPathComponent("notes") }
     static func indexPath(_ id: String) -> URL { folder(id).appendingPathComponent(Config.indexPath.lastPathComponent) }
 
@@ -79,10 +89,11 @@ enum Packs {
 
     /// The note at a "pack:<id>/…" path.
     static func note(_ relPath: String) -> Note? {
-        guard let id = id(of: relPath) else { return nil }
+        guard let id = id(of: relPath), validID(id), enabled().contains(id) else { return nil }
         // "pack:bsb/notes/43 John/John 3": the path under the pack's folder.
         var rest = String(relPath.dropFirst(prefix.count + id.count + 1))
         if let hash = rest.firstIndex(of: "#") { rest = String(rest[..<hash]) }
+        guard !rest.split(separator: "/").contains(where: { $0 == ".." || $0.hasPrefix(".") }) else { return nil }
         return try? Note.read(folder(id).appendingPathComponent(rest.hasSuffix(".md") ? rest : rest + ".md"))
     }
 
@@ -94,6 +105,7 @@ enum Packs {
     @discardableResult
     static func install(from src: URL) throws -> PackManifest {
         let m = try JSONDecoder().decode(PackManifest.self, from: Data(contentsOf: src.appendingPathComponent("pack.json")))
+        try checkID(m.id)
         let dest = folder(m.id)
         guard src.standardizedFileURL != dest.standardizedFileURL else { return m }
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -103,11 +115,14 @@ enum Packs {
     }
 
     static func remove(_ id: String) throws {
+        try checkID(id)
         setEnabled(id, false)
         try FileManager.default.trashItem(at: folder(id), resultingItemURL: nil)
     }
 
     static func reindex(_ id: String, embedder: Embedder?, force: Bool = false) async throws {
+        try checkID(id)
+        guard FileManager.default.fileExists(atPath: folder(id).appendingPathComponent("pack.json").path) else { throw MacKBError("no pack named \(id)") }
         try await reindexNotes(Index(path: indexPath(id)), notes: notes(id), embedder: embedder, force: force)
     }
 
@@ -120,6 +135,7 @@ enum Packs {
     /// the way "Bring in as-is" converts them. For text the license lets you keep.
     static func create(id: String, name: String, license: String, attribution: String, source: String,
                        description: String, cite: String, from sources: [URL]) async throws -> BulkImport.Report {
+        try checkID(id)
         let m = PackManifest(id: id, name: name, version: Drop.dayString(mackb.today()), license: license, attribution: attribution,
                              source: source, description: description, cite: cite)
         try FileManager.default.createDirectory(at: folder(id), withIntermediateDirectories: true)

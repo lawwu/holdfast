@@ -159,7 +159,7 @@ struct NoticeBanner: View {
                 Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
                 Text(n).font(Theme.callout)
                 Spacer()
-                Button { store.notice = nil } label: { Image(systemName: "xmark").font(Theme.caption) }.buttonStyle(.plain)
+                Button { store.notice = nil } label: { Image(systemName: "xmark").font(Theme.caption) }.buttonStyle(.plain).accessibilityLabel("Dismiss")
             }
             .padding(10)
             .background(RoundedRectangle(cornerRadius: 8).fill(Color.green.opacity(0.08)))
@@ -502,7 +502,7 @@ struct PacksSection: View {
                 HStack(alignment: .top, spacing: 10) {
                     Toggle("", isOn: Binding(get: { enabled.contains(m.id) }, set: { on in
                         Packs.setEnabled(m.id, on); enabled = Packs.enabled()
-                    })).toggleStyle(.switch).labelsHidden().controlSize(.small)
+                    })).toggleStyle(.switch).labelsHidden().controlSize(.small).accessibilityLabel("Use \(m.name)")
                     VStack(alignment: .leading, spacing: 2) {
                         Text(m.name).font(Theme.callout.weight(.semibold))
                         Text(m.description).font(Theme.caption).foregroundStyle(.secondary).lineLimit(2)
@@ -521,6 +521,7 @@ struct PacksSection: View {
         }
         .onAppear(perform: refresh)
         .onChange(of: store.indexCounts.chunks) { refresh() }
+        .onChange(of: store.packsVersion) { refresh() }
     }
 
     func refresh() {
@@ -634,7 +635,7 @@ struct RemoteSetupSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Use a Model on Another Mac").font(Theme.title2)
-            Text("Holdfast keeps your notes and search on this Mac and sends only the question, the passages it found and the conversation to the other Mac's model. Run LM Studio (or mlx_lm.server, or Ollama) there with its server on, and use the Mac's Tailscale name so the traffic is encrypted.")
+            Text("Your vault, its index and search stay on this Mac. The other Mac's model receives each question with the passages search found, the conversation so far, folder READMEs, Research's note reads and table results, documents you drop for filing, and note pairs when suggesting links. Counseling notes never leave this Mac: anything that involves them is answered here. Run LM Studio (or mlx_lm.server, or Ollama) there with its server on, and use its Tailscale name so the traffic is encrypted.")
                 .font(Theme.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             HStack {
                 TextField("http://studio:1234", text: $address).textFieldStyle(.roundedBorder).font(Theme.body)
@@ -679,10 +680,55 @@ struct RemoteSetupSheet: View {
             models = try await Remote.models(at: u)
             if !models.contains(model) { model = models.first ?? "" }
             ok = true
+            let tailnet = u.host!.hasSuffix(".ts.net") || u.host!.hasPrefix("100.") || !u.host!.contains(".")
             status = "Connected to \(u.host!) · \(ms) ms · \(models.count) model\(models.count == 1 ? "" : "s")"
+                + (u.scheme == "https" || tailnet ? "" : " · not a Tailscale address: traffic on your network isn't encrypted")
         } catch {
             ok = false
             status = "Couldn't reach \(u.host ?? a): is its server on, and is this Mac on the same network or tailnet?"
         }
+    }
+}
+
+
+/// A job the router recognised, waiting for a click (jobs never start from a sentence by themselves).
+struct JobConfirmCard: View {
+    var title: String
+    var detail: String
+    var start: () -> Void
+    var cancel: () -> Void
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "link.badge.plus").font(.title3).foregroundStyle(Theme.accent)
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title).font(Theme.headline)
+                Text(detail).font(Theme.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                HStack {
+                    Button("Start", action: start).buttonStyle(.borderedProminent)
+                    Button("Cancel", action: cancel).buttonStyle(.bordered)
+                }
+                .padding(.top, 2)
+            }
+            Spacer(minLength: 0)
+        }
+        .card(padding: 14)
+    }
+}
+
+/// Shown until the answer model is downloaded: what to do first.
+struct FirstRunCard: View {
+    @EnvironmentObject var store: Store
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "arrow.down.circle").font(.title3).foregroundStyle(Theme.accent)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Download a model to start").font(Theme.headline)
+                Text("Holdfast answers with a model that runs on this Mac. Download one in Settings → Models (the default is about 16 GB; smaller ones work on 16 GB Macs), and the search models in Settings → Search.")
+                    .font(Theme.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                SettingsLink { Text("Open Settings…") }.padding(.top, 2)
+            }
+            Spacer(minLength: 0)
+        }
+        .card(padding: 14)
     }
 }

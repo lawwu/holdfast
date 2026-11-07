@@ -69,21 +69,32 @@ struct Note {
                 guard let c = line.firstIndex(of: ":") else { continue }
                 let k = line[..<c].trimmingCharacters(in: .whitespaces)
                 var v = line[line.index(after: c)...].trimmingCharacters(in: .whitespaces)
-                if v.hasPrefix("\""), v.hasSuffix("\""), v.count >= 2 { v = String(v.dropFirst().dropLast()) }
-                meta[k] = v
+                if v.hasPrefix("\""), v.hasSuffix("\""), v.count >= 2 {
+                    v = String(v.dropFirst().dropLast()).replacingOccurrences(of: "\\\"", with: "\"")
+                }
+                if meta[k] == nil { meta[k] = v }  // first wins: a later line can't override a key
             }
             body = String(text[end.upperBound...])
         }
         return Note(path: url, meta: meta, body: body)
     }
 
-    func write() throws {
+    /// Frontmatter text for these properties: one line per value; newlines (which could end the
+    /// frontmatter or add keys) become spaces, quotes are escaped.
+    static func frontmatter(_ meta: [String: String]) -> String {
         var out = "---\n"
         for k in meta.keys.sorted() {
-            let v = meta[k]!.replacingOccurrences(of: "\"", with: "'")
-            out += "\(k): \"\(v)\"\n"
+            let key = k.filter { $0.isLetter || $0.isNumber || $0 == "_" || $0 == "-" }
+            guard !key.isEmpty else { continue }
+            let v = meta[k]!.replacingOccurrences(of: "\r", with: " ").replacingOccurrences(of: "\n", with: " ")
+                .replacingOccurrences(of: "\"", with: "\\\"")
+            out += "\(key): \"\(v)\"\n"
         }
-        out += "---\n" + body
+        return out + "---\n"
+    }
+
+    func write() throws {
+        let out = Note.frontmatter(meta) + body
         try FileManager.default.createDirectory(at: path.deletingLastPathComponent(), withIntermediateDirectories: true)
         try out.write(to: path, atomically: true, encoding: .utf8)
     }

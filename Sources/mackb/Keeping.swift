@@ -53,7 +53,7 @@ enum Versions {
         let existing = list(rel)
         if let last = existing.first {
             if (try? String(contentsOf: last.url, encoding: .utf8)) == text { return last.url }
-            if reason == "edit", Date().timeIntervalSince(last.date) < editInterval { return nil }
+            if reason == "edit", last.reason == "edit", Date().timeIntervalSince(last.date) < editInterval { return nil }
         }
         let f = folder(rel)
         try? FileManager.default.createDirectory(at: f, withIntermediateDirectories: true)
@@ -76,8 +76,9 @@ enum Versions {
 
     /// Puts an earlier copy back, keeping the current text as a version first.
     static func restore(_ v: Version, to url: URL) throws {
+        let text = try String(contentsOf: v.url, encoding: .utf8)   // first: keeping the current text can prune this copy
         snapshot(url, reason: "before-restore")
-        try String(contentsOf: v.url, encoding: .utf8).write(to: url, atomically: true, encoding: .utf8)
+        try text.write(to: url, atomically: true, encoding: .utf8)
     }
 }
 
@@ -101,6 +102,10 @@ struct FilingRecord: Codable, Identifiable {
     var proposalBody: String
     var rule: String?
     var undone = false
+    /// Other lines filing added (follow-ups), removed on undo too.
+    var extraLines: [String]?
+    /// The dropped file's hash, forgotten on undo so the file can be dropped again.
+    var originalHash: String?
 }
 
 enum FilingLog {
@@ -133,29 +138,32 @@ enum FilingLog {
     /// Reverts a filing and puts its proposal back in the inbox. A note edited
     /// since is left alone unless the filed entry can be taken out on its own.
     static func undo(_ id: UUID) throws -> String {
+        try Drop.withWriteLock { try undoLocked(id) }
+    }
+
+    private static func undoLocked(_ id: UUID) throws -> String {
         var rs = load()
         guard let i = rs.firstIndex(where: { $0.id == id }) else { throw MacKBError("no such filing") }
         guard !rs[i].undone else { throw MacKBError("already undone") }
         let r = rs[i]
-        let dest = Config.vault.appendingPathComponent(r.target)
-        if let now = try? String(contentsOf: dest, encoding: .utf8) {
-            if hash(now) == r.after {
-                if let s = r.snapshot {
-                    Versions.snapshot(dest, reason: "before-undo")
-                    try String(contentsOf: URL(fileURLWithPath: s), encoding: .utf8).write(to: dest, atomically: true, encoding: .utf8)
-                } else {
-                    try FileManager.default.trashItem(at: dest, resultingItemURL: nil)
-                }
-            } else if r.snapshot != nil, now.components(separatedBy: r.addition).count == 2 {
-                // Edited since, but the entry is still there once: take out just that.
-                Versions.snapshot(dest, reason: "before-undo")
-                let out = now.replacingOccurrences(of: r.addition, with: "")
-                    .replacingOccurrences(of: #"\n{3,}"#, with: "\n\n", options: .regularExpression)
-                try out.write(to: dest, atomically: true, encoding: .utf8)
-            } else {
-                throw MacKBError("\(r.target) changed after it was filed; open its History to go back to an earlier copy")
-            }
+        let dest = try Drop.safeTarget(r.target)
+        guard let now = try? String(contentsOf: dest, encoding: .utf8) else {
+            throw MacKBError("\(r.target) was moved or deleted after it was filed, so there is nothing to undo there")
         }
+        let wasNew = r.action == "new"
+        if hash(now) == r.after, wasNew {
+            try FileManager.default.trashItem(at: dest, resultingItemURL: nil)   // untouched since it was created
+        } else if hash(now) == r.after, let s = r.snapshot, let old = try? String(contentsOf: URL(fileURLWithPath: s), encoding: .utf8) {
+            Versions.snapshot(dest, reason: "before-undo")
+            try old.write(to: dest, atomically: true, encoding: .utf8)
+        } else if !wasNew, let out = removeLines(r.addition, extra: r.extraLines ?? [], from: now) {
+            // Changed since (or older filings): take out exactly the lines this filing added.
+            Versions.snapshot(dest, reason: "before-undo")
+            try out.write(to: dest, atomically: true, encoding: .utf8)
+        } else {
+            throw MacKBError("\(r.target) changed after it was filed; open its History to go back to an earlier copy")
+        }
+        if let h = r.originalHash { FiledHashes.remove(h) }
         var meta = r.proposal
         meta["undone"] = Drop.dayString(mackb.today())
         let slug = slugify(r.title).isEmpty ? "filing" : slugify(r.title)
@@ -164,6 +172,23 @@ enum FilingLog {
         rs[i].undone = true
         save(rs)
         return "Undid filing to \(r.target); the proposal is back in the inbox."
+    }
+
+    /// The note without the filed block (consecutive whole lines) and its extra lines, or nil if
+    /// the block isn't there unchanged. Tidies the blank line the block leaves, so a table stays whole.
+    static func removeLines(_ block: String, extra: [String], from text: String) -> String? {
+        let eol = text.contains("\r\n") ? "\r\n" : "\n"
+        var lines = text.components(separatedBy: eol)
+        let want = block.replacingOccurrences(of: "\r\n", with: "\n").trimmingCharacters(in: .newlines).components(separatedBy: "\n")
+        guard !want.isEmpty, want.count <= lines.count else { return nil }
+        var at: Int?
+        for s in 0...(lines.count - want.count) where Array(lines[s..<(s + want.count)]) == want { at = s; break }
+        guard let s = at else { return nil }
+        lines.removeSubrange(s..<(s + want.count))
+        // The blank line that separated an appended block from the text above it goes too.
+        if s > 0, s - 1 < lines.count, lines[s - 1].isEmpty, (s == lines.count || lines[s].isEmpty) { lines.remove(at: s - 1) }
+        for e in extra { if let k = lines.firstIndex(of: e) { lines.remove(at: k) } }
+        return lines.joined(separator: eol)
     }
 }
 
@@ -239,17 +264,23 @@ enum Upcoming {
     /// Ticks it off in its note (Tasks format: `- [x] … ✅ date`).
     static func complete(_ f: FollowUp) throws {
         let text = try String(contentsOf: f.note.path, encoding: .utf8)
-        guard let r = text.range(of: f.raw) else { throw MacKBError("that follow-up changed in \(f.note.relPath)") }
+        let eol = text.contains("\r\n") ? "\r\n" : "\n"
+        var lines = text.components(separatedBy: eol)
+        guard let k = lines.firstIndex(of: f.raw) else { throw MacKBError("that follow-up changed in \(f.note.relPath)") }
         Versions.snapshot(f.note.path, reason: "edit")
         var done = f.raw
         if let box = done.range(of: "[ ]") { done.replaceSubrange(box, with: "[x]") }
-        done += " ✅ " + Drop.dayString(mackb.today())
-        try text.replacingCharacters(in: r, with: done).write(to: f.note.path, atomically: true, encoding: .utf8)
+        lines[k] = done + " ✅ " + Drop.dayString(mackb.today())
+        try lines.joined(separator: eol).write(to: f.note.path, atomically: true, encoding: .utf8)
     }
 
     /// Adds Tasks lines under the note's "## Follow-ups" heading (made if missing).
+    static func line(_ f: (date: String, what: String)) -> String {
+        "- [ ] \(f.what.replacingOccurrences(of: "\n", with: " "))" + (f.date.isEmpty ? "" : " 📅 \(f.date)")
+    }
+
     static func append(_ items: [(date: String, what: String)], to text: String) -> String {
-        let lines = items.map { "- [ ] \($0.what)" + ($0.date.isEmpty ? "" : " 📅 \($0.date)") }
+        let lines = items.map(line)
         guard !lines.isEmpty else { return text }
         var all = text.components(separatedBy: "\n")
         if let h = all.firstIndex(where: { $0.trimmingCharacters(in: .whitespaces).lowercased() == "## follow-ups" }) {
@@ -292,6 +323,8 @@ enum Related {
         for (score, c) in try idx.vectorScored(mean, limit: 300) {
             let p = c.relPath
             guard p != relPath, !p.hasPrefix("@"), !p.lowercased().hasSuffix("readme.md") else { continue }
+            // Counseling notes appear only beside other counseling notes.
+            guard Profile.isCounseling(p) == Profile.isCounseling(relPath) else { continue }
             if (best[p]?.score ?? -1) < score {
                 let snip = c.text.replacingOccurrences(of: "\n", with: " ").trimmingCharacters(in: .whitespaces)
                 best[p] = RelatedNote(relPath: p, title: c.title, score: score, snippet: String(snip.prefix(160)))
@@ -343,15 +376,24 @@ enum Rules {
     static func add(_ r: FilingRule) throws {
         var text = (try? String(contentsOf: url, encoding: .utf8)) ?? header + "\n"
         if !text.hasSuffix("\n") { text += "\n" }
-        text += "| \(r.match) | \(r.target) | \(r.action) | \(r.auto ? "yes" : "no") |\n"
+        func cell(_ s: String) -> String { s.replacingOccurrences(of: "|", with: "/").replacingOccurrences(of: "\n", with: " ") }
+        text += "| \(cell(r.match)) | \(cell(r.target)) | \(r.action) | \(r.auto ? "yes" : "no") |\n"
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         try text.write(to: url, atomically: true, encoding: .utf8)
     }
 
     /// The rule whose phrase the document mentions; the longest phrase wins.
+    /// Shortest phrase a rule may use (shorter ones match by accident).
+    static let minPhrase = 4
+
+    /// The rule whose phrase the document mentions as whole words; the longest phrase wins.
     static func match(_ text: String, name: String) -> FilingRule? {
-        let hay = (name + "\n" + text).lowercased()
-        return load().filter { $0.match.count >= 3 && hay.contains($0.match.lowercased()) }.max { $0.match.count < $1.match.count }
+        let hay = name + "\n" + text
+        return load().filter { r in
+            guard r.match.count >= minPhrase, !Profile.isCounseling(r.target) else { return false }
+            let p = #"(?i)(?<![\p{L}\p{N}])"# + NSRegularExpression.escapedPattern(for: r.match) + #"(?![\p{L}\p{N}])"#
+            return hay.range(of: p, options: .regularExpression) != nil
+        }.max { $0.match.count < $1.match.count }
     }
 
     struct Candidate: Codable, Identifiable, Equatable {
@@ -376,9 +418,10 @@ enum Rules {
     /// Counts an approval: same sender, same place. "new" filings count the folder.
     static func record(from: String, target: String, action: String) {
         let from = from.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard from.count >= 3 else { return }
+        guard from.count >= minPhrase, action != "link" else { return }
         let place = action == "new" ? (target as NSString).deletingLastPathComponent : target
-        guard !place.isEmpty else { return }
+        // Counseling is never filed by rule: each one is read and approved by a person.
+        guard !place.isEmpty, !Profile.isCounseling(place) else { return }
         var cs = candidates()
         if let i = cs.firstIndex(where: { $0.from.lowercased() == from.lowercased() && $0.target == place && $0.action == action }) {
             cs[i].count += 1

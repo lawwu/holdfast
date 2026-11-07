@@ -182,7 +182,8 @@ struct SearchSettings: View {
             GroupBox2 {
                 ChoiceRow(selected: true, title: "Qwen3-Embedding 0.6B", tag: "MLX",
                           subtitle: "Multilingual, 1024 dimensions.", action: {}) {
-                    StatusBadge(status: Config.embedModelDir != nil ? .ready("Ready") : .missing("Not downloaded"))
+                    if Config.embedModelDir != nil { StatusBadge(status: .ready("Ready")) }
+                    else { DownloadButton(repo: Config.embedSpec.repo) { store.rebuildIndex(force: true) } }
                 }
             }
             SettingsHeader(title: "Reranker",
@@ -191,7 +192,8 @@ struct SearchSettings: View {
                 ChoiceRow(selected: store.rerankerOn, title: "Qwen3-Reranker 0.6B", tag: "4-bit · MLX",
                           subtitle: "Recommended. Lifted the eval from 79% to 98%, and declines questions the notes can't answer.",
                           action: { store.rerankerOn = true }) {
-                    StatusBadge(status: Reranker.modelDir != nil ? .ready("Ready") : .missing("Not downloaded"))
+                    if Reranker.modelDir != nil { StatusBadge(status: .ready("Ready")) }
+                    else { DownloadButton(repo: Reranker.repo) }
                 }
                 ChoiceRow(selected: !store.rerankerOn, title: "Off", tag: nil,
                           subtitle: "Keyword + meaning only. Faster, but weaker passages and no \"not in your notes\" answer.",
@@ -267,5 +269,23 @@ struct VaultSettings: View {
             .font(Theme.callout).foregroundStyle(.secondary)
         }
         .padding(24)
+    }
+}
+
+
+/// "Download" for a search model, with progress; `then` runs when it finishes.
+struct DownloadButton: View {
+    @EnvironmentObject var store: Store
+    var repo: String
+    var then: (@MainActor () -> Void)? = nil
+    var body: some View {
+        if let f = store.downloads[repo] {
+            ProgressView(value: f).frame(width: 80).help("Downloading \(repo)")
+        } else {
+            VStack(alignment: .trailing, spacing: 2) {
+                Button("Download") { store.downloadRepo(repo, then: then) }.controlSize(.small)
+                if let e = store.downloadErrors[repo] { Text(e).font(Theme.caption2).foregroundStyle(.red).lineLimit(2) }
+            }
+        }
     }
 }

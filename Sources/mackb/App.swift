@@ -21,12 +21,13 @@ struct MacKBApp: App {
         }
         .commands {
             CommandGroup(replacing: .newItem) {}
+            CommandGroup(replacing: .saveItem) {}   // File › Close also wanted ⌘W; Close Tab handles both
             CommandMenu("Vault") {
                 Button("Import Files or Folder…") { store.importFiles() }.keyboardShortcut("i")
                 Button("Bulk Import…") { store.showBulkImport = true }.keyboardShortcut("i", modifiers: [.command, .shift])
-                Button("Suggest Links Between Notes") { store.runCrossLink() }
+                Button("Suggest Links Between Notes…") { store.pendingJob = .crossLink; store.pane = .ask }
                 Button("Add Link…") { store.showLinkSheet = true }.keyboardShortcut("l")
-                Button("Rebuild Index") { store.rebuildIndex() }
+                Button("Rebuild Index") { store.rebuildIndex(force: true) }
                 Button("Open Drop Folder") { store.revealDrop() }.keyboardShortcut("d", modifiers: [.command, .shift])
                 Divider()
                 Button("Choose Vault…") { store.chooseVault() }
@@ -40,7 +41,9 @@ struct MacKBApp: App {
                 Button("Command Palette…") { store.showPalette = true }.keyboardShortcut("p")
                 Button("Quick Open…") { store.quickOpenNewTab = false; store.showQuickOpen = true }.keyboardShortcut("o")
                 Button("Open in New Tab…") { store.quickOpenNewTab = true; store.showQuickOpen = true }.keyboardShortcut("t")
-                Button("Close Tab") { store.closeTab(store.activeTab) }.keyboardShortcut("w").disabled(store.tabs.isEmpty)
+                Button(store.tabs.isEmpty ? "Close Window" : "Close Tab") {
+                    if store.tabs.isEmpty { NSApp.keyWindow?.performClose(nil) } else { store.closeTab(store.activeTab) }
+                }.keyboardShortcut("w")
                 Button("Next Tab") { store.cycleTab(1) }.keyboardShortcut(.tab, modifiers: .control).disabled(store.tabs.count < 2)
                 Button("Previous Tab") { store.cycleTab(-1) }.keyboardShortcut(.tab, modifiers: [.control, .shift]).disabled(store.tabs.count < 2)
                 Divider()
@@ -48,7 +51,7 @@ struct MacKBApp: App {
                 Button(store.editing ? "Reading View" : "Editing View") { store.editing.toggle() }.keyboardShortcut("e")
                 Divider()
                 Button("Files") { store.pane = .files }.keyboardShortcut("1", modifiers: [.command, .option])
-                Button("Graph") { store.pane = .graph }.keyboardShortcut("g", modifiers: [.command, .shift])
+                Button("Graph") { store.pane = .graph }.keyboardShortcut("g", modifiers: [.command, .option])  // ⇧⌘G is Find Previous
             }
         }
     }
@@ -60,8 +63,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.regular)
         NSApp.applicationIconImage = renderAppIcon()
         NSApp.activate(ignoringOtherApps: true)
+        // No window tabs (they'd take ⇧⌘\ "Show All Tabs" from Show File List).
+        NSWindow.allowsAutomaticWindowTabbing = false
     }
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+    /// Closing the window keeps Holdfast running (an answer or filing may be in progress); the Dock icon reopens it.
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 }
 
 enum Pane: String, CaseIterable, Identifiable {
@@ -208,6 +214,14 @@ final class Store: ObservableObject {
     @Published var turnStarted: Date?
     /// A past conversation opened for reading while another is still generating.
     @Published var reading: ThreadRef?
+    /// A job the router recognised, waiting for a click to start (never started from a question by itself).
+    @Published var pendingJob: Route?
+    /// Bumped when packs change, so the Library re-reads them.
+    @Published var packsVersion = 0
+    /// An answer is being written; other jobs leave `busy` alone meanwhile.
+    private var asking = false
+    /// Research's streamed text before reasoning is taken out.
+    private var agentRaw = ""
     /// The answer being generated, so Stop can cancel it.
     private var askTask: Task<Void, Never>?
 
@@ -296,12 +310,16 @@ final class Store: ObservableObject {
         backend = .mlx
     }
 
-    func download(_ spec: MLXModelSpec) {
-        guard downloads[spec.repo] == nil else { return }
-        downloads[spec.repo] = 0
-        downloadErrors[spec.repo] = nil
-        let repo = spec.repo
+    func download(_ spec: MLXModelSpec) { downloadRepo(spec.repo) }
+
+    /// Downloads a model into the Hugging Face cache (where search models are looked for too).
+    /// When it is the embedder, the index is rebuilt so notes get meaning-search vectors.
+    func downloadRepo(_ repo: String, then: (@MainActor () -> Void)? = nil) {
+        guard downloads[repo] == nil else { return }
+        downloads[repo] = 0
+        downloadErrors[repo] = nil
         Task {
+            defer { if downloadErrors[repo] == nil { then?() } }
             do {
                 try await MLXBackend.download(repo: repo) { f in
                     Task { @MainActor in if self.downloads[repo] != nil { self.downloads[repo] = f } }
@@ -337,7 +355,25 @@ final class Store: ObservableObject {
 
     func runAsk() {
         let q = question.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !q.isEmpty, busy == nil else { return }
+        guard !q.isEmpty, busy == nil, !asking else { return }
+        // One box: the router decides how to handle the request (see Router.swift). Jobs are
+        // confirmed first and never touch the conversation on screen.
+        let route = Router.route(q)
+        switch route {
+        case .crossLink:
+            question = ""
+            pendingJob = .crossLink
+            return
+        case .bulkImport:
+            question = ""
+            showBulkImport = true
+            return
+        default: break
+        }
+        asking = true
+        Remote.fellBack = false
+        Remote.keptLocal = false
+        agentRaw = ""
         answer = ""
         sources = []
         answerStats = nil
@@ -356,20 +392,7 @@ final class Store: ObservableObject {
         steps = []
         turnStarted = Date()
         let model = modelLabel
-        // One box: the router decides how to handle the request (see Router.swift).
-        let route = Router.route(q)
         routeNote = nil
-        switch route {
-        case .crossLink:
-            askedQuestion = ""
-            runCrossLink()
-            return
-        case .bulkImport:
-            askedQuestion = ""
-            showBulkImport = true
-            return
-        default: break
-        }
         let useAgent = route == .research && (backend == .mlx || backend == .remote)  // the old Research toggle no longer applies
         askTask = Task {
             do {
@@ -388,8 +411,8 @@ final class Store: ObservableObject {
                             case .step(let s): self.steps.append(s); self.busy = Steps.split(s).title + "…"
                             case .stepDetail(let d): self.attachDetail(d)
                             case .sources(let c): self.sources = c
-                            case .token(let t): self.answer += t
-                            case .resetText: self.answer = ""
+                            case .token(let t): self.agentRaw += t; self.answer = Thinking.visible(self.agentRaw)
+                            case .resetText: self.answer = ""; self.agentRaw = ""
                             }
                         }
                     }
@@ -425,8 +448,8 @@ final class Store: ObservableObject {
                                 case .step(let s): self.steps.append(s); self.busy = Steps.split(s).title + "…"
                                 case .stepDetail(let d): self.attachDetail(d)
                                 case .sources(let c): self.sources = c
-                                case .token(let t): self.answer += t
-                                case .resetText: self.answer = ""
+                                case .token(let t): self.agentRaw += t; self.answer = Thinking.visible(self.agentRaw)
+                                case .resetText: self.answer = ""; self.agentRaw = ""
                                 }
                             }
                         }
@@ -441,6 +464,10 @@ final class Store: ObservableObject {
                     warning = "The answer cites passages that don't exist: " + a.badCitations.map { "[\($0)]" }.joined(separator: ", ")
                 }
                 var entry = HistoryEntry(question: q, answer: a.text, model: model, stats: answerStats!, sources: a.sources)
+                if Remote.keptLocal {
+                    steps.append("Counseling notes were involved, so this Mac's model answered")
+                    Remote.keptLocal = false
+                }
                 if Remote.fellBack {
                     steps.append("\(Remote.host) didn't answer, so this Mac's model answered")
                     Remote.fellBack = false
@@ -456,6 +483,7 @@ final class Store: ObservableObject {
                 self.error = "\(error)"
             }
             busy = nil
+            asking = false
         }
     }
 
@@ -517,7 +545,7 @@ final class Store: ObservableObject {
         guard !q.isEmpty else { results = []; return }
         Task {
             let emb = await getEmbedder()
-            busy = nil
+            if !asking { busy = nil }
             results = (try? await search(q, embedder: emb, reranker: await Reranker.shared(), limit: 25)) ?? []
         }
     }
@@ -608,7 +636,7 @@ final class Store: ObservableObject {
             try? await Task.sleep(for: .seconds(4))
             guard !Task.isCancelled, busy == nil else { return }
             let emb = await getEmbedder()
-            busy = nil
+            if !asking { busy = nil }
             try? await reindex(embedder: emb)
             indexCounts = (try? Index().count()) ?? indexCounts
         }
@@ -617,7 +645,10 @@ final class Store: ObservableObject {
     /// New note: in the given folder, else next to `near`, else the vault
     /// root (in place) or sources/ (managed). Opens it in the editor.
     func createNote(named name: String = "Untitled", in folder: URL? = nil, near: Note? = nil) {
-        let dir = folder ?? near?.path.deletingLastPathComponent() ?? (Config.inPlace ? Config.vault : Config.sourcesDir)
+        var dir = folder ?? near?.path.deletingLastPathComponent() ?? (Config.inPlace ? Config.vault : Config.sourcesDir)
+        if dir.standardizedFileURL.path.hasPrefix(Packs.dir.standardizedFileURL.path) {
+            dir = Config.inPlace ? Config.vault : Config.sourcesDir   // packs are read-only: new notes go in the vault
+        }
         let base = name.replacingOccurrences(of: "/", with: "-")
         var url = dir.appendingPathComponent(base + ".md")
         var n = 2
@@ -663,14 +694,14 @@ final class Store: ObservableObject {
         let urls = panel.urls
         Task {
             for u in urls {
-                busy = "Importing \(u.lastPathComponent)…"
+                if !asking { busy = "Importing \(u.lastPathComponent)…" }
                 do {
                     var isDir: ObjCBool = false
                     FileManager.default.fileExists(atPath: u.path, isDirectory: &isDir)
                     if isDir.boolValue {
                         _ = try await Task.detached { try ingestFolder(u, tags: []) }.value
                     } else if audioExtensions.contains(u.pathExtension.lowercased()) {
-                        busy = "Transcribing \(u.lastPathComponent)…"
+                        if !asking { busy = "Transcribing \(u.lastPathComponent)…" }
                         _ = try await ingestAudio(u, title: nil, tags: [])
                     } else {
                         _ = try await Task.detached { try ingestDocument(u, root: nil, tags: []) }.value
@@ -689,13 +720,13 @@ final class Store: ObservableObject {
         linkText = ""
         guard link.hasPrefix("http") else { return }
         Task {
-            busy = "Fetching \(link)…"
+            if !asking { busy = "Fetching \(link)…" }
             do { _ = try await ingestURL(link, tags: []) } catch { self.error = "\(error)" }
             await indexNow()
         }
     }
 
-    func rebuildIndex() { Task { await indexNow() } }
+    func rebuildIndex(force: Bool = false) { Task { await indexNow(force: force) } }
 
     // MARK: drop folder
 
@@ -738,14 +769,14 @@ final class Store: ObservableObject {
                     let emb = await getEmbedder()
                     let llm: LLMBackend? = Config.inPlace ? try await getLLM() : nil
                     dropStatus = Config.inPlace ? "Deciding where \(u.lastPathComponent) belongs…" : "Importing \(u.lastPathComponent)…"
-                    busy = dropStatus
+                    if !asking { busy = dropStatus }
                     _ = try await Drop.process(u, embedder: emb, llm: llm, model: modelLabel)
                 } catch let e as AlreadyFiled {
                     dropErrors.append("Skipped \(u.lastPathComponent): \(e)")
                 } catch {
                     dropErrors.append("\(u.lastPathComponent): \(error)")
                 }
-                busy = nil
+                if !asking { busy = nil }
                 queueDone += 1
                 queueLeft = Drop.pending(settled: false).count
                 if queueDone % 5 == 0, Config.inPlace { inboxItems = inbox() }
@@ -757,11 +788,11 @@ final class Store: ObservableObject {
         }
     }
 
-    private func indexNow() async {
+    private func indexNow(force: Bool = false) async {
         let emb = await getEmbedder()
-        busy = "Indexing…"
-        do { try await reindex(embedder: emb) } catch { self.error = "\(error)" }
-        busy = nil
+        if !asking { busy = "Indexing…" }
+        do { try await reindex(embedder: emb, force: force) } catch { self.error = "\(error)" }
+        if !asking { busy = nil }
         reload()
     }
 
@@ -771,9 +802,14 @@ final class Store: ObservableObject {
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
         panel.message = "Choose a vault folder (Markdown notes; can be an Obsidian vault)"
+        guard busy == nil, !asking, !filing, importProgress == nil else {
+            error = "Wait for the current answer, filing or import to finish before switching vaults."
+            return
+        }
         guard panel.runModal() == .OK, let u = panel.url else { return }
         vault = u
         UserDefaults.standard.set(u.path, forKey: "vault")
+        // Nothing from the old vault carries over: tabs, the conversation, its context and state.
         tabs = []
         activeTab = nil
         currentHistoryId = nil
@@ -781,6 +817,18 @@ final class Store: ObservableObject {
         answer = ""
         sources = []
         results = []
+        turns = []
+        conversationId = nil
+        steps = []
+        routeNote = nil
+        reading = nil
+        answerStats = nil
+        warning = nil
+        error = nil
+        notice = nil
+        pendingJob = nil
+        queueDone = 0
+        queueLeft = 0
         reload()
     }
 
@@ -883,6 +931,7 @@ final class Store: ObservableObject {
                 importProgress = nil
                 notice = "Imported \(report.notes) notes and \(report.tables) tables into \(report.folder)/"
                     + (report.skipped.isEmpty ? "." : "; skipped \(report.skipped.count): " + report.skipped.prefix(5).joined(separator: ", "))
+                    + (report.flagged.isEmpty ? "" : " Check \(report.flagged.count) for personal details: " + report.flagged.prefix(5).joined(separator: "; "))
                 await indexNow()
             }
         } else {
@@ -930,7 +979,7 @@ final class Store: ObservableObject {
         Task {
             do {
                 let llm = try await getLLM()
-                busy = "Suggesting links…"
+                if !asking { busy = "Suggesting links…" }
                 let model = modelLabel
                 let verdicts = await CrossLink.run(llm: llm, model: model) { done, total, label in
                     await MainActor.run {
@@ -942,7 +991,7 @@ final class Store: ObservableObject {
                 let yes = verdicts.filter(\.link).count
                 notice = "Checked \(verdicts.count) pairs of close notes; proposed \(yes) links."
             } catch { self.error = "\(error)" }
-            busy = nil
+            if !asking { busy = nil }
             importProgress = nil
             jobTitle = "Importing"
             reload()
@@ -956,11 +1005,12 @@ final class Store: ObservableObject {
     func indexPack(_ id: String) {
         Task {
             let emb = await getEmbedder()
-            busy = "Indexing the \(Packs.manifest(id)?.name ?? id) pack…"
+            if !asking { busy = "Indexing the \(Packs.manifest(id)?.name ?? id) pack…" }
             do { try await Packs.reindex(id, embedder: emb) } catch { self.error = "\(error)" }
-            busy = nil
+            if !asking { busy = nil }
             indexCounts = (try? Index().count()) ?? indexCounts
             notice = "Indexed the \(Packs.manifest(id)?.name ?? id) pack."
+            packsVersion += 1
         }
     }
 

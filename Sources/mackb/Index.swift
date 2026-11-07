@@ -405,6 +405,8 @@ enum Retrieval {
     /// Below this best reranker score the materials don't cover the question:
     /// abstain without calling the LLM. Qwen3-Reranker scores are 0…1.
     static let abstainBelow = 0.08
+    /// How much a knowledge pack's ranking counts against the vault's when there is no reranker.
+    static let packWeightWithoutReranker = 0.35
     /// Drop candidates scoring below this share of the best one.
     static let relativeFloor = 0.5
     /// Passages sent for a question that spans the case.
@@ -428,22 +430,25 @@ func search(_ q: String, embedder: Embedder?, reranker: Reranker? = nil, limit: 
     // The vault's index, then each knowledge pack that is switched on: each is ranked
     // on its own (keyword + vector, fused), then the lists are merged by that rank.
     var sources: [(key: String, idx: Index)] = [("vault", idx)]
-    if packs { for id in Packs.searchable() { if let p = try? Index(path: Packs.indexPath(id)) { sources.append((id, p)) } } }
+    if packs { for id in Packs.searchable() where Packs.validID(id) { if let p = try? Index(path: Packs.indexPath(id)) { sources.append(("pack:" + id, p)) } } }
     let qv: [Float]? = embedder == nil ? nil : try await embedder!.embed([q], query: true).first
     var score: [String: Double] = [:]
     var byId: [String: Chunk] = [:]
     for (key, sidx) in sources {
         let kw = try sidx.keyword(q, limit: Retrieval.candidates)
         let vec = qv.map { try? sidx.vector($0, limit: Retrieval.candidates) } ?? nil
+        // Without a reranker to judge them, a pack's best passages shouldn't tie your notes' best:
+        // pack ranks count for less (the reranker sorts it out when it is there).
+        let weight = key == "vault" || reranker != nil ? 1.0 : Retrieval.packWeightWithoutReranker
         for list in [kw, vec ?? []] {
             for (rank, (id, c)) in list.enumerated() {
                 let k = "\(key)#\(id)"
-                score[k, default: 0] += 1.0 / (Config.rrfK + Double(rank + 1))
+                score[k, default: 0] += weight / (Config.rrfK + Double(rank + 1))
                 byId[k] = c
             }
         }
     }
-    func index(for c: Chunk) -> Index { Packs.id(of: c.relPath).flatMap { id in sources.first { $0.key == id }?.idx } ?? idx }
+    func index(for c: Chunk) -> Index { Packs.id(of: c.relPath).flatMap { id in sources.first { $0.key == "pack:" + id }?.idx } ?? idx }
     // A named session: everything from that session is a candidate, and nothing else.
     if !plan.sessions.isEmpty {
         let pinned = try idx.bySessions(plan.sessions)

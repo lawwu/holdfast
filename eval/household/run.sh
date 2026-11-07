@@ -25,7 +25,7 @@ cd "$(dirname "$0")/../.."
 B=.build/xcode/Build/Products/Release/mackb
 T=eval/household                    # the scripts
 H=eval/${FIXTURE:-household}        # the fixture: vault/, questions.json, filing.json, results/
-export MACKB_VAULT=$PWD/$H/vault MACKB_TODAY=2026-11-05 MACKB_FIXTURE=$PWD/$H
+export MACKB_VAULT=$PWD/$H/vault MACKB_TODAY=2026-11-05 MACKB_FIXTURE=$PWD/$H MACKB_PACKS=none
 QWEN=mlx-community/Qwen3.8-27B-4bit
 G26=mlx-community/gemma-4-26b-a4b-it-4bit
 GE4=mlx-community/gemma-4-e4b-it-4bit

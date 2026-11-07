@@ -74,6 +74,13 @@ struct Profile: Equatable {
         return vaultDefault
     }
 
+    /// Counseling material: under a ministry/counseling folder, or anywhere in a counseling vault.
+    /// It stays on this Mac, is never filed by a rule, and is never cross-linked.
+    static func isCounseling(_ relPath: String) -> Bool {
+        let top = relPath.split(separator: "/").first.map { $0.lowercased() } ?? ""
+        return top.hasPrefix("ministry") || top.contains("counsel") || vaultDefault.id == counseling.id
+    }
+
     /// The profile most of the retrieved passages belong to.
     static func forPassages(_ hits: [Chunk]) -> Profile {
         let counts = Dictionary(grouping: hits.map { forPath($0.relPath) }, by: \.id).mapValues(\.count)

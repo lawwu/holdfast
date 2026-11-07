@@ -28,6 +28,14 @@ enum Steps {
 
 /// The model's reasoning ("thinking") when it is switched on.
 enum Thinking {
+    /// Models whose chat template opens <think> in the prompt (Qwen): with thinking on, the reply
+    /// is reasoning until "</think>". Other models stream as usual.
+    static var hidesUntilClose: Bool {
+        guard on else { return false }
+        let name = UserDefaults.standard.string(forKey: "backend") == "A model on another Mac" ? Remote.model : MLXBackend.currentRepo
+        return name.lowercased().contains("qwen")
+    }
+
     static var on: Bool {
         UserDefaults.standard.bool(forKey: "showThinking") || ProcessInfo.processInfo.environment["MACKB_THINK"] == "1"
     }
@@ -54,7 +62,7 @@ enum Thinking {
     /// Streamed text to show: nothing while a reasoning block is still open.
     static func visible(_ partial: String) -> String {
         if partial.contains("<think>") && !partial.contains("</think>") { return "" }
-        if on && !partial.contains("</think>") && !partial.contains("<|channel>") { return "" }  // still reasoning
+        if hidesUntilClose && !partial.contains("</think>") { return "" }  // Qwen: still reasoning
         return split(partial).rest.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
@@ -69,14 +77,20 @@ final class TextBox: @unchecked Sendable {
 
 func citation(_ c: Chunk) -> String { "[[\(c.noteId)#\(c.anchor)]]" }
 
-func ask(_ question: String, embedder: Embedder?, llm: LLMBackend = OllamaBackend(), prior: [(q: String, a: String)] = [],
+func ask(_ question: String, embedder: Embedder?, llm askedLLM: LLMBackend = OllamaBackend(), prior: [(q: String, a: String)] = [],
          onSources: (@Sendable ([Chunk]) -> Void)? = nil,
          stream: (@Sendable (String) -> Void)? = nil) async throws -> Answer {
     let t0 = Date()
-    // A short follow-up ("what about Greta?") is searched together with the question before it.
-    let short = question.split(whereSeparator: \.isWhitespace).count <= Conversation.shortFollowUpWords
-    let query = short && !prior.isEmpty ? prior.last!.q + " " + question : question
+    // A follow-up that leans on the one before ("what about Greta?", "and the year before?")
+    // is searched together with it; a new topic is searched on its own.
+    let query = !prior.isEmpty && Conversation.leansOnPrevious(question) ? prior.last!.q + " " + question : question
     let hits = try await search(query, embedder: embedder, reranker: await Reranker.shared(), limit: Config.contextChunks)
+    // Counseling notes never go to another Mac: answer those here.
+    var llm = askedLLM
+    if llm is RemoteBackend, Remote.touchesCounseling(hits) {
+        llm = try await MLXBackend.shared()
+        Remote.keptLocal = true
+    }
     let rt = Date().timeIntervalSince(t0)
     guard !hits.isEmpty else {
         // Abstain before generating: nothing relevant enough, so don't ask the 27B to guess.
@@ -107,7 +121,12 @@ func ask(_ question: String, embedder: Embedder?, llm: LLMBackend = OllamaBacken
         .matches(in: box.text, range: NSRange(box.text.startIndex..., in: box.text))
         .compactMap { Range($0.range(at: 1), in: box.text).flatMap { Int(box.text[$0]) } } ?? []
     let bad = Array(Set(cited.filter { $0 < 1 || $0 > hits.count })).sorted()
-    let (thought, rest) = Thinking.split(box.text)
+    var (thought, rest) = Thinking.split(box.text)
+    // Qwen with thinking on: everything before "</think>" is reasoning. Stopped (or out of room) before
+    // it closed means there is no answer yet, never the reasoning shown as one.
+    if Thinking.hidesUntilClose, !box.text.contains("</think>") {
+        (thought, rest) = (box.text, Task.isCancelled ? "" : "The model used its whole answer length thinking and didn't reach an answer. Ask again, or turn off Show Thinking.")
+    }
     return Answer(text: stripThoughts(rest), badCitations: bad, sources: hits, stats: stats, retrievalSeconds: rt, thinking: thought)
 }
 
@@ -119,6 +138,18 @@ enum Conversation {
     static let answerChars = 900
     /// A follow-up this short is searched together with the question before it.
     static let shortFollowUpWords = 12
+
+    /// Words that point back at the previous question.
+    static let pointers: Set<String> = ["it", "its", "it's", "they", "them", "their", "that", "those", "this", "these", "he", "she",
+                                        "him", "her", "his", "hers", "there", "then", "also", "too", "same", "else", "other", "another"]
+
+    static func leansOnPrevious(_ q: String) -> Bool {
+        let words = q.lowercased().split { !$0.isLetter && $0 != "'" }.map(String.init)
+        if words.count <= 4 { return true }
+        if let first = words.first, ["and", "but", "also", "so", "or"].contains(first) { return true }
+        if q.lowercased().hasPrefix("what about") || q.lowercased().hasPrefix("how about") { return true }
+        return words.count <= shortFollowUpWords && words.contains(where: pointers.contains)
+    }
 
     static func context(_ prior: [(q: String, a: String)]) -> String {
         guard !prior.isEmpty else { return "" }
@@ -192,7 +223,7 @@ func propose(title: String, text: String, tags: [String], by agent: String) thro
     if !tags.isEmpty { meta["tags"] = tags.joined(separator: ", ") }
     if !flags.isEmpty { meta["privacy_flags"] = flags.joined(separator: "; ") }
     let slug = slugify(title).isEmpty ? "memory" : slugify(title)
-    let path = Config.inboxDir.appendingPathComponent("\(stamp.prefix(10).replacingOccurrences(of: "-", with: ""))-\(slug).md")
+    let path = Drop.unique(Config.inboxDir.appendingPathComponent("\(stamp.prefix(10).replacingOccurrences(of: "-", with: ""))-\(slug).md"), ifExists: true)
     let note = Note(path: path, meta: meta, body: "\n# \(title)\n\n\(text)\n")
     try note.write()
     return (note, flags)
@@ -203,8 +234,13 @@ func inbox() -> [Note] { allNotes(in: [Config.inboxDir]) }
 func approve(_ id: String) throws -> Note {
     guard let n = inbox().first(where: { $0.id == id }) else { throw MacKBError("no inbox item \(id)") }
     if n.meta["kind"] == "filing" {  // a dropped file: write it where the model proposed
-        let dest = try Drop.apply(n)
-        try FileManager.default.removeItem(at: n.path)
+        let dest = try Drop.withWriteLock { () throws -> URL in
+            guard FileManager.default.fileExists(atPath: n.path.path) else { throw MacKBError("\(id) was already approved or rejected") }
+            let d = try Drop.applyClaimed(n)
+            try FileManager.default.removeItem(at: n.path)
+            return d
+        }
+        if let h = n.meta["original_hash"] { FiledHashes.add(h) }
         // Learn: the same sender approved to the same place often enough becomes a suggested rule.
         if n.meta["rule"] == nil, let from = n.meta["from"], let action = n.meta["action"] {
             Rules.record(from: from, target: Drop.relative(dest), action: action)
@@ -213,7 +249,7 @@ func approve(_ id: String) throws -> Note {
     }
     var m = n
     m.meta["approved"] = ISO8601DateFormatter.string(from: Date(), timeZone: TimeZone(identifier: "America/Los_Angeles")!, formatOptions: [.withFullDate])
-    m.path = Config.memoryDir.appendingPathComponent(n.path.lastPathComponent)
+    m.path = Drop.unique(Config.memoryDir.appendingPathComponent(n.path.lastPathComponent), ifExists: true)  // never replace an earlier memory
     try m.write()
     try FileManager.default.removeItem(at: n.path)
     return m

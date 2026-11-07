@@ -178,10 +178,16 @@ enum Drop {
     }
 
     /// Asks the model where a dropped file belongs. Writes nothing.
-    static func decide(_ url: URL, text: String, embedder: Embedder?, llm: LLMBackend) async throws -> Decision {
+    static func decide(_ url: URL, text: String, embedder: Embedder?, llm askedLLM: LLMBackend) async throws -> Decision {
         let doc = String(text.prefix(maxDocChars))
         let probe = url.deletingPathExtension().lastPathComponent + "\n" + String(doc.prefix(1500))
         let hits = (try? await search(probe, embedder: embedder, limit: 24, packs: false)) ?? []  // filing goes into your notes, never a pack
+        // A document that looks like counseling material is filed with this Mac's model, never another Mac's.
+        var llm = askedLLM
+        if llm is RemoteBackend, Remote.touchesCounseling(Array(hits.prefix(relatedNotes))) {
+            llm = try await MLXBackend.shared()
+            Remote.keptLocal = true
+        }
         var seen = Set<String>(), related: [String] = [], shown: [String] = []
         for h in hits where !h.relPath.hasPrefix("@") && seen.insert(h.relPath).inserted {
             related.append("- \(h.relPath) — \(h.title)")
@@ -338,6 +344,13 @@ enum Drop {
         if p.isEmpty || parts.contains("..") || parts.contains(where: { $0.hasPrefix(".") }) {
             throw MacKBError("the model proposed a path outside the vault: \(f.path)")
         }
+        // A folder ("life/recipes/" or a folder rule with no name): name the note after its title.
+        if p.hasSuffix("/") || (p as NSString).lastPathComponent.lowercased() == ".md" {
+            let slug = slugify(f.title).isEmpty ? "note" : slugify(f.title)
+            p = (p.hasSuffix("/") ? p : (p as NSString).deletingLastPathComponent + "/") + slug + ".md"
+            while p.hasPrefix("/") { p.removeFirst() }
+        }
+        _ = try safeTarget(p)
         // A row for an existing CSV table goes into that table; anything else is a Markdown note.
         let csv = p.lowercased().hasSuffix(".csv") && FileManager.default.fileExists(atPath: Config.vault.appendingPathComponent(p).path)
         if !csv && !p.hasSuffix(".md") { p += ".md" }
@@ -362,45 +375,103 @@ enum Drop {
     /// Writes an approved filing into the vault. Appends go after the last
     /// line of the note's last table when the addition is a table row,
     /// otherwise at the end of the note.
+    /// One filing (or undo) at a time across every process: the app, the CLI and the MCP server
+    /// all write the same notes and filing log. An advisory file lock in the vault's state folder.
+    static func withWriteLock<T>(_ body: () throws -> T) throws -> T {
+        try FileManager.default.createDirectory(at: Config.stateDir, withIntermediateDirectories: true)
+        let path = Config.stateDir.appendingPathComponent(".write.lock").path
+        let fd = open(path, O_CREAT | O_RDWR, 0o600)
+        guard fd >= 0 else { throw MacKBError("can't open the vault's write lock") }
+        defer { close(fd) }
+        flock(fd, LOCK_EX)
+        defer { flock(fd, LOCK_UN) }
+        return try body()
+    }
+
+    /// A vault-relative path as a file URL inside the vault, or an error: no absolute paths,
+    /// "..", hidden components, the app's state folder or a knowledge pack.
+    static func safeTarget(_ target: String) throws -> URL {
+        let parts = target.split(separator: "/", omittingEmptySubsequences: false)
+        guard !target.isEmpty, !target.hasPrefix("/"), !Packs.isPack(target), !target.hasPrefix("@"),
+              !parts.contains(where: { $0.isEmpty || $0 == ".." || $0 == "." || $0.hasPrefix(".") }) else {
+            throw MacKBError("refusing to write outside the vault: \(target)")
+        }
+        let root = Config.vault.resolvingSymlinksInPath().standardizedFileURL.path + "/"
+        let url = Config.vault.appendingPathComponent(target)
+        let resolved = url.deletingLastPathComponent().resolvingSymlinksInPath().standardizedFileURL.path + "/"
+        guard resolved.hasPrefix(root) || resolved == root else { throw MacKBError("refusing to write outside the vault: \(target)") }
+        return url
+    }
+
+    /// Writes an approved filing into the vault. Appends go after the last
+    /// line of the note's last table when the addition is a table row,
+    /// otherwise at the end of the note.
     static func apply(_ item: Note) throws -> URL {
+        try withWriteLock { try applyLocked(item) }
+    }
+
+    /// For callers already holding the write lock.
+    static func applyClaimed(_ item: Note) throws -> URL { try applyLocked(item) }
+
+    private static func applyLocked(_ item: Note) throws -> URL {
         guard let target = item.meta["target"] else { throw MacKBError("filing has no target") }
-        var dest = Config.vault.appendingPathComponent(target)
+        var dest = try safeTarget(target)
         let entry = item.body.trimmingCharacters(in: .whitespacesAndNewlines)
+        let existed = FileManager.default.fileExists(atPath: dest.path)
         let before = Versions.snapshot(dest, reason: "filing")
-        let written: String
-        if item.meta["action"] == "link", let text = try? String(contentsOf: dest, encoding: .utf8) {
+        let action = item.meta["action"] ?? "new"
+        let fus = followUps(item)
+        var written: String
+        var extra: [String] = []
+        if existed, action == "link", let text = try? String(contentsOf: dest, encoding: .utf8) {
             // A cross-link: one line under the note's "## See also".
             try appendUnder("## See also", lines: [entry], to: text).write(to: dest, atomically: true, encoding: .utf8)
             written = entry
-        } else if item.meta["action"] == "append", target.lowercased().hasSuffix(".csv"), var text = try? String(contentsOf: dest, encoding: .utf8) {
+        } else if existed, action == "append", target.lowercased().hasSuffix(".csv"), let data = try? Data(contentsOf: dest) {
+            let bom = data.starts(with: [0xEF, 0xBB, 0xBF])
+            var text = String(decoding: bom ? data.dropFirst(3) : data, as: UTF8.self)
             let rows = csvRows(entry, for: text)
             guard !rows.isEmpty else { throw MacKBError("the proposal has no row matching \(target)'s columns; edit it into a CSV line first") }
-            // Keep the file's line endings (Excel writes \r\n, which Swift sees as one character).
+            // Keep the file's line endings (Excel writes \r\n, which Swift sees as one character) and its BOM.
             let eol = text.contains("\r\n") ? "\r\n" : "\n"
             if !(text.hasSuffix("\n") || text.hasSuffix("\r\n")) { text += eol }
-            written = rows.joined(separator: eol) + eol
-            text += written
-            try text.write(to: dest, atomically: true, encoding: .utf8)
-        } else if item.meta["action"] == "append", var text = try? String(contentsOf: dest, encoding: .utf8) {
-            let addition = entry
-            if addition.hasPrefix("|") {
-                var lines = text.components(separatedBy: "\n")
-                if let last = lines.lastIndex(where: { $0.hasPrefix("|") }) {
-                    lines.insert(contentsOf: addition.components(separatedBy: "\n"), at: last + 1)
-                    text = lines.joined(separator: "\n")
-                } else {
-                    text = text.trimmingCharacters(in: .newlines) + "\n\n" + addition + "\n"
+            written = rows.joined(separator: eol)
+            text += written + eol
+            try ((bom ? Data([0xEF, 0xBB, 0xBF]) : Data()) + Data(text.utf8)).write(to: dest, options: .atomic)
+        } else if existed, action == "append", var text = try? String(contentsOf: dest, encoding: .utf8) {
+            let lines = entry.components(separatedBy: "\n")
+            var all = text.components(separatedBy: "\n")
+            if entry.hasPrefix("|"), let last = all.lastIndex(where: { $0.hasPrefix("|") }) {
+                // Table rows go after the table's last row; a header or separator the model
+                // repeated is dropped, and anything that isn't a row goes at the end of the note.
+                // The header of the table being appended to: the first row of its run of rows.
+                var top = last
+                while top > 0, all[top - 1].hasPrefix("|") { top -= 1 }
+                let headerLine = all[top].trimmingCharacters(in: .whitespaces)
+                let rows = lines.filter { l in
+                    let t = l.trimmingCharacters(in: .whitespaces)
+                    return t.hasPrefix("|") && t.range(of: #"^\|?[\s:|-]+\|?$"#, options: .regularExpression) == nil && t != headerLine
+                }
+                let rest = lines.filter { !$0.trimmingCharacters(in: .whitespaces).hasPrefix("|") }
+                    .joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+                all.insert(contentsOf: rows, at: last + 1)
+                text = all.joined(separator: "\n")
+                written = rows.joined(separator: "\n")
+                if !rest.isEmpty {
+                    text = text.trimmingCharacters(in: .newlines) + "\n\n" + rest + "\n"
+                    extra.append(contentsOf: rest.components(separatedBy: "\n"))
                 }
             } else {
-                text = text.trimmingCharacters(in: .newlines) + "\n\n" + addition + "\n"
+                text = text.trimmingCharacters(in: .newlines) + "\n\n" + entry + "\n"
+                written = entry
             }
-            text = Upcoming.append(followUps(item), to: text)
+            text = Upcoming.append(fus, to: text)
+            extra += fus.map(Upcoming.line)
             try text.write(to: dest, atomically: true, encoding: .utf8)
-            written = addition
         } else {
-            if FileManager.default.fileExists(atPath: dest.path) { dest = unique(dest) }
+            if existed { dest = unique(dest) }
             try FileManager.default.createDirectory(at: dest.deletingLastPathComponent(), withIntermediateDirectories: true)
-            let body = Upcoming.append(followUps(item), to: entry + "\n")
+            let body = Upcoming.append(fus, to: entry + "\n")
             let props = properties(item)
             if props.isEmpty {
                 try body.write(to: dest, atomically: true, encoding: .utf8)
@@ -412,10 +483,13 @@ enum Drop {
         let after = (try? String(contentsOf: dest, encoding: .utf8)) ?? ""
         var proposal = item.meta
         proposal["target"] = relative(dest)
-        FilingLog.add(FilingRecord(title: item.meta["title"] ?? relative(dest), target: relative(dest), action: item.meta["action"] ?? "new",
-                                   original: item.meta["original"], snapshot: item.meta["action"] == "append" ? before?.path : nil,
-                                   after: FilingLog.hash(after), addition: written, proposal: proposal, proposalBody: item.body,
-                                   rule: item.meta["rule"]))
+        var record = FilingRecord(title: item.meta["title"] ?? relative(dest), target: relative(dest),
+                                  action: existed ? action : "new", original: item.meta["original"],
+                                  snapshot: existed ? before?.path : nil, after: FilingLog.hash(after), addition: written,
+                                  proposal: proposal, proposalBody: item.body, rule: item.meta["rule"])
+        record.extraLines = extra.isEmpty ? nil : extra
+        record.originalHash = item.meta["original_hash"]
+        FilingLog.add(record)
         return dest
     }
 
@@ -425,23 +499,27 @@ enum Drop {
 
     /// Files one dropped file. Managed vaults import it; in-place vaults get a
     /// proposal in the inbox. The original leaves the drop folder either way.
-    static func process(_ url: URL, embedder: Embedder?, llm: LLMBackend?, model: String) async throws -> String {
-        defer { _ = try? moveToFiled(url) }
+    static func process(_ dropped: URL, embedder: Embedder?, llm: LLMBackend?, model: String) async throws -> String {
+        // Out of the drop folder first: a file that crashes a reader isn't retried on every launch.
+        let url = (try? moveToFiled(dropped)) ?? dropped
         let ext = url.pathExtension.lowercased()
         // Containers (zip, mailbox, Evernote export) open into the drop folder; each file is filed on its own.
         if Formats.containers.contains(ext) {
-            let r = Expand.files(url, staging: BulkImport.staging)
+            let stage = BulkImport.staging
+            defer { BulkImport.cleanUp(stage) }
+            let r = Expand.files(url, staging: stage)
             for f in r.files { try FileManager.default.moveItem(at: f, to: unique(dir.appendingPathComponent(f.lastPathComponent), ifExists: true)) }
             return "Opened \(url.lastPathComponent): \(r.files.count) files to file" + (r.skipped.isEmpty ? "" : ", \(r.skipped.count) skipped")
         }
-        // The same file filed before (byte for byte) is not filed again.
+        // The same file filed before (byte for byte) is not filed again. The hash is remembered
+        // when a filing is approved (or imported), and forgotten again on undo.
         let hash = FiledHashes.hash(url)
         if let h = hash, FiledHashes.contains(h) { throw AlreadyFiled(why: "the same file was filed before") }
         func done(_ msg: String) -> String { if let h = hash { FiledHashes.add(h) }; return msg }
         // A message's attachments go into the drop folder to be filed on their own.
         if ext == "eml", let mail = try? Mail.parse(Data(contentsOf: url)) {
             for a in mail.attachments where Drop.supported.contains((a.name as NSString).pathExtension.lowercased()) {
-                try? a.data.write(to: unique(dir.appendingPathComponent(a.name.replacingOccurrences(of: "/", with: "-")), ifExists: true))
+                try? a.data.write(to: unique(dir.appendingPathComponent(Expand.safeName(a.name)), ifExists: true))
             }
         }
         if !Config.inPlace {
@@ -457,12 +535,17 @@ enum Drop {
             throw MacKBError("\(url.lastPathComponent): no readable text")
         }
         guard let llm else { throw MacKBError("no model loaded to file \(url.lastPathComponent)") }
-        let (n, flags, rule) = try await propose(url, text: text, embedder: embedder, llm: llm, model: model)
-        if rule?.auto == true, flags.isEmpty {  // an automatic rule: file now (undo is in the Inbox)
+        var (n, flags, rule) = try await propose(url, text: text, embedder: embedder, llm: llm, model: model)
+        if let h = hash { n.meta["original_hash"] = h; try n.write() }
+        // An automatic rule files without asking only when nothing in the entry looks personal
+        // (names included) and nothing about it is counseling; otherwise it waits for approval.
+        let target = n.meta["target"] ?? ""
+        let personal = privacyFlags((n.meta["title"] ?? "") + "\n" + n.body, names: true)
+        if rule?.auto == true, flags.isEmpty, personal.isEmpty, !Profile.isCounseling(target), !Profile.isCounseling(Drop.relative(url)) {
             let saved = try approve(n.id)
-            return done("Filed to \(Drop.relative(saved.path)) by rule")
+            return "Filed to \(Drop.relative(saved.path)) by rule"
         }
-        return done("Proposed \(n.meta["target"] ?? "")")
+        return "Proposed \(target)"
     }
 }
 

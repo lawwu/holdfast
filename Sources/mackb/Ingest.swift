@@ -14,7 +14,7 @@ let audioExtensions: Set<String> = ["mp3", "m4a", "wav", "aac", "flac", "mp4", "
 func extractText(_ url: URL) throws -> String {
     switch url.pathExtension.lowercased() {
     case "md", "markdown", "txt":
-        return try String(contentsOf: url, encoding: .utf8)
+        return try Formats.readText(url)
     case let e where imageExtensions.contains(e):
         return try ocrImage(url)
     case let e where Formats.readable.contains(e):
@@ -24,9 +24,16 @@ func extractText(_ url: URL) throws -> String {
         // Page by page: a page with no text layer (a scan, a photo of a form) is read
         // with on-device OCR, so a PDF that mixes typed and scanned pages reads in full.
         var pages: [String] = []
+        var ocrPages = 0
         for i in 0..<doc.pageCount {
-            let t = doc.page(at: i)?.string ?? ""
-            pages.append(t.trimmingCharacters(in: .whitespacesAndNewlines).count < 20 ? ocrPDFPage(doc, i) : t)
+            autoreleasepool {
+                let t = doc.page(at: i)?.string ?? ""
+                if t.trimmingCharacters(in: .whitespacesAndNewlines).count >= 20 { pages.append(t); return }
+                // Scanned pages are read with OCR, up to a limit (each is rendered as an image).
+                guard ocrPages < maxOCRPages else { return }
+                ocrPages += 1
+                pages.append(ocrPDFPage(doc, i))
+            }
         }
         return pages.joined(separator: "\n\n")
     default:
@@ -39,10 +46,16 @@ func ocrPDF(_ doc: PDFDocument) -> String {
     (0..<doc.pageCount).map { ocrPDFPage(doc, $0) }.joined(separator: "\n\n")
 }
 
+/// Scanned pages read with OCR per PDF, and the longest side a page is rendered at (pixels).
+let maxOCRPages = 300
+let maxOCRSide: CGFloat = 2_400
+
 func ocrPDFPage(_ doc: PDFDocument, _ i: Int) -> String {
     guard let page = doc.page(at: i) else { return "" }
     let bounds = page.bounds(for: .mediaBox)
-    let img = page.thumbnail(of: CGSize(width: bounds.width * 2, height: bounds.height * 2), for: .mediaBox)
+    // About 2x a letter page; huge pages are scaled down so one page can't take gigabytes.
+    let scale = min(2, maxOCRSide / max(bounds.width, bounds.height, 1))
+    let img = page.thumbnail(of: CGSize(width: bounds.width * scale, height: bounds.height * scale), for: .mediaBox)
     guard let cg = img.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return "" }
     let req = VNRecognizeTextRequest()
     req.recognitionLevel = .accurate
@@ -177,7 +190,10 @@ func ingestFolder(_ root: URL, tags: [String]) throws -> (ok: Int, skipped: Int,
 func transcribeAudio(_ url: URL) async throws -> (segments: [Segment], duration: Double, seconds: Double) {
     let wav = Config.mediaDir.appendingPathComponent(UUID().uuidString + ".wav")
     // ffmpeg normalises any container (mp4, webm, m4a) to 16 kHz mono for Parakeet.
-    _ = try run("/opt/homebrew/bin/ffmpeg", ["-nostdin", "-loglevel", "error", "-y", "-i", url.path, "-ac", "1", "-ar", "16000", wav.path])
+    guard let ffmpeg = findTool("ffmpeg") else {
+        throw MacKBError("Recordings need ffmpeg to read audio. Install it with Homebrew (brew install ffmpeg), then try again.")
+    }
+    _ = try run(ffmpeg, ["-nostdin", "-loglevel", "error", "-y", "-i", url.path, "-ac", "1", "-ar", "16000", wav.path])
     defer { try? FileManager.default.removeItem(at: wav) }
 
     let choice = Prefs.transcription
@@ -233,13 +249,20 @@ func ingestAudio(_ url: URL, title: String?, tags: [String]) async throws -> Not
 
 // MARK: - YouTube / URLs (captions first, transcription only if there are none)
 
+/// A command-line tool from the usual install places (the app doesn't get the shell's PATH).
+func findTool(_ name: String) -> String? {
+    let dirs = ["/opt/homebrew/bin", "/usr/local/bin", "\(NSHomeDirectory())/.local/bin", "\(NSHomeDirectory())/miniconda3/bin", "/usr/bin"]
+    return dirs.map { "\($0)/\(name)" }.first { FileManager.default.isExecutableFile(atPath: $0) }
+}
+
 func ytdlp() -> String {
-    for p in ["/opt/homebrew/bin/yt-dlp", "\(NSHomeDirectory())/miniconda3/bin/yt-dlp", "/usr/local/bin/yt-dlp"]
-    where FileManager.default.isExecutableFile(atPath: p) { return p }
-    return "yt-dlp"
+    findTool("yt-dlp") ?? "yt-dlp"
 }
 
 func ingestURL(_ url: String, tags: [String]) async throws -> Note {
+    guard findTool("yt-dlp") != nil else {
+        throw MacKBError("Links need yt-dlp to fetch captions or audio. Install it with Homebrew (brew install yt-dlp), then try again.")
+    }
     let work = Config.mediaDir.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: work) }
