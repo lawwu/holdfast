@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Exercise the reusable Swift target without MLX or Holdfast: real HTTP, SSE and NDJSON."""
-import http.server, json, pathlib, subprocess, tempfile, threading, time
+import http.server, json, pathlib, shutil, subprocess, tempfile, threading, time
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 failures, requests = [], []
@@ -55,9 +55,26 @@ server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Handler)
 threading.Thread(target=server.serve_forever, daemon=True).start()
 try:
     with tempfile.TemporaryDirectory(prefix='holdfast-providers-') as temp:
-        binary = str(pathlib.Path(temp)/'test')
-        sources = sorted((ROOT/'Packages/pi-swift-mlx/swift/Sources/ModelProviders').glob('*.swift'))
-        subprocess.run(['swiftc', '-swift-version', '5', '-parse-as-library', *map(str, sources), str(ROOT/'Tests/ModelProviderTests.swift'), '-o', binary], check=True)
+        # Compile a separate consumer against the package's public API, with no app or MLX.
+        package = pathlib.Path(temp)
+        source = package/'Sources/ProviderTransportCheck'
+        source.mkdir(parents=True)
+        shutil.copy2(ROOT/'Tests/ModelProviderTests.swift', source/'ProviderTests.swift')
+        dependency = json.dumps(str(ROOT/'Packages/ModelProviders'), ensure_ascii=False)
+        (package/'Package.swift').write_text(f'''// swift-tools-version:6.2
+import PackageDescription
+let package = Package(name: "ProviderTransportCheck", platforms: [.macOS(.v15)],
+    dependencies: [.package(path: {dependency})],
+    targets: [.executableTarget(name: "ProviderTransportCheck",
+        dependencies: [.product(name: "ModelProviders", package: "modelproviders")],
+        swiftSettings: [.swiftLanguageMode(.v5)])])
+''')
+        graph = json.loads(subprocess.check_output(['swift', 'package', '--package-path', temp, 'show-dependencies', '--format', 'json']))
+        assert len(graph['dependencies']) == 1
+        assert graph['dependencies'][0]['name'] == 'ModelProviders'
+        assert graph['dependencies'][0]['dependencies'] == [], 'HTTP-only consumers must not resolve MLX'
+        subprocess.run(['swift', 'build', '--package-path', temp], check=True)
+        binary = str(package/'.build/debug/ProviderTransportCheck')
         for kind in ['ollama', 'lmStudio', 'custom']:
             for case in ['models', 'ok', 'invalid', 'truncated', 'interrupted', 'auth', 'redirect', 'cancel']:
                 mode = case if case in ['models', 'ok', 'cancel'] else 'error'

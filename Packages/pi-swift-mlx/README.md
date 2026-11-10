@@ -5,13 +5,17 @@ regular Pi coding-agent SDK/CLI and Pi Durable through the same `pi-ai` provider
 Tested API versions: `@earendil-works/pi-ai`, `pi-coding-agent`, and `pi-durable`
 **1.5.1**. The older `@mariozechner/*` 0.x registration API is not supported.
 
-The package contains:
+This npm package contains:
 
 - An npm adapter that translates Pi transcripts, complete tool schemas, streamed
   text, tool calls, token usage, and cancellation.
-- A **LocalMLX** Swift library that embeds an already-loaded `ModelContainer`.
-- An optional **local-mlx-host** executable for Pi running without a native app.
 - A Pi CLI extension that registers the provider and starts the host lazily.
+- A build wrapper and release source bundle for the optional **local-mlx-host** helper.
+
+The maintained Swift code lives in two sibling packages:
+[LocalMLX](../LocalMLX/README.md) owns embedded MLX inference and `local-mlx-host`;
+[ModelProviders](../ModelProviders/README.md) owns the shared inference interface and
+HTTP providers. Neither Swift package depends on this adapter or either Pi harness.
 
 The Swift product/module is `LocalMLX`, with inference wire types under
 `MLXProtocol`. The npm name, `createSwiftMLXProvider` API, `PI_MLX_*` extension
@@ -42,7 +46,9 @@ bash scripts/build-host.sh
 The host and its Metal resource bundles are copied to `build/host/`. Keep that
 directory together. `PI_MLX_DERIVED_DATA` can select an Xcode build-cache directory;
 `PI_MLX_SOURCE_PACKAGES` can reuse an existing Xcode package checkout cache.
-The Swift package in `swift/` builds independently of the surrounding repository.
+In a repository checkout, the wrapper builds `../LocalMLX`. An installed npm release
+uses its self-contained `native/LocalMLX` and `native/ModelProviders` source snapshot.
+Its Swift dependency lockfile and source checksums travel with that release.
 
 ## Use with regular Pi
 
@@ -89,7 +95,9 @@ There is no runtime dependency on either harness; `pi-ai` is a peer dependency.
 
 ## Embed in a native app
 
-Add `swift/` as a Swift package dependency and depend on the `LocalMLX` product:
+Add `Packages/LocalMLX` from a checkout as a Swift package dependency and depend on
+the `LocalMLX` product. Keep its sibling `Packages/ModelProviders` available too.
+See [LocalMLX's guide](../LocalMLX/README.md) for the manifest declaration.
 
 ```swift
 import LocalMLX
@@ -118,11 +126,11 @@ would require a separate local service and scheduling, outside this package.
 
 ## Use the same interface with a model server
 
-The Swift package also exports **ModelProviders**, a Foundation-only target with no MLX,
+**ModelProviders** is a separate Foundation-only Swift package with no external package,
 SwiftUI, Holdfast, tool execution or persistence dependency. `LocalMLX` depends on it;
 `MLXSession` conforms to the same `ModelProvider` protocol as `HTTPModelProvider`.
-Depend only on the `ModelProviders` product if your app only needs server inference
-(the package manifest still resolves MLX's package dependencies, but this target doesn't link them).
+Depend on `Packages/ModelProviders` if your app only needs server inference. It does
+not resolve, download, or link MLX. See [its guide](../ModelProviders/README.md).
 
 ```swift
 import ModelProviders
@@ -194,7 +202,7 @@ No speed or model-quality improvement is implied by packaging the same engine.
 npm test
 # Opt-in 27B test using the environment above; runs both real harnesses:
 node test/live.mjs
-npm pack --ignore-scripts
+npm pack
 ```
 
 Tests run both actual harnesses with typed tool arguments, test transcript
@@ -202,7 +210,12 @@ translation, streaming/usage, malformed and truncated calls, and exercise a
 subprocess peer's Unicode framing, cancellation, crash, restart and shutdown.
 The opt-in live test uses the actual Swift host and installed MLX model.
 
-`npm pack` includes the adapter, declarations, extension, standalone Swift sources
-and build script. It excludes models, build outputs, test fixtures and development
+`npm pack` runs `scripts/stage-native.mjs` to copy the two maintained Swift packages
+into ignored `native/` staging files, with a checksum manifest and the host's dependency
+lockfile. Edit the sibling packages, never these generated copies. If lifecycle scripts
+are disabled, run `node scripts/stage-native.mjs` explicitly before packing.
+
+The archive includes the adapter, declarations, extension, standalone Swift sources
+and build scripts. It excludes models, build outputs, test fixtures and development
 dependencies. The package is local and unpublished; publication/license decisions
 can be made separately.

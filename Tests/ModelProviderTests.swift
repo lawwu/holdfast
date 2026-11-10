@@ -1,4 +1,5 @@
 import Foundation
+import ModelProviders
 
 @main struct ProviderTests {
     static func main() async throws {

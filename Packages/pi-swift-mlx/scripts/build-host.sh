@@ -1,18 +1,16 @@
 #!/bin/bash
-# Build from this package alone; no Holdfast checkout, app, or model download needed.
+# Use the sibling Swift package in a checkout, or the bundled source in an npm install.
 set -euo pipefail
 PACKAGE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-DERIVED="${PI_MLX_DERIVED_DATA:-$PACKAGE_DIR/build/xcode}"
-OUT="$PACKAGE_DIR/build/host"
-SOURCE_OPTIONS=()
-if [[ -n "${PI_MLX_SOURCE_PACKAGES:-}" ]]; then
-  SOURCE_OPTIONS=(-clonedSourcePackagesDirPath "$PI_MLX_SOURCE_PACKAGES")
+NATIVE="$PACKAGE_DIR/../LocalMLX"
+if [[ ! -f "$NATIVE/Package.swift" ]]; then
+  NATIVE="$PACKAGE_DIR/native/LocalMLX"
 fi
-cd "$PACKAGE_DIR/swift"
-xcodebuild -scheme local-mlx-host -destination 'platform=macOS' -configuration Release \
-  -derivedDataPath "$DERIVED" "${SOURCE_OPTIONS[@]}" -skipMacroValidation -skipPackagePluginValidation \
-  DEBUG_INFORMATION_FORMAT=dwarf build -quiet
-mkdir -p "$OUT"
-cp "$DERIVED/Build/Products/Release/local-mlx-host" "$OUT/"
-for bundle in "$DERIVED"/Build/Products/Release/*.bundle; do cp -R "$bundle" "$OUT/"; done
-printf '%s\n' "$OUT/local-mlx-host"
+if [[ ! -f "$NATIVE/scripts/build-host.sh" ]]; then
+  printf '%s\n' 'The LocalMLX source bundle is missing. Install the packed pi-swift-mlx release or use a complete repository checkout.' >&2
+  exit 1
+fi
+export LOCAL_MLX_DERIVED_DATA="${PI_MLX_DERIVED_DATA:-${LOCAL_MLX_DERIVED_DATA:-$PACKAGE_DIR/build/xcode}}"
+export LOCAL_MLX_OUTPUT_DIR="${LOCAL_MLX_OUTPUT_DIR:-$PACKAGE_DIR/build/host}"
+export LOCAL_MLX_SOURCE_PACKAGES="${PI_MLX_SOURCE_PACKAGES:-${LOCAL_MLX_SOURCE_PACKAGES:-}}"
+exec bash "$NATIVE/scripts/build-host.sh" "$@"

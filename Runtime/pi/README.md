@@ -20,8 +20,11 @@ Only Holdfast's six tools are enabled: search, read_note, list_folder, list_tabl
 query_table and propose_edit. Pi's built-in read/write/edit/bash tools, MCP,
 extensions, skills, context-file discovery and model-network discovery are disabled.
 Credentials stay in Swift. Local-only private restrictions are checked before
-each model request, including after reopening a conversation. The inference
-package is reusable without Holdfast, with regular Pi or Pi Durable.
+each model request, including after reopening a conversation. The reusable packages
+live under `Packages/ModelProviders`, `Packages/LocalMLX` (including `local-mlx-host`),
+and `Packages/pi-swift-mlx`. The adapter supports regular Pi and Pi Durable; both
+Swift packages also work without a Pi harness. This runtime and its tool integration
+remain part of Holdfast.
 
 ## Run and package
 

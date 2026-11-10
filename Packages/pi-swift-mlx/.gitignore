@@ -1,5 +1,5 @@
 node_modules/
 *.tgz
-swift/.build/
-swift/.swiftpm/
+native/
+.native-stage-*/
 build/

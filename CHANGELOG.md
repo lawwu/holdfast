@@ -2,6 +2,11 @@
 
 ## Next (after 0.1.0)
 
+- **Three reusable packages.** ModelProviders is a dependency-free Swift package;
+  LocalMLX owns the Swift engine and `local-mlx-host`; pi-swift-mlx owns the Pi adapter.
+  npm releases carry a self-contained Swift source snapshot. Holdfast's tools,
+  local-only policy, Inbox approvals and Undo stay in the app.
+
 - **General-purpose naming.** Documentation and UI describe private notes, with protected
   `private` and `confidential` folders. App and Keychain identifiers use `app.holdfast`;
   earlier settings, credentials, vault state and protected-folder rules remain compatible.

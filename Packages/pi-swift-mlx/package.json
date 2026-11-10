@@ -21,8 +21,12 @@
     "*.mjs",
     "*.d.ts",
     "README.md",
-    "swift/Package.swift",
-    "swift/Sources",
+    "native/manifest.json",
+    "native/*/Package.swift",
+    "native/*/Package.resolved",
+    "native/*/README.md",
+    "native/*/Sources/**",
+    "native/LocalMLX/scripts/build-host.sh",
     "scripts"
   ],
   "pi": {
@@ -41,6 +45,7 @@
     "typescript": "5.9.3"
   },
   "scripts": {
+    "prepack": "node scripts/stage-native.mjs",
     "test": "npm run typecheck && node --test test/*.test.mjs",
     "typecheck": "tsc --noEmit --strict --skipLibCheck --target es2022 --module nodenext test/types.ts"
   }

@@ -82,10 +82,16 @@ It runs the tool loop and saves JSONL conversations for follow-ups. LocalMLX is 
 independent default inference provider; Ollama, LM Studio and custom servers also work.
 Holdfast owns tool execution, privacy, Inbox approvals, snapshots and Undo.
 
-The reusable [`pi-swift-mlx`](Packages/pi-swift-mlx/README.md) adapter still works with
-both regular Pi and Pi Durable. The Swift library is **LocalMLX**, its standalone
-helper is **local-mlx-host**, and the reusable HTTP target is **ModelProviders**.
-The app uses `Runtime/pi`; Durable is no longer selected or bundled.
+Three reusable packages live together in this repository:
+
+| Package | Owns |
+| --- | --- |
+| [`ModelProviders`](Packages/ModelProviders/README.md) | Shared inference types and Ollama, LM Studio, and custom HTTP providers; no external package dependencies |
+| [`LocalMLX`](Packages/LocalMLX/README.md) | Swift MLX inference and the `local-mlx-host` executable; depends on ModelProviders |
+| [`pi-swift-mlx`](Packages/pi-swift-mlx/README.md) | JavaScript adapter for regular Pi and Pi Durable; npm releases bundle Swift sources for standalone builds |
+
+Holdfast's tools, privacy policy, Inbox approvals, snapshots, and Undo stay in the app.
+Its integration uses `Runtime/pi`; Durable is no longer selected or bundled.
 
 Build with `bash scripts/make_app.sh`, or create a separate artifact with
 `bash scripts/make_pi_prototype.sh`. Node 22.19+ is required. There is no harness toggle
@@ -362,10 +368,12 @@ Legacy `HOLDFAST_OLLAMA`, `HOLDFAST_LLM`, and `HOLDFAST_BACKEND=remote` with
 `HOLDFAST_REMOTE_URL` / `HOLDFAST_REMOTE_MODEL` remain supported. URLs must use HTTP(S)
 and contain no credentials, query or fragment. Redirects are refused.
 
-The Foundation-only **ModelProviders** Swift product lives alongside **LocalMLX** in
-[`Packages/pi-swift-mlx/swift`](Packages/pi-swift-mlx/swift). Both `MLXSession` and
+The Foundation-only **ModelProviders** Swift package lives in
+[`Packages/ModelProviders`](Packages/ModelProviders/README.md), alongside
+[`LocalMLX`](Packages/LocalMLX/README.md). Both `MLXSession` and
 `HTTPModelProvider` implement `ModelProvider` with shared `Inference.Request` / `Reply` types.
-Other apps can depend on these products without importing Holdfast, its vault or its approvals.
+Other apps can depend on these packages without importing Holdfast, its vault or its approvals.
+An HTTP-only app can use ModelProviders without resolving or building MLX.
 `MLXProtocol` remains an alias for the version-1 wire types. See the
 [reusable package examples](Packages/pi-swift-mlx/README.md#use-the-same-interface-with-a-model-server).
 

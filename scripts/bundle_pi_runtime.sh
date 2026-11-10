@@ -10,6 +10,8 @@ cp Runtime/pi/{runner.mjs,package.json,package-lock.json} "$DEST/"
 cp -R Runtime/pi/node_modules "$DEST/"
 PACKAGE_STAGE="$(mktemp -d)"
 trap 'rm -rf "$PACKAGE_STAGE"' EXIT
+# Prepare our own source bundle explicitly; dependency lifecycle scripts stay disabled.
+node Packages/pi-swift-mlx/scripts/stage-native.mjs
 npm pack ./Packages/pi-swift-mlx --pack-destination "$PACKAGE_STAGE" --ignore-scripts --json > "$PACKAGE_STAGE/pack.json"
 PACKAGE_ARCHIVE="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))[0]["filename"])' "$PACKAGE_STAGE/pack.json")"
 rm -rf "$DEST/node_modules/pi-swift-mlx"
