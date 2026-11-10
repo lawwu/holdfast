@@ -69,6 +69,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
         // No window tabs (they'd take ⇧⌘\ "Show All Tabs" from Show File List).
         NSWindow.allowsAutomaticWindowTabbing = false
+        // Link clicks in selectable text arrive as a "get URL" Apple event (see Info.plist's URL types).
+        NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(getURL(_:reply:)),
+                                                     forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
+    }
+    /// Set by the main window: opens a citation or note link.
+    @MainActor static var openLink: ((URL) -> Bool)?
+    @objc func getURL(_ event: NSAppleEventDescriptor, reply: NSAppleEventDescriptor) {
+        guard let s = event.paramDescriptor(forKeyword: keyDirectObject)?.stringValue, let url = URL(string: s) else { return }
+        Task { @MainActor in _ = AppDelegate.openLink?(url) }
     }
     /// Closing the window keeps Holdfast running (an answer or filing may be in progress); the Dock icon reopens it.
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
@@ -622,6 +631,31 @@ final class Store: ObservableObject {
 
     func openNote(_ n: Note, anchor: String? = nil) {
         opened = Opened(note: n, anchor: anchor)
+    }
+
+    /// A click on one of the app's own links: a citation (`holdfast://cite/3`) or a link in a note.
+    @discardableResult
+    func handleLink(_ url: URL) -> Bool {
+        if url.scheme == "holdfast", let n = Int(url.lastPathComponent) {
+            openSource(n)
+            return true
+        }
+        if url.scheme == "holdfast-note" || url.scheme == "holdfast-rel" {
+            let mods = NSEvent.modifierFlags
+            if mods.contains(.option) {  // ⌥-click: preview without leaving
+                preview = resolveLink(url, from: opened?.note)
+            } else {
+                openLink(url, from: opened?.note, newTab: mods.contains(.command))
+            }
+            return true
+        }
+        return false
+    }
+
+    /// A click on a note in a list opens it; a double-click opens it in the editing view, as in Finder.
+    func openNote(_ n: Note, doubleClicked: Bool) {
+        if doubleClicked { editing = true }
+        if opened?.note.path != n.path { openNote(n) }
     }
 
     /// Opens a link clicked in a note: `holdfast-note:` (a wikilink, resolved like

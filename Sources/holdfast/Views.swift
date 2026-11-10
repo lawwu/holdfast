@@ -236,22 +236,10 @@ struct RootView: View {
             // Notes may have changed outside the app (Obsidian, Claude Code, git pull).
             if !store.editing { store.reload() }
         }
-        .environment(\.openURL, OpenURLAction { url in
-            if url.scheme == "holdfast", let n = Int(url.lastPathComponent) {
-                store.openSource(n)
-                return .handled
-            }
-            if url.scheme == "holdfast-note" || url.scheme == "holdfast-rel" {
-                let mods = NSEvent.modifierFlags
-                if mods.contains(.option) {  // ⌥-click: preview without leaving
-                    store.preview = store.resolveLink(url, from: store.opened?.note)
-                } else {
-                    store.openLink(url, from: store.opened?.note, newTab: mods.contains(.command))
-                }
-                return .handled
-            }
-            return .systemAction
-        })
+        .environment(\.openURL, OpenURLAction { url in store.handleLink(url) ? .handled : .systemAction })
+        // Selectable text (answers, notes) sends link clicks to macOS rather than to openURL above;
+        // the app registers its link schemes (make_app.sh), so macOS hands them back here.
+        .onAppear { AppDelegate.openLink = { [weak store] url in store?.handleLink(url) ?? false } }
     }
 }
 
@@ -683,8 +671,6 @@ struct AnswerCard: View {
     @EnvironmentObject var store: Store
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            // No .textSelection here: on macOS it routes link clicks around
-            // the openURL handler, so citations wouldn't open. Copy is in the footer.
             if !store.steps.isEmpty { StepsList(steps: store.steps, running: store.busy != nil) }
             MarkdownBlocks(text: store.answer, linkCitations: true)
             if let w = store.warning {
@@ -1067,7 +1053,7 @@ struct NoteRow: View {
 
     var body: some View {
         let selected = store.opened?.note.path == note.path
-        Button { store.opened = Opened(note: note, anchor: nil) } label: {
+        Button { store.openNote(note, doubleClicked: NSApp.currentEvent?.clickCount == 2) } label: {
             HStack(spacing: 12) {
                 KindTile(kind: Theme.kind(of: note), size: 32, tint: tint)
                 VStack(alignment: .leading, spacing: 2) {
@@ -1362,6 +1348,7 @@ struct MarkdownBlocks: View {
                 }
             }
         }
+        .textSelection(.enabled)
     }
 }
 
