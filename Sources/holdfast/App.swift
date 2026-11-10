@@ -455,7 +455,8 @@ final class Store: ObservableObject {
         turnStarted = Date()
         let model = modelLabel
         routeNote = nil
-        let useAgent = route == .research && (backend == .mlx || backend == .remote)  // the old Research toggle no longer applies
+        // Research and changes run as the tool-using agent; a change waits in the Inbox (Edits.swift).
+        let useAgent = (route == .research || route == .edit) && (backend == .mlx || backend == .remote)
         askTask = Task {
             do {
                 let emb = await getEmbedder()
@@ -522,7 +523,8 @@ final class Store: ObservableObject {
                         }
                     }
                 }
-                routeNote = Router.label(useAgent || escalated ? .research : .answer, escalated: escalated)
+                routeNote = Router.label(route == .edit && useAgent ? .edit : useAgent || escalated ? .research : .answer, escalated: escalated)
+                if useAgent || escalated { inboxItems = inbox() }  // a proposed change shows in the Inbox at once
                 answer = a.text
                 sources = a.sources
                 answerStats = AnswerStats(passages: a.sources.count, tokens: a.stats.outputTokens,

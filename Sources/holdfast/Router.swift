@@ -14,7 +14,7 @@ import Foundation
 // against which mode actually answered each question better.
 
 enum Route: String {
-    case answer, research, crossLink, bulkImport
+    case answer, research, crossLink, bulkImport, edit
 }
 
 enum Router {
@@ -24,11 +24,15 @@ enum Router {
     /// Cues that a question needs numbers from tables, a list across notes, or a comparison over time.
     static let research = #"(?i)\b(how (much|many|often)|total|sum\b|average|per (day|week|month|year)|each (week|month|year)|by month|trend|compare|comparison|versus|vs\.?|across|over the (last|past)|since|year[- ]to[- ]date|ytd|all (the|of)|list (all|every|the)|every time|which (months?|weeks?|years?)|most|least|highest|lowest|biggest|largest|spent|spend|spending|miles|workouts?|runs?\b|history of|timeline|changed|change over)\b"#
 
+    /// Requests to change a note: "mark … done", "tick off …", "add … to my list", "update …".
+    static let edit = #"(?i)^\s*(please\s+|can you\s+|could you\s+)?(mark|tick( off)?|check off|uncheck|cross off|update|change|set(?! up)|add|append|record|log|note that|fix|correct|rename|remove|delete|replace)\b"#
+
     static func route(_ q: String) -> Route {
         func has(_ p: String) -> Bool { q.range(of: p, options: .regularExpression) != nil }
         let question = q.trimmingCharacters(in: .whitespaces).hasSuffix("?")
         if has(crossLink), !question { return .crossLink }
         if has(bulkImport), !question { return .bulkImport }
+        if has(edit) { return .edit }
         if has(research) { return .research }
         return .answer
     }
@@ -45,6 +49,7 @@ enum Router {
         case .answer: return "Answered from the closest passages"
         case .crossLink: return "Started the cross-link job"
         case .bulkImport: return "Opened Bulk Import"
+        case .edit: return "Read the note and proposed a change for the Inbox"
         }
     }
 }
