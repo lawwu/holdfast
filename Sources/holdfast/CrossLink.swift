@@ -34,9 +34,9 @@ enum CrossLink {
     }
 
     /// Notes worth linking: in the vault proper, not folder READMEs (they are manuals).
-    /// Counseling notes are never cross-linked: a link would carry a counselee into another note.
+    /// Private notes are never cross-linked: a link would carry a participant into another note.
     static func eligible(_ n: Note) -> Bool {
-        !n.relPath.hasPrefix("@") && !Packs.isPack(n.relPath) && n.name.lowercased() != "readme" && !Profile.isCounseling(n.relPath)
+        !n.relPath.hasPrefix("@") && !Packs.isPack(n.relPath) && n.name.lowercased() != "readme" && !Profile.isPrivate(n.relPath)
     }
 
     /// Pairs of close notes with no link between them, strongest first. Each pair appears once.

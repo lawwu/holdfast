@@ -230,7 +230,7 @@ struct ListenView: View {
                     .font(Theme.caption).foregroundStyle(.secondary)
             }
             if store.backend != .mlx, fileIt {
-                Label("Filing uses the selected model server; counseling stays in LocalMLX here.", systemImage: "network")
+                Label("Filing uses the selected model server; private stays in LocalMLX here.", systemImage: "network")
                     .font(Theme.caption).foregroundStyle(.orange)
             }
         }

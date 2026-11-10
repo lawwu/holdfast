@@ -679,7 +679,7 @@
  {
   "id": "x42",
   "kind": "long",
-  "domain": "ministry",
+  "domain": "private",
   "question": "Did D.M. call his father as assigned, and what came of it?",
   "expect": [
    "2026-10-12|Oct(ober)?\\.? 12",
@@ -689,13 +689,13 @@
   "reject": [],
   "sessions": [],
   "paths": [
-   "ministry/counseling/dm/dm-case-summary.md"
+   "private/cases/dm/dm-case-summary.md"
   ]
  },
  {
   "id": "x43",
-  "kind": "counseling",
-  "domain": "ministry",
+  "kind": "private",
+  "domain": "private",
   "question": "What is R.S.'s current homework?",
   "expect": [
    "Psalm 56",
@@ -713,13 +713,13 @@
    7
   ],
   "paths": [
-   "ministry/counseling/rs/rs-session-07.md"
+   "private/cases/rs/rs-session-07.md"
   ]
  },
  {
   "id": "x44",
-  "kind": "counseling",
-  "domain": "ministry",
+  "kind": "private",
+  "domain": "private",
   "question": "Did R.S. make the call to E.S. about Thanksgiving, and how did E.S. respond?",
   "expect": [
    "2026-10-11|Oct(ober)?\\.? 11",
@@ -736,13 +736,13 @@
    4
   ],
   "paths": [
-   "ministry/counseling/rs/rs-session-04.md"
+   "private/cases/rs/rs-session-04.md"
   ]
  },
  {
   "id": "x45",
-  "kind": "counseling",
-  "domain": "ministry",
+  "kind": "private",
+  "domain": "private",
   "question": "When did R.S. first pray aloud in her small group?",
   "expect": [
    "2026-10-21|Oct(ober)?\\.? 21"
@@ -760,13 +760,13 @@
    5
   ],
   "paths": [
-   "ministry/counseling/rs/rs-session-05.md"
+   "private/cases/rs/rs-session-05.md"
   ]
  },
  {
   "id": "x46",
-  "kind": "counseling",
-  "domain": "ministry",
+  "kind": "private",
+  "domain": "private",
   "question": "Why was the Welch reading taken out of R.S.'s homework, and has it come back?",
   "expect": [
    "self.?scrutiny|analy|overthink|stay(ed|ing) up|more (things )?wrong|worse",
@@ -784,14 +784,14 @@
    7
   ],
   "paths": [
-   "ministry/counseling/rs/rs-session-06.md",
-   "ministry/counseling/rs/rs-session-07.md"
+   "private/cases/rs/rs-session-06.md",
+   "private/cases/rs/rs-session-07.md"
   ]
  },
  {
   "id": "x47",
-  "kind": "counseling",
-  "domain": "ministry",
+  "kind": "private",
+  "domain": "private",
   "question": "How did J.P.'s money homework change between sessions 3 and 4, and why?",
   "expect": [
    "daily (spending )?log",
@@ -810,14 +810,14 @@
    4
   ],
   "paths": [
-   "ministry/counseling/jp/jp-session-03.md",
-   "ministry/counseling/jp/jp-session-04.md"
+   "private/cases/jp/jp-session-03.md",
+   "private/cases/jp/jp-session-04.md"
   ]
  },
  {
   "id": "x48",
-  "kind": "counseling",
-  "domain": "ministry",
+  "kind": "private",
+  "domain": "private",
   "question": "What did J.P. disclose to C.P., how much was it, and when did he tell her?",
   "expect": [
    "credit card|debt",
@@ -835,7 +835,7 @@
    2
   ],
   "paths": [
-   "ministry/counseling/jp/jp-session-02.md"
+   "private/cases/jp/jp-session-02.md"
   ]
  },
  {
@@ -943,7 +943,7 @@
  {
   "id": "x56",
   "kind": "unanswerable",
-  "domain": "ministry",
+  "domain": "private",
   "question": "What medication is R.S. taking for her anxiety?",
   "expect": [
    "not (in|recorded|found|mentioned|stated|covered)|no (record|information|mention)|(doesn't|does not|don't|do not) (say|mention|state|contain|cover|have|hold|include|record|show)|(isn't|is not) (in|recorded|mentioned)|can(no|')t (answer|find|tell|determine)"
@@ -967,7 +967,7 @@
  {
   "id": "x58",
   "kind": "unanswerable",
-  "domain": "ministry",
+  "domain": "private",
   "question": "Where does J.P. work?",
   "expect": [
    "not (in|recorded|found|mentioned|stated|covered)|no (record|information|mention)|(doesn't|does not|don't|do not) (say|mention|state|contain|cover|have|hold|include|record|show)|(isn't|is not) (in|recorded|mentioned)|can(no|')t (answer|find|tell|determine)"

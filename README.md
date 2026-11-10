@@ -1,20 +1,19 @@
 # Holdfast
 
-*Your notes never leave home.* One name throughout: the app (Holdfast.app, bundle id
-`net.lawrencewu.holdfast`), the `holdfast` command line, `HOLDFAST_*` settings and the data folder
-(`~/Library/Application Support/Holdfast`). The About box carries 1 Thessalonians 5:21.
-It was called mackb (MacKB) as a proof of concept; on first run Holdfast moves that name's
-settings, data folder and a managed vault's `.mackb` folder over, still reads `MACKB_*` variables,
-and keeps using a default vault at `~/MacKB` if there is one.
+A local-first knowledge base for macOS. Import documents and recordings, search your notes,
+and ask questions with citations. Changes proposed by the agent wait for your approval in the Inbox.
 
-A local knowledge base for **biblical counselors**: import lessons, homework sheets,
-supervision recordings and past case reports, then search and ask questions of them
-with citations. LocalMLX runs inside the Mac app by default. Optional model servers receive ordinary
-questions and their context; counseling content stays with embedded LocalMLX.
+LocalMLX runs inside the Mac app by default. You can also choose Ollama, LM Studio, or a custom
+model server. Notes covered by the private profile stay with LocalMLX on this Mac.
 
-This is the Phase 0–3 proof of concept from the Holdfast plan (kept in a
-separate notes repo). One binary is the CLI, the MCP server and a SwiftUI
-window: `holdfast app`, or `scripts/make_app.sh` → `build/Holdfast.app`.
+The app, command line, and MCP server share one binary: `holdfast app`, or
+`scripts/make_app.sh` → `build/Holdfast.app`. Settings use `HOLDFAST_*` variables;
+app data lives in `~/Library/Application Support/Holdfast`.
+
+Choose the **Private notes** profile for an entire vault, or put restricted notes under a
+top-level folder beginning with `private` or `confidential`. These notes use LocalMLX, are
+excluded from automatic filing and cross-linking, and are left out of exports unless explicitly
+included. Existing protected folders and saved settings remain supported through migration.
 
 The **Paper & Pine** interface uses warm reading surfaces and evergreen accents in light and
 dark mode. Its sidebar has Ask, Library, Inbox and Listen. Library's view picker switches between
@@ -113,7 +112,7 @@ neither project is a dependency.
   continues from completed tool results, including pending proposals, without repeating them.
 - `Agent.swift`: Holdfast's six vault tools, source numbering and model-selection policy.
   Tool results can require local inference; once set, that restriction lasts for the whole
-  runtime session. Counseling vaults start locally, and the folder overview omits counseling
+  runtime session. Private vaults start locally, and the folder overview omits private
   README excerpts. The registry exposes `propose_edit`; applying a change remains an Inbox action.
 - `AgentJournal.swift`: each run has a private JSONL journal under the vault's state folder,
   `agent-runs/`. It records configuration, finalized model replies, tool intent and tool outcome
@@ -145,7 +144,7 @@ saved requests, proposals, approval/undo checks and timing caveats.
 ## Household eval (synthetic)
 
 `eval/household/` is a made-up family's knowledge base (finance, home, health,
-trips, career, and counseling case reports under `ministry/`) with 40 questions
+trips, career, and private case reports under `private/`) with 40 questions
 and 12 documents to file. `eval/household/run.sh` runs it across answer models
 (Qwen 3.8 27B, Gemma 4 26B A4B, Gemma 4 E4B), embedders (Qwen3-Embedding,
 EmbeddingGemma) and modes (plain, Research), plus Gemini when `GEMINI_API_KEY`
@@ -201,14 +200,14 @@ anonymous access, rejected tokens, missing files and empty repositories.
 ## Use from Claude Code
 
 ```bash
-claude mcp add holdfast -e HOLDFAST_VAULT=$HOME/Holdfast-ministry -- ~/.local/bin/holdfast mcp
+claude mcp add holdfast -e HOLDFAST_VAULT=$HOME/Notes -- ~/.local/bin/holdfast mcp
 ```
 
 ## Measured on an M1 Max, 64 GB (2026-11-04)
 
 | What | Result |
 | --- | --- |
-| Import a counseling lesson library (403 docs) | 385 notes in 3 min (OCR included); 18 docx/pdf duplicates skipped; 3 image-only docx with no text |
+| Import a document library (403 docs) | 385 notes in 3 min (OCR included); 18 docx/pdf duplicates skipped; 3 image-only docx with no text |
 | Index 394 notes → 3,109 chunks with embeddings | 5.6 min, 1.3 GB peak memory |
 | Parakeet v3 transcription | 142× real time (1 h of audio ≈ 25 s) after a one-time model download |
 | Qwen 3.8 27B (Ollama, 29 GB 8-bit GGUF) | ~5 tok/s generation, 80–240 tok/s prompt; a cited answer takes ~2–2.5 min |
@@ -290,7 +289,7 @@ Inbox showing the removed and added lines; **Apply Change** writes the note afte
 and undo (`holdfast undo`, the filing log) puts that copy back. A note changed after the proposal
 is refused rather than overwritten, a second change to the same note in a conversation joins the
 first proposal, files with a `> GENERATED` banner are refused (change the script instead), and only
-`.md` and `.txt` notes can be changed this way. Changes to counseling notes run on this Mac only,
+`.md` and `.txt` notes can be changed this way. Changes to private notes run on this Mac only,
 like any request that touches them.
 
 ## Keeping records safe
@@ -302,7 +301,7 @@ like any request that touches them.
   file's SHA-256. Verify (`--verify <backup>`) re-reads every file; Test Restore
   (`--test-restore <backup>`) restores into a temporary folder, checks every file, opens every
   note and the history and filing log, then removes the copy. A folder inside the vault is
-  refused. Back up to another drive; an encrypted one if the vault holds counseling notes.
+  refused. Back up to another drive; an encrypted one if the vault holds private notes.
 - **Originals** beside their notes: approving a filing copies the document it came from into
   `originals-raw/<the note's folder>/` (the folder ignores itself in git, and `-raw` folders are
   never indexed) and links it under "## Originals"; the note's toolbar has Open Original, and
@@ -310,7 +309,7 @@ like any request that touches them.
   filings that are still in the drop-filed folder.
 - **Export** (Vault › Export Notes… ⇧⌘E, `holdfast export --query … --folder … --out x.zip`):
   notes found by a question and/or a folder, ticked off in a list, with the originals they link to,
-  a README and a checksum manifest; the ZIP is unpacked and checked after it's built. Counseling
+  a README and a checksum manifest; the ZIP is unpacked and checked after it's built. Private
   notes are left out unless included on purpose.
 - **Pins**: Pin on an answer keeps its question on the Ask home page, one click to ask again
   (right-click to unpin).
@@ -346,7 +345,7 @@ passed to the Node bridge. Editing an address clears the key field.
 All choices support ordinary answers and the same six Holdfast tools in both the Swift harness
 and regular Pi. Use a model with tool support. Model discovery establishes connectivity, not
 behavioral compatibility. The server owns model loading and scheduling. HTTP errors stay visible;
-there is no automatic connection-error fallback. Counseling context switches to embedded LocalMLX
+there is no automatic connection-error fallback. Private context switches to embedded LocalMLX
 before the next inference request, or fails closed when no local model is available. This restriction
 persists through follow-ups and Pi restarts. A loopback address alone does not prove a server runs
 its selected model locally.
@@ -385,7 +384,7 @@ python3 Tests/provider_integration.py .build/harness-xcode/Build/Products/Releas
 - With **a server provider**, the vault, index and search stay here; the selected server receives
   each question with the passages found, the conversation so far, folder READMEs, Research's note
   reads and table results, documents dropped for filing, and note pairs when suggesting links.
-  **Counseling notes never leave this Mac**: anything involving them is answered here instead.
+  **Private notes never leave this Mac**: anything involving them is answered here instead.
   The app labels the selected server host; server inference may run here or elsewhere.
 - Link import (YouTube, podcasts) fetches from the web by design. The Gemini backend exists for
   evals on synthetic data only and isn't offered in the app.

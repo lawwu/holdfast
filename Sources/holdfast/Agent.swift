@@ -73,7 +73,7 @@ enum Agent {
             .filter { var d: ObjCBool = false; return fm.fileExists(atPath: Config.vault.appendingPathComponent($0).path, isDirectory: &d) && d.boolValue }
             .sorted()
         for d in dirs {
-            if Profile.isCounseling(d) {
+            if Profile.isPrivate(d) {
                 out += "- \(d)/ — local-only notes\n"
                 continue
             }
@@ -101,7 +101,7 @@ enum Agent {
             AgentRuntime.Tool(spec: spec) { args in
                 let result = await ctx.call(spec.name, args: args)
                 return AgentRuntime.ToolResult(text: result, isError: result.hasPrefix("Error:"),
-                                               localOnly: ctx.touchedCounseling)
+                                               localOnly: ctx.touchedPrivateNotes)
             }
         }
         let history: [AgentRuntime.Message] = prior.suffix(Conversation.turns).flatMap {
@@ -110,17 +110,17 @@ enum Agent {
         var policy = AgentRuntime.Policy(maxToolRounds: maxSteps)
         policy.makeLocalModel = {
             guard MLXBackend.modelDir(repo: MLXBackend.currentRepo) != nil else {
-                throw HoldfastError("this needs counseling notes, which stay on this Mac, and no model is downloaded here")
+                throw HoldfastError("this needs private notes, which stay on this Mac, and no model is downloaded here")
             }
-            onEvent(.step("Counseling notes stay on this Mac: continuing here"))
+            onEvent(.step("Private notes stay on this Mac: continuing here"))
             ModelPrivacy.keptLocal = true
             return MLXAgentModel(backend: try await MLXBackend.shared())
         }
-        // Connection errors stay visible; only the counseling policy switches to LocalMLX.
+        // Connection errors stay visible; only the private policy switches to LocalMLX.
         let journal = try AgentJournal(directory: Config.stateDir.appendingPathComponent("agent-runs"),
                                        system: system, model: model.name, tools: tools, prior: history)
         let session = try AgentRuntime.Session(system: system, model: model, tools: registry, prior: history,
-                                               localOnly: Profile.vaultDefault.id == Profile.counseling.id, policy: policy)
+                                               localOnly: Profile.vaultDefault.id == Profile.privateNotes.id, policy: policy)
         let result = try await session.run(question, record: { try journal.append($0) }) { event in
             switch event {
             case .text(let text): onEvent(.token(text))
@@ -152,7 +152,7 @@ enum Agent {
                       stats: GenStats(promptTokens: result.usage.promptTokens, promptSeconds: result.usage.promptSeconds,
                                       outputTokens: result.usage.outputTokens, outputSeconds: result.usage.outputSeconds),
                       retrievalSeconds: Date().timeIntervalSince(t0), steps: ctx.log,
-                      localOnly: ctx.touchedCounseling || Profile.vaultDefault.id == Profile.counseling.id)
+                      localOnly: ctx.touchedPrivateNotes || Profile.vaultDefault.id == Profile.privateNotes.id)
     }
 
 }
@@ -163,9 +163,9 @@ final class ToolContext: @unchecked Sendable {
     var sources: [Chunk] = []
     var log: [String] = []
     private lazy var tables = CSVTables()
-    /// Set when a tool returned anything from counseling notes, folders or tables: a request on
+    /// Set when a tool returned anything from private notes, folders or tables: a request on
     /// a server switches to LocalMLX before the result is sent.
-    private(set) var touchedCounseling = false
+    private(set) var touchedPrivateNotes = false
     /// The vault read once per Research run, not once per tool call.
     private lazy var vaultNotes: [Note] = allNotes()
     private lazy var inboxNotes: [Note] = allNotes(in: [Config.inboxDir])
@@ -177,7 +177,7 @@ final class ToolContext: @unchecked Sendable {
     }
 
     private func mark(_ relPaths: [String]) {
-        if relPaths.contains(where: Profile.isCounseling) { touchedCounseling = true }
+        if relPaths.contains(where: Profile.isPrivate) { touchedPrivateNotes = true }
     }
 
     /// Notes this run proposed changes to (waiting in the Inbox).
@@ -241,7 +241,7 @@ final class ToolContext: @unchecked Sendable {
                 log.append("sql: \(sql)")
                 let (out, used) = try tables.query(sql, maxRows: Agent.maxRows)
                 mark(used)
-                if sql.lowercased().contains(CSVTables.propsTable), tables.propertiesIncludeCounseling { touchedCounseling = true }
+                if sql.lowercased().contains(CSVTables.propsTable), tables.propertiesIncludePrivateNotes { touchedPrivateNotes = true }
                 let c = Chunk(noteId: used.joined(separator: ","), relPath: used.first ?? "data", title: "Query",
                               anchor: String(sql.prefix(120)), text: "SQL: \(sql)\n\(out)")
                 return "[\(cite(c))] Query over \(used.joined(separator: ", "))\n\(out)"
@@ -264,7 +264,7 @@ final class ToolContext: @unchecked Sendable {
         let prefix = p.isEmpty ? "" : p + "/"
         var dirs = Set<String>()
         var files: [Note] = []
-        if !p.isEmpty, Profile.isCounseling(p) { touchedCounseling = true }
+        if !p.isEmpty, Profile.isPrivate(p) { touchedPrivateNotes = true }
         for n in vaultNotes where n.relPath.hasPrefix(prefix) {
             let rest = n.relPath.dropFirst(prefix.count)
             if let slash = rest.firstIndex(of: "/") { dirs.insert(String(rest[..<slash])) } else { files.append(n) }
@@ -314,8 +314,8 @@ final class CSVTables {
     static let propsTable = "note_properties"
     private var propsLoaded = false
 
-    /// Whether the note_properties table holds any counseling note's properties.
-    var propertiesIncludeCounseling: Bool { propertyNotes().contains { Profile.isCounseling($0.relPath) } }
+    /// Whether the note_properties table holds any private note's properties.
+    var propertiesIncludePrivateNotes: Bool { propertyNotes().contains { Profile.isPrivate($0.relPath) } }
 
     private func propertyNotes() -> [Note] { Config.inPlace ? allNotes().filter { !$0.relPath.hasPrefix("@") && !Properties.of($0).isEmpty } : [] }
 

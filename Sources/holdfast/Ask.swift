@@ -88,9 +88,9 @@ func ask(_ question: String, embedder: Embedder?, llm askedLLM: LLMBackend, prio
     // is searched together with it; a new topic is searched on its own.
     let query = !prior.isEmpty && Conversation.leansOnPrevious(question) ? prior.last!.q + " " + question : question
     let hits = try await search(query, embedder: embedder, reranker: await Reranker.shared(), limit: Config.contextChunks)
-    // Counseling notes never go to another Mac: answer those here.
+    // Private notes never go to another Mac: answer those here.
     var llm = askedLLM
-    if usesModelServer(llm), ModelPrivacy.touchesCounseling(hits) || Profile.vaultDefault.id == Profile.counseling.id {
+    if usesModelServer(llm), ModelPrivacy.touchesPrivateNotes(hits) || Profile.vaultDefault.id == Profile.privateNotes.id {
         llm = try await MLXBackend.shared()
         ModelPrivacy.keptLocal = true
     }
@@ -130,7 +130,7 @@ func ask(_ question: String, embedder: Embedder?, llm askedLLM: LLMBackend, prio
     if Thinking.hidesUntilClose, !box.text.contains("</think>") {
         (thought, rest) = (box.text, Task.isCancelled ? "" : "The model used its whole answer length thinking and didn't reach an answer. Ask again, or turn off Show Thinking.")
     }
-    return Answer(text: stripThoughts(rest), badCitations: bad, sources: hits, stats: stats, retrievalSeconds: rt, thinking: thought, localOnly: ModelPrivacy.touchesCounseling(hits) || Profile.vaultDefault.id == Profile.counseling.id)
+    return Answer(text: stripThoughts(rest), badCitations: bad, sources: hits, stats: stats, retrievalSeconds: rt, thinking: thought, localOnly: ModelPrivacy.touchesPrivateNotes(hits) || Profile.vaultDefault.id == Profile.privateNotes.id)
 }
 
 /// Follow-ups: what earlier turns of a conversation the model sees.
@@ -170,7 +170,7 @@ func formatSources(_ a: Answer) -> String {
 // MARK: - Agent memory with an approval inbox
 
 /// Cheap privacy lint for anything an agent proposes to save: likely full
-/// names, emails and phone numbers. The counselor sees the flags before approving.
+/// names, emails and phone numbers. The reviewer sees the flags before approving.
 func privacyFlags(_ text: String, names: Bool = true) -> [String] {
     var flags: [String] = []
     if text.range(of: #"[\w.+-]+@[\w-]+\.[\w.]+"#, options: .regularExpression) != nil { flags.append("email address") }

@@ -224,7 +224,7 @@ def report(out, rows, metadata):
     lines += ["", "Agent seconds exclude model loading and process startup. Ollama is unloaded then warmed on an unrelated one-token prompt before each trial, so the second harness does not inherit the first harness's task cache.", "",
               "The two Ollama arms use identical weights, sampling, seed, system prompt and tool implementations. Streaming differs: Pi streams; Swift's HTTP adapter receives complete turns. The proxy records their actual requests and normalizes only provider settings/schema order.", "",
               "MLX uses the app's 4-bit Qwen3.8-27B; Ollama uses the existing 31.5 GB imported GGUF. Its Q8 tag and Q4_K_M metadata disagree; the attached gguf-types.json, when present, records actual tensor types (Q8_0 plus BF16/F32 in this run). Cross-engine results therefore compare the installed stacks, not equal quantization. No model download or global configuration change is made.", "",
-              "Compaction, long conversations, crash recovery, steering, counseling locality and concurrent workloads are outside this short-task evaluation. Peak physical/GPU memory is not measured; model sizes are not runtime memory measurements."]
+              "Compaction, long conversations, crash recovery, steering, private locality and concurrent workloads are outside this short-task evaluation. Peak physical/GPU memory is not measured; model sizes are not runtime memory measurements."]
     pairs = [values for values in groups.values() if "pi-ollama" in values and "swift-ollama" in values]
     if pairs:
         equal = sum(values["pi-ollama"] == values["swift-ollama"] for values in pairs)

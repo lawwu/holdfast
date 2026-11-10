@@ -8,7 +8,7 @@ Date: 2026-08-27 · Session: 4 · Length of Session: 60 minutes
 
 No new background.
 
-## Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).
+## Give a summary of reason(s) the participant came for support—the presentation problem(s).
 
 Explosive anger in the marriage and toward the children (see Session 1).
 
@@ -28,7 +28,7 @@ The bike incident; what happens in the first seconds before he yells.
 
 Ephesians 4:22-24 (put off the old self, be renewed in the spirit of your mind, put on the new self); Ephesians 4:31-32 (put away bitterness, wrath and anger; be kind, tenderhearted, forgiving); Psalm 139:23-24; Philippians 4:8.
 
-## What specific applications to the counselee's life did you discuss from your Scripture?
+## What specific applications to the participant's life did you discuss from your Scripture?
 
 We built his pause plan for when anger rises:
 1. Stop and step away, physically if needed.
@@ -38,11 +38,11 @@ We built his pause plan for when anger rises:
 
 Put off yelling and harsh words; put on a gentle, specific request. Put off assuming the worst; put on Philippians 4:8 thinking.
 
-## What are you seeing (or not) about the counselee's faith in who God is, about their relationship with Jesus, and/or about the role of the Gospel in their daily life and problem?
+## What are you seeing (or not) about the participant's faith in who God is, about their relationship with Jesus, and/or about the role of the Gospel in their daily life and problem?
 
 The confession seems genuine. He is starting to pray on his own and mentions God unprompted.
 
-## What unbiblical habits of thinking and/or behaving (preconditioning issues) are you seeing in the counselee?
+## What unbiblical habits of thinking and/or behaving (preconditioning issues) are you seeing in the participant?
 
 Reacting within seconds; treating the children's mistakes as personal disrespect.
 
@@ -57,7 +57,7 @@ Respect and order. "My things, my driveway, my rules."
 3. Memorize Ephesians 4:31-32.
 4. Write a Philippians 4:8 "think list" about K.M. and each child.
 
-## If someone asked the counselee right after the session, "What did you learn that you needed to change, with God's help?" what would you want him to say? What challenge did you give?
+## If someone asked the participant right after the session, "What did you learn that you needed to change, with God's help?" what would you want him to say? What challenge did you give?
 
 "When I feel anger rising, I stop and ask what I want." Challenge: use the pause plan at least once before next week.
 
@@ -65,11 +65,11 @@ Respect and order. "My things, my driveway, my rules."
 
 The confession was a real step and his family responded with grace. Ephesians 4:24: God is creating a new self in him.
 
-## How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?
+## How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?
 
 Confession done; minimizing is decreasing.
 
-## What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?
+## What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?
 
 Forgiveness and bitterness, step 4 of the plan. He has hinted at keeping a record of K.M.'s wrongs.
 

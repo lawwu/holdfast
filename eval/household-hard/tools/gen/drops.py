@@ -135,7 +135,7 @@ def main():
         Patient portion paid: $85.00, Visa ending 4417
         Next visits: both children, May 2027
         """)
-    case("f05", "jp-case-report-session-5.txt", "docx", "new", "^ministry/counseling/jp/jp-session-0?5\\.md$",
+    case("f05", "jp-case-report-session-5.txt", "docx", "new", "^private/cases/jp/jp-session-0?5\\.md$",
          ["2026-11-03", "money meeting", "J\\.P\\."], ["Jared", "Pellham", "Corinne", "Hannah"], """
         Case Report — Jared Pellham — Session 5
 

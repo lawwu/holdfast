@@ -8,7 +8,7 @@ Date: 2026-09-03 · Session: 5 · Length of Session: 60 minutes
 
 New: he has not spoken to his father in about two years, since an argument at Thanksgiving 2024.
 
-## Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).
+## Give a summary of reason(s) the participant came for support—the presentation problem(s).
 
 Explosive anger in the marriage and toward the children (see Session 1).
 
@@ -28,15 +28,15 @@ The short think list led to it: he keeps a mental record of K.M.'s wrongs, such 
 
 Matthew 18:21-35 (the unforgiving servant); 1 Corinthians 13:5 (love keeps no record of wrongs); Ephesians 4:32 (forgiving one another, as God in Christ forgave you).
 
-## What specific applications to the counselee's life did you discuss from your Scripture?
+## What specific applications to the participant's life did you discuss from your Scripture?
 
 He has been forgiven a debt he could never pay, yet he holds K.M.'s small debts over her. Forgiveness is a promise not to bring the wrong up against her, to others, or to himself. With his father, forgiveness before God is required now; reconciliation is a separate step that depends partly on his father.
 
-## What are you seeing (or not) about the counselee's faith in who God is, about their relationship with Jesus, and/or about the role of the Gospel in their daily life and problem?
+## What are you seeing (or not) about the participant's faith in who God is, about their relationship with Jesus, and/or about the role of the Gospel in their daily life and problem?
 
 A turning point: for the first time he called his anger "sin against God, not just a temper problem." He was moved by Matthew 18.
 
-## What unbiblical habits of thinking and/or behaving (preconditioning issues) are you seeing in the counselee?
+## What unbiblical habits of thinking and/or behaving (preconditioning issues) are you seeing in the participant?
 
 Rehearsing grievances; silent withdrawal as a substitute for yelling.
 
@@ -52,7 +52,7 @@ Justice for himself ("people owe me"); respect.
 4. Pray for his father daily.
 5. Each evening, do not rehearse K.M.'s wrongs on the drive home; use the James 1:19-20 memory verse instead.
 
-## If someone asked the counselee right after the session, "What did you learn that you needed to change, with God's help?" what would you want him to say? What challenge did you give?
+## If someone asked the participant right after the session, "What did you learn that you needed to change, with God's help?" what would you want him to say? What challenge did you give?
 
 "I've been forgiven much, so I need to stop keeping score." Challenge: burn the mental list.
 
@@ -60,11 +60,11 @@ Justice for himself ("people owe me"); respect.
 
 The pause plan is working; the gospel gives him a new reason to forgive.
 
-## How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?
+## How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?
 
 Strong progress. The pause plan is in use; yelling is down.
 
-## What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?
+## What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?
 
 Review the forgiveness work, then begin step 5, work and identity.
 

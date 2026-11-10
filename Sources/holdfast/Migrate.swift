@@ -1,33 +1,34 @@
 import Foundation
 
-// MARK: - From the old name
-//
-// Holdfast was called mackb (MacKB) as a proof of concept. On the first run under the new name,
-// what was kept under the old one moves over, so nothing has to be set up again:
-// - the app-wide folder ~/Library/Application Support/MacKB (vault state, packs, models) → Holdfast
-// - saved settings (the app's net.lawrencewu.mackb domain, the command line's "mackb") → this one's
-// - MACKB_* environment variables still work, as HOLDFAST_*
-// - a managed vault's hidden .mackb folder becomes .holdfast when the vault is opened
-// - a default vault at ~/MacKB keeps being used while there is no ~/Holdfast
+// Move earlier installations' data and settings without replacing current choices.
 
 enum Migrate {
-    static let oldFolder = "MacKB", oldCLIDomain = "mackb", oldBundle = "net.lawrencewu.mackb", oldState = ".mackb"
+    static let oldFolder = LegacyCompatibility.dataFolder, oldState = LegacyCompatibility.stateFolder
+
+    static func preferences(_ defaults: UserDefaults, domains: [String]) {
+        guard !defaults.bool(forKey: "migratedAppIdentityV2") else { return }
+        for domain in domains {
+            for (key, value) in defaults.persistentDomain(forName: domain) ?? [:] where defaults.object(forKey: key) == nil {
+                defaults.set(value, forKey: key)
+            }
+        }
+        for (key, value) in defaults.dictionaryRepresentation() where key.hasPrefix("profile:") {
+            if let id = value as? String, let migrated = LegacyCompatibility.profileID(id), migrated != id {
+                defaults.set(migrated, forKey: key)
+            }
+        }
+        defaults.set(true, forKey: "migratedAppIdentityV2")
+    }
 
     static func fromOldName(app: Bool) {
         let fm = FileManager.default
         let support = fm.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support")
         let old = support.appendingPathComponent(oldFolder), new = support.appendingPathComponent("Holdfast")
         if fm.fileExists(atPath: old.path), !fm.fileExists(atPath: new.path) { try? fm.moveItem(at: old, to: new) }
-        let d = UserDefaults.standard
-        if !d.bool(forKey: "migratedFromMacKB") {
-            for (k, v) in d.persistentDomain(forName: app ? oldBundle : oldCLIDomain) ?? [:] where d.object(forKey: k) == nil {
-                d.set(v, forKey: k)
-            }
-            d.set(true, forKey: "migratedFromMacKB")
-        }
+        preferences(.standard, domains: LegacyCompatibility.preferenceDomains(app: app, bundle: Bundle.main.bundleIdentifier))
         let env = ProcessInfo.processInfo.environment
-        for (k, v) in env where k.hasPrefix("MACKB_") {
-            let name = "HOLDFAST_" + k.dropFirst("MACKB_".count)
+        for (k, v) in env where k.hasPrefix(LegacyCompatibility.environmentPrefix) {
+            let name = "HOLDFAST_" + k.dropFirst(LegacyCompatibility.environmentPrefix.count)
             if env[name] == nil { setenv(name, v, 0) }
         }
     }

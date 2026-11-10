@@ -16,7 +16,7 @@
     "app_signature": "pass",
     "transport": "24 cases passed: discovery, streaming and typed calls, invalid/truncated/interrupted calls, authentication, redirects, cancellation",
     "provider_integration": "6 provider/harness combinations: proposal, apply, byte-exact Undo, stale refusal; Pi follow-ups",
-    "counseling": "Swift and Pi HTTP blocked before private result; Pi restriction persisted across restart",
+    "private": "Swift and Pi HTTP blocked before private result; Pi restriction persisted across restart",
     "pi_regression": "6 groups passed, including crash recovery, cancellation, generated-file/extension/path guards",
     "native_regression": "validation/repair, proposal/apply/Undo and journal passed",
     "agent_runtime": "13 checks passed",

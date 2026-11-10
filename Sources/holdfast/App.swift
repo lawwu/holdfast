@@ -142,7 +142,7 @@ enum Backend: String, CaseIterable, Identifiable {
         return "Server: " + (URL(string: ProviderSettings.current(kind).baseURL)?.host ?? title)
     }
     var privacyHelp: String {
-        serverKind == nil ? "Notes, search and answers stay on this Mac." : "Questions, retrieved passages and conversation context go to the selected server. Its own configuration determines where inference runs. Counseling content uses LocalMLX on this Mac."
+        serverKind == nil ? "Notes, search and answers stay on this Mac." : "Questions, retrieved passages and conversation context go to the selected server. Its own configuration determines where inference runs. Private content uses LocalMLX on this Mac."
     }
     var id: String { rawValue }
 }
@@ -255,7 +255,7 @@ final class Store: ObservableObject {
     /// The tool steps of the answer on screen.
     @Published var steps: [String] = []
     private var reindexTask: Task<Void, Never>?
-    /// The vault's default profile (general or counseling); see Profile.swift.
+    /// The vault's default profile (general or private); see Profile.swift.
     @Published var profile = Profile.general { didSet { Profile.vaultDefault = profile } }
     @Published var showLinkSheet = false
     @Published var linkText = ""
@@ -525,9 +525,9 @@ final class Store: ObservableObject {
         let convo = conversationId ?? UUID()
         conversationId = convo
         let prior = turns.map { (q: $0.question, a: $0.answer) }
-        // Earlier answers go along as context; one drawn from counseling notes keeps the whole
-        // conversation on this Mac, even when the new question isn't about counseling.
-        let priorCounseling = turns.contains { $0.localOnly == true || $0.sources.contains { Profile.isCounseling($0.relPath) } }
+        // Earlier answers go along as context; one drawn from private notes keeps the whole
+        // conversation on this Mac, even when the new question isn't about those notes.
+        let priorPrivateNotes = turns.contains { $0.localOnly == true || $0.sources.contains { Profile.isPrivate($0.relPath) } }
         askedQuestion = q
         question = ""
         currentHistoryId = nil
@@ -542,7 +542,7 @@ final class Store: ObservableObject {
             do {
                 let emb = await getEmbedder()
                 var llm: LLMBackend = try await getLLM()
-                if usesModelServer(llm), priorCounseling {
+                if usesModelServer(llm), priorPrivateNotes {
                     busy = "Loading \(MLXBackend.currentRepo.split(separator: "/").last.map(String.init) ?? "this Mac's model")…"
                     llm = try await MLXBackend.shared()
                     ModelPrivacy.keptLocal = true
@@ -613,18 +613,18 @@ final class Store: ObservableObject {
                 if !a.badCitations.isEmpty {
                     warning = "The answer cites passages that don't exist: " + a.badCitations.map { "[\($0)]" }.joined(separator: ", ")
                 }
-                // Kept on this Mac (counseling) or the other Mac didn't answer: name the model that did.
+                // Kept on this Mac (private) or the other Mac didn't answer: name the model that did.
                 let actualModel = ModelPrivacy.keptLocal
                     ? MLXModelSpec.find(MLXBackend.currentRepo).map { "\($0.name) · \($0.detail)" } ?? (MLXBackend.currentRepo.split(separator: "/").last.map(String.init) ?? model)
                     : model
                 let answeredBy = (usePi ? "Pi · " : "") + actualModel
                 var entry = HistoryEntry(question: q, answer: a.text, model: answeredBy, stats: answerStats!, sources: a.sources)
                 if ModelPrivacy.keptLocal {
-                    steps.append("Counseling notes were involved, so this Mac's model answered")
+                    steps.append("Private notes were involved, so this Mac's model answered")
                     ModelPrivacy.keptLocal = false
                 }
                 steps.append(String(format: Task.isCancelled ? "Stopped after %.0f s" : "Done in %.0f s", Date().timeIntervalSince(t0)))
-                entry.localOnly = a.localOnly || priorCounseling
+                entry.localOnly = a.localOnly || priorPrivateNotes
                 entry.steps = steps
                 entry.conversationId = convo
                 entry.route = routeNote

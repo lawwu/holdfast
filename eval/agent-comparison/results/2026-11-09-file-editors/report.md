@@ -135,7 +135,7 @@ edit problem found here. These capabilities can be added without changing harnes
   must be unchanged. Frontmatter preservation is checked too.
 - Concurrent-change cases insert a change before tool execution or before approval.
   They do not establish safety against an external writer racing the actual write.
-  GUI clicks, counseling locality, long files, non-UTF-8 encodings, crash recovery and
+  GUI clicks, private locality, long files, non-UTF-8 encodings, crash recovery and
   multi-file transactions are outside this comparison.
 
 Raw direct evidence: [all 28 observations](direct-results.json). Model transcripts,

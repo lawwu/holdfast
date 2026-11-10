@@ -255,7 +255,7 @@
     ],
     "cited" : false,
     "contextRecall" : 1,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "EmbeddingGemma-300m",
     "facts" : 0,
     "id" : "h09",
@@ -270,17 +270,17 @@
     "outputTokens" : 0,
     "pathRecall" : 1,
     "promptTokens" : 0,
-    "question" : "What brought R.S. to counseling?",
+    "question" : "What brought R.S. to seek support?",
     "recall" : 0,
     "reranker" : true,
     "rerankerModel" : "Qwen3-Reranker-4B",
     "seconds" : 22.222877025604248,
     "sources" : [
-      "[[ministry\/counseling\/rs\/rs-session-01#What can you highlight as significant background information?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#What can you highlight as significant background information?]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
-      "[[ministry\/counseling\/rs\/rs-session-01#How was hope or encouragement given in this session?]]",
-      "[[ministry\/counseling\/rs\/rs-session-01#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the counselee?]]"
+      "[[private\/private\/rs\/rs-session-01#What can you highlight as significant background information?]]",
+      "[[private\/private\/rs\/rs-session-02#What can you highlight as significant background information?]]",
+      "[[private\/private\/rs\/rs-session-03#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]",
+      "[[private\/private\/rs\/rs-session-01#How was hope or encouragement given in this session?]]",
+      "[[private\/private\/rs\/rs-session-01#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the participant?]]"
     ],
     "tokPerSec" : 0
   },
@@ -291,7 +291,7 @@
     ],
     "cited" : false,
     "contextRecall" : 1,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "EmbeddingGemma-300m",
     "facts" : 0,
     "id" : "h10",
@@ -311,13 +311,13 @@
     "rerankerModel" : "Qwen3-Reranker-4B",
     "seconds" : 24.271106958389282,
     "sources" : [
-      "[[ministry\/counseling\/rs\/rs-session-02#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#What main problems were discussed in this session?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#How was hope or encouragement given in this session?]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#What was gained by performing the homework from last session? What change?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#What are you seeing (or not) about the counselee's faith in who God is, about their relationship with Jesus, and\/or about the role of the Gospel in their daily life and problem?]]"
+      "[[private\/private\/rs\/rs-session-02#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
+      "[[private\/private\/rs\/rs-session-02#What main problems were discussed in this session?]]",
+      "[[private\/private\/rs\/rs-session-02#How was hope or encouragement given in this session?]]",
+      "[[private\/private\/dm\/dm-session-02#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/rs\/rs-session-02#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
+      "[[private\/private\/rs\/rs-session-03#What was gained by performing the homework from last session? What change?]]",
+      "[[private\/private\/rs\/rs-session-02#What are you seeing (or not) about the participant's faith in who God is, about their relationship with Jesus, and\/or about the role of the Gospel in their daily life and problem?]]"
     ],
     "tokPerSec" : 0
   },
@@ -328,7 +328,7 @@
     ],
     "cited" : false,
     "contextRecall" : 1,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "EmbeddingGemma-300m",
     "facts" : 0,
     "id" : "h11",
@@ -343,13 +343,13 @@
     "outputTokens" : 0,
     "pathRecall" : 1,
     "promptTokens" : 0,
-    "question" : "Who referred D.M. to counseling, and what does he do for work?",
+    "question" : "Who referred D.M. for support, and what does he do for work?",
     "recall" : 1,
     "reranker" : true,
     "rerankerModel" : "Qwen3-Reranker-4B",
     "seconds" : 24.263668060302734,
     "sources" : [
-      "[[ministry\/counseling\/dm\/dm-session-01#Case Report — D.M. — Session 1]]"
+      "[[private\/private\/dm\/dm-session-01#Case Report — D.M. — Session 1]]"
     ],
     "tokPerSec" : 0
   },
@@ -583,7 +583,7 @@
     ],
     "cited" : false,
     "contextRecall" : 0.6666666666666666,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "EmbeddingGemma-300m",
     "facts" : 0,
     "id" : "h19",
@@ -598,13 +598,13 @@
     "outputTokens" : 0,
     "pathRecall" : 0.3333333333333333,
     "promptTokens" : 0,
-    "question" : "How has R.S.'s mother-in-law figured in her counseling so far?",
+    "question" : "How has R.S.'s mother-in-law figured in her private so far?",
     "recall" : 0,
     "reranker" : true,
     "rerankerModel" : "Qwen3-Reranker-4B",
     "seconds" : 23.731834053993225,
     "sources" : [
-      "[[ministry\/counseling\/rs\/rs-session-01#Case Report — R.S. — Session 1]]"
+      "[[private\/private\/rs\/rs-session-01#Case Report — R.S. — Session 1]]"
     ],
     "tokPerSec" : 0
   },
@@ -615,7 +615,7 @@
     ],
     "cited" : false,
     "contextRecall" : 1,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "EmbeddingGemma-300m",
     "facts" : 0,
     "id" : "h20",
@@ -630,20 +630,20 @@
     "outputTokens" : 0,
     "pathRecall" : 1,
     "promptTokens" : 0,
-    "question" : "Which verses was D.M. asked to memorize over the course of counseling?",
+    "question" : "Which verses was D.M. asked to memorize over the course of private?",
     "recall" : 1,
     "reranker" : true,
     "rerankerModel" : "Qwen3-Reranker-4B",
     "seconds" : 23.49738299846649,
     "sources" : [
-      "[[ministry\/counseling\/dm\/dm-session-03#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
-      "[[ministry\/counseling\/dm\/dm-session-04#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/dm\/dm-session-08#What Biblical solutions were presented in this session? What Scripture?]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What Biblical solutions were presented in this session? What Scripture?]]",
-      "[[ministry\/counseling\/dm\/dm-session-06#What Biblical solutions were presented in this session? What Scripture?]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/dm\/dm-session-03#What Biblical solutions were presented in this session? What Scripture?]]"
+      "[[private\/private\/dm\/dm-session-03#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]",
+      "[[private\/private\/dm\/dm-session-04#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
+      "[[private\/private\/dm\/dm-session-02#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/dm\/dm-session-08#What Biblical solutions were presented in this session? What Scripture?]]",
+      "[[private\/private\/dm\/dm-session-02#What Biblical solutions were presented in this session? What Scripture?]]",
+      "[[private\/private\/dm\/dm-session-06#What Biblical solutions were presented in this session? What Scripture?]]",
+      "[[private\/private\/dm\/dm-session-05#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/dm\/dm-session-03#What Biblical solutions were presented in this session? What Scripture?]]"
     ],
     "tokPerSec" : 0
   },
@@ -1227,7 +1227,7 @@
 
     ],
     "cited" : false,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "EmbeddingGemma-300m",
     "facts" : 0,
     "id" : "h40",
@@ -1244,7 +1244,7 @@
     "rerankerModel" : "Qwen3-Reranker-4B",
     "seconds" : 21.096192955970764,
     "sources" : [
-      "[[ministry\/counseling\/rs\/rs-session-01#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]"
+      "[[private\/private\/rs\/rs-session-01#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]"
     ],
     "tokPerSec" : 0
   }

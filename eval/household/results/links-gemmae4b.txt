@@ -1,5 +1,5 @@
   false link: home/refrigerator.md → home/dishwasher.md (Both notes detail appliances purchased from the same vendor.)
-  false link: career/notes.md → ministry/counseling/dm/dm-session-02.md (Note A mentions the counseling ministry (R.S.), and Note B is a detailed case report from that counseling.)
+  false link: career/notes.md → private/cases/dm/dm-session-02.md (Note A mentions the private private (R.S.), and Note B is a detailed case report from that private.)
   false link: life/calendar.md → career/notes.md (Note A mentions a piano recital at Alder Creek Music Studio, which is related to Erik's current work location mentioned in Note B.)
   false link: health/visits/2026-08-21_soren_alder-creek-pediatrics.md → health/visits/2026-03-18_greta_alder-creek-pediatrics.md (Both notes detail visits to the same pediatrician's office for the same family member.)
 gemmae4b: accuracy 91% · precision 88% · recall 100% · false links 4 · median 2.5s/pair

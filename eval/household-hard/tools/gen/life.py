@@ -62,7 +62,7 @@ JOURNAL = [
     ("2026-10-28", "Chimney sweep found a small crack in the crown. Not urgent; look again in spring."),
     ("2026-10-30", "Soren lost his first tooth at dinner — bottom front, in a piece of corn on the cob. Pure joy. Also Fairbanks did the furnace service today and replaced the igniter."),
     ("2026-11-02", "Dana extended the deadline on the regional director offer to December 4. We'll drive up to see the Salem hub together on the 14th and talk to Pastor J. before deciding."),
-    ("2026-11-03", "Open enrollment opened. Northstar premium share goes up again for 2027. Counseling night — tired but grateful."),
+    ("2026-11-03", "Open enrollment opened. Northstar premium share goes up again for 2027. Private night — tired but grateful."),
 ]
 
 
@@ -132,8 +132,8 @@ def people():
     | Mormor | Birgit Lindgren, Anna's mother, Portland | |
     | Aunt Kristin | Anna's sister, San Diego | we stay with her at Christmas 2026 |
     | Tom and Becca Lindqvist | small-group leaders, friends | |
-    | Pastor J. | Hillcrest; Erik's counseling supervisor | |
-    | Pastor R. | Hillcrest; refers counselees | |
+    | Pastor J. | Hillcrest; Erik's private supervisor | |
+    | Pastor R. | Hillcrest; refers participants | |
     | Dana | Erik's boss at Bluestem | |
 
     Two Eriks: in notes, "Erik" is always Erik (the dad of this house); his father is
@@ -151,11 +151,11 @@ def calendar():
 
     | Date | Time | What | Who | Notes |
     | --- | --- | --- | --- | --- |
-    | 2026-11-05 | 7:00 pm | Counseling check-in (D.M.) at church | Erik | |
+    | 2026-11-05 | 7:00 pm | Private check-in (D.M.) at church | Erik | |
     | 2026-11-08 | 12:15 pm | Hillcrest fall potluck after second service | all | Anna is bringing the [[life/recipes/swedish-meatballs|meatballs]] |
     | 2026-11-10 | 3:30 pm | Wrist follow-up, Cascade Orthopedics | Leif + Erik | |
     | 2026-11-12 | 9:00 am | Filling, Bright Smile Dental | Anna | |
-    | 2026-11-12 | 7:00 pm | Counseling (R.S.) | Erik | |
+    | 2026-11-12 | 7:00 pm | Private (R.S.) | Erik | |
     | 2026-11-14 | all day | Visit the Bluestem Salem hub | Erik + Anna | kids with Grandma Ruth |
     | 2026-11-15 | — | 401(k) investment-mix decision | Erik | [open items](../finance/open-items.md) |
     | 2026-11-17 | 4:15 pm | Parent-teacher conference, Ms. Varga | Greta, Anna + Erik | |
@@ -623,7 +623,7 @@ BOOKS = {
     "when-people-are-big": """
     # When People Are Big and God Is Small — Ed Welch
 
-    Erik's reading for the counseling training (and assigned to counselees sometimes).
+    Erik's reading for the private training (and assigned to participants sometimes).
 
     - Fear of man: being exposed, being rejected, being hurt.
     - The fix isn't to need people less but to love them more and need them less — to fear God.
@@ -639,7 +639,7 @@ BOOKS = {
     "good-and-angry": """
     # Good and Angry — David Powlison
 
-    Read in 2026 for the counseling training. Good on anger as a moral judgment ("I'm
+    Read in 2026 for the private training. Good on anger as a moral judgment ("I'm
     against that") that can be godly or ungodly; the work is to learn to be good and angry
     rather than to stop being angry. Chapter 6 on the "anger at God" question was the best.
     """,

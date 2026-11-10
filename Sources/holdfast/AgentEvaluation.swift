@@ -38,7 +38,7 @@ enum AgentEvaluation {
                     let call = AgentRuntime.Call(name: name, arguments: raw)
                     try journal!.append(.toolStarted(call))
                     let text = await context.call(name, args: arguments, operationID: request["operationID"] as? String)
-                    let result = AgentRuntime.ToolResult(text: text, isError: text.hasPrefix("Error:"), localOnly: context.touchedCounseling)
+                    let result = AgentRuntime.ToolResult(text: text, isError: text.hasPrefix("Error:"), localOnly: context.touchedPrivateNotes)
                     try journal!.append(.toolFinished(call, result))
                     response = ["text": text, "isError": result.isError, "localOnly": result.localOnly]
                 case "run_pi":

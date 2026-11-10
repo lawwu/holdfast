@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 /// Vault › Export Notes…: pick notes by a question and/or a folder, untick any, then save a checked ZIP.
-/// Counseling notes are found but left unticked unless they're included on purpose.
+/// Private notes are found but left unticked unless they're included on purpose.
 struct ExportSheet: View {
     @EnvironmentObject var store: Store
     @Environment(\.dismiss) private var dismiss
@@ -11,12 +11,12 @@ struct ExportSheet: View {
     @State private var folder = ""
     @State private var found: [Note] = []
     @State private var chosen: Set<URL> = []
-    @State private var includeCounseling = false
+    @State private var includePrivateNotes = false
     @State private var searching = false
     @State private var working = false
     @State private var result: String?
 
-    var picked: [Note] { found.filter { chosen.contains($0.path) && (includeCounseling || !Profile.isCounseling($0.relPath)) } }
+    var picked: [Note] { found.filter { chosen.contains($0.path) && (includePrivateNotes || !Profile.isPrivate($0.relPath)) } }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -31,20 +31,20 @@ struct ExportSheet: View {
             }
             if !found.isEmpty {
                 List(found, id: \.path) { n in
-                    let counseling = Profile.isCounseling(n.relPath)
-                    Toggle(isOn: Binding(get: { chosen.contains(n.path) && (includeCounseling || !counseling) },
+                    let isPrivate = Profile.isPrivate(n.relPath)
+                    Toggle(isOn: Binding(get: { chosen.contains(n.path) && (includePrivateNotes || !isPrivate) },
                                          set: { if $0 { chosen.insert(n.path) } else { chosen.remove(n.path) } })) {
                         HStack {
                             Text(n.title).lineLimit(1)
-                            if counseling { Pill(text: "counseling", icon: "lock.fill", color: .orange) }
+                            if isPrivate { Pill(text: "private", icon: "lock.fill", color: .orange) }
                             Spacer()
                             Text(n.relPath).font(Theme.caption).foregroundStyle(.secondary).lineLimit(1)
                         }
                     }
-                    .disabled(counseling && !includeCounseling)
+                    .disabled(isPrivate && !includePrivateNotes)
                 }
                 .frame(minHeight: 220)
-                Toggle("Include counseling notes (left out unless ticked here)", isOn: $includeCounseling)
+                Toggle("Include private notes (left out unless ticked here)", isOn: $includePrivateNotes)
             }
             if let result { Text(result).font(Theme.callout).foregroundStyle(.secondary).textSelection(.enabled) }
             HStack {
@@ -76,11 +76,11 @@ struct ExportSheet: View {
         panel.nameFieldStringValue = (title.isEmpty ? "Holdfast export" : title) + ".zip"
         guard panel.runModal() == .OK, let url = panel.url else { return }
         working = true
-        let notes = picked, name = title, counseling = includeCounseling
+        let notes = picked, name = title, isPrivate = includePrivateNotes
         Task.detached {
             let text: String
             do {
-                let r = try Export.build(notes, includeCounseling: counseling, title: name, to: url)
+                let r = try Export.build(notes, includePrivateNotes: isPrivate, title: name, to: url)
                 text = "Exported \(r.notes) notes and \(r.originals) originals to \(url.lastPathComponent)"
                     + (r.verified ? "; every file checked against its checksum." : "; the check found differences, so don't rely on this copy.")
             } catch {

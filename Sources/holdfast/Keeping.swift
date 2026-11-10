@@ -328,8 +328,8 @@ enum Related {
         for (score, c) in try idx.vectorScored(mean, limit: 300) {
             let p = c.relPath
             guard p != relPath, !p.hasPrefix("@"), !p.lowercased().hasSuffix("readme.md") else { continue }
-            // Counseling notes appear only beside other counseling notes.
-            guard Profile.isCounseling(p) == Profile.isCounseling(relPath) else { continue }
+            // Private notes appear only beside other private notes.
+            guard Profile.isPrivate(p) == Profile.isPrivate(relPath) else { continue }
             if (best[p]?.score ?? -1) < score {
                 let snip = c.text.replacingOccurrences(of: "\n", with: " ").trimmingCharacters(in: .whitespaces)
                 best[p] = RelatedNote(relPath: p, title: c.title, score: score, snippet: String(snip.prefix(160)))
@@ -395,7 +395,7 @@ enum Rules {
     static func match(_ text: String, name: String) -> FilingRule? {
         let hay = name + "\n" + text
         return load().filter { r in
-            guard r.match.count >= minPhrase, !Profile.isCounseling(r.target) else { return false }
+            guard r.match.count >= minPhrase, !Profile.isPrivate(r.target) else { return false }
             let p = #"(?i)(?<![\p{L}\p{N}])"# + NSRegularExpression.escapedPattern(for: r.match) + #"(?![\p{L}\p{N}])"#
             return hay.range(of: p, options: .regularExpression) != nil
         }.max { $0.match.count < $1.match.count }
@@ -425,8 +425,8 @@ enum Rules {
         let from = from.trimmingCharacters(in: .whitespacesAndNewlines)
         guard from.count >= minPhrase, action != "link" else { return }
         let place = action == "new" ? (target as NSString).deletingLastPathComponent : target
-        // Counseling is never filed by rule: each one is read and approved by a person.
-        guard !place.isEmpty, !Profile.isCounseling(place) else { return }
+        // Private is never filed by rule: each one is read and approved by a person.
+        guard !place.isEmpty, !Profile.isPrivate(place) else { return }
         var cs = candidates()
         if let i = cs.firstIndex(where: { $0.from.lowercased() == from.lowercased() && $0.target == place && $0.action == action }) {
             cs[i].count += 1

@@ -32,8 +32,8 @@ holdfast — Holdfast's command line: a private knowledge base over a folder of 
   holdfast status                                 vault and index counts
   holdfast backup [folder] | --verify <backup> | --test-restore <backup>
                                                a dated, checksummed copy of the vault and Holdfast's records; check or test it
-  holdfast export --query Q [--folder F] --out file.zip [--include-counseling]
-                                               chosen notes and their originals as a checked ZIP (counseling left out)
+  holdfast export --query Q [--folder F] --out file.zip [--include-private]
+                                               chosen notes and their originals as a checked ZIP (private left out)
   holdfast originals [--apply]                 keep and link the originals of earlier filings
   holdfast models [--ram GB] [--json]             which answer model suits this Mac (scores from the household eval)
 
@@ -369,14 +369,14 @@ do {
         print("Backed up \(r.files) files (\(ByteCountFormatter.string(fromByteCount: r.bytes, countStyle: .file))) to \(r.folder.path)")
         print(try Backup.verify(r.folder))
     case "export":
-        // holdfast export --query "2025 taxes" [--folder finance/taxes] --out taxes.zip [--include-counseling]
+        // holdfast export --query "2025 taxes" [--folder finance/taxes] --out taxes.zip [--include-private]
         let q = option("--query").first ?? "", f = option("--folder").first ?? ""
         guard let out = option("--out").first.map({ URL(fileURLWithPath: $0) }), !(q.isEmpty && f.isEmpty) else {
-            throw HoldfastError("holdfast export --query <words> and/or --folder <path> --out <file.zip> [--include-counseling] [--title T]")
+            throw HoldfastError("holdfast export --query <words> and/or --folder <path> --out <file.zip> [--include-private] [--title T]")
         }
         let notes = await Export.select(query: q, folder: f, notes: allNotes(), embedder: try? await Embedder.load())
-        let r = try Export.build(notes, includeCounseling: flag("--include-counseling"), title: option("--title").first ?? out.deletingPathExtension().lastPathComponent, to: out)
-        print("Exported \(r.notes) notes and \(r.originals) originals to \(r.zip.path)\(r.leftOut > 0 ? "; \(r.leftOut) counseling notes left out" : "")")
+        let r = try Export.build(notes, includePrivateNotes: flag("--include-private") || flag(LegacyCompatibility.includePrivateFlag), title: option("--title").first ?? out.deletingPathExtension().lastPathComponent, to: out)
+        print("Exported \(r.notes) notes and \(r.originals) originals to \(r.zip.path)\(r.leftOut > 0 ? "; \(r.leftOut) private notes left out" : "")")
         print(r.verified ? "Checked: every file in the ZIP matches its checksum." : "The check found differences: don't rely on this ZIP.")
     case "originals":
         // Filings made before originals were kept: keep and link them now (dry run unless --apply).

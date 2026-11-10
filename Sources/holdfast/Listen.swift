@@ -288,7 +288,7 @@ enum Listen {
     /// folder shared with this process; its output comes back through two FIFOs. Ctrl-C and kill
     /// are passed on to it, and this process waits until it has written and filed the transcript.
     static func relayThroughApp(_ listenArgs: [String]) throws -> Int32 {
-        guard let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "net.lawrencewu.holdfast") else {
+        guard let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "app.holdfast") else {
             throw HoldfastError("Recording another app's audio runs inside Holdfast.app, which asks macOS for permission. Build it with scripts/make_app.sh and open it once.")
         }
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("holdfast-listen-" + UUID().uuidString)

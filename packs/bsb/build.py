@@ -18,7 +18,7 @@ and section and an answer can cite chapter and verse. Stdlib only.
 """
 import argparse, json, pathlib, re
 
-LWN = pathlib.Path.home() / "github/lawrencewu-net"
+LWN = pathlib.Path.home() / "github/lawwu-net"
 BSB = LWN / "data/bsb.txt"
 HEADINGS = LWN / "apps/web/bible/data/headings.json"
 OUT = pathlib.Path.home() / "Library/Application Support/Holdfast/packs/bsb"

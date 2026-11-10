@@ -12,7 +12,7 @@ if [[ "${1:-}" != "--package-only" ]]; then
 fi
 P="$DERIVED/Build/Products/Release"
 APP="${HOLDFAST_APP:-build/Holdfast.app}"
-BUNDLE_ID="${HOLDFAST_BUNDLE_ID:-net.lawrencewu.holdfast}"
+BUNDLE_ID="${HOLDFAST_BUNDLE_ID:-app.holdfast}"
 APP_NAME="${HOLDFAST_APP_NAME:-Holdfast}"
 test -x "$P/holdfast"
 rm -rf "$APP"

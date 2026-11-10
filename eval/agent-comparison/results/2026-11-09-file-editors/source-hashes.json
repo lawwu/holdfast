@@ -2,6 +2,6 @@
   "/opt/homebrew/lib/node_modules/@mariozechner/pi-coding-agent/dist/core/tools/edit.js": "6253181c86df4c5218c1d490f4f0c3f6baef6d587df9f0bbd6a84dd6c6e1007b",
   "/opt/homebrew/lib/node_modules/@mariozechner/pi-coding-agent/dist/core/tools/edit-diff.js": "f16fffe4b7c7dc622917a53a9c93dc279f036a1b368eb0d80629f7397e366abd",
   "/opt/homebrew/lib/node_modules/@mariozechner/pi-coding-agent/dist/core/tools/write.js": "040fa95204d1eb8a26f9af141895508ac526c77d96368cd060ffa3b438905383",
-  "/Users/lawrencewu/github/holdfast/Sources/holdfast/Edits.swift": "cd37519f4d752e25d5d0a8f1bf212247df9e0e5097909a7c12f483132dd51972",
-  "/Users/lawrencewu/github/holdfast/Sources/holdfast/Keeping.swift": "3c5427b021a29ce9d41742fdaa1a45f979c97b7f30461e543a03977db1de8d32"
+  "Sources/holdfast/Edits.swift": "cd37519f4d752e25d5d0a8f1bf212247df9e0e5097909a7c12f483132dd51972",
+  "Sources/holdfast/Keeping.swift": "3c5427b021a29ce9d41742fdaa1a45f979c97b7f30461e543a03977db1de8d32"
 }

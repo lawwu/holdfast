@@ -145,8 +145,8 @@ private actor PiNativeService {
     private var busy = false
     private var calls = 0
     private var requiresLocal: Bool {
-        state.localOnly == true || ctx.touchedCounseling || ModelPrivacy.touchesCounseling(state.sources)
-            || state.receipts.values.contains { $0.result.localOnly } || Profile.vaultDefault.id == Profile.counseling.id
+        state.localOnly == true || ctx.touchedPrivateNotes || ModelPrivacy.touchesPrivateNotes(state.sources)
+            || state.receipts.values.contains { $0.result.localOnly } || Profile.vaultDefault.id == Profile.privateNotes.id
     }
 
     init(directory: URL, embedder: Embedder?, model: any AgentRuntime.Model, onEvent: @escaping @Sendable (Agent.Event) -> Void) throws {
@@ -172,7 +172,7 @@ private actor PiNativeService {
         if method == "model" {
             let localOnly = requiresLocal
             if localOnly && !model.isLocal && localModel == nil {
-                onEvent(.step("Counseling notes stay on this Mac: continuing with LocalMLX"))
+                onEvent(.step("Private notes stay on this Mac: continuing with LocalMLX"))
                 localModel = MLXAgentModel(backend: try await MLXBackend.shared(), allowsRebase: true)
                 ModelPrivacy.keptLocal = true
             }
@@ -239,8 +239,8 @@ private actor PiNativeService {
         onEvent(.step(ctx.title(call)))
         let operation = stateURL.deletingLastPathComponent().lastPathComponent + "." + input.operationID
         let text = await ctx.call(input.name, args: args, operationID: operation)
-        let result = AgentRuntime.ToolResult(text: text, isError: text.hasPrefix("Error:"), localOnly: ctx.touchedCounseling)
-        state.localOnly = state.localOnly == true || ctx.touchedCounseling
+        let result = AgentRuntime.ToolResult(text: text, isError: text.hasPrefix("Error:"), localOnly: ctx.touchedPrivateNotes)
+        state.localOnly = state.localOnly == true || ctx.touchedPrivateNotes
         state.sources = ctx.sources; state.receipts[input.operationID] = Receipt(input: canonical, result: result)
         try PiAgent.save(state, to: stateURL) // Before acknowledging the tool to Pi.
         onEvent(.stepDetail("\(input.name)(\(raw))\n\n\(text.prefix(Steps.resultChars))")); onEvent(.sources(ctx.sources))

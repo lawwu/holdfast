@@ -1,5 +1,5 @@
 """Render the synthetic case reports (cases/*.md) to Word files (docx/*.docx),
-so the eval exercises the same .docx import a counselor's real reports would.
+so the eval exercises the same .docx import a reviewer's real reports would.
 Uses macOS textutil (HTML -> docx); stdlib only."""
 import html, pathlib, re, subprocess
 

@@ -27,7 +27,7 @@ def main():
     | `health/` | Goals, labs, visits for all five of us, Grandpa E.'s records, the activity CSV | [health/README.md](health/README.md) |
     | `life/` | Calendar, journal, trips, recipes, books, school, small group, Pepper | [life/README.md](life/README.md) |
     | `career/` | Erik's work and decisions | [career/README.md](career/README.md) |
-    | `ministry/` | Erik's biblical-counseling case reports (initials only) | [ministry/README.md](ministry/README.md) |
+    | `private/` | Erik's biblical-private case reports (initials only) | [private/README.md](private/README.md) |
 
     ## Conventions
 
@@ -69,7 +69,7 @@ def main():
 
     Questions we're asking (see [deciding.md](deciding.md)):
     - Why do I want it? (Some of it is wanting to be the one in charge. Name that.)
-    - What does it do to Tuesday/Thursday mornings with the kids, to small group, to the counseling training?
+    - What does it do to Tuesday/Thursday mornings with the kids, to small group, to the private training?
     - Is there a church-life cost to the commute, or a move? (No move — we said so.)
     """)
     w("career/history.md", """
@@ -90,7 +90,7 @@ def main():
     In this order:
 
     1. **Motive.** Why do I want this? Pride, fear, money, or service? Write it down honestly.
-    2. **Formation.** What will it do to my walk with God — time in the Word, church, the counseling?
+    2. **Formation.** What will it do to my walk with God — time in the Word, church, the private?
     3. **Family.** Anna first. Then the kids' ages and what they need from me now.
     4. **The role itself.** Only now: the work, the pay, the people.
 

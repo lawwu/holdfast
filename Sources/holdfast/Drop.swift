@@ -5,7 +5,7 @@ import Vision
 // MARK: - Drop folder
 //
 // A folder to drop files into. The app watches it and files each one:
-// - in a managed vault (counseling), it imports the file as a source, as ⌘I does;
+// - in a managed vault (private), it imports the file as a source, as ⌘I does;
 // - in a vault indexed in place (a notes repo), the model reads the file and the
 //   folder READMEs and proposes where it belongs: a new note, or an entry
 //   appended to an existing one. The proposal waits in the approval inbox;
@@ -180,11 +180,11 @@ enum Drop {
     - For "append", write only the lines to add: a table row matching that table's columns, or a dated section. For a CSV file, one CSV line per row, matching its header.
     - For "new", write the whole note, starting with a "# " title.
     - Never include account numbers, card numbers, policy or member ids, passwords or other credentials.
-    - Anything about counseling or the care of a person (ministry folders): initials only, never full names.
+    - Private notes or records about the care of a person: initials only, never full names.
     - Dates as YYYY-MM-DD, America/Los_Angeles.
     - If the notes shown below already record this document (same date and event), reply with "action": "skip" and say where in "why".
-    - "from": who sent it or where it came from: the business, clinic, school or person, as named on the document (initials only for a counselee).
-    - "properties" (for "new" only; {} for "append"): a few short fields to sort and find the note by: "type" (one lowercase word: visit, invoice, receipt, statement, policy, letter, event, recipe, report…), "date" (YYYY-MM-DD), and when the document has them "amount" (a number, no currency sign), "provider" (the business or clinic), "person" (who it's about; initials in counseling).
+    - "from": who sent it or where it came from: the business, clinic, school or person, as named on the document (initials only for a participant).
+    - "properties" (for "new" only; {} for "append"): a few short fields to sort and find the note by: "type" (one lowercase word: visit, invoice, receipt, statement, policy, letter, event, recipe, report…), "date" (YYYY-MM-DD), and when the document has them "amount" (a number, no currency sign), "provider" (the business or clinic), "person" (who it's about; initials in private notes).
     - "follow_ups": things to do or watch for that the document asks for or implies (a renewal, a next visit, a bill due, a form to return), each {"date": "YYYY-MM-DD" or "", "what": "short imperative"}. [] if none.
 
     Reply with one JSON object and nothing else:
@@ -207,9 +207,9 @@ enum Drop {
         let doc = excerpt(text, limit: limit)
         let probe = url.deletingPathExtension().lastPathComponent + "\n" + String(doc.prefix(1500))
         let hits = (try? await search(probe, embedder: embedder, limit: 24, packs: false)) ?? []  // filing goes into your notes, never a pack
-        // A document that looks like counseling material is filed with this Mac's model, never another Mac's.
+        // A document that looks like private material is filed with this Mac's model, never another Mac's.
         var llm = askedLLM
-        if usesModelServer(llm), ModelPrivacy.touchesCounseling(hits) || url.pathComponents.contains(where: Profile.isCounseling) || Profile.vaultDefault.id == Profile.counseling.id {
+        if usesModelServer(llm), ModelPrivacy.touchesPrivateNotes(hits) || Profile.isPrivateSource(url) || Profile.vaultDefault.id == Profile.privateNotes.id {
             llm = try await MLXBackend.shared()
             ModelPrivacy.keptLocal = true
         }
@@ -273,9 +273,9 @@ enum Drop {
         if f.title.trimmingCharacters(in: .whitespaces).isEmpty {
             f.title = (f.action == "append" ? "Add to " : "") + (f.path as NSString).lastPathComponent
         }
-        // Names matter in counseling folders (initials only); elsewhere a shop or clinic name is the point.
-        let counseling = Profile.forPath(f.path).id == Profile.counseling.id
-        let flags = privacyFlags(f.savedText, names: counseling)
+        // Names matter in private folders (initials only); elsewhere a shop or clinic name is the point.
+        let isPrivate = Profile.forPath(f.path).id == Profile.privateNotes.id
+        let flags = privacyFlags(f.savedText, names: isPrivate)
         return Decision(filing: f, flags: flags, stats: stats, reply: out.text, rule: rule)
     }
 
@@ -328,7 +328,7 @@ enum Drop {
                     "why": "The whole transcript, kept beside its summary so every word can be found later.",
                     "prop_type": "transcript", "prop_date": today]
         if let dur = recorded?.meta["duration"] { meta["prop_duration"] = dur }
-        let flags = privacyFlags(body, names: Profile.isCounseling(path))
+        let flags = privacyFlags(body, names: Profile.isPrivate(path))
         if !flags.isEmpty { meta["privacy_flags"] = flags.joined(separator: "; ") }
         let note = Note(path: unique(Config.inboxDir.appendingPathComponent("\(today.replacingOccurrences(of: "-", with: ""))-\(slug)-transcript.md"), ifExists: true),
                         meta: meta, body: body)
@@ -612,10 +612,10 @@ enum Drop {
         var (n, flags, rule) = try await propose(url, text: text, embedder: embedder, llm: llm, model: model)
         if let h = hash { n.meta["original_hash"] = h; try n.write() }
         // An automatic rule files without asking only when nothing in the entry looks personal
-        // (names included) and nothing about it is counseling; otherwise it waits for approval.
+        // (names included) and nothing about it is private; otherwise it waits for approval.
         let target = n.meta["target"] ?? ""
         let personal = privacyFlags((n.meta["title"] ?? "") + "\n" + n.body, names: true)
-        if rule?.auto == true, flags.isEmpty, personal.isEmpty, !Profile.isCounseling(target), !Profile.isCounseling(Drop.relative(url)) {
+        if rule?.auto == true, flags.isEmpty, personal.isEmpty, !Profile.isPrivate(target), !Profile.isPrivate(Drop.relative(url)) {
             let saved = try approve(n.id)
             return "Filed to \(Drop.relative(saved.path)) by rule"
         }

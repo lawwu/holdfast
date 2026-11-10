@@ -45,7 +45,7 @@ FILING_INSTRUCTIONS = """You file a document that was dropped into this knowledg
 - For "append", write only the lines to add: a table row matching that table's columns, or a dated section.
 - For "new", write the whole note, starting with a "# " title.
 - Never include account numbers, card numbers, policy or member ids, passwords or other credentials.
-- Anything about counseling or the care of a person (ministry folders): initials only, never full names.
+- Anything about private or the care of a person (private folders): initials only, never full names.
 - Dates as YYYY-MM-DD, America/Los_Angeles.
 - If the notes already record this document (same date and event), reply with "action": "skip" and say where in "why".
 

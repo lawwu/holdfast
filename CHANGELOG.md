@@ -2,6 +2,11 @@
 
 ## Next (after 0.1.0)
 
+- **General-purpose naming.** Documentation and UI describe private notes, with protected
+  `private` and `confidential` folders. App and Keychain identifiers use `app.holdfast`;
+  earlier settings, credentials, vault state and protected-folder rules remain compatible.
+  Synthetic fixtures and historical result labels use the same neutral terminology.
+
 - **Optional meaning search.** Settings → Search has a “Search by meaning” toggle,
   on by default. Off releases the embedding model and uses keyword retrieval; the
   reranker stays independent. Re-enabling fills missing vectors without rebuilding
@@ -9,7 +14,7 @@
 
 - **Regular Pi is now the default agent.** The normal app and CLI use Pi 1.5.1 with
   saved JSONL conversations and Holdfast-only tools. LocalMLX and server providers,
-  Inbox approvals, byte-exact Undo and counseling restrictions are preserved.
+  Inbox approvals, byte-exact Undo and private restrictions are preserved.
   Durable records remain untouched; interrupted jobs are not automatically replayed.
   The normal app packager now includes the regular Pi runtime.
 
@@ -18,7 +23,7 @@
   limits and endpoint-bound Keychain keys work with regular Pi and the Swift comparison harness.
   The Foundation-only `ModelProviders` Swift product shares an inference interface with
   LocalMLX and is reusable by other apps. Tools, proposals, approval, snapshots and Undo
-  remain in Holdfast. Counseling restrictions survive follow-ups and Pi restarts;
+  remain in Holdfast. Private restrictions survive follow-ups and Pi restarts;
   server failures are visible and redirects are refused.
 
 - **Reusable Swift MLX provider.** `Packages/pi-swift-mlx` contains an npm provider
@@ -79,16 +84,16 @@
   default is this Mac's pick. On 64 GB: Qwen 3.8 27B (Gemma 4 26B A4B as the 4× faster choice);
   32 GB: Qwen 3.5 9B; 16 GB: Qwen 3.5 4B.
 - **Backup, originals, export, pins.** Checked backups with Verify and Test Restore; the document a
-  filing came from kept beside its note with Open Original; checked ZIP exports with counseling
+  filing came from kept beside its note with Open Original; checked ZIP exports with private
   left out by default; questions pinned to the Ask home page. Tested on the scratch vault: a
   tampered file is caught, undo removes a kept original, a backup inside the vault is refused.
 - **Renamed to Holdfast everywhere** (command, bundle id, settings, data folder); the old name's
   settings and data move over on first run.
 
 ### Fixed after a review of the above
-- Privacy: a follow-up in a conversation that used counseling notes stays on this Mac (earlier
+- Privacy: a follow-up in a conversation that used private notes stays on this Mac (earlier
   answers go along as context); remote Research keeps folder listings, tables and properties from
-  counseling folders here too. Tested against a stand-in server: nothing counseling reached it, and
+  private folders here too. Tested against a stand-in server: nothing private reached it, and
   an ordinary question still did.
 - Listen from a terminal: kill and Ctrl-C reach the capture inside Holdfast.app (it found the wrong
   process before and could keep recording), the terminal waits for the transcript and gets the real
@@ -127,13 +132,13 @@ Everything runs on this Mac by default.
   Evernote and Day One exports; the model proposes where each belongs and you approve in the
   Inbox, in groups. Bulk import can file each one or bring a folder in as-is.
 - **Keeping it safe to trust.** Every filing can be undone; notes keep earlier copies (History);
-  learned filing rules (optionally automatic, never for counseling or anything with names,
+  learned filing rules (optionally automatic, never for private or anything with names,
   emails or numbers); properties and a Tables view; Upcoming follow-ups; Related notes;
   cross-link suggestions.
 - **Knowledge packs.** Read-only references searched beside your notes, starting with the
   Berean Standard Bible (public domain).
 - **A model on another Mac** (LM Studio, mlx_lm.server, Ollama) with the vault, index and
-  search staying here, and counseling notes never sent.
+  search staying here, and private notes never sent.
 - **Quick Look** previews for Markdown in Finder, a larger type scale, an app icon.
 
 ### Fixed before release (from four independent reviews and a second full review)
@@ -145,9 +150,9 @@ Everything runs on this Mac by default.
   folders must be inside the vault, pack ids are validated, nothing is created inside a pack.
 - Filings are serialized across the app, CLI and MCP server with a file lock (eight
   simultaneous approvals all land, with eight undo records).
-- Privacy: rules match whole words, are never learned or applied for counseling, and never
-  auto-file entries with names, emails or long numbers; cross-links leave counseling out and
-  drop reasons that carry personal details; the remote model never receives counseling
+- Privacy: rules match whole words, are never learned or applied for private, and never
+  auto-file entries with names, emails or long numbers; cross-links leave private out and
+  drop reasons that carry personal details; the remote model never receives private
   material, can't be redirected elsewhere, and the app's labels say when a remote model is in
   use; switching vaults clears the conversation and its context.
 - Answering: Stop with a remote model stops instead of falling back; reasoning never becomes
@@ -180,5 +185,5 @@ Everything runs on this Mac by default.
   "## Follow-ups" can attach to an indented item that follows the list.
 - Times are America/Los_Angeles throughout; transcripts always record "parakeet-v3".
 - The cross-link score (Qwen 3.5 4B and Qwen 3.8 27B 100%) is on 46 pairs, 38 of them
-  counseling reports, which the app no longer cross-links; it measures the yes/no judge only.
+  private reports, which the app no longer cross-links; it measures the yes/no judge only.
 - Built in Swift 5 language mode; Swift 6 strict concurrency hasn't been checked.

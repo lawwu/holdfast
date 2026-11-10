@@ -25,7 +25,7 @@ enabled.json           which packs Search and Ask use
 
 | Pack | Build | Source and license |
 | --- | --- | --- |
-| `bsb` Berean Standard Bible | `python3 packs/bsb/build.py` (reads `~/github/lawrencewu-net/data/bsb.txt` and the reader's `headings.json`; nothing is downloaded) | BereanBible.com; public domain since 2023-04-30 |
+| `bsb` Berean Standard Bible | `python3 packs/bsb/build.py` (reads `~/github/lawwu-net/data/bsb.txt` and the reader's `headings.json`; nothing is downloaded) | BereanBible.com; public domain since 2023-04-30 |
 
 Then: `holdfast pack install <folder>` (the BSB builder writes straight into place),
 `holdfast pack index <id>`, `holdfast pack on <id>`.

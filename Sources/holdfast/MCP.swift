@@ -15,16 +15,16 @@ final class MCPServer {
     }
 
     static let tools: [[String: Any]] = [
-        tool("search", "Hybrid keyword + semantic search over the counseling vault (lessons, homework, supervision notes, case reports). Returns passages with citations.",
+        tool("search", "Hybrid keyword + semantic search over the user's notes, documents and records. Returns passages with citations.",
              ["query": ["type": "string"], "limit": ["type": "integer", "default": 8]], required: ["query"]),
         tool("get_note", "Read one note in full by its id (from a search citation, e.g. [[id#anchor]]).",
              ["id": ["type": "string"]], required: ["id"]),
         tool("ask", "Answer a question from the vault with the local Qwen model, citing passages. Slower than search (tens of seconds).",
              ["question": ["type": "string"]], required: ["question"]),
-        tool("remember", "Propose a memory note. It goes to the counselor's approval inbox, not straight into the vault. Use initials only for counselees.",
+        tool("remember", "Propose a memory note for the user's approval in the Inbox. Use initials only for people in private notes.",
              ["title": ["type": "string"], "text": ["type": "string"], "tags": ["type": "array", "items": ["type": "string"]]],
              required: ["title", "text"]),
-        tool("list_inbox", "List memory proposals still waiting for the counselor's approval.", [:], required: []),
+        tool("list_inbox", "List memory proposals still waiting for the user's approval.", [:], required: []),
     ]
 
     static func tool(_ name: String, _ desc: String, _ props: [String: Any], required: [String]) -> [String: Any] {
@@ -92,8 +92,8 @@ final class MCPServer {
             let tags = a["tags"] as? [String] ?? []
             let (n, flags) = try propose(title: a["title"] as? String ?? "Untitled", text: a["text"] as? String ?? "",
                                          tags: tags, by: "mcp-agent")
-            var s = "Saved to the approval inbox as \(n.id). The counselor approves it with `holdfast approve \(n.id)`."
-            if !flags.isEmpty { s += "\nPrivacy flags for the counselor to check: " + flags.joined(separator: "; ") }
+            var s = "Saved to the approval inbox as \(n.id). The user approves it with `holdfast approve \(n.id)`."
+            if !flags.isEmpty { s += "\nPrivacy flags for the user to check: " + flags.joined(separator: "; ") }
             return text(s)
         case "list_inbox":
             let items = inbox()

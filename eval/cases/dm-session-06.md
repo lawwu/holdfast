@@ -8,7 +8,7 @@ Date: 2026-09-10 · Session: 6 · Length of Session: 75 minutes
 
 His company lost a major hospital bid on September 5. He led the proposal.
 
-## Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).
+## Give a summary of reason(s) the participant came for support—the presentation problem(s).
 
 Explosive anger in the marriage and toward the children (see Session 1).
 
@@ -28,15 +28,15 @@ The relapse; his identity in work performance and his boss's approval; the eveni
 
 1 Peter 2:21-23 (when Christ was reviled he did not revile in return, but entrusted himself to God); Colossians 3:23-24 (work heartily as for the Lord); Proverbs 16:32 (better a man slow to anger than a mighty man).
 
-## What specific applications to the counselee's life did you discuss from your Scripture?
+## What specific applications to the participant's life did you discuss from your Scripture?
 
 Losing the bid felt like losing who he is. His worth is in Christ, not in winning. He works for the Lord, so a lost bid is not a verdict on him. The quick repentance shows the Spirit at work.
 
-## What are you seeing (or not) about the counselee's faith in who God is, about their relationship with Jesus, and/or about the role of the Gospel in their daily life and problem?
+## What are you seeing (or not) about the participant's faith in who God is, about their relationship with Jesus, and/or about the role of the Gospel in their daily life and problem?
 
 Growing. He was more grieved about the relapse than defensive about it.
 
-## What unbiblical habits of thinking and/or behaving (preconditioning issues) are you seeing in the counselee?
+## What unbiblical habits of thinking and/or behaving (preconditioning issues) are you seeing in the participant?
 
 Carrying work stress home without processing it; catastrophizing ("I'm going to get fired").
 
@@ -51,7 +51,7 @@ Approval and success at work, an idol of performance. This feeds the evening ang
 3. Memorize Proverbs 16:32.
 4. Complete the Idols of the Heart lesson.
 
-## If someone asked the counselee right after the session, "What did you learn that you needed to change, with God's help?" what would you want him to say? What challenge did you give?
+## If someone asked the participant right after the session, "What did you learn that you needed to change, with God's help?" what would you want him to say? What challenge did you give?
 
 "My job is not my identity; Christ is." Challenge: sit in the truck for two minutes and pray before going inside each evening.
 
@@ -59,11 +59,11 @@ Approval and success at work, an idol of performance. This feeds the evening ang
 
 The quick, self-initiated repentance is real fruit. Relapse is not failure of the whole process.
 
-## How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?
+## How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?
 
 Yelling has dropped sharply; repentance is faster; forgiveness is progressing. Work identity is the new front.
 
-## What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?
+## What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?
 
 Joint session to hear K.M.'s view of progress, and teach Ephesians 5 on loving his wife (step 6).
 

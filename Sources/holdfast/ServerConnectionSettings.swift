@@ -54,7 +54,7 @@ struct ServerConnectionSettings: View {
                         .font(Theme.caption).foregroundStyle(.secondary)
                 }.padding(.top, 8)
             }
-            Text("Questions and note excerpts go to this server. Counseling uses LocalMLX on this Mac.")
+            Text("Questions and note excerpts go to this server. Private uses LocalMLX on this Mac.")
                 .font(Theme.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             if let status {
                 Text(status).font(Theme.caption).textSelection(.enabled)

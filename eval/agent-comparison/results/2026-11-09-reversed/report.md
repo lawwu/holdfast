@@ -22,7 +22,7 @@ The two Ollama arms use identical weights, sampling, seed, system prompt and too
 
 MLX uses the app's 4-bit Qwen3.8-27B; Ollama uses the existing 31.5 GB imported GGUF. Its Q8 tag and Q4_K_M metadata disagree; the attached gguf-types.json, when present, records actual tensor types (Q8_0 plus BF16/F32 in this run). Cross-engine results therefore compare the installed stacks, not equal quantization. No model download or global configuration change is made.
 
-Compaction, long conversations, crash recovery, steering, counseling locality and concurrent workloads are outside this short-task evaluation. Peak physical/GPU memory is not measured; model sizes are not runtime memory measurements.
+Compaction, long conversations, crash recovery, steering, private locality and concurrent workloads are outside this short-task evaluation. Peak physical/GPU memory is not measured; model sizes are not runtime memory measurements.
 
 Initial-request audit: 2/2 Ollama pairs match after normalizing string versus text-block content and excluding streaming flags. Full wire requests are retained.
 

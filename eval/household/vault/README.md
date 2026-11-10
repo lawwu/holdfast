@@ -25,7 +25,7 @@ table, and the rules for recording new information. Read it before changing anyt
 | `health/` | Fitness goal, clinic and dental visits for every family member, activity log | [health/README.md](health/README.md) |
 | `life/` | Trips, recipes, the family calendar | [life/README.md](life/README.md) |
 | `career/` | Erik's work and the decisions around it | [career/README.md](career/README.md) |
-| `ministry/` | Erik's biblical-counseling case reports (initials only) | [ministry/README.md](ministry/README.md) |
+| `private/` | Erik's biblical-private case reports (initials only) | [private/README.md](private/README.md) |
 
 ## Conventions
 

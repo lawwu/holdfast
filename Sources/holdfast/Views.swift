@@ -382,7 +382,7 @@ struct AskNotices: View {
         VStack(spacing: 10) {
             if store.pendingJob == .crossLink {
                 JobConfirmCard(title: "Suggest links between notes?",
-                               detail: "Holdfast finds pairs of closely related notes that don't link yet and asks the model about each pair (a few minutes). Suggestions wait in the Inbox for your approval; counseling notes are left out.",
+                               detail: "Holdfast finds pairs of closely related notes that don't link yet and asks the model about each pair (a few minutes). Suggestions wait in the Inbox for your approval; private notes are left out.",
                                start: { store.pendingJob = nil; store.runCrossLink() },
                                cancel: { store.pendingJob = nil })
             }
@@ -772,7 +772,7 @@ struct Composer: View {
         VStack(spacing: 8) {
             HStack(alignment: .bottom, spacing: 10) {
                 TextField(store.conversationId != nil && !store.askedQuestion.isEmpty ? "Ask a follow-up…"
-                          : store.profile == .counseling ? "Ask about your materials and case reports…" : "Ask, or tell Holdfast what to do…",
+                          : store.profile == .privateNotes ? "Ask about your materials and case reports…" : "Ask, or tell Holdfast what to do…",
                           text: $store.question, axis: .vertical)
                     .textFieldStyle(.plain)
                     .font(.system(size: 16))

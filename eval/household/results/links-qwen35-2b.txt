@@ -1,17 +1,17 @@
-  missed: ministry/counseling/dm/dm-session-07.md → ministry/counseling/dm/dm-session-03.md
-  missed: ministry/counseling/dm/dm-session-07.md → ministry/counseling/dm/dm-session-06.md
-  missed: ministry/counseling/dm/dm-session-08.md → ministry/counseling/dm/dm-session-01.md
-  missed: ministry/counseling/dm/dm-session-04.md → ministry/counseling/dm/dm-session-01.md
-  missed: ministry/counseling/dm/dm-session-03.md → ministry/counseling/dm/dm-session-01.md
-  missed: ministry/counseling/dm/dm-session-05.md → ministry/counseling/dm/dm-session-08.md
-  missed: ministry/counseling/dm/dm-session-04.md → ministry/counseling/dm/dm-session-03.md
-  missed: ministry/counseling/dm/dm-session-05.md → ministry/counseling/dm/dm-session-01.md
-  missed: ministry/counseling/dm/dm-session-05.md → ministry/counseling/dm/dm-session-06.md
-  missed: ministry/counseling/dm/dm-session-06.md → ministry/counseling/dm/dm-session-01.md
-  missed: ministry/counseling/dm/dm-session-06.md → ministry/counseling/dm/dm-session-08.md
-  missed: ministry/counseling/dm/dm-session-03.md → ministry/counseling/dm/dm-session-06.md
+  missed: private/cases/dm/dm-session-07.md → private/cases/dm/dm-session-03.md
+  missed: private/cases/dm/dm-session-07.md → private/cases/dm/dm-session-06.md
+  missed: private/cases/dm/dm-session-08.md → private/cases/dm/dm-session-01.md
+  missed: private/cases/dm/dm-session-04.md → private/cases/dm/dm-session-01.md
+  missed: private/cases/dm/dm-session-03.md → private/cases/dm/dm-session-01.md
+  missed: private/cases/dm/dm-session-05.md → private/cases/dm/dm-session-08.md
+  missed: private/cases/dm/dm-session-04.md → private/cases/dm/dm-session-03.md
+  missed: private/cases/dm/dm-session-05.md → private/cases/dm/dm-session-01.md
+  missed: private/cases/dm/dm-session-05.md → private/cases/dm/dm-session-06.md
+  missed: private/cases/dm/dm-session-06.md → private/cases/dm/dm-session-01.md
+  missed: private/cases/dm/dm-session-06.md → private/cases/dm/dm-session-08.md
+  missed: private/cases/dm/dm-session-03.md → private/cases/dm/dm-session-06.md
   missed: finance/profile.md → finance/net-worth.md
   missed: life/calendar.md → health/visits/2026-06-04_erik_ridgeview-family-medicine.md
-  false link: career/notes.md → ministry/counseling/dm/dm-session-02.md (Both notes discuss D.M.'s work schedule and family life in the same region.)
+  false link: career/notes.md → private/cases/dm/dm-session-02.md (Both notes discuss D.M.'s work schedule and family life in the same region.)
   missed: health/visits/2026-09-30_anna_bright-smile-dental.md → life/calendar.md
 qwen35-2b: accuracy 65% · precision 94% · recall 50% · false links 1 · median 1.4s/pair

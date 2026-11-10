@@ -93,7 +93,7 @@ Answers still need manual review. These fixtures give explicit paths; retrieval 
 is not evaluated (no embedding/reranker or prebuilt search index).
 
 This does not evaluate long conversations, compaction, crash recovery, steering,
-counseling locality, concurrency, or peak physical/GPU memory. A single pass per case
+private locality, concurrency, or peak physical/GPU memory. A single pass per case
 is exploratory, not a statistically stable speed ranking. Repeat the cases and alternate
 arm order before making a performance decision. The runner reverses arm order on even
 repetitions.

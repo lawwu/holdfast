@@ -278,9 +278,9 @@ enum Export {
 
     /// The notes, the originals they link to, a README and manifest.json, zipped; then the ZIP is
     /// unpacked into a temporary folder and every file checked against the manifest.
-    static func build(_ chosen: [Note], includeCounseling: Bool, title: String, to zip: URL) throws -> Report {
+    static func build(_ chosen: [Note], includePrivateNotes: Bool, title: String, to zip: URL) throws -> Report {
         let fm = FileManager.default
-        let keep = chosen.filter { includeCounseling || !Profile.isCounseling($0.relPath) }
+        let keep = chosen.filter { includePrivateNotes || !Profile.isPrivate($0.relPath) }
         let name = title.trimmingCharacters(in: .whitespaces).isEmpty ? "Holdfast export" : title.replacingOccurrences(of: "/", with: "-")
         let stage = fm.temporaryDirectory.appendingPathComponent("holdfast-export-" + UUID().uuidString)
         defer { try? fm.removeItem(at: stage) }
@@ -307,7 +307,7 @@ enum Export {
         Exported from Holdfast on \(Drop.dayString(holdfast.today())): \(keep.count) notes and \(originals) original documents.
         Notes are Markdown files that open in any text editor; originals are under \(Originals.folder)/.
         manifest.json lists every file with its SHA-256, so the copy can be checked.
-        \(chosen.count > keep.count ? "\(chosen.count - keep.count) counseling notes were left out.\n" : "")
+        \(chosen.count > keep.count ? "\(chosen.count - keep.count) private notes were left out.\n" : "")
         """
         try readme.write(to: root.appendingPathComponent("README.txt"), atomically: true, encoding: .utf8)
         entries.append(.init(path: "README.txt", size: readme.utf8.count, sha256: try sha256(of: root.appendingPathComponent("README.txt"))))

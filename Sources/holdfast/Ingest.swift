@@ -135,7 +135,7 @@ func ingestDocument(_ url: URL, root: URL?, tags: [String]) throws -> Note {
 }
 
 /// Case-report metadata from the ACBC form header ("Date: … Session: N") and an
-/// initials-style counselee id in the title ("D.M."). Becomes frontmatter, so
+/// initials-style participant id in the title ("D.M."). Becomes frontmatter, so
 /// retrieval can filter by session and label every passage with it.
 func caseMetadata(title: String, body: String) -> [String: String] {
     func first(_ pattern: String, _ text: String) -> String? {

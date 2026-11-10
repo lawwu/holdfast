@@ -96,7 +96,7 @@
       "[[health\/goals#Revision — 2026-09-09 (Erik)]]",
       "[[health\/README#Files]]",
       "[[health\/running\/overview#Training overview — Erik, 2026]]",
-      "[[ministry\/README#Ministry — operating manual]]",
+      "[[private\/README#Private — operating manual]]",
       "[[life\/journal\/2026-01-05#2026-01-05]]"
     ],
     "tokPerSec" : 0
@@ -1375,7 +1375,7 @@
     ],
     "cited" : false,
     "contextRecall" : 1,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "Qwen3-Embedding-0.6B",
     "facts" : 0,
     "id" : "x42",
@@ -1395,12 +1395,12 @@
     "rerankerModel" : "Qwen3-Reranker-0.6B",
     "seconds" : 4.487429976463318,
     "sources" : [
-      "[[ministry\/counseling\/dm\/dm-case-summary#Notes for supervision]]",
-      "[[ministry\/counseling\/dm\/dm-case-summary#Session 7 — 2026-09-17 (90 min, joint with K.M.)]]",
-      "[[ministry\/counseling\/dm\/dm-session-08#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/dm\/dm-case-summary#Graduation plan (his own words, condensed)]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#What can you highlight as significant background information?]]",
-      "[[ministry\/prayer-list#Prayer list — counseling]]"
+      "[[private\/private\/dm\/dm-case-summary#Notes for supervision]]",
+      "[[private\/private\/dm\/dm-case-summary#Session 7 — 2026-09-17 (90 min, joint with K.M.)]]",
+      "[[private\/private\/dm\/dm-session-08#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/dm\/dm-case-summary#Graduation plan (his own words, condensed)]]",
+      "[[private\/private\/dm\/dm-session-05#What can you highlight as significant background information?]]",
+      "[[private\/prayer-list#Prayer list — private]]"
     ],
     "tokPerSec" : 0
   },
@@ -1411,11 +1411,11 @@
     ],
     "cited" : false,
     "contextRecall" : 1,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "Qwen3-Embedding-0.6B",
     "facts" : 0,
     "id" : "x43",
-    "kind" : "counseling",
+    "kind" : "private",
     "missed" : [
       "Psalm 56",
       "Welch|chapter 5",
@@ -1432,14 +1432,14 @@
     "rerankerModel" : "Qwen3-Reranker-0.6B",
     "seconds" : 4.518906950950623,
     "sources" : [
-      "[[ministry\/counseling\/rs\/rs-session-07#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
-      "[[ministry\/counseling\/rs\/rs-session-05#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/rs\/rs-session-01#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/rs\/rs-session-04#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/rs\/rs-session-06#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/rs\/rs-session-06#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]"
+      "[[private\/private\/rs\/rs-session-07#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
+      "[[private\/private\/rs\/rs-session-02#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
+      "[[private\/private\/rs\/rs-session-05#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/rs\/rs-session-03#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/rs\/rs-session-01#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/rs\/rs-session-04#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/rs\/rs-session-06#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/rs\/rs-session-06#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]"
     ],
     "tokPerSec" : 0
   },
@@ -1450,11 +1450,11 @@
     ],
     "cited" : false,
     "contextRecall" : 1,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "Qwen3-Embedding-0.6B",
     "facts" : 0,
     "id" : "x44",
-    "kind" : "counseling",
+    "kind" : "private",
     "missed" : [
       "2026-10-11|Oct(ober)?\\.? 11",
       "disappointed|Fine, if that|cold|quiet"
@@ -1470,14 +1470,14 @@
     "rerankerModel" : "Qwen3-Reranker-0.6B",
     "seconds" : 4.217816948890686,
     "sources" : [
-      "[[ministry\/counseling\/rs\/rs-session-02#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
-      "[[ministry\/counseling\/rs\/rs-session-06#Case Report — R.S. — Session 6]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
-      "[[ministry\/counseling\/rs\/rs-session-04#What was gained by performing the homework from last session? What change?]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#What specific applications to the counselee's life did you discuss from your Scripture?]]",
-      "[[ministry\/counseling\/rs\/rs-session-05#What specific applications to the counselee's life did you discuss from your Scripture?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#What specific applications to the counselee's life did you discuss from your Scripture?]]",
-      "[[ministry\/counseling\/rs\/rs-session-04#What can you highlight as significant background information?]]"
+      "[[private\/private\/rs\/rs-session-02#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
+      "[[private\/private\/rs\/rs-session-06#Case Report — R.S. — Session 6]]",
+      "[[private\/private\/rs\/rs-session-03#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
+      "[[private\/private\/rs\/rs-session-04#What was gained by performing the homework from last session? What change?]]",
+      "[[private\/private\/rs\/rs-session-03#What specific applications to the participant's life did you discuss from your Scripture?]]",
+      "[[private\/private\/rs\/rs-session-05#What specific applications to the participant's life did you discuss from your Scripture?]]",
+      "[[private\/private\/rs\/rs-session-02#What specific applications to the participant's life did you discuss from your Scripture?]]",
+      "[[private\/private\/rs\/rs-session-04#What can you highlight as significant background information?]]"
     ],
     "tokPerSec" : 0
   },
@@ -1488,11 +1488,11 @@
     ],
     "cited" : false,
     "contextRecall" : 1,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "Qwen3-Embedding-0.6B",
     "facts" : 0,
     "id" : "x45",
-    "kind" : "counseling",
+    "kind" : "private",
     "missed" : [
       "2026-10-21|Oct(ober)?\\.? 21"
     ],
@@ -1507,13 +1507,13 @@
     "rerankerModel" : "Qwen3-Reranker-0.6B",
     "seconds" : 4.404642939567566,
     "sources" : [
-      "[[ministry\/counseling\/rs\/rs-session-01#What can you highlight as significant background information?]]",
-      "[[ministry\/counseling\/rs\/rs-session-05#Case Report — R.S. — Session 5]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#What can you highlight as significant background information?]]",
-      "[[ministry\/counseling\/rs\/rs-session-04#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#What are you seeing (or not) about the counselee's faith in who God is, about their relationship with Jesus, and\/or about the role of the Gospel in their daily life and problem?]]",
-      "[[ministry\/counseling\/rs\/rs-session-04#What was gained by performing the homework from last session? What change?]]"
+      "[[private\/private\/rs\/rs-session-01#What can you highlight as significant background information?]]",
+      "[[private\/private\/rs\/rs-session-05#Case Report — R.S. — Session 5]]",
+      "[[private\/private\/rs\/rs-session-03#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/rs\/rs-session-02#What can you highlight as significant background information?]]",
+      "[[private\/private\/rs\/rs-session-04#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/rs\/rs-session-03#What are you seeing (or not) about the participant's faith in who God is, about their relationship with Jesus, and\/or about the role of the Gospel in their daily life and problem?]]",
+      "[[private\/private\/rs\/rs-session-04#What was gained by performing the homework from last session? What change?]]"
     ],
     "tokPerSec" : 0
   },
@@ -1524,11 +1524,11 @@
     ],
     "cited" : false,
     "contextRecall" : 1,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "Qwen3-Embedding-0.6B",
     "facts" : 0,
     "id" : "x46",
-    "kind" : "counseling",
+    "kind" : "private",
     "missed" : [
       "self.?scrutiny|analy|overthink|stay(ed|ing) up|more (things )?wrong|worse",
       "chapter 5|one chapter a week|resum"
@@ -1544,14 +1544,14 @@
     "rerankerModel" : "Qwen3-Reranker-0.6B",
     "seconds" : 4.115792989730835,
     "sources" : [
-      "[[ministry\/counseling\/rs\/rs-session-06#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
-      "[[ministry\/counseling\/rs\/rs-session-06#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
-      "[[ministry\/supervision-log#Supervision log — with Pastor J.]]",
-      "[[ministry\/counseling\/rs\/rs-session-04#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/rs\/rs-session-07#What was gained by performing the homework from last session? What change?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/rs\/rs-session-07#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/rs\/rs-session-05#What homework was given and how did it specifically apply to problems?]]"
+      "[[private\/private\/rs\/rs-session-06#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
+      "[[private\/private\/rs\/rs-session-06#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]",
+      "[[private\/supervision-log#Supervision log — with Pastor J.]]",
+      "[[private\/private\/rs\/rs-session-04#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/rs\/rs-session-07#What was gained by performing the homework from last session? What change?]]",
+      "[[private\/private\/rs\/rs-session-02#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/rs\/rs-session-07#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/rs\/rs-session-05#What homework was given and how did it specifically apply to problems?]]"
     ],
     "tokPerSec" : 0
   },
@@ -1562,11 +1562,11 @@
     ],
     "cited" : false,
     "contextRecall" : 1,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "Qwen3-Embedding-0.6B",
     "facts" : 0,
     "id" : "x47",
-    "kind" : "counseling",
+    "kind" : "private",
     "missed" : [
       "daily (spending )?log",
       "weekly",
@@ -1583,14 +1583,14 @@
     "rerankerModel" : "Qwen3-Reranker-0.6B",
     "seconds" : 4.412177920341492,
     "sources" : [
-      "[[ministry\/counseling\/jp\/jp-session-03#What can you highlight as significant background information?]]",
-      "[[ministry\/counseling\/jp\/jp-session-04#Case Report — J.P. — Session 4]]",
-      "[[ministry\/counseling\/jp\/jp-session-04#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/jp\/jp-session-01#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/jp\/jp-session-01#What was gained by performing the homework from last session? What change?]]",
-      "[[ministry\/counseling\/jp\/jp-session-03#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/jp\/jp-session-02#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#What was gained by performing the homework from last session? What change?]]"
+      "[[private\/private\/jp\/jp-session-03#What can you highlight as significant background information?]]",
+      "[[private\/private\/jp\/jp-session-04#Case Report — J.P. — Session 4]]",
+      "[[private\/private\/jp\/jp-session-04#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/jp\/jp-session-01#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/jp\/jp-session-01#What was gained by performing the homework from last session? What change?]]",
+      "[[private\/private\/jp\/jp-session-03#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/jp\/jp-session-02#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/rs\/rs-session-03#What was gained by performing the homework from last session? What change?]]"
     ],
     "tokPerSec" : 0
   },
@@ -1601,11 +1601,11 @@
     ],
     "cited" : false,
     "contextRecall" : 1,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "Qwen3-Embedding-0.6B",
     "facts" : 0,
     "id" : "x48",
-    "kind" : "counseling",
+    "kind" : "private",
     "missed" : [
       "credit card|debt",
       "14,?200",
@@ -1622,10 +1622,10 @@
     "rerankerModel" : "Qwen3-Reranker-0.6B",
     "seconds" : 4.038565993309021,
     "sources" : [
-      "[[ministry\/counseling\/jp\/jp-session-02#What can you highlight as significant background information?]]",
-      "[[ministry\/counseling\/jp\/jp-session-02#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
-      "[[ministry\/supervision-log#Supervision log — with Pastor J.]]",
-      "[[ministry\/counseling\/jp\/jp-session-02#What specific applications to the counselee's life did you discuss from your Scripture?]]"
+      "[[private\/private\/jp\/jp-session-02#What can you highlight as significant background information?]]",
+      "[[private\/private\/jp\/jp-session-02#If someone asked the participant right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
+      "[[private\/supervision-log#Supervision log — with Pastor J.]]",
+      "[[private\/private\/jp\/jp-session-02#What specific applications to the participant's life did you discuss from your Scripture?]]"
     ],
     "tokPerSec" : 0
   },
@@ -1830,7 +1830,7 @@
 
     ],
     "cited" : false,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "Qwen3-Embedding-0.6B",
     "facts" : 0,
     "id" : "x56",
@@ -1847,12 +1847,12 @@
     "rerankerModel" : "Qwen3-Reranker-0.6B",
     "seconds" : 4.201514005661011,
     "sources" : [
-      "[[ministry\/counseling\/rs\/rs-session-06#What can you highlight as significant background information?]]",
-      "[[ministry\/counseling\/rs\/rs-session-01#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
-      "[[ministry\/counseling\/rs\/rs-session-04#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
-      "[[ministry\/counseling\/rs\/rs-session-01#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
-      "[[ministry\/counseling\/rs\/rs-session-06#Thinking back on\/listening to this session, what could you have done better?]]"
+      "[[private\/private\/rs\/rs-session-06#What can you highlight as significant background information?]]",
+      "[[private\/private\/rs\/rs-session-01#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
+      "[[private\/private\/rs\/rs-session-04#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
+      "[[private\/private\/rs\/rs-session-02#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]",
+      "[[private\/private\/rs\/rs-session-01#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]",
+      "[[private\/private\/rs\/rs-session-06#Thinking back on\/listening to this session, what could you have done better?]]"
     ],
     "tokPerSec" : 0
   },
@@ -1889,7 +1889,7 @@
 
     ],
     "cited" : false,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "Qwen3-Embedding-0.6B",
     "facts" : 0,
     "id" : "x58",
@@ -1906,10 +1906,10 @@
     "rerankerModel" : "Qwen3-Reranker-0.6B",
     "seconds" : 3.378780961036682,
     "sources" : [
-      "[[ministry\/counseling\/jp\/jp-session-01#Case Report — J.P. — Session 1]]",
-      "[[ministry\/counseling\/jp\/jp-session-02#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
-      "[[ministry\/counseling\/jp\/jp-session-03#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/jp\/jp-session-03#What main problems were discussed in this session?]]"
+      "[[private\/private\/jp\/jp-session-01#Case Report — J.P. — Session 1]]",
+      "[[private\/private\/jp\/jp-session-02#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
+      "[[private\/private\/jp\/jp-session-03#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/jp\/jp-session-03#What main problems were discussed in this session?]]"
     ],
     "tokPerSec" : 0
   },

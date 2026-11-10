@@ -67,7 +67,7 @@
   "file": "drops/jp-case-report-session-5.txt",
   "convert": "docx",
   "expect_action": "new",
-  "expect_path": "^ministry/counseling/jp/jp-session-0?5\\.md$",
+  "expect_path": "^private/cases/jp/jp-session-0?5\\.md$",
   "expect_facts": [
    "2026-11-03",
    "money meeting",

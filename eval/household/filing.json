@@ -107,7 +107,7 @@
   "file": "drops/rs-case-report-session-4.txt",
   "convert": "docx",
   "expect_action": "new",
-  "expect_path": "^ministry/counseling/rs/rs-session-0?4\\.md$",
+  "expect_path": "^private/cases/rs/rs-session-0?4\\.md$",
   "expect_facts": [
    "R\\.S\\.",
    "2026-10-22",

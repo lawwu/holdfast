@@ -1,12 +1,16 @@
 # Eval: synthetic case reports
 
-A repeatable test of `holdfast ask` on the first use case: a counselor asking questions
+Names, terminology, and fixture paths in these datasets and saved results have been normalized
+for the public repository. Historical scores and timings are unchanged; saved answers are
+sanitized records, not byte-for-byte model transcripts or new runs against the current prompts.
+
+A repeatable test of `holdfast ask` on the first use case: a reviewer asking questions
 of past case reports. **All data here is synthetic.** "D.M." and his family are
-fictional, and no real counselee material is used.
+fictional, and no real participant material is used.
 
 | File | What it is |
 | --- | --- |
-| `cases/dm-session-01..08.md` | Eight session reports for one fictional counselee, a man struggling with anger in his marriage. Each follows the ACBC Phase 3 Case Report Form (its 16 questions), with facts kept consistent across sessions: one relapse, two joint sessions, a safety plan, memory verses, and the counselor's "could have done better" notes |
+| `cases/dm-session-01..08.md` | Eight session reports for one fictional participant, a man struggling with anger in his marriage. Each follows the ACBC Phase 3 Case Report Form (its 16 questions), with facts kept consistent across sessions: one relapse, two joint sessions, a safety plan, memory verses, and the reviewer's "could have done better" notes |
 | `make_docx.py` | Renders `cases/*.md` to `docx/*.docx` with macOS `textutil`, so the eval goes through the same Word import as real reports |
 | `questions.json` | 16 questions: 10 single-session facts, 5 that need several sessions, and 1 the reports cannot answer (medication). Each lists the regex patterns a correct answer must contain and the sessions that hold the answer |
 | `compare.py` | Side-by-side table of every run in `results/` |

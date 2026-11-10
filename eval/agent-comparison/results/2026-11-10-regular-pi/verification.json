@@ -4,7 +4,7 @@
   "default": "Pi for normal Holdfast app and CLI; LocalMLX for inference",
   "runtime": "Runtime/pi",
   "artifact": "build/Holdfast Pi.app",
-  "artifact_bundle_id": "net.lawrencewu.holdfast.pi-regular",
+  "artifact_bundle_id": "app.holdfast.pi-regular",
   "checks": {
     "build": "passed",
     "bridge": "5 tests: saved history, deduplication, crash with no replay, Stop, tool allowlist, native error results",

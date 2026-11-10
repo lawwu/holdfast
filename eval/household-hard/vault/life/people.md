@@ -13,8 +13,8 @@
 | Mormor | Birgit Lindgren, Anna's mother, Portland | |
 | Aunt Kristin | Anna's sister, San Diego | we stay with her at Christmas 2026 |
 | Tom and Becca Lindqvist | small-group leaders, friends | |
-| Pastor J. | Hillcrest; Erik's counseling supervisor | |
-| Pastor R. | Hillcrest; refers counselees | |
+| Pastor J. | Hillcrest; Erik's private supervisor | |
+| Pastor R. | Hillcrest; refers participants | |
 | Dana | Erik's boss at Bluestem | |
 
 Two Eriks: in notes, "Erik" is always Erik (the dad of this house); his father is

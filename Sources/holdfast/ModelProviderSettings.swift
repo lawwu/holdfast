@@ -61,9 +61,9 @@ final class ServerBackend: LLMBackend, @unchecked Sendable {
         provider = try HTTPModelProvider(configuration: configuration, apiKey: ProviderSettings.credential(configuration), thinking: Thinking.on)
     }
     func chat(system: String, user: String, temperature: Double?, onToken: @escaping @Sendable (String) -> Void) async throws -> GenStats {
-        // The caller routes mixed-vault counseling context before this point. A counseling
+        // The caller routes mixed-vault private context before this point. A private
         // vault is also protected here for every plain-chat caller (including filing).
-        if Profile.vaultDefault.id == Profile.counseling.id {
+        if Profile.vaultDefault.id == Profile.privateNotes.id {
             ModelPrivacy.keptLocal = true
             return try await MLXBackend.shared().chat(system: system, user: user, temperature: temperature, onToken: onToken)
         }
@@ -85,7 +85,7 @@ struct ServerAgentModel: AgentRuntime.Model {
         return try JSONDecoder().decode(AgentRuntime.Reply.self, from: JSONEncoder().encode(reply))
     }
     func respond(to request: AgentRuntime.Request, onText: @escaping @Sendable (String) -> Void) async throws -> AgentRuntime.Reply {
-        guard !request.localOnly else { throw HoldfastError("Counseling content must stay in LocalMLX on this Mac.") }
+        guard !request.localOnly else { throw HoldfastError("Private content must stay in LocalMLX on this Mac.") }
         let messages: [Inference.Message] = request.messages.map {
             switch $0 {
             case .user(let text): return .init(role: "user", text: text)
@@ -103,12 +103,17 @@ struct ServerAgentModel: AgentRuntime.Model {
 func usesModelServer(_ llm: LLMBackend) -> Bool { llm is ServerBackend }
 
 enum ProviderCredential {
-    private static func query(_ endpoint: String) -> [String: Any] {
+    private static func query(_ endpoint: String, service: String) -> [String: Any] {
         [kSecClass as String: kSecClassGenericPassword,
-         kSecAttrService as String: "net.lawrencewu.holdfast.model-servers", kSecAttrAccount as String: endpoint]
+         kSecAttrService as String: service, kSecAttrAccount as String: endpoint]
     }
     static func read(endpoint: String) throws -> String? {
-        var request = query(endpoint); request[kSecReturnData as String] = true; request[kSecMatchLimit as String] = kSecMatchLimitOne
+        try LegacyCompatibility.readCredential(suffix: "model-servers",
+            read: { try readStored(endpoint: endpoint, service: $0) },
+            write: { try writeStored($0, endpoint: endpoint, service: $1) })
+    }
+    private static func readStored(endpoint: String, service: String) throws -> String? {
+        var request = query(endpoint, service: service); request[kSecReturnData as String] = true; request[kSecMatchLimit as String] = kSecMatchLimitOne
         var item: CFTypeRef?
         let status = SecItemCopyMatching(request as CFDictionary, &item)
         if status == errSecItemNotFound { return nil }; try check(status)
@@ -116,7 +121,11 @@ enum ProviderCredential {
         return key
     }
     static func write(_ key: String?, endpoint: String) throws {
-        let request = query(endpoint)
+        try LegacyCompatibility.writeCredential(key, suffix: "model-servers",
+            write: { try writeStored($0, endpoint: endpoint, service: $1) })
+    }
+    private static func writeStored(_ key: String?, endpoint: String, service: String) throws {
+        let request = query(endpoint, service: service)
         guard let key else { let status = SecItemDelete(request as CFDictionary); if status != errSecItemNotFound { try check(status) }; return }
         let attributes = [kSecValueData as String: Data(key.utf8)]
         let status = SecItemUpdate(request as CFDictionary, attributes as CFDictionary)

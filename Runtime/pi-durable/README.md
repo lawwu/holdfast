@@ -75,7 +75,7 @@ point at a Node executable; `HOLDFAST_PI_DIR` at this directory.
 Provider selection is shared with the native harness (Settings → Answer, or
 `HOLDFAST_BACKEND=mlx|ollama|lmstudio|custom`). The historical `holdfast-mlx` provider ID
 is retained for durable conversation compatibility; it now routes to the selected Swift adapter.
-Counseling results latch a native local-only flag before acknowledgement. Future model requests,
+Private results latch a native local-only flag before acknowledgement. Future model requests,
 including after restart, switch to embedded LocalMLX or fail closed. Inbox approval is unchanged.
 
 ## Approval and recovery boundary

@@ -24,7 +24,7 @@ works, and we're giving more than ever.
 ### 2026-11-02
 
 Family and church. Two or three nights away a week means missing Leif's soccer, bedtime with
-Soren, and Tuesday nights with the counseling ministry (D.M. finished in September, but R.S. is
+Soren, and Tuesday nights with the private private (D.M. finished in September, but R.S. is
 mid-way). Anna said she'd support either choice, but she was honest that the weeks I travel would
 be hard for her.
 

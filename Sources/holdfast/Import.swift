@@ -265,7 +265,7 @@ enum BulkImport {
         var tables = 0
         var skipped: [String] = []
         var folder = ""
-        /// Imported notes that look like they hold full names (in counseling folders), emails,
+        /// Imported notes that look like they hold full names (in private folders), emails,
         /// phone or account-like numbers: imported as they were, listed so they can be checked.
         var flagged: [String] = []
     }
@@ -367,7 +367,7 @@ enum BulkImport {
                                     body: "\n# \(title)\n\n" + text + "\n")
                     try note.write()
                     report.notes += 1
-                    let flags = privacyFlags(text, names: Profile.isCounseling(folder + "/" + item.rel))
+                    let flags = privacyFlags(text, names: Profile.isPrivate(folder + "/" + item.rel))
                     if !flags.isEmpty { report.flagged.append("\(item.rel): \(flags.joined(separator: ", "))") }
                 }
             } catch {

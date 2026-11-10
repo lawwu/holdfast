@@ -1,6 +1,6 @@
 [
   {
-    "answer" : "The incident that brought D.M. to counseling was an argument over the credit card bill in late July, during which he yelled at K.M. in front of their children and punched a hole in the drywall in the garage [1]. K.M. told him that if he did not get help, she would take the children to stay with her parents for a while [1].",
+    "answer" : "The incident that brought D.M. to private was an argument over the credit card bill in late July, during which he yelled at K.M. in front of their children and punched a hole in the drywall in the garage [1]. K.M. told him that if he did not get help, she would take the children to stay with her parents for a while [1].",
     "badCitations" : [
 
     ],
@@ -14,7 +14,7 @@
     ],
     "outputTokens" : 77,
     "promptTokens" : 928,
-    "question" : "What incident brought D.M. to counseling, and what did his wife say she would do?",
+    "question" : "What incident brought D.M. for support, and what did his wife say she would do?",
     "recall" : 1,
     "seconds" : 24.786167979240417,
     "sources" : [
@@ -25,7 +25,7 @@
     "tokPerSec" : 9.940641369872028
   },
   {
-    "answer" : "Based on the provided passages, here is the information regarding physical danger and the safety plan:\n\n**Physical Danger Assessment**\n*   **Incident History:** D.M. punched a hole in drywall during an argument, but when asked separately if he had ever hit, pushed, restrained, or threatened K.M. or the children, both D.M. and K.M. answered \"no\" [1].\n*   **Current Status:** K.M. reported that she feels physically safe, though she is \"on edge\" [1]. There are no weapons concerns noted in the record [1].\n*   **Ongoing Tension:** In Session 3, K.M. reported that the children hide in their rooms when they hear D.M.'s truck pull in, and she \"walks on eggshells,\" while D.M. minimized the issue by stating, \"I've never hit anyone\" [3].\n\n**Agreed Safety Plan**\n*   **Trigger for Action:** Any physical aggression toward K.M. or the children [1].\n*   **Immediate Consequence:** If physical aggression occurs, K.M. and the children will go to stay with her parents [1].\n*   **Reporting:** The counselor will inform the church elders if this occurs [1].",
+    "answer" : "Based on the provided passages, here is the information regarding physical danger and the safety plan:\n\n**Physical Danger Assessment**\n*   **Incident History:** D.M. punched a hole in drywall during an argument, but when asked separately if he had ever hit, pushed, restrained, or threatened K.M. or the children, both D.M. and K.M. answered \"no\" [1].\n*   **Current Status:** K.M. reported that she feels physically safe, though she is \"on edge\" [1]. There are no weapons concerns noted in the record [1].\n*   **Ongoing Tension:** In Session 3, K.M. reported that the children hide in their rooms when they hear D.M.'s truck pull in, and she \"walks on eggshells,\" while D.M. minimized the issue by stating, \"I've never hit anyone\" [3].\n\n**Agreed Safety Plan**\n*   **Trigger for Action:** Any physical aggression toward K.M. or the children [1].\n*   **Immediate Consequence:** If physical aggression occurs, K.M. and the children will go to stay with her parents [1].\n*   **Reporting:** The reviewer will inform the church elders if this occurs [1].",
     "badCitations" : [
 
     ],
@@ -70,7 +70,7 @@
     "sources" : [
       "[[dm-session-01#What can you highlight as significant background information?]]",
       "[[dm-session-01#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
-      "[[dm-session-01#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
+      "[[dm-session-01#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]",
       "[[dm-session-01#What Biblical solutions were presented in this session? What Scripture?]]",
       "[[dm-session-01#What can you highlight as significant background information?]]"
     ],
@@ -91,22 +91,22 @@
     ],
     "outputTokens" : 298,
     "promptTokens" : 1525,
-    "question" : "What ruling desires of the heart were identified behind D.M.'s anger over the course of counseling?",
+    "question" : "What ruling desires of the heart were identified behind D.M.'s anger over the course of private?",
     "recall" : 1,
     "seconds" : 48.738924980163574,
     "sources" : [
       "[[dm-session-01#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
-      "[[dm-session-01#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
+      "[[dm-session-01#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]",
       "[[dm-session-02#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
-      "[[dm-session-02#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
+      "[[dm-session-02#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
       "[[dm-session-03#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
-      "[[dm-session-03#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
+      "[[dm-session-03#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]",
       "[[dm-session-04#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
       "[[dm-session-05#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
       "[[dm-session-06#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
       "[[dm-session-07#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
       "[[dm-session-08#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
-      "[[dm-session-08#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]"
+      "[[dm-session-08#If someone asked the participant right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]"
     ],
     "tokPerSec" : 12.473871858442577
   },
@@ -130,7 +130,7 @@
     "seconds" : 16.740620017051697,
     "sources" : [
       "[[dm-session-02#What can you highlight as significant background information?]]",
-      "[[dm-session-06#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the counselee?]]",
+      "[[dm-session-06#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the participant?]]",
       "[[dm-session-01#What homework was given and how did it specifically apply to problems?]]"
     ],
     "tokPerSec" : 12.825723918910615
@@ -159,9 +159,9 @@
       "[[dm-session-04#What homework was given and how did it specifically apply to problems?]]",
       "[[dm-session-05#What homework was given and how did it specifically apply to problems?]]",
       "[[dm-session-06#What homework was given and how did it specifically apply to problems?]]",
-      "[[dm-session-06#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
+      "[[dm-session-06#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]",
       "[[dm-session-07#What was gained by performing the homework from last session? What change?]]",
-      "[[dm-session-08#What specific applications to the counselee's life did you discuss from your Scripture?]]",
+      "[[dm-session-08#What specific applications to the participant's life did you discuss from your Scripture?]]",
       "[[dm-session-08#Thinking back on\/listening to this session, what could you have done better?]]"
     ],
     "tokPerSec" : 10.128566010695806
@@ -188,7 +188,7 @@
       "[[dm-session-03#What was gained by performing the homework from last session? What change?]]",
       "[[dm-session-03#Case Report — D.M. — Session 3]]",
       "[[dm-session-03#What homework was given and how did it specifically apply to problems?]]",
-      "[[dm-session-03#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]"
+      "[[dm-session-03#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]"
     ],
     "tokPerSec" : 12.376062443709275
   },
@@ -213,12 +213,12 @@
     "sources" : [
       "[[dm-session-04#What Biblical solutions were presented in this session? What Scripture?]]",
       "[[dm-session-04#What homework was given and how did it specifically apply to problems?]]",
-      "[[dm-session-03#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
+      "[[dm-session-03#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]",
       "[[dm-session-05#How was hope or encouragement given in this session?]]",
       "[[dm-session-05#What was gained by performing the homework from last session? What change?]]",
-      "[[dm-session-08#What specific applications to the counselee's life did you discuss from your Scripture?]]",
+      "[[dm-session-08#What specific applications to the participant's life did you discuss from your Scripture?]]",
       "[[dm-session-06#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
-      "[[dm-session-01#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]"
+      "[[dm-session-01#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]"
     ],
     "tokPerSec" : 12.693357030835893
   },
@@ -242,7 +242,7 @@
     "seconds" : 27.49708104133606,
     "sources" : [
       "[[dm-session-04#What can you highlight as significant background information?]]",
-      "[[dm-session-04#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
+      "[[dm-session-04#If someone asked the participant right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
       "[[dm-session-02#What was gained by performing the homework from last session? What change?]]",
       "[[dm-session-07#How was hope or encouragement given in this session?]]",
       "[[dm-session-01#What homework was given and how did it specifically apply to problems?]]",
@@ -252,7 +252,7 @@
     "tokPerSec" : 13.07852023558651
   },
   {
-    "answer" : "Here is how D.M.'s relationship with his father came up in counseling and the specific actions he was asked to take:\n\n**How it came up:**\n*   **Initial Identification:** In Session 1, D.M. identified a \"learned pattern from his father\" as a preconditioning issue and noted that he viewed God as distant [1].\n*   **Comparison:** In Session 3, D.M. was observed comparing himself to his father, thinking, \"at least I don't do what he did\" [4].\n*   **Root Cause of Anger:** In Session 5, a \"short think list\" exercise revealed that D.M. was still bitter about his father’s anger and had never forgiven him [5].\n*   **Ongoing Struggle:** By Session 8, bitterness toward his father was noted as being \"in progress\" but still present [2].\n\n**What he was asked to do:**\n*   **Forgive Before God:** In Session 5, D.M. was taught that forgiveness before God is required now, even though reconciliation is a separate step that depends partly on his father [3].\n*   **Write a Letter:** By Session 6, D.M. had written a letter to his father and was praying for him [8].\n*   **Reconcile:** In the final Session 8, D.M. was assigned homework to call his father in October with the goal of beginning to reconcile [2].\n*   **Plan for Continuation:** He was also asked to write his own plan for continuing to put these insights into practice as part of \"Getting Ready for Graduation\" [2].",
+    "answer" : "Here is how D.M.'s relationship with his father came up in private and the specific actions he was asked to take:\n\n**How it came up:**\n*   **Initial Identification:** In Session 1, D.M. identified a \"learned pattern from his father\" as a preconditioning issue and noted that he viewed God as distant [1].\n*   **Comparison:** In Session 3, D.M. was observed comparing himself to his father, thinking, \"at least I don't do what he did\" [4].\n*   **Root Cause of Anger:** In Session 5, a \"short think list\" exercise revealed that D.M. was still bitter about his father’s anger and had never forgiven him [5].\n*   **Ongoing Struggle:** By Session 8, bitterness toward his father was noted as being \"in progress\" but still present [2].\n\n**What he was asked to do:**\n*   **Forgive Before God:** In Session 5, D.M. was taught that forgiveness before God is required now, even though reconciliation is a separate step that depends partly on his father [3].\n*   **Write a Letter:** By Session 6, D.M. had written a letter to his father and was praying for him [8].\n*   **Reconcile:** In the final Session 8, D.M. was assigned homework to call his father in October with the goal of beginning to reconcile [2].\n*   **Plan for Continuation:** He was also asked to write his own plan for continuing to put these insights into practice as part of \"Getting Ready for Graduation\" [2].",
     "badCitations" : [
 
     ],
@@ -266,14 +266,14 @@
     ],
     "outputTokens" : 345,
     "promptTokens" : 1580,
-    "question" : "How did D.M.'s relationship with his father come up in counseling, and what was he asked to do about it?",
+    "question" : "How did D.M.'s relationship with his father come up in private, and what was he asked to do about it?",
     "recall" : 1,
     "seconds" : 57.773865938186646,
     "sources" : [
-      "[[dm-session-01#What are you seeing (or not) about the counselee's faith in who God is, about their relationship with Jesus, and\/or about the role of the Gospel in their daily life and problem?]]",
-      "[[dm-session-08#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the counselee?]]",
-      "[[dm-session-05#What specific applications to the counselee's life did you discuss from your Scripture?]]",
-      "[[dm-session-03#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the counselee?]]",
+      "[[dm-session-01#What are you seeing (or not) about the participant's faith in who God is, about their relationship with Jesus, and\/or about the role of the Gospel in their daily life and problem?]]",
+      "[[dm-session-08#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the participant?]]",
+      "[[dm-session-05#What specific applications to the participant's life did you discuss from your Scripture?]]",
+      "[[dm-session-03#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the participant?]]",
       "[[dm-session-05#What main problems were discussed in this session?]]",
       "[[dm-session-01#What can you highlight as significant background information?]]",
       "[[dm-session-08#What main problems were discussed in this session?]]",
@@ -309,7 +309,7 @@
     "tokPerSec" : 10.526019764148309
   },
   {
-    "answer" : "Based on the provided passages, here is the progress K.M. reported regarding D.M.:\n\n*   **Reduction in Outbursts:** D.M. had only one outburst in the last two weeks, where he raised his voice about dishes but apologized within minutes [1].\n*   **Spiritual Leadership:** D.M. is leading family devotions on Tuesday and Thursday evenings [1].\n*   **Improved Family Dynamics:** The children now run to greet D.M. at the door instead of hiding [1].\n*   **Accountability and Planning:** D.M. kept his morning prayer journal on 10 of 12 workdays and wrote plans for his three high-risk times [1].\n*   **Scripture Memorization:** D.M. has memorized Proverbs 16:32 [1].\n*   **Active Love:** The session focused on moving from \"not yelling\" to actively loving K.M. using Ephesians 5:25-29 and 1 Corinthians 13:4-7, with D.M. listing specific ways to nourish and cherish her that month [1].\n\nThe counselor noted that K.M.'s report of change, specifically the children greeting D.M. at the door, was strong evidence of God's work [3].",
+    "answer" : "Based on the provided passages, here is the progress K.M. reported regarding D.M.:\n\n*   **Reduction in Outbursts:** D.M. had only one outburst in the last two weeks, where he raised his voice about dishes but apologized within minutes [1].\n*   **Spiritual Leadership:** D.M. is leading family devotions on Tuesday and Thursday evenings [1].\n*   **Improved Family Dynamics:** The children now run to greet D.M. at the door instead of hiding [1].\n*   **Accountability and Planning:** D.M. kept his morning prayer journal on 10 of 12 workdays and wrote plans for his three high-risk times [1].\n*   **Scripture Memorization:** D.M. has memorized Proverbs 16:32 [1].\n*   **Active Love:** The session focused on moving from \"not yelling\" to actively loving K.M. using Ephesians 5:25-29 and 1 Corinthians 13:4-7, with D.M. listing specific ways to nourish and cherish her that month [1].\n\nThe reviewer noted that K.M.'s report of change, specifically the children greeting D.M. at the door, was strong evidence of God's work [3].",
     "badCitations" : [
 
     ],
@@ -328,14 +328,14 @@
     "seconds" : 38.06954300403595,
     "sources" : [
       "[[dm-session-07#What was gained by performing the homework from last session? What change?]]",
-      "[[dm-session-07#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the counselee?]]",
+      "[[dm-session-07#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the participant?]]",
       "[[dm-session-07#How was hope or encouragement given in this session?]]",
       "[[dm-session-07#Thinking back on\/listening to this session, what could you have done better?]]"
     ],
     "tokPerSec" : 12.520150610182771
   },
   {
-    "answer" : "Based on the provided case reports, here is what the counselor identified as areas for improvement in each session with D.M.:\n\n*   **Session 1:** The counselor talked too much and interrupted D.M. before he finished describing the July incident [1].\n*   **Session 2:** The counselor should have asked more about work, specifically regarding the promotion and job stress, but moved past those topics instead [2].\n*   **Session 3 (Joint with K.M.):** The counselor allowed the session to drift into K.M.'s complaints for about 20 minutes; he should have kept the focus on D.M.'s responsibility and set boundaries for the joint time [3].\n*   **Session 4:** The counselor should have role-played the pause plan in the session rather than only describing it [4].\n*   **Session 5:** The counselor should have explored the \"silent withdrawal\" more deeply, as he only named it and moved on quickly [5].\n*   **Session 6:** The counselor should have addressed the \"work idol\" much earlier, noting that it had surfaced in Session 2 but was passed over [6].\n*   **Session 7 (Joint with K.M.):** When K.M. raised her own sharp tone, the counselor started counseling her during D.M.'s session; he should have acknowledged it and suggested she meet with a woman counselor separately [7].\n*   **Session 8 (Final):** The counselor should have assigned the reading *Good and Angry* earlier, as it would have been helpful from Session 2 onward [8].",
+    "answer" : "Based on the provided case reports, here is what the reviewer identified as areas for improvement in each session with D.M.:\n\n*   **Session 1:** The reviewer talked too much and interrupted D.M. before he finished describing the July incident [1].\n*   **Session 2:** The reviewer should have asked more about work, specifically regarding the promotion and job stress, but moved past those topics instead [2].\n*   **Session 3 (Joint with K.M.):** The reviewer allowed the session to drift into K.M.'s complaints for about 20 minutes; he should have kept the focus on D.M.'s responsibility and set boundaries for the joint time [3].\n*   **Session 4:** The reviewer should have role-played the pause plan in the session rather than only describing it [4].\n*   **Session 5:** The reviewer should have explored the \"silent withdrawal\" more deeply, as he only named it and moved on quickly [5].\n*   **Session 6:** The reviewer should have addressed the \"work idol\" much earlier, noting that it had surfaced in Session 2 but was passed over [6].\n*   **Session 7 (Joint with K.M.):** When K.M. raised her own sharp tone, the reviewer started private her during D.M.'s session; he should have acknowledged it and suggested she meet with a woman reviewer separately [7].\n*   **Session 8 (Final):** The reviewer should have assigned the reading *Good and Angry* earlier, as it would have been helpful from Session 2 onward [8].",
     "badCitations" : [
 
     ],
@@ -349,7 +349,7 @@
     ],
     "outputTokens" : 332,
     "promptTokens" : 931,
-    "question" : "Across all sessions, what did the counselor say he could have done better?",
+    "question" : "Across all sessions, what did the reviewer say he could have done better?",
     "recall" : 1,
     "seconds" : 48.19496500492096,
     "sources" : [
@@ -384,10 +384,10 @@
     "seconds" : 33.9799120426178,
     "sources" : [
       "[[dm-session-08#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
-      "[[dm-session-08#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
+      "[[dm-session-08#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
       "[[dm-session-08#What Biblical solutions were presented in this session? What Scripture?]]",
       "[[dm-session-08#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
-      "[[dm-session-08#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the counselee?]]"
+      "[[dm-session-08#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the participant?]]"
     ],
     "tokPerSec" : 12.485215100039142
   },
@@ -406,19 +406,19 @@
     ],
     "outputTokens" : 32,
     "promptTokens" : 1242,
-    "question" : "How did the frequency of D.M.'s angry episodes change from the start to the end of counseling?",
+    "question" : "How did the frequency of D.M.'s angry episodes change from the start to the end of private?",
     "recall" : 0.6666666666666666,
     "seconds" : 23.592020988464355,
     "sources" : [
       "[[dm-session-03#What was gained by performing the homework from last session? What change?]]",
-      "[[dm-session-03#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
+      "[[dm-session-03#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
       "[[dm-session-04#What can you highlight as significant background information?]]",
-      "[[dm-session-05#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
+      "[[dm-session-05#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
       "[[dm-session-06#What can you highlight as significant background information?]]",
-      "[[dm-session-06#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
+      "[[dm-session-06#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
       "[[dm-session-07#What can you highlight as significant background information?]]",
-      "[[dm-session-07#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
-      "[[dm-session-08#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]"
+      "[[dm-session-07#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
+      "[[dm-session-08#If someone asked the participant right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]"
     ],
     "tokPerSec" : 12.29174645439799
   },

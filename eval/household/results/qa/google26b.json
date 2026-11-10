@@ -99,8 +99,8 @@
       "[[home\/projects#Ideas, not planned]]",
       "[[life\/recipes\/swedish-meatballs#Notes]]",
       "[[home\/refrigerator#Refrigerator]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
-      "[[ministry\/README#Rules]]"
+      "[[private\/private\/dm\/dm-session-05#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
+      "[[private\/README#Rules]]"
     ],
     "tokPerSec" : 40.384032251418795
   },
@@ -135,7 +135,7 @@
       "[[finance\/profile#Income]]",
       "[[career\/notes#Current role]]",
       "[[finance\/profile#People]]",
-      "[[ministry\/README#Ministry — operating manual]]"
+      "[[private\/README#Private — operating manual]]"
     ],
     "tokPerSec" : 39.42555907879067
   },
@@ -167,7 +167,7 @@
       "[[health\/goals#Fitness goal]]",
       "[[health\/README#Where to look]]",
       "[[career\/notes#Current role]]",
-      "[[ministry\/README#Ministry — operating manual]]",
+      "[[private\/README#Private — operating manual]]",
       "[[life\/recipes\/swedish-meatballs#Swedish meatballs (Farmor's recipe)]]",
       "[[finance\/profile#Income]]",
       "[[health\/visits\/2026-06-04_erik_ridgeview-family-medicine#2026-06-04 — Erik — Ridgeview Family Medicine]]"
@@ -202,10 +202,10 @@
       "[[life\/trips\/202607_glacier-camping\/plan#Lessons]]",
       "[[life\/trips\/README#Trips]]",
       "[[life\/trips\/202607_glacier-camping\/plan#Plan as run]]",
-      "[[ministry\/counseling\/dm\/dm-session-06#What main problems were discussed in this session?]]",
+      "[[private\/private\/dm\/dm-session-06#What main problems were discussed in this session?]]",
       "[[life\/README#Where to look]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
-      "[[ministry\/counseling\/dm\/dm-session-04#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]"
+      "[[private\/private\/dm\/dm-session-02#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]",
+      "[[private\/private\/dm\/dm-session-04#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]"
     ],
     "tokPerSec" : 42.586535324717076
   },
@@ -237,7 +237,7 @@
       "[[life\/recipes\/sheet-pan-chicken-fajitas#Sheet-pan chicken fajitas]]",
       "[[life\/recipes\/swedish-meatballs#Notes]]",
       "[[life\/recipes\/swedish-meatballs#Swedish meatballs (Farmor's recipe)]]",
-      "[[ministry\/README#Rules]]",
+      "[[private\/README#Rules]]",
       "[[life\/README#Where to look]]",
       "[[life\/README#Rules]]",
       "[[home\/projects#Decision]]"
@@ -270,7 +270,7 @@
     "sources" : [
       "[[career\/notes#Pending decision: the regional director role]]",
       "[[career\/notes#2026-11-04]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#Thinking back on\/listening to this session, what could you have done better?]]",
+      "[[private\/private\/dm\/dm-session-02#Thinking back on\/listening to this session, what could you have done better?]]",
       "[[README#Purpose]]",
       "[[career\/README#Career — operating manual]]",
       "[[finance\/profile#Income]]",
@@ -280,13 +280,13 @@
     "tokPerSec" : 40.615456124155116
   },
   {
-    "answer" : "The provided passages do not state the original reason R.S. came for counseling, only that there have been no panic episodes in the last two weeks [1] and that a safety check was performed with a physician involved during session 1 [2].",
+    "answer" : "The provided passages do not state the original reason R.S. came for support, only that there have been no panic episodes in the last two weeks [1] and that a safety check was performed with a physician involved during session 1 [2].",
     "badCitations" : [
 
     ],
     "cited" : true,
     "contextRecall" : 0.3333333333333333,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "EmbeddingGemma-300m",
     "facts" : 0.3333333333333333,
     "id" : "h09",
@@ -300,19 +300,19 @@
     "outputTokens" : 51,
     "pathRecall" : 1,
     "promptTokens" : 1402,
-    "question" : "What brought R.S. to counseling?",
+    "question" : "What brought R.S. to seek support?",
     "recall" : 0,
     "reranker" : false,
     "seconds" : 4.869922995567322,
     "sources" : [
-      "[[ministry\/counseling\/rs\/rs-session-03#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
-      "[[ministry\/counseling\/rs\/rs-session-01#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
-      "[[ministry\/counseling\/dm\/dm-session-08#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]"
+      "[[private\/private\/rs\/rs-session-03#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]",
+      "[[private\/private\/rs\/rs-session-01#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
+      "[[private\/private\/rs\/rs-session-02#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
+      "[[private\/private\/rs\/rs-session-02#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]",
+      "[[private\/private\/dm\/dm-session-05#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]",
+      "[[private\/private\/dm\/dm-session-02#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]",
+      "[[private\/private\/rs\/rs-session-03#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
+      "[[private\/private\/dm\/dm-session-08#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]"
     ],
     "tokPerSec" : 41.67487038064377
   },
@@ -323,7 +323,7 @@
     ],
     "cited" : true,
     "contextRecall" : 0.5,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "EmbeddingGemma-300m",
     "facts" : 0.5,
     "id" : "h10",
@@ -341,25 +341,25 @@
     "reranker" : false,
     "seconds" : 5.760499000549316,
     "sources" : [
-      "[[ministry\/counseling\/dm\/dm-session-02#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#What was gained by performing the homework from last session? What change?]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
-      "[[ministry\/counseling\/rs\/rs-session-01#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
-      "[[ministry\/counseling\/dm\/dm-session-07#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
-      "[[ministry\/counseling\/dm\/dm-session-04#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]"
+      "[[private\/private\/dm\/dm-session-02#If someone asked the participant right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
+      "[[private\/private\/rs\/rs-session-02#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/rs\/rs-session-02#If someone asked the participant right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
+      "[[private\/private\/rs\/rs-session-03#What was gained by performing the homework from last session? What change?]]",
+      "[[private\/private\/rs\/rs-session-03#If someone asked the participant right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
+      "[[private\/private\/rs\/rs-session-01#If someone asked the participant right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
+      "[[private\/private\/dm\/dm-session-07#If someone asked the participant right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
+      "[[private\/private\/dm\/dm-session-04#If someone asked the participant right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]"
     ],
     "tokPerSec" : 41.98748882437615
   },
   {
-    "answer" : "The provided passages do not answer who referred D.M. to counseling or what he does for work.",
+    "answer" : "The provided passages do not answer who referred D.M. to private or what he does for work.",
     "badCitations" : [
 
     ],
     "cited" : false,
     "contextRecall" : 0,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "EmbeddingGemma-300m",
     "facts" : 0,
     "id" : "h11",
@@ -374,19 +374,19 @@
     "outputTokens" : 21,
     "pathRecall" : 0,
     "promptTokens" : 1401,
-    "question" : "Who referred D.M. to counseling, and what does he do for work?",
+    "question" : "Who referred D.M. for support, and what does he do for work?",
     "recall" : 0,
     "reranker" : false,
     "seconds" : 4.18058705329895,
     "sources" : [
-      "[[ministry\/counseling\/dm\/dm-session-07#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
-      "[[ministry\/counseling\/dm\/dm-session-06#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
-      "[[ministry\/counseling\/dm\/dm-session-08#What main problems were discussed in this session?]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
-      "[[ministry\/counseling\/dm\/dm-session-04#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
-      "[[ministry\/counseling\/dm\/dm-session-06#What main problems were discussed in this session?]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]"
+      "[[private\/private\/dm\/dm-session-07#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
+      "[[private\/private\/dm\/dm-session-06#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
+      "[[private\/private\/dm\/dm-session-05#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]",
+      "[[private\/private\/dm\/dm-session-08#What main problems were discussed in this session?]]",
+      "[[private\/private\/dm\/dm-session-02#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]",
+      "[[private\/private\/dm\/dm-session-04#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
+      "[[private\/private\/dm\/dm-session-06#What main problems were discussed in this session?]]",
+      "[[private\/private\/dm\/dm-session-05#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]"
     ],
     "tokPerSec" : 38.14686391962515
   },
@@ -419,9 +419,9 @@
       "[[home\/README#Home — operating manual]]",
       "[[README#Purpose]]",
       "[[finance\/giving#Giving log]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#How was hope or encouragement given in this session?]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#What can you highlight as significant background information?]]"
+      "[[private\/private\/dm\/dm-session-05#How was hope or encouragement given in this session?]]",
+      "[[private\/private\/dm\/dm-session-02#If someone asked the participant right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
+      "[[private\/private\/rs\/rs-session-03#What can you highlight as significant background information?]]"
     ],
     "tokPerSec" : 40.68096577152374
   },
@@ -450,13 +450,13 @@
     "seconds" : 6.025192022323608,
     "sources" : [
       "[[home\/maintenance-log#Maintenance log]]",
-      "[[ministry\/counseling\/dm\/dm-session-08#What was gained by performing the homework from last session? What change?]]",
+      "[[private\/private\/dm\/dm-session-08#What was gained by performing the homework from last session? What change?]]",
       "[[health\/README#Rules]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What main problems were discussed in this session?]]",
-      "[[ministry\/counseling\/dm\/dm-session-04#What main problems were discussed in this session?]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
-      "[[ministry\/counseling\/rs\/rs-session-01#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#What was your planned agenda for this session? Was it accomplished? If not, why not?]]"
+      "[[private\/private\/dm\/dm-session-02#What main problems were discussed in this session?]]",
+      "[[private\/private\/dm\/dm-session-04#What main problems were discussed in this session?]]",
+      "[[private\/private\/dm\/dm-session-02#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
+      "[[private\/private\/rs\/rs-session-01#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
+      "[[private\/private\/dm\/dm-session-05#What was your planned agenda for this session? Was it accomplished? If not, why not?]]"
     ],
     "tokPerSec" : 41.7644967762814
   },
@@ -487,10 +487,10 @@
       "[[health\/visits\/2026-03-18_greta_alder-creek-pediatrics#2026-03-18 — Greta — Alder Creek Pediatrics]]",
       "[[life\/calendar#November 2026]]",
       "[[life\/calendar#Family calendar — upcoming]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#How was hope or encouragement given in this session?]]",
+      "[[private\/private\/rs\/rs-session-03#How was hope or encouragement given in this session?]]",
       "[[health\/README#Visits so far in 2026]]",
       "[[finance\/profile#People]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#How was hope or encouragement given in this session?]]",
+      "[[private\/private\/dm\/dm-session-05#How was hope or encouragement given in this session?]]",
       "[[life\/trips\/202612_san-diego-christmas\/plan#San Diego Christmas — December 2026]]"
     ],
     "tokPerSec" : 42.456798479840245
@@ -525,7 +525,7 @@
       "[[career\/README#Career — operating manual]]",
       "[[finance\/profile#Debts]]",
       "[[home\/maintenance-log#Maintenance log]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#Thinking back on\/listening to this session, what could you have done better?]]",
+      "[[private\/private\/dm\/dm-session-02#Thinking back on\/listening to this session, what could you have done better?]]",
       "[[home\/README#Where to look]]"
     ],
     "tokPerSec" : 44.60512678860459
@@ -591,12 +591,12 @@
     "sources" : [
       "[[life\/calendar#Family calendar — upcoming]]",
       "[[README#Halvorsen household knowledge base]]",
-      "[[ministry\/counseling\/dm\/dm-session-01#What can you highlight as significant background information?]]",
+      "[[private\/private\/dm\/dm-session-01#What can you highlight as significant background information?]]",
       "[[health\/README#Files]]",
       "[[health\/README#Where to look]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#How was hope or encouragement given in this session?]]",
+      "[[private\/private\/dm\/dm-session-02#How was hope or encouragement given in this session?]]",
       "[[README#Purpose]]",
-      "[[ministry\/counseling\/dm\/dm-session-07#What are you seeing (or not) about the counselee's faith in who God is, about their relationship with Jesus, and\/or about the role of the Gospel in their daily life and problem?]]"
+      "[[private\/private\/dm\/dm-session-07#What are you seeing (or not) about the participant's faith in who God is, about their relationship with Jesus, and\/or about the role of the Gospel in their daily life and problem?]]"
     ],
     "tokPerSec" : 45.1342727732904
   },
@@ -627,22 +627,22 @@
       "[[life\/trips\/202612_san-diego-christmas\/plan#To do before we leave]]",
       "[[life\/trips\/202612_san-diego-christmas\/plan#Bookings]]",
       "[[life\/trips\/README#Trips]]",
-      "[[ministry\/counseling\/dm\/dm-session-07#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
+      "[[private\/private\/dm\/dm-session-07#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
       "[[life\/README#Where to look]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]"
+      "[[private\/private\/rs\/rs-session-03#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
+      "[[private\/private\/dm\/dm-session-05#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
+      "[[private\/private\/rs\/rs-session-02#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]"
     ],
     "tokPerSec" : 36.793230954166035
   },
   {
-    "answer" : "The mother-in-law, E.S., lives ten minutes away and is closely involved with the children [2]. Regarding counseling progress, the conversation with E.S. is described as the next test [6].",
+    "answer" : "The mother-in-law, E.S., lives ten minutes away and is closely involved with the children [2]. Regarding private progress, the conversation with E.S. is described as the next test [6].",
     "badCitations" : [
 
     ],
     "cited" : true,
     "contextRecall" : 0.3333333333333333,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "EmbeddingGemma-300m",
     "facts" : 0.3333333333333333,
     "id" : "h19",
@@ -656,19 +656,19 @@
     "outputTokens" : 45,
     "pathRecall" : 1,
     "promptTokens" : 1514,
-    "question" : "How has R.S.'s mother-in-law figured in her counseling so far?",
+    "question" : "How has R.S.'s mother-in-law figured in her private so far?",
     "recall" : 0,
     "reranker" : false,
     "seconds" : 6.308055996894836,
     "sources" : [
-      "[[ministry\/counseling\/rs\/rs-session-02#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
-      "[[ministry\/counseling\/rs\/rs-session-01#What can you highlight as significant background information?]]",
-      "[[ministry\/counseling\/rs\/rs-session-01#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
-      "[[ministry\/counseling\/dm\/dm-session-04#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]"
+      "[[private\/private\/rs\/rs-session-02#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
+      "[[private\/private\/rs\/rs-session-01#What can you highlight as significant background information?]]",
+      "[[private\/private\/rs\/rs-session-01#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
+      "[[private\/private\/rs\/rs-session-03#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]",
+      "[[private\/private\/dm\/dm-session-04#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
+      "[[private\/private\/rs\/rs-session-03#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
+      "[[private\/private\/rs\/rs-session-02#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]",
+      "[[private\/private\/dm\/dm-session-05#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]"
     ],
     "tokPerSec" : 39.55459717873545
   },
@@ -679,7 +679,7 @@
     ],
     "cited" : true,
     "contextRecall" : 0.3333333333333333,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "EmbeddingGemma-300m",
     "facts" : 0.3333333333333333,
     "id" : "h20",
@@ -693,19 +693,19 @@
     "outputTokens" : 20,
     "pathRecall" : 0.6666666666666666,
     "promptTokens" : 1745,
-    "question" : "Which verses was D.M. asked to memorize over the course of counseling?",
+    "question" : "Which verses was D.M. asked to memorize over the course of private?",
     "recall" : 0.6666666666666666,
     "reranker" : false,
     "seconds" : 6.10700798034668,
     "sources" : [
-      "[[ministry\/counseling\/dm\/dm-session-02#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
-      "[[ministry\/counseling\/dm\/dm-session-07#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
-      "[[ministry\/counseling\/dm\/dm-session-04#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/dm\/dm-session-03#What was gained by performing the homework from last session? What change?]]",
-      "[[ministry\/counseling\/dm\/dm-session-08#If someone asked the counselee right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]"
+      "[[private\/private\/dm\/dm-session-02#If someone asked the participant right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
+      "[[private\/private\/dm\/dm-session-07#If someone asked the participant right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
+      "[[private\/private\/dm\/dm-session-05#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/dm\/dm-session-05#If someone asked the participant right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
+      "[[private\/private\/dm\/dm-session-04#If someone asked the participant right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]",
+      "[[private\/private\/dm\/dm-session-02#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/dm\/dm-session-03#What was gained by performing the homework from last session? What change?]]",
+      "[[private\/private\/dm\/dm-session-08#If someone asked the participant right after the session, \"What did you learn that you needed to change, with God's help?\" what would you want him to say? What challenge did you give?]]"
     ],
     "tokPerSec" : 41.97289322030294
   },
@@ -771,12 +771,12 @@
     "sources" : [
       "[[life\/trips\/202612_san-diego-christmas\/plan#Lessons carried over from Glacier]]",
       "[[life\/trips\/README#Trips]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What specific applications to the counselee's life did you discuss from your Scripture?]]",
-      "[[ministry\/counseling\/dm\/dm-session-08#What specific applications to the counselee's life did you discuss from your Scripture?]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/dm\/dm-session-06#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/dm\/dm-session-08#What Biblical solutions were presented in this session? What Scripture?]]"
+      "[[private\/private\/dm\/dm-session-02#What specific applications to the participant's life did you discuss from your Scripture?]]",
+      "[[private\/private\/dm\/dm-session-08#What specific applications to the participant's life did you discuss from your Scripture?]]",
+      "[[private\/private\/dm\/dm-session-05#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/dm\/dm-session-02#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/dm\/dm-session-06#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/dm\/dm-session-08#What Biblical solutions were presented in this session? What Scripture?]]"
     ],
     "tokPerSec" : 42.92006547254945
   },
@@ -807,9 +807,9 @@
       "[[finance\/README#Where to look]]",
       "[[life\/trips\/202612_san-diego-christmas\/plan#Budget]]",
       "[[life\/trips\/202607_glacier-camping\/plan#Budget]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What main problems were discussed in this session?]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#What can you highlight as significant background information?]]",
-      "[[ministry\/counseling\/dm\/dm-session-06#What can you highlight as significant background information?]]",
+      "[[private\/private\/dm\/dm-session-02#What main problems were discussed in this session?]]",
+      "[[private\/private\/rs\/rs-session-03#What can you highlight as significant background information?]]",
+      "[[private\/private\/dm\/dm-session-06#What can you highlight as significant background information?]]",
       "[[life\/trips\/202612_san-diego-christmas\/plan#To do before we leave]]",
       "[[finance\/profile#The house]]"
     ],
@@ -880,8 +880,8 @@
       "[[life\/trips\/202607_glacier-camping\/plan#Budget]]",
       "[[life\/trips\/202612_san-diego-christmas\/plan#Budget]]",
       "[[finance\/profile#The house]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What can you highlight as significant background information?]]",
-      "[[ministry\/counseling\/dm\/dm-session-01#Thinking back on\/listening to this session, what could you have done better?]]"
+      "[[private\/private\/dm\/dm-session-02#What can you highlight as significant background information?]]",
+      "[[private\/private\/dm\/dm-session-01#Thinking back on\/listening to this session, what could you have done better?]]"
     ],
     "tokPerSec" : 42.453337844175586
   },
@@ -911,11 +911,11 @@
     "sources" : [
       "[[life\/trips\/202607_glacier-camping\/plan#Budget]]",
       "[[finance\/README#Where to look]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What main problems were discussed in this session?]]",
+      "[[private\/private\/dm\/dm-session-02#What main problems were discussed in this session?]]",
       "[[life\/trips\/202612_san-diego-christmas\/plan#Budget]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#What can you highlight as significant background information?]]",
-      "[[ministry\/counseling\/dm\/dm-session-01#Thinking back on\/listening to this session, what could you have done better?]]",
-      "[[ministry\/counseling\/rs\/rs-session-01#How was hope or encouragement given in this session?]]",
+      "[[private\/private\/rs\/rs-session-03#What can you highlight as significant background information?]]",
+      "[[private\/private\/dm\/dm-session-01#Thinking back on\/listening to this session, what could you have done better?]]",
+      "[[private\/private\/rs\/rs-session-01#How was hope or encouragement given in this session?]]",
       "[[life\/trips\/202612_san-diego-christmas\/plan#Lessons carried over from Glacier]]"
     ],
     "tokPerSec" : 41.15709625055254
@@ -946,11 +946,11 @@
     "sources" : [
       "[[health\/README#Where to look]]",
       "[[health\/README#Files]]",
-      "[[ministry\/counseling\/rs\/rs-session-01#How was hope or encouragement given in this session?]]",
+      "[[private\/private\/rs\/rs-session-01#How was hope or encouragement given in this session?]]",
       "[[life\/trips\/202607_glacier-camping\/plan#Plan as run]]",
-      "[[ministry\/counseling\/dm\/dm-session-08#How was hope or encouragement given in this session?]]",
+      "[[private\/private\/dm\/dm-session-08#How was hope or encouragement given in this session?]]",
       "[[life\/trips\/202607_glacier-camping\/plan#Lessons]]",
-      "[[ministry\/README#Ministry — operating manual]]",
+      "[[private\/README#Private — operating manual]]",
       "[[health\/goals#Fitness goal]]"
     ],
     "tokPerSec" : 42.91850944012726
@@ -979,14 +979,14 @@
     "reranker" : false,
     "seconds" : 6.857742071151733,
     "sources" : [
-      "[[ministry\/counseling\/rs\/rs-session-01#How was hope or encouragement given in this session?]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
-      "[[ministry\/counseling\/dm\/dm-session-03#What was gained by performing the homework from last session? What change?]]",
-      "[[ministry\/counseling\/dm\/dm-session-01#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
-      "[[ministry\/README#Ministry — operating manual]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What specific applications to the counselee's life did you discuss from your Scripture?]]",
+      "[[private\/private\/rs\/rs-session-01#How was hope or encouragement given in this session?]]",
+      "[[private\/private\/dm\/dm-session-02#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
+      "[[private\/private\/dm\/dm-session-03#What was gained by performing the homework from last session? What change?]]",
+      "[[private\/private\/dm\/dm-session-01#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]",
+      "[[private\/README#Private — operating manual]]",
+      "[[private\/private\/dm\/dm-session-02#What specific applications to the participant's life did you discuss from your Scripture?]]",
       "[[health\/visits\/2026-06-04_erik_ridgeview-family-medicine#2026-06-04 — Erik — Ridgeview Family Medicine]]",
-      "[[ministry\/counseling\/dm\/dm-session-08#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]"
+      "[[private\/private\/dm\/dm-session-08#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]"
     ],
     "tokPerSec" : 40.360252170745945
   },
@@ -1021,7 +1021,7 @@
       "[[finance\/profile#The house]]",
       "[[finance\/profile#Where the money is]]",
       "[[finance\/insurance#Gaps and decisions]]",
-      "[[ministry\/counseling\/dm\/dm-session-01#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]"
+      "[[private\/private\/dm\/dm-session-01#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]"
     ],
     "tokPerSec" : 41.81984074059918
   },
@@ -1055,9 +1055,9 @@
       "[[life\/calendar#December 2026]]",
       "[[life\/README#Files]]",
       "[[README#Purpose]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
-      "[[ministry\/counseling\/dm\/dm-session-08#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]"
+      "[[private\/private\/dm\/dm-session-05#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]",
+      "[[private\/private\/dm\/dm-session-08#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]",
+      "[[private\/private\/dm\/dm-session-02#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]"
     ],
     "tokPerSec" : 42.22078702493939
   },
@@ -1093,7 +1093,7 @@
       "[[health\/README#Where to look]]",
       "[[health\/README#Files]]",
       "[[health\/visits\/2026-06-04_erik_ridgeview-family-medicine#2026-06-04 — Erik — Ridgeview Family Medicine]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]"
+      "[[private\/private\/dm\/dm-session-02#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]"
     ],
     "tokPerSec" : 42.21941743505254
   },
@@ -1126,8 +1126,8 @@
       "[[home\/README#Where to look]]",
       "[[home\/maintenance-log#Maintenance log]]",
       "[[home\/dishwasher#Dishwasher]]",
-      "[[ministry\/counseling\/dm\/dm-session-03#What was gained by performing the homework from last session? What change?]]",
-      "[[ministry\/counseling\/dm\/dm-session-01#Thinking back on\/listening to this session, what could you have done better?]]",
+      "[[private\/private\/dm\/dm-session-03#What was gained by performing the homework from last session? What change?]]",
+      "[[private\/private\/dm\/dm-session-01#Thinking back on\/listening to this session, what could you have done better?]]",
       "[[finance\/profile#The house]]",
       "[[home\/hvac#Furnace and air conditioning]]"
     ],
@@ -1160,7 +1160,7 @@
     "seconds" : 8.187572002410889,
     "sources" : [
       "[[finance\/README#Where to look]]",
-      "[[ministry\/counseling\/dm\/dm-session-01#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
+      "[[private\/private\/dm\/dm-session-01#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
       "[[life\/calendar#Family calendar — upcoming]]",
       "[[finance\/profile#Cash targets]]",
       "[[life\/README#Where to look]]",
@@ -1201,7 +1201,7 @@
       "[[career\/README#Where to look]]",
       "[[README#Halvorsen household knowledge base]]",
       "[[career\/README#Career — operating manual]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]"
+      "[[private\/private\/dm\/dm-session-02#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]"
     ],
     "tokPerSec" : 42.320191166662184
   },
@@ -1299,7 +1299,7 @@
     "sources" : [
       "[[finance\/profile#Where the money is]]",
       "[[finance\/profile#Cash targets]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What main problems were discussed in this session?]]",
+      "[[private\/private\/dm\/dm-session-02#What main problems were discussed in this session?]]",
       "[[home\/README#Home — operating manual]]",
       "[[finance\/net-worth#Net worth — narrative]]",
       "[[home\/README#Files]]",
@@ -1366,10 +1366,10 @@
       "[[health\/visits\/2026-03-18_greta_alder-creek-pediatrics#2026-03-18 — Greta — Alder Creek Pediatrics]]",
       "[[finance\/profile#People]]",
       "[[health\/README#Files]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
+      "[[private\/private\/dm\/dm-session-05#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
       "[[README#Halvorsen household knowledge base]]",
       "[[health\/visits\/2026-06-04_erik_ridgeview-family-medicine#2026-06-04 — Erik — Ridgeview Family Medicine]]",
-      "[[ministry\/counseling\/dm\/dm-session-04#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
+      "[[private\/private\/dm\/dm-session-04#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
       "[[health\/README#Visits so far in 2026]]"
     ],
     "tokPerSec" : 39.71671075225706
@@ -1380,7 +1380,7 @@
 
     ],
     "cited" : false,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "EmbeddingGemma-300m",
     "facts" : 0,
     "id" : "h40",
@@ -1396,12 +1396,12 @@
     "reranker" : false,
     "seconds" : 5.736572980880737,
     "sources" : [
-      "[[ministry\/counseling\/rs\/rs-session-01#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
-      "[[ministry\/counseling\/rs\/rs-session-01#What Biblical solutions were presented in this session? What Scripture?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#What main problems were discussed in this session?]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
+      "[[private\/private\/rs\/rs-session-01#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/rs\/rs-session-03#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
+      "[[private\/private\/rs\/rs-session-01#What Biblical solutions were presented in this session? What Scripture?]]",
+      "[[private\/private\/rs\/rs-session-02#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]",
+      "[[private\/private\/rs\/rs-session-02#What main problems were discussed in this session?]]",
+      "[[private\/private\/rs\/rs-session-03#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]",
       "[[career\/notes#2026-11-04]]",
       "[[life\/README#Rules]]"
     ],

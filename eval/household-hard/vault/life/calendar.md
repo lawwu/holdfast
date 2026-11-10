@@ -6,11 +6,11 @@ Today's view starts 2026-11-05. Past rows are pruned at the start of each month.
 
 | Date | Time | What | Who | Notes |
 | --- | --- | --- | --- | --- |
-| 2026-11-05 | 7:00 pm | Counseling check-in (D.M.) at church | Erik | |
+| 2026-11-05 | 7:00 pm | Private check-in (D.M.) at church | Erik | |
 | 2026-11-08 | 12:15 pm | Hillcrest fall potluck after second service | all | Anna is bringing the [[life/recipes/swedish-meatballs|meatballs]] |
 | 2026-11-10 | 3:30 pm | Wrist follow-up, Cascade Orthopedics | Leif + Erik | |
 | 2026-11-12 | 9:00 am | Filling, Bright Smile Dental | Anna | |
-| 2026-11-12 | 7:00 pm | Counseling (R.S.) | Erik | |
+| 2026-11-12 | 7:00 pm | Private (R.S.) | Erik | |
 | 2026-11-14 | all day | Visit the Bluestem Salem hub | Erik + Anna | kids with Grandma Ruth |
 | 2026-11-15 | — | 401(k) investment-mix decision | Erik | [open items](../finance/open-items.md) |
 | 2026-11-17 | 4:15 pm | Parent-teacher conference, Ms. Varga | Greta, Anna + Erik | |

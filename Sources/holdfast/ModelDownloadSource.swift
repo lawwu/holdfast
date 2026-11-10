@@ -66,14 +66,20 @@ struct ModelDownloadSource {
 
 /// Tokens stay out of UserDefaults and the settings copied into vault backups.
 enum ModelDownloadCredential {
-    private static func query(_ endpoint: String) -> [String: Any] {
+    private static func query(_ endpoint: String, service: String) -> [String: Any] {
         [kSecClass as String: kSecClassGenericPassword,
-         kSecAttrService as String: "net.lawrencewu.holdfast.model-downloads",
+         kSecAttrService as String: service,
          kSecAttrAccount as String: endpoint]
     }
 
     static func read(endpoint: String) throws -> String? {
-        var request = query(endpoint)
+        try LegacyCompatibility.readCredential(suffix: "model-downloads",
+            read: { try readStored(endpoint: endpoint, service: $0) },
+            write: { try writeStored($0, endpoint: endpoint, service: $1) })
+    }
+
+    private static func readStored(endpoint: String, service: String) throws -> String? {
+        var request = query(endpoint, service: service)
         request[kSecReturnData as String] = true
         request[kSecMatchLimit as String] = kSecMatchLimitOne
         var item: CFTypeRef?
@@ -87,7 +93,12 @@ enum ModelDownloadCredential {
     }
 
     static func write(_ token: String?, endpoint: String) throws {
-        let request = query(endpoint)
+        try LegacyCompatibility.writeCredential(token, suffix: "model-downloads",
+            write: { try writeStored($0, endpoint: endpoint, service: $1) })
+    }
+
+    private static func writeStored(_ token: String?, endpoint: String, service: String) throws {
+        let request = query(endpoint, service: service)
         guard let token else {
             let status = SecItemDelete(request as CFDictionary)
             if status != errSecItemNotFound { try check(status) }

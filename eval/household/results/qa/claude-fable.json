@@ -227,12 +227,12 @@
     "turns": 4
   },
   {
-    "answer": "R.S. came to counseling after a panic attack at the women's retreat in late August 2026. She was unexpectedly asked to pray aloud for the group and had a racing heart, shaking, and trouble breathing, and she left the room.\n\nSince then she had avoided small group twice and was lying awake at night replaying conversations. She said she has \"always been a worrier,\" but this was the first time it had stopped her from doing things. Pastor R.'s wife referred her, and the first session was on 2026-09-10.\n\nThe note marks the case as a synthetic, fictional report for testing.\n\nSources: ministry/counseling/rs/rs-session-01.md, ministry/README.md",
+    "answer": "R.S. came to private after a panic attack at the women's retreat in late August 2026. She was unexpectedly asked to pray aloud for the group and had a racing heart, shaking, and trouble breathing, and she left the room.\n\nSince then she had avoided small group twice and was lying awake at night replaying conversations. She said she has \"always been a worrier,\" but this was the first time it had stopped her from doing things. Pastor R.'s wife referred her, and the first session was on 2026-09-10.\n\nThe note marks the case as a synthetic, fictional report for testing.\n\nSources: private/cases/rs/rs-session-01.md, private/README.md",
     "badCitations": [],
     "cited": true,
     "contextRecall": null,
     "costUSD": 0.19770474999999998,
-    "domain": "ministry",
+    "domain": "private",
     "embedder": null,
     "error": null,
     "facts": 1.0,
@@ -244,24 +244,24 @@
     "outputTokens": 649,
     "pathRecall": 1.0,
     "promptTokens": 96676,
-    "question": "What brought R.S. to counseling?",
+    "question": "What brought R.S. to seek support?",
     "recall": null,
     "reranker": null,
     "seconds": 12.457233905792236,
     "sources": [
-      "ministry/counseling/rs/rs-session-01.md",
-      "ministry/README.md"
+      "private/cases/rs/rs-session-01.md",
+      "private/README.md"
     ],
     "tokPerSec": 52.0982430696942,
     "turns": 4
   },
   {
-    "answer": "After session 2 (2026-09-24), R.S. was asked to memorize **Proverbs 29:25**: \"The fear of man lays a snare, but whoever trusts in the LORD is safe.\"\n\nIt was tied to her people-pleasing, especially her immediate yes to E.S.'s request to host Thanksgiving. The session 3 report notes she did memorize it and recited it in the car before small group.\n\nSources: ministry/counseling/rs/rs-session-02.md, ministry/counseling/rs/rs-session-03.md",
+    "answer": "After session 2 (2026-09-24), R.S. was asked to memorize **Proverbs 29:25**: \"The fear of man lays a snare, but whoever trusts in the LORD is safe.\"\n\nIt was tied to her people-pleasing, especially her immediate yes to E.S.'s request to host Thanksgiving. The session 3 report notes she did memorize it and recited it in the car before small group.\n\nSources: private/cases/rs/rs-session-02.md, private/cases/rs/rs-session-03.md",
     "badCitations": [],
     "cited": true,
     "contextRecall": null,
     "costUSD": 0.21082675,
-    "domain": "ministry",
+    "domain": "private",
     "embedder": null,
     "error": null,
     "facts": 1.0,
@@ -278,19 +278,19 @@
     "reranker": null,
     "seconds": 11.774257183074951,
     "sources": [
-      "ministry/counseling/rs/rs-session-02.md",
-      "ministry/counseling/rs/rs-session-03.md"
+      "private/cases/rs/rs-session-02.md",
+      "private/cases/rs/rs-session-03.md"
     ],
     "tokPerSec": 52.82711175139791,
     "turns": 5
   },
   {
-    "answer": "Pastor R. referred D.M. to counseling. He works as a project manager at a commercial construction company, and a promotion in March added longer hours and more pressure. The notes are labeled as a synthetic case report with fictional people.\n\nSources: ministry/counseling/dm/dm-session-01.md",
+    "answer": "Pastor R. referred D.M. to private. He works as a project manager at a commercial construction company, and a promotion in March added longer hours and more pressure. The notes are labeled as a synthetic case report with fictional people.\n\nSources: private/cases/dm/dm-session-01.md",
     "badCitations": [],
     "cited": true,
     "contextRecall": null,
     "costUSD": 0.19945374999999999,
-    "domain": "ministry",
+    "domain": "private",
     "embedder": null,
     "error": null,
     "facts": 1.0,
@@ -302,12 +302,12 @@
     "outputTokens": 492,
     "pathRecall": 1.0,
     "promptTokens": 97705,
-    "question": "Who referred D.M. to counseling, and what does he do for work?",
+    "question": "Who referred D.M. for support, and what does he do for work?",
     "recall": null,
     "reranker": null,
     "seconds": 9.910933017730713,
     "sources": [
-      "ministry/counseling/dm/dm-session-01.md"
+      "private/cases/dm/dm-session-01.md"
     ],
     "tokPerSec": 49.64214762826157,
     "turns": 4
@@ -520,12 +520,12 @@
     "turns": 4
   },
   {
-    "answer": "R.S.'s mother-in-law, E.S., has been the single most prominent figure in her fear-of-man struggle across all three sessions recorded so far.\n\n- **Session 1 (2026-09-10):** Introduced as background. E.S. lives ten minutes away and is closely involved with the children. Among the people whose opinions R.S. constantly worries about, E.S. was named first, ahead of the small-group women.\n- **Session 2 (2026-09-24):** The worry journal confirmed it. Of 31 entries in one week, 22 were about what someone would think of her, and E.S. was the most frequent subject. The main case study of the session was E.S.'s request that R.S. host Thanksgiving. R.S. said yes immediately out of fear of E.S.'s disappointment and had dreaded it since. Erik used this to teach Proverbs 29:25, showing how the fear meant to protect her now controls her calendar. Homework was to discuss the hosting decision with T.S. instead.\n- **Session 3 (2026-10-08):** R.S. and T.S. decided not to host. The session centered on telling E.S. no graciously, including R.S.'s fear that E.S. would turn cold toward her and the children. Erik role-played the phone call (thank her, decline plainly, offer to bring a dish, don't over-explain), taught Ephesians 4:15 on speaking truth in love, and T.S. agreed to be present. Homework was to make the call that week and record what happened. Erik notes the E.S. conversation is \"the next test\" of her progress.\n\nNo session 4 report exists yet, so the notes don't record how the call went.\n\nSources: ministry/counseling/rs/rs-session-01.md, ministry/counseling/rs/rs-session-02.md, ministry/counseling/rs/rs-session-03.md",
+    "answer": "R.S.'s mother-in-law, E.S., has been the single most prominent figure in her fear-of-man struggle across all three sessions recorded so far.\n\n- **Session 1 (2026-09-10):** Introduced as background. E.S. lives ten minutes away and is closely involved with the children. Among the people whose opinions R.S. constantly worries about, E.S. was named first, ahead of the small-group women.\n- **Session 2 (2026-09-24):** The worry journal confirmed it. Of 31 entries in one week, 22 were about what someone would think of her, and E.S. was the most frequent subject. The main case study of the session was E.S.'s request that R.S. host Thanksgiving. R.S. said yes immediately out of fear of E.S.'s disappointment and had dreaded it since. Erik used this to teach Proverbs 29:25, showing how the fear meant to protect her now controls her calendar. Homework was to discuss the hosting decision with T.S. instead.\n- **Session 3 (2026-10-08):** R.S. and T.S. decided not to host. The session centered on telling E.S. no graciously, including R.S.'s fear that E.S. would turn cold toward her and the children. Erik role-played the phone call (thank her, decline plainly, offer to bring a dish, don't over-explain), taught Ephesians 4:15 on speaking truth in love, and T.S. agreed to be present. Homework was to make the call that week and record what happened. Erik notes the E.S. conversation is \"the next test\" of her progress.\n\nNo session 4 report exists yet, so the notes don't record how the call went.\n\nSources: private/cases/rs/rs-session-01.md, private/cases/rs/rs-session-02.md, private/cases/rs/rs-session-03.md",
     "badCitations": [],
     "cited": true,
     "contextRecall": null,
     "costUSD": 0.29777925,
-    "domain": "ministry",
+    "domain": "private",
     "embedder": null,
     "error": null,
     "facts": 1.0,
@@ -537,25 +537,25 @@
     "outputTokens": 1264,
     "pathRecall": 1.0,
     "promptTokens": 100160,
-    "question": "How has R.S.'s mother-in-law figured in her counseling so far?",
+    "question": "How has R.S.'s mother-in-law figured in her private so far?",
     "recall": null,
     "reranker": null,
     "seconds": 17.943784952163696,
     "sources": [
-      "ministry/counseling/rs/rs-session-01.md",
-      "ministry/counseling/rs/rs-session-02.md",
-      "ministry/counseling/rs/rs-session-03.md"
+      "private/cases/rs/rs-session-01.md",
+      "private/cases/rs/rs-session-02.md",
+      "private/cases/rs/rs-session-03.md"
     ],
     "tokPerSec": 70.44221736772344,
     "turns": 7
   },
   {
-    "answer": "D.M. was assigned three memory verses across the eight sessions:\n\n1. **James 1:19-20** (Session 2). He was told to say it out loud in the truck before walking in the door each evening. Session 3 records it memorized, and Session 5 reassigned it for the drive home in place of rehearsing K.M.'s wrongs.\n2. **Ephesians 4:31-32** (Session 4).\n3. **Proverbs 16:32** (Session 6). Session 7 records it memorized.\n\nOther sessions assigned Scripture reading (James 4:1-10 daily in Session 1, 1 Corinthians 13:4-7 in Session 7) but not memorization.\n\nSources: ministry/counseling/dm/dm-session-02.md, ministry/counseling/dm/dm-session-03.md, ministry/counseling/dm/dm-session-04.md, ministry/counseling/dm/dm-session-05.md, ministry/counseling/dm/dm-session-06.md, ministry/counseling/dm/dm-session-07.md",
+    "answer": "D.M. was assigned three memory verses across the eight sessions:\n\n1. **James 1:19-20** (Session 2). He was told to say it out loud in the truck before walking in the door each evening. Session 3 records it memorized, and Session 5 reassigned it for the drive home in place of rehearsing K.M.'s wrongs.\n2. **Ephesians 4:31-32** (Session 4).\n3. **Proverbs 16:32** (Session 6). Session 7 records it memorized.\n\nOther sessions assigned Scripture reading (James 4:1-10 daily in Session 1, 1 Corinthians 13:4-7 in Session 7) but not memorization.\n\nSources: private/cases/dm/dm-session-02.md, private/cases/dm/dm-session-03.md, private/cases/dm/dm-session-04.md, private/cases/dm/dm-session-05.md, private/cases/dm/dm-session-06.md, private/cases/dm/dm-session-07.md",
     "badCitations": [],
     "cited": true,
     "contextRecall": null,
     "costUSD": 0.30461475,
-    "domain": "ministry",
+    "domain": "private",
     "embedder": null,
     "error": null,
     "facts": 1.0,
@@ -567,17 +567,17 @@
     "outputTokens": 1724,
     "pathRecall": 1.0,
     "promptTokens": 132056,
-    "question": "Which verses was D.M. asked to memorize over the course of counseling?",
+    "question": "Which verses was D.M. asked to memorize over the course of private?",
     "recall": null,
     "reranker": null,
     "seconds": 22.867833137512207,
     "sources": [
-      "ministry/counseling/dm/dm-session-02.md",
-      "ministry/counseling/dm/dm-session-03.md",
-      "ministry/counseling/dm/dm-session-04.md",
-      "ministry/counseling/dm/dm-session-05.md",
-      "ministry/counseling/dm/dm-session-06.md",
-      "ministry/counseling/dm/dm-session-07.md"
+      "private/cases/dm/dm-session-02.md",
+      "private/cases/dm/dm-session-03.md",
+      "private/cases/dm/dm-session-04.md",
+      "private/cases/dm/dm-session-05.md",
+      "private/cases/dm/dm-session-06.md",
+      "private/cases/dm/dm-session-07.md"
     ],
     "tokPerSec": 75.38974023612077,
     "turns": 9
@@ -1140,12 +1140,12 @@
     "turns": 6
   },
   {
-    "answer": "The notes don't say. None of R.S.'s three session reports mention any medication. The only medical detail recorded is that her physician saw her in early September, ruled out a thyroid problem, and she agreed to keep her physician informed of anything new. The counseling approach described is Scripture-based homework such as a worry journal, Matthew 6:25-34, and Proverbs 29:25, not medication.\n\nSources: ministry/counseling/rs/rs-session-01.md, ministry/counseling/rs/rs-session-02.md, ministry/counseling/rs/rs-session-03.md, ministry/README.md",
+    "answer": "The notes don't say. None of R.S.'s three session reports mention any medication. The only medical detail recorded is that her physician saw her in early September, ruled out a thyroid problem, and she agreed to keep her physician informed of anything new. The private approach described is Scripture-based homework such as a worry journal, Matthew 6:25-34, and Proverbs 29:25, not medication.\n\nSources: private/cases/rs/rs-session-01.md, private/cases/rs/rs-session-02.md, private/cases/rs/rs-session-03.md, private/README.md",
     "badCitations": [],
     "cited": true,
     "contextRecall": null,
     "costUSD": 0.26332200000000006,
-    "domain": "ministry",
+    "domain": "private",
     "embedder": null,
     "error": null,
     "facts": 1.0,
@@ -1162,10 +1162,10 @@
     "reranker": null,
     "seconds": 16.28947615623474,
     "sources": [
-      "ministry/counseling/rs/rs-session-01.md",
-      "ministry/counseling/rs/rs-session-02.md",
-      "ministry/counseling/rs/rs-session-03.md",
-      "ministry/README.md"
+      "private/cases/rs/rs-session-01.md",
+      "private/cases/rs/rs-session-02.md",
+      "private/cases/rs/rs-session-03.md",
+      "private/README.md"
     ],
     "tokPerSec": 68.51049041088132,
     "turns": 7

@@ -4,6 +4,6 @@ PASS lmstudio Swift: proposal → approval → exact Undo; stale refusal
 PASS lmstudio Pi: proposal → approval → exact Undo; stale refusal; saved follow-up
 PASS custom Swift: proposal → approval → exact Undo; stale refusal
 PASS custom Pi: proposal → approval → exact Undo; stale refusal; saved follow-up
-PASS custom Swift: counseling blocked before HTTP
-PASS custom Pi: counseling blocked before HTTP across restart
+PASS custom Swift: private blocked before HTTP
+PASS custom Pi: private blocked before HTTP across restart
 PASS Pi migration: Durable archive unchanged; local-only restriction carried forward

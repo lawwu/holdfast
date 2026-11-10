@@ -9,7 +9,10 @@ before = b'\xef\xbb\xbf# Checklist\r\n\r\n- [ ] Keep basis\r\n- [ ] Leave this o
 def scenario(kind, pi, private=False, live=False, legacy=False):
     with tempfile.TemporaryDirectory(prefix='holdfast-providers-', dir=cache) as temp:
         vault = pathlib.Path(temp)/'vault'
-        folder = 'ministry' if private else 'finance'
+        folder = 'private' if private else 'finance'
+        if private == 'legacy':
+            compatibility = (pathlib.Path(__file__).resolve().parents[1]/'Sources/holdfast/LegacyCompatibility.swift').read_text()
+            folder = compatibility.split('privateProfileID = "')[1].split('"')[0]
         (vault/folder).mkdir(parents=True)
         note = vault/folder/'checklist.md'
         note.write_bytes(b'# Session\nPRIVATE_SENTINEL_never_send\n' if private else before)
@@ -96,7 +99,7 @@ def scenario(kind, pi, private=False, live=False, legacy=False):
                     # New process, same Pi conversation: persisted restriction must precede HTTP.
                     run(*ask, 'What about this note?', success=False)
                     assert len(received) == 1
-                print(f'PASS {kind} {"Pi" if pi else "Swift"}: counseling blocked before HTTP'+(' across restart' if pi else ''))
+                print(f'PASS {kind} {"Pi" if pi else "Swift"}: private blocked before HTTP'+(' across restart' if pi else ''))
                 return
             if live:
                 print(result.stdout, flush=True)
@@ -136,4 +139,5 @@ else:
     for kind in ['ollama','lmstudio','custom']:
         for pi in [False, True]: scenario(kind, pi)
     for pi in [False, True]: scenario('custom', pi, private=True)
+    for pi in [False, True]: scenario('custom', pi, private='legacy')
     scenario('custom', True, legacy=True)

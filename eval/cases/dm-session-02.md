@@ -8,7 +8,7 @@ Date: 2026-08-13 · Session: 2 · Length of Session: 60 minutes
 
 See Session 1. New: he works 55–60 hours a week since the March promotion and usually gets home around 6 pm.
 
-## Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).
+## Give a summary of reason(s) the participant came for support—the presentation problem(s).
 
 Explosive anger in the marriage and toward the children (see Session 1).
 
@@ -28,15 +28,15 @@ The evening pattern; his expectation that home should be calm and orderly when h
 
 James 4:1-3 (desires that battle within you); James 1:19-20 (quick to hear, slow to speak, slow to anger; the anger of man does not produce the righteousness of God); Proverbs 15:1 (a soft answer turns away wrath).
 
-## What specific applications to the counselee's life did you discuss from your Scripture?
+## What specific applications to the participant's life did you discuss from your Scripture?
 
 We traced each log entry back to "what I wanted": quiet, order, being respected, and control over the money. When those desires are blocked he fights for them with his words.
 
-## What are you seeing (or not) about the counselee's faith in who God is, about their relationship with Jesus, and/or about the role of the Gospel in their daily life and problem?
+## What are you seeing (or not) about the participant's faith in who God is, about their relationship with Jesus, and/or about the role of the Gospel in their daily life and problem?
 
 He was surprised that the Bible speaks to "what's going on inside." Some openness.
 
-## What unbiblical habits of thinking and/or behaving (preconditioning issues) are you seeing in the counselee?
+## What unbiblical habits of thinking and/or behaving (preconditioning issues) are you seeing in the participant?
 
 Entitlement to a peaceful evening ("I've earned it"); assuming the worst when K.M. asks questions.
 
@@ -50,7 +50,7 @@ Desire for respect; desire for peace, quiet and comfort after work; desire to co
 2. Memorize James 1:19-20.
 3. Study Proverbs 15:1 and write one example of a soft answer he could have given in each logged episode.
 
-## If someone asked the counselee right after the session, "What did you learn that you needed to change, with God's help?" what would you want him to say? What challenge did you give?
+## If someone asked the participant right after the session, "What did you learn that you needed to change, with God's help?" what would you want him to say? What challenge did you give?
 
 "I get angry because I want something too much, not because of what K. does." Challenge: say the memory verse out loud in the truck before walking in the door each evening.
 
@@ -58,11 +58,11 @@ Desire for respect; desire for peace, quiet and comfort after work; desire to co
 
 He saw a clear pattern for the first time; patterns can be changed by God's grace.
 
-## How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?
+## How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?
 
 Good engagement. He accepts that anger comes from his desires.
 
-## What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?
+## What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?
 
 Joint session with K.M., to hear her perspective and begin work on communication.
 

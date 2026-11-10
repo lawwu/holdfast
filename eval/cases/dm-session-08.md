@@ -8,7 +8,7 @@ Date: 2026-09-24 · Session: 8 (final session) · Length of Session: 60 minutes
 
 His company won a smaller school contract this week; he said he "enjoyed it but didn't need it."
 
-## Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).
+## Give a summary of reason(s) the participant came for support—the presentation problem(s).
 
 Explosive anger in the marriage and toward the children (see Session 1).
 
@@ -28,15 +28,15 @@ What he has learned, and the areas that still need watching: work identity and h
 
 James 1:22 (be doers of the word, not hearers only); Matthew 7:24-27 (the wise man builds on the rock by hearing and doing); review of James 4:1-3, Ephesians 4:22-32 and Proverbs 16:32.
 
-## What specific applications to the counselee's life did you discuss from your Scripture?
+## What specific applications to the participant's life did you discuss from your Scripture?
 
 Final charge: I gave him the sheet "Am I wise or foolish?" and he chose to be wise. Being wise means continuing to hear and do: the pause plan, the morning prayer journal, and the Sunday question to K.M.
 
-## What are you seeing (or not) about the counselee's faith in who God is, about their relationship with Jesus, and/or about the role of the Gospel in their daily life and problem?
+## What are you seeing (or not) about the participant's faith in who God is, about their relationship with Jesus, and/or about the role of the Gospel in their daily life and problem?
 
 He now speaks of the gospel as the reason he can change and the reason he can forgive. He has begun reading through Mark with K.M.
 
-## What unbiblical habits of thinking and/or behaving (preconditioning issues) are you seeing in the counselee?
+## What unbiblical habits of thinking and/or behaving (preconditioning issues) are you seeing in the participant?
 
 Mostly replaced. He still needs vigilance when work goes badly.
 
@@ -51,7 +51,7 @@ Performance and approval at work, weakened but present. Bitterness toward his fa
 3. Call his father in October, with the goal of beginning to reconcile.
 4. Read *Good and Angry* by David Powlison over the next two months.
 
-## If someone asked the counselee right after the session, "What did you learn that you needed to change, with God's help?" what would you want him to say? What challenge did you give?
+## If someone asked the participant right after the session, "What did you learn that you needed to change, with God's help?" what would you want him to say? What challenge did you give?
 
 "My anger came from my heart's desires, and Christ has forgiven me and is changing me." Challenge: keep hearing and doing.
 
@@ -59,11 +59,11 @@ Performance and approval at work, weakened but present. Bitterness toward his fa
 
 We reviewed the change: from about six angry episodes a week in early August to about one mild one every two weeks. I told him the door is always open.
 
-## How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?
+## How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?
 
 Ready to graduate. Anger at home, confession, communication and forgiveness of K.M. are sufficiently addressed.
 
-## What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?
+## What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?
 
 No more regular sessions. A check-in is scheduled in six weeks, on November 5.
 

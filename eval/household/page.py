@@ -418,7 +418,7 @@ table.docs td {{ min-width: 150px; }}
       {secs(P.get('gemma26b', {}).get('median'))} per answer, against {secs(P.get('qwen27b', {}).get('median'))} for Qwen. It slips on harder work:
       {pct(R.get('gemma26b-research', {}).get('facts'))} in Research mode.</li>
     <li><b>The small Gemma 4 E4B answers simple questions as well as the big models</b>, but when filing it
-      kept two full names in a counseling report that should use initials only, and filed a duplicate.</li>
+      kept two full names in a private report that should use initials only, and filed a duplicate.</li>
     <li><b>Search quality comes from the reranker.</b> Google's EmbeddingGemma ties Qwen's embedder once Qwen's
       reranker sorts the results; without it, the Google-only setup found fewer of the right passages and its answers fell to
       {pct(P.get('google26b', {}).get('facts'))}.</li>
@@ -455,7 +455,7 @@ table.docs td {{ min-width: 150px; }}
 <section>
   <h2>Filing dropped documents</h2>
   <p>{nd} documents dropped into the knowledge base: invoices, receipts, a clinic visit summary, an insurance renewal, a bank
-  statement, a counseling session report, a flyer, a recipe, and one duplicate. The model reads each with the folder
+  statement, a private session report, a flyer, a recipe, and one duplicate. The model reads each with the folder
   READMEs and proposes a new note or a row in an existing log. Scored on the action, the place, the facts kept, and any
   account numbers, member IDs or full names that should have been left out.</p>
   {filing_section}
@@ -475,7 +475,7 @@ table.docs td {{ min-width: 150px; }}
 <section class="card">
   <h2>How this was run</h2>
   <p>The knowledge base is invented: a family of five with finance notes and spending CSVs, home maintenance logs,
-  health visits and a workout CSV, trips, a career note, and biblical-counseling case reports that follow an initials-only rule.
+  health visits and a workout CSV, trips, a career note, and biblical-private case reports that follow an initials-only rule.
   Today's date is fixed at {RUN_DATE}. Answers and filings are scored by text patterns, with no model judging another.
   Each setup ran once on {esc(HARDWARE)}; with {nq} questions and {nd} documents, differences of a few points are noise.</p>
   <p>Not yet run: Gemini (no API key set), larger Qwen embedders, and a harder fixture with longer histories,

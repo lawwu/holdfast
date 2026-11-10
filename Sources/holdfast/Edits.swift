@@ -85,7 +85,7 @@ enum Edits {
         let why = why.trimmingCharacters(in: .whitespacesAndNewlines)
         if !why.isEmpty { meta["why"] = [meta["why"], why].compactMap { $0 }.joined(separator: " · ") }
         let added = diff(file, updated).filter { $0.kind == "+" }.map(\.text).joined(separator: "\n")
-        let flags = privacyFlags(added, names: Profile.isCounseling(path))
+        let flags = privacyFlags(added, names: Profile.isPrivate(path))
         meta["privacy_flags"] = flags.isEmpty ? nil : flags.joined(separator: "; ")
         let slug = slugify(name).isEmpty ? "edit" : slugify(name)
         let at = existing?.path ?? Drop.unique(Config.inboxDir.appendingPathComponent("\(today.replacingOccurrences(of: "-", with: ""))-edit-\(slug).md"), ifExists: true)

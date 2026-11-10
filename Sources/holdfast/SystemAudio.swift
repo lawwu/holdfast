@@ -197,9 +197,9 @@ enum SystemAudio {
         private let desc: CATapDescription
         private var aggregateID = AudioObjectID(kAudioObjectUnknown)
         private var procID: AudioDeviceIOProcID?
-        private let io = DispatchQueue(label: "net.lawrencewu.holdfast.listen.io", qos: .userInitiated)
+        private let io = DispatchQueue(label: "app.holdfast.listen.io", qos: .userInitiated)
         /// Rebuilds and process updates run here, never on `io` (stopping a device waits for its IO).
-        private let control = DispatchQueue(label: "net.lawrencewu.holdfast.listen.control")
+        private let control = DispatchQueue(label: "app.holdfast.listen.control")
         private let lock = NSLock()
         private var loudest: Float = 0
         private var lastIO = Date()
@@ -272,7 +272,7 @@ enum SystemAudio {
             }
             let agg: [String: Any] = [
                 kAudioAggregateDeviceNameKey: "Holdfast listen",
-                kAudioAggregateDeviceUIDKey: "net.lawrencewu.holdfast.listen." + UUID().uuidString,
+                kAudioAggregateDeviceUIDKey: "app.holdfast.listen." + UUID().uuidString,
                 kAudioAggregateDeviceMainSubDeviceKey: output.uid,
                 kAudioAggregateDeviceIsPrivateKey: true,
                 kAudioAggregateDeviceIsStackedKey: false,

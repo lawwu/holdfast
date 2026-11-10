@@ -8,7 +8,7 @@ Date: 2026-09-17 · Session: 7 (joint session with K.M.) · Length of Session: 9
 
 No new background.
 
-## Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).
+## Give a summary of reason(s) the participant came for support—the presentation problem(s).
 
 Explosive anger in the marriage and toward the children (see Session 1).
 
@@ -28,15 +28,15 @@ Moving from "not yelling" to actively loving K.M.; K.M. raised her own sharp ton
 
 Ephesians 5:25-29 (husbands, love your wives as Christ loved the church, nourishing and cherishing her); 1 Corinthians 13:4-7 (love is patient and kind).
 
-## What specific applications to the counselee's life did you discuss from your Scripture?
+## What specific applications to the participant's life did you discuss from your Scripture?
 
 Christ's love is sacrificial and active, not just the absence of harm. He listed what nourishing and cherishing K.M. would look like this month.
 
-## What are you seeing (or not) about the counselee's faith in who God is, about their relationship with Jesus, and/or about the role of the Gospel in their daily life and problem?
+## What are you seeing (or not) about the participant's faith in who God is, about their relationship with Jesus, and/or about the role of the Gospel in their daily life and problem?
 
 He is leading his family spiritually for the first time and speaks of Christ as the reason for his change.
 
-## What unbiblical habits of thinking and/or behaving (preconditioning issues) are you seeing in the counselee?
+## What unbiblical habits of thinking and/or behaving (preconditioning issues) are you seeing in the participant?
 
 A risk of pride in progress ("I've fixed it").
 
@@ -50,7 +50,7 @@ Respect has quieted; performance at work still needs watching.
 2. Each Sunday evening ask K.M., "How have I been with my words this week?" and listen without defending.
 3. Read 1 Corinthians 13:4-7 together twice this week.
 
-## If someone asked the counselee right after the session, "What did you learn that you needed to change, with God's help?" what would you want him to say? What challenge did you give?
+## If someone asked the participant right after the session, "What did you learn that you needed to change, with God's help?" what would you want him to say? What challenge did you give?
 
 "Not yelling isn't the goal; loving her like Christ is." Challenge: ask the Sunday question even when he expects a hard answer.
 
@@ -58,14 +58,14 @@ Respect has quieted; performance at work still needs watching.
 
 K.M.'s report of change was strong evidence of God's work. She cried as she described the children greeting him at the door.
 
-## How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?
+## How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?
 
 Anger toward the family is greatly reduced. Confession, communication and forgiveness are well addressed. Work identity and his father remain.
 
-## What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?
+## What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?
 
 Graduation preparation (step 7): review, a plan for the future, and accountability.
 
 ## Thinking back on/listening to this session, what could you have done better?
 
-When K.M. raised her own sharp tone, I started counseling her in his session. I should have acknowledged it and suggested she meet with a woman counselor separately.
+When K.M. raised her own sharp tone, I started private her in his session. I should have acknowledged it and suggested she meet with a woman reviewer separately.

@@ -19,7 +19,7 @@ Pi tool requests → Holdfast validation and native tools
 Only Holdfast's six tools are enabled: search, read_note, list_folder, list_tables,
 query_table and propose_edit. Pi's built-in read/write/edit/bash tools, MCP,
 extensions, skills, context-file discovery and model-network discovery are disabled.
-Credentials stay in Swift. Local-only counseling restrictions are checked before
+Credentials stay in Swift. Local-only private restrictions are checked before
 each model request, including after reopening a conversation. The inference
 package is reusable without Holdfast, with regular Pi or Pi Durable.
 
@@ -55,7 +55,7 @@ New conversations live in the vault's private state directory under `pi/<UUID>/`
 
 - `sessions/*.jsonl`: ordinary Pi history, tool results, compaction and small
   Holdfast request markers. Completed request IDs return their saved answer.
-- `native.json`: native citation numbering, counseling restriction and tool receipts.
+- `native.json`: native citation numbering, private restriction and tool receipts.
 - `pending.json`: the current request; retained after a crash so Settings can open
   a follow-up draft. Opening it does not submit anything.
 

@@ -1,6 +1,6 @@
 # When People Are Big and God Is Small — Ed Welch
 
-Erik's reading for the counseling training (and assigned to counselees sometimes).
+Erik's reading for the private training (and assigned to participants sometimes).
 
 - Fear of man: being exposed, being rejected, being hurt.
 - The fix isn't to need people less but to love them more and need them less — to fear God.

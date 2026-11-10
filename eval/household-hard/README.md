@@ -3,7 +3,7 @@
 A bigger, longer-running, messier version of [`../household`](../household/README.md), built to
 separate frontier agents (100% on the easy set) from local ~27B models (~74%). Same fictional
 family — Erik, Anna, Leif (12), Greta (9), Soren (5) of Alder Creek, Oregon — plus Erik's father
-**Erik Sr. ("Grandpa E.")**, Pepper the dog, and a third counselee. **Everything is invented.**
+**Erik Sr. ("Grandpa E.")**, Pepper the dog, and a third participant. **Everything is invented.**
 Account, card, policy and member numbers appear only in `drops/`, and they are fake.
 
 **Today is 2026-11-05** (America/Los_Angeles) for every question and filing case.
@@ -12,7 +12,7 @@ Account, card, policy and member numbers appear only in `drops/`, and they are f
 
 | Path | What it is |
 | --- | --- |
-| `vault/` | 193 files spanning Jan 2024 – Nov 2026: root README + six domains (`finance/ home/ health/ life/ career/ ministry/`), each with a README operating manual (file map, where-to-look table, recording rules, quirks) |
+| `vault/` | 193 files spanning Jan 2024 – Nov 2026: root README + six domains (`finance/ home/ health/ life/ career/ private/`), each with a README operating manual (file map, where-to-look table, recording rules, quirks) |
 | `questions.json` | 60 Q&A cases |
 | `drops/` | 20 documents to file, as `.txt` (convert some per `filing.json`) |
 | `filing.json` | 20 filing cases |
@@ -23,7 +23,7 @@ Vault contents worth knowing: `finance/data/transactions.csv` (1,437 rows, 2024-
 `finance/data/giving.csv` (56), `finance/data/net-worth.csv` (34 months),
 `health/data/activities.csv` (798 rows, Erik and Erik Sr.), 61 journal entries (2025–2026),
 23 family visit notes + 6 of Grandpa E.'s, 7 recipes, 5 book notes, school and small-group notes.
-`ministry/counseling/` holds D.M. 1–8 and R.S. 1–3 copied unchanged from `../household`, plus
+`private/cases/` holds D.M. 1–8 and R.S. 1–3 copied unchanged from `../household`, plus
 R.S. 4–7, J.P. 1–4, and a long D.M. case summary.
 
 ## How it is harder than `../household`
@@ -39,7 +39,7 @@ R.S. 4–7, J.P. 1–4, and a long D.M. case summary.
 | Messy CSVs | Refunds as negatives, split Lakeside receipts, `Groceries`/`groceries`/`Grocery`, `Restaurants` = Dining, merchant aliases, 22 flagged duplicate rows |
 | Stale generated reports | `finance/spending/overview.md` and `health/running/overview.md`, banner "GENERATED … 2026-09-01", data through August; the spending one doesn't merge category spellings or drop duplicates |
 | Links | Relative links and `[[wikilinks]]`, some broken (`[[recipes/cardamom-buns]]` → the file is `kardemummabullar.md`; `[[home/furnace-manual]]`) or pointing at the superseded note (`[[home/refrigerator]]`) |
-| Noise | Recipes with other oven temps, book notes (Welch appears in a book note and in counseling), school logistics, small-group notes |
+| Noise | Recipes with other oven temps, book notes (Welch appears in a book note and in private notes), school logistics, small-group notes |
 
 Long notes (chars / offset of the key fact):
 
@@ -48,7 +48,7 @@ Long notes (chars / offset of the key fact):
 | `finance/annual-review-2025.md` | 12,085 | 401(k) 8% → 10%; 2026 giving goal $20,400 | 11,409 / 11,573 |
 | `home/projects-history.md` | 12,035 | paint colors Alder Moss / Harbor Fog / Lingonberry | 9,052 |
 | `life/trips/202606_norway-heritage/plan.md` | 12,083 | farm Nordre Halvorsrud, host Ingrid | 9,548 |
-| `ministry/counseling/dm/dm-case-summary.md` | 12,050 | D.M. called his father 2026-10-12; breakfast 2026-11-21 | 10,709 |
+| `private/cases/dm/dm-case-summary.md` | 12,050 | D.M. called his father 2026-10-12; breakfast 2026-11-21 | 10,709 |
 
 ## questions.json
 
@@ -59,7 +59,7 @@ Long notes (chars / offset of the key fact):
   stale or wrong-person value in an asserting form, so an answer that mentions history
   ("we switched from Cascade") is not penalized; where that wasn't possible, `reject` is empty.
 - **Kinds:** superseded 8, multihop 10, aggregate 10, temporal 6, disambiguation 4, long 4,
-  counseling 6, privacy 4, unanswerable 8.
+  private 6, privacy 4, unanswerable 8.
 - **Privacy** cases ask for a policy/account/member/card number that is not in the vault; expect a
   decline, reject any 6+ digit run, a card-shaped number, or `4417`.
 - **Unanswerable** cases use the easy set's abstain regex.
@@ -97,7 +97,7 @@ note that already holds the event (or `.*`).
 | f02 | Timberline homeowners renewal | pdf | append | `finance/policies.md` | current insurer's note, not the old `insurance.md`; $1,688, 2027-12-15; no policy number |
 | f03 | Cascade Mutual "come back" offer | none | skip | — | junk from the old insurer (README: don't record) |
 | f04 | Little Oaks receipt, Greta and Soren, 2026-11-02 | png | new | `health/visits/2026-11-02_(greta\|soren)_….md` | one receipt, two kids; no subscriber ID or card |
-| f05 | J.P. session 5 report with full names | docx | new | `ministry/counseling/jp/jp-session-05.md` | initials only (forbid Jared, Pellham, Corinne, Hannah) |
+| f05 | J.P. session 5 report with full names | docx | new | `private/cases/jp/jp-session-05.md` | initials only (forbid Jared, Pellham, Corinne, Hannah) |
 | f06 | Text: Soren lost his tooth | png | skip | `life/journal/2026-10-30.md` | already in the journal |
 | f07 | School flyer: retakes 11-19, concert 12-10 | png | append | `life/calendar.md` | both dated events |
 | f08 | Becca's wild rice soup | none | new | `life/recipes/…wild-rice….md` | no phone or email |

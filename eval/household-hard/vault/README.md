@@ -21,7 +21,7 @@ something new happens, record it where the domain README says.
 | `health/` | Goals, labs, visits for all five of us, Grandpa E.'s records, the activity CSV | [health/README.md](health/README.md) |
 | `life/` | Calendar, journal, trips, recipes, books, school, small group, Pepper | [life/README.md](life/README.md) |
 | `career/` | Erik's work and decisions | [career/README.md](career/README.md) |
-| `ministry/` | Erik's biblical-counseling case reports (initials only) | [ministry/README.md](ministry/README.md) |
+| `private/` | Erik's biblical-private case reports (initials only) | [private/README.md](private/README.md) |
 
 ## Conventions
 

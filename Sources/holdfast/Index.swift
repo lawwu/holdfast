@@ -371,7 +371,7 @@ func planQuery(_ q: String, maxSession: Int?, sessionsOfKind: (String) -> [Int] 
     let lower = q.lowercased()
     let ordinals = ["first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5, "sixth": 6, "seventh": 7,
                     "eighth": 8, "ninth": 9, "tenth": 10, "eleventh": 11, "twelfth": 12]
-    for (w, n) in ordinals where lower.range(of: "\\b\(w) (session|meeting|counseling session)", options: .regularExpression) != nil {
+    for (w, n) in ordinals where lower.range(of: "\\b\(w) (session|meeting|private session|\(LegacyCompatibility.privateProfileID) session)", options: .regularExpression) != nil {
         plan.sessions.insert(n)
     }
     // "the second joint session": the nth session whose form header says "joint".
@@ -379,7 +379,7 @@ func planQuery(_ q: String, maxSession: Int?, sessionsOfKind: (String) -> [Int] 
         for m in re.matches(in: lower, range: NSRange(lower.startIndex..., in: lower)) {
             guard let o = Range(m.range(at: 1), in: lower), let k = Range(m.range(at: 2), in: lower) else { continue }
             let kind = String(lower[k])
-            if ["counseling", "next", "previous", "this", "that"].contains(kind) { continue }
+            if ["private", LegacyCompatibility.privateProfileID, "next", "previous", "this", "that"].contains(kind) { continue }
             let list = sessionsOfKind(kind)
             guard !list.isEmpty else { continue }
             let word = String(lower[o])
@@ -387,7 +387,7 @@ func planQuery(_ q: String, maxSession: Int?, sessionsOfKind: (String) -> [Int] 
             if idx >= 0, idx < list.count { plan.sessions.insert(list[idx]) }
         }
     }
-    // In biblical counseling, "graduation" is the final session.
+    // A report's "graduation" marks its final session.
     if let mx = maxSession, lower.range(of: #"\bgraduat"#, options: .regularExpression) != nil, plan.sessions.isEmpty {
         plan.sessions.insert(mx)
     }

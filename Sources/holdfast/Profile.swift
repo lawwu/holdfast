@@ -2,7 +2,7 @@ import Foundation
 
 /// How the app talks about a part of the vault: the answer prompt, the
 /// reranker's instruction, the suggested questions and the "not covered" reply.
-/// Counseling was the first use case; everything else uses the general profile.
+/// Private notes carry stricter handling rules throughout the app.
 struct Profile: Equatable {
     let id: String
     let name: String
@@ -34,51 +34,60 @@ struct Profile: Equatable {
             ("target", "What goals have I written down, and how am I doing on them?"),
         ])
 
-    static let counseling = Profile(
-        id: "counseling", name: "Biblical counseling",
+    static let privateNotes = Profile(
+        id: "private", name: "Private notes (this Mac only)",
         systemPrompt: """
-        You help a biblical counselor search their own counseling materials: lessons, homework, \
-        supervision notes and past case reports. Answer ONLY from the numbered passages provided. \
+        You help the user search their private notes, records and reports. \
+        Answer ONLY from the numbered passages provided. \
         After each claim, cite the passage it came from as [n]. If the passages do not answer the \
-        question, say so plainly instead of guessing. Refer to counselees by initials only, never \
-        full names, even if a passage spells one out. Quote Scripture references exactly as the \
-        passages give them. Be concise and practical. You are preparing the counselor, not \
-        counseling anyone yourself.
+        question, say so plainly instead of guessing. Refer to participants by initials only, never \
+        full names, even if a passage spells one out. Quote references exactly as the passages \
+        give them. Be concise and practical.
         """,
-        rerankInstruction: "Given a biblical counselor's question, judge whether this passage from their counseling materials or case reports answers it",
+        rerankInstruction: "Given a question, judge whether this passage from the user's private notes or reports answers it",
         notCovered: "Your materials don't cover this question. Nothing in the vault was relevant enough to answer from.",
         suggestions: [
-            ("list.bullet.clipboard", "What homework was assigned across the sessions?"),
-            ("arrow.triangle.2.circlepath", "How has the counselee's view of his anger changed?"),
-            ("book.closed", "Which memory verses were assigned, and when?"),
+            ("list.bullet.clipboard", "What follow-ups are recorded across these notes?"),
+            ("arrow.triangle.2.circlepath", "What has changed across the sessions?"),
+            ("book.closed", "Which references were recorded, and when?"),
             ("lightbulb", "What did I note I could have done better?"),
         ])
 
-    static let all = [general, counseling]
+    static let all = [general, privateNotes]
 
     /// The vault's default, chosen in Settings. Until then: a managed vault is
-    /// a counseling vault (the first use case), a folder indexed in place is general.
+    /// private by default; a folder indexed in place is general.
     static var vaultDefault: Profile {
         get {
-            let id = UserDefaults.standard.string(forKey: "profile:" + Config.vault.path)
-            return all.first { $0.id == id } ?? (Config.inPlace ? general : counseling)
+            let id = LegacyCompatibility.profileID(UserDefaults.standard.string(forKey: "profile:" + Config.vault.path))
+            return all.first { $0.id == id } ?? (Config.inPlace ? general : privateNotes)
         }
         set { UserDefaults.standard.set(newValue.id, forKey: "profile:" + Config.vault.path) }
     }
 
-    /// Profile for a note: counseling under a top-level folder named like
-    /// "ministry" or "counseling", else the vault default.
+    private static func protectedFolder(_ top: String) -> Bool {
+        top.hasPrefix("private") || top.hasPrefix("confidential") || LegacyCompatibility.isProtectedFolder(top)
+    }
+
+    /// Private and confidential top-level folders always use the private profile.
     static func forPath(_ relPath: String) -> Profile {
         let top = relPath.split(separator: "/").first.map { $0.lowercased() } ?? ""
-        if relPath.contains("/"), top.hasPrefix("ministry") || top.contains("counsel") { return counseling }
+        if protectedFolder(top) { return privateNotes }
         return vaultDefault
     }
 
-    /// Counseling material: under a ministry/counseling folder, or anywhere in a counseling vault.
+    /// Private material: under a private/cases folder, or anywhere in a private vault.
     /// It stays on this Mac, is never filed by a rule, and is never cross-linked.
-    static func isCounseling(_ relPath: String) -> Bool {
+    static func isPrivate(_ relPath: String) -> Bool {
         let top = relPath.split(separator: "/").first.map { $0.lowercased() } ?? ""
-        return top.hasPrefix("ministry") || top.contains("counsel") || vaultDefault.id == counseling.id
+        return protectedFolder(top) || vaultDefault.id == privateNotes.id
+    }
+
+    /// Ignore macOS's /private filesystem root when checking an imported file's folders.
+    static func isPrivateSource(_ url: URL) -> Bool {
+        var parts = url.standardizedFileURL.pathComponents
+        if parts.starts(with: ["/", "private"]) { parts.removeFirst(2) }
+        return parts.contains(where: isPrivate)
     }
 
     /// The profile most of the retrieved passages belong to.

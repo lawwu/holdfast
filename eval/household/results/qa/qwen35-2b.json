@@ -238,13 +238,13 @@
     "tokPerSec" : 126.97482976078528
   },
   {
-    "answer" : "Based on the provided passages, R.S. came for counseling because she was unexpectedly asked to pray aloud at a women's retreat in late August, which triggered a panic attack characterized by racing heart, shaking, and difficulty breathing. She subsequently avoided small group twice and lies awake replaying conversations. Additionally, she has described herself as \"always a worrier\" since the incident, which is the first time this trait has stopped her from participating in activities.",
+    "answer" : "Based on the provided passages, R.S. came for support because she was unexpectedly asked to pray aloud at a women's retreat in late August, which triggered a panic attack characterized by racing heart, shaking, and difficulty breathing. She subsequently avoided small group twice and lies awake replaying conversations. Additionally, she has described herself as \"always a worrier\" since the incident, which is the first time this trait has stopped her from participating in activities.",
     "badCitations" : [
 
     ],
     "cited" : false,
     "contextRecall" : 1,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "Qwen3-Embedding-0.6B",
     "facts" : 1,
     "id" : "h09",
@@ -257,19 +257,19 @@
     "outputTokens" : 90,
     "pathRecall" : 1,
     "promptTokens" : 1762,
-    "question" : "What brought R.S. to counseling?",
+    "question" : "What brought R.S. to seek support?",
     "recall" : 0,
     "reranker" : true,
     "rerankerModel" : "Qwen3-Reranker-0.6B",
     "seconds" : 5.1805180311203,
     "sources" : [
-      "[[ministry\/counseling\/rs\/rs-session-02#What can you highlight as significant background information?]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#What can you highlight as significant background information?]]",
-      "[[ministry\/counseling\/rs\/rs-session-01#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
-      "[[ministry\/counseling\/rs\/rs-session-01#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
-      "[[ministry\/README#Counselees]]"
+      "[[private\/private\/rs\/rs-session-02#What can you highlight as significant background information?]]",
+      "[[private\/private\/rs\/rs-session-03#What can you highlight as significant background information?]]",
+      "[[private\/private\/rs\/rs-session-01#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]",
+      "[[private\/private\/rs\/rs-session-01#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]",
+      "[[private\/private\/rs\/rs-session-03#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]",
+      "[[private\/private\/rs\/rs-session-02#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]",
+      "[[private\/README#Participants]]"
     ],
     "tokPerSec" : 128.49120069602014
   },
@@ -280,7 +280,7 @@
     ],
     "cited" : false,
     "contextRecall" : 0.5,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "Qwen3-Embedding-0.6B",
     "facts" : 0,
     "id" : "h10",
@@ -300,22 +300,22 @@
     "rerankerModel" : "Qwen3-Reranker-0.6B",
     "seconds" : 5.166208028793335,
     "sources" : [
-      "[[ministry\/counseling\/rs\/rs-session-02#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
-      "[[ministry\/counseling\/dm\/dm-session-02#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#What was gained by performing the homework from last session? What change?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]"
+      "[[private\/private\/rs\/rs-session-02#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
+      "[[private\/private\/dm\/dm-session-02#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/rs\/rs-session-03#What was gained by performing the homework from last session? What change?]]",
+      "[[private\/private\/rs\/rs-session-02#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
+      "[[private\/private\/rs\/rs-session-02#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]"
     ],
     "tokPerSec" : 127.68001434854204
   },
   {
-    "answer" : "Based on the provided ministry manual and case reports, here is the information regarding D.M.'s referral and work responsibilities:\n\n**Referral Source:**\nD.M. was referred to counseling by **Pastor R.** [1].\n\n**Work Responsibilities:**\nD.M. is a **project manager** at a commercial construction company [2]. He was promoted in March, which resulted in longer hours and increased pressure [2].",
+    "answer" : "Based on the provided private manual and case reports, here is the information regarding D.M.'s referral and work responsibilities:\n\n**Referral Source:**\nD.M. was referred to private by **Pastor R.** [1].\n\n**Work Responsibilities:**\nD.M. is a **project manager** at a commercial construction company [2]. He was promoted in March, which resulted in longer hours and increased pressure [2].",
     "badCitations" : [
 
     ],
     "cited" : true,
     "contextRecall" : 1,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "Qwen3-Embedding-0.6B",
     "facts" : 1,
     "id" : "h11",
@@ -328,20 +328,20 @@
     "outputTokens" : 87,
     "pathRecall" : 1,
     "promptTokens" : 1863,
-    "question" : "Who referred D.M. to counseling, and what does he do for work?",
+    "question" : "Who referred D.M. for support, and what does he do for work?",
     "recall" : 1,
     "reranker" : true,
     "rerankerModel" : "Qwen3-Reranker-0.6B",
     "seconds" : 5.795282959938049,
     "sources" : [
-      "[[ministry\/counseling\/dm\/dm-session-02#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
-      "[[ministry\/counseling\/dm\/dm-session-01#Case Report — D.M. — Session 1]]",
-      "[[ministry\/counseling\/dm\/dm-session-07#Thinking back on\/listening to this session, what could you have done better?]]",
-      "[[ministry\/counseling\/dm\/dm-session-06#What specific applications to the counselee's life did you discuss from your Scripture?]]",
-      "[[ministry\/counseling\/dm\/dm-session-06#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the counselee?]]",
-      "[[ministry\/counseling\/dm\/dm-session-08#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the counselee?]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Counseling Plan?]]",
-      "[[ministry\/README#Counselees]]"
+      "[[private\/private\/dm\/dm-session-02#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
+      "[[private\/private\/dm\/dm-session-01#Case Report — D.M. — Session 1]]",
+      "[[private\/private\/dm\/dm-session-07#Thinking back on\/listening to this session, what could you have done better?]]",
+      "[[private\/private\/dm\/dm-session-06#What specific applications to the participant's life did you discuss from your Scripture?]]",
+      "[[private\/private\/dm\/dm-session-06#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the participant?]]",
+      "[[private\/private\/dm\/dm-session-08#What unbiblical habits of thinking and\/or behaving (preconditioning issues) are you seeing in the participant?]]",
+      "[[private\/private\/dm\/dm-session-05#What is your goal for the next session? Why? If you are past the 3rd session, does it follow your Tentative Private Plan?]]",
+      "[[private\/README#Participants]]"
     ],
     "tokPerSec" : 129.37667298591978
   },
@@ -554,13 +554,13 @@
     "tokPerSec" : 134.0603586543635
   },
   {
-    "answer" : "# How has R.S.'s mother-in-law (E.S.) figured in her counseling so far?\n\nBased on the available materials, E.S. has been a significant and active support figure throughout R.S.'s counseling journey.\n\n*   **Referral Source:** E.S. initiated the referral for R.S., who was referred by Pastor R.'s wife. [1]\n*   **Ongoing Support:** E.S. lives ten minutes away and is described as \"closely involved with the children.\" [1]\n*   **Pastoral Support:** R.S. has engaged in conversations with E.S., which the counselor notes is \"the next test\" for R.S.'s progress. [7]\n*   **Rehearsal:** E.S. has been in a position to hear R.S.'s rehearsals of conversations at night, where she likely provided feedback or correction. [2]\n\n**Summary:** E.S. has functioned as both the initial referral source and a consistent, close family member providing practical support to R.S., while also being observed by the counselor as part of the ongoing relational work.",
+    "answer" : "# How has R.S.'s mother-in-law (E.S.) figured in her private so far?\n\nBased on the available materials, E.S. has been a significant and active support figure throughout R.S.'s private journey.\n\n*   **Referral Source:** E.S. initiated the referral for R.S., who was referred by Pastor R.'s wife. [1]\n*   **Ongoing Support:** E.S. lives ten minutes away and is described as \"closely involved with the children.\" [1]\n*   **Pastoral Support:** R.S. has engaged in conversations with E.S., which the reviewer notes is \"the next test\" for R.S.'s progress. [7]\n*   **Rehearsal:** E.S. has been in a position to hear R.S.'s rehearsals of conversations at night, where she likely provided feedback or correction. [2]\n\n**Summary:** E.S. has functioned as both the initial referral source and a consistent, close family member providing practical support to R.S., while also being observed by the reviewer as part of the ongoing relational work.",
     "badCitations" : [
 
     ],
     "cited" : true,
     "contextRecall" : 0.6666666666666666,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "Qwen3-Embedding-0.6B",
     "facts" : 0.3333333333333333,
     "id" : "h19",
@@ -574,31 +574,31 @@
     "outputTokens" : 233,
     "pathRecall" : 1,
     "promptTokens" : 2166,
-    "question" : "How has R.S.'s mother-in-law figured in her counseling so far?",
+    "question" : "How has R.S.'s mother-in-law figured in her private so far?",
     "recall" : 0,
     "reranker" : true,
     "rerankerModel" : "Qwen3-Reranker-0.6B",
     "seconds" : 7.411107063293457,
     "sources" : [
-      "[[ministry\/counseling\/rs\/rs-session-01#Case Report — R.S. — Session 1]]",
-      "[[ministry\/counseling\/rs\/rs-session-01#What specific applications to the counselee's life did you discuss from your Scripture?]]",
-      "[[ministry\/README#Counselees]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
+      "[[private\/private\/rs\/rs-session-01#Case Report — R.S. — Session 1]]",
+      "[[private\/private\/rs\/rs-session-01#What specific applications to the participant's life did you discuss from your Scripture?]]",
+      "[[private\/README#Participants]]",
+      "[[private\/private\/rs\/rs-session-03#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]",
+      "[[private\/private\/rs\/rs-session-02#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
       "[[career\/notes#2026-11-02]]",
-      "[[ministry\/counseling\/rs\/rs-session-03#How is the overall counseling process progressing? What issues have been sufficiently addressed by you and are changing in the counselee?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]"
+      "[[private\/private\/rs\/rs-session-03#How is the overall private process progressing? What issues have been sufficiently addressed by you and are changing in the participant?]]",
+      "[[private\/private\/rs\/rs-session-02#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]"
     ],
     "tokPerSec" : 134.12248606843374
   },
   {
-    "answer" : "Based on the provided materials, here are the verses D.M. was asked to memorize over the course of counseling:\n\n*   **James 1:19-20** (mentioned in Session 2 and Session 5)\n*   **Proverbs 16:32** (mentioned in Session 6)\n\n(Note: While D.M. memorized Ephesians 4:31-32 in Session 4 and Session 6, this section is listed as a \"Philippians 4:8 'think list'\" in the session report, not explicitly as a memorization assignment in the provided text.)",
+    "answer" : "Based on the provided materials, here are the verses D.M. was asked to memorize over the course of private:\n\n*   **James 1:19-20** (mentioned in Session 2 and Session 5)\n*   **Proverbs 16:32** (mentioned in Session 6)\n\n(Note: While D.M. memorized Ephesians 4:31-32 in Session 4 and Session 6, this section is listed as a \"Philippians 4:8 'think list'\" in the session report, not explicitly as a memorization assignment in the provided text.)",
     "badCitations" : [
 
     ],
     "cited" : false,
     "contextRecall" : 1,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "Qwen3-Embedding-0.6B",
     "facts" : 1,
     "id" : "h20",
@@ -611,18 +611,18 @@
     "outputTokens" : 133,
     "pathRecall" : 1,
     "promptTokens" : 1712,
-    "question" : "Which verses was D.M. asked to memorize over the course of counseling?",
+    "question" : "Which verses was D.M. asked to memorize over the course of private?",
     "recall" : 1,
     "reranker" : true,
     "rerankerModel" : "Qwen3-Reranker-0.6B",
     "seconds" : 6.244277000427246,
     "sources" : [
-      "[[ministry\/counseling\/dm\/dm-session-02#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
-      "[[ministry\/counseling\/dm\/dm-session-03#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]",
-      "[[ministry\/counseling\/dm\/dm-session-04#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/dm\/dm-session-06#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/dm\/dm-session-05#What homework was given and how did it specifically apply to problems?]]",
-      "[[ministry\/counseling\/dm\/dm-session-07#What was gained by performing the homework from last session? What change?]]"
+      "[[private\/private\/dm\/dm-session-02#What ruling thoughts, desires, and\/or convictions of the heart are emerging or still present?]]",
+      "[[private\/private\/dm\/dm-session-03#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]",
+      "[[private\/private\/dm\/dm-session-04#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/dm\/dm-session-06#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/dm\/dm-session-05#What homework was given and how did it specifically apply to problems?]]",
+      "[[private\/private\/dm\/dm-session-07#What was gained by performing the homework from last session? What change?]]"
     ],
     "tokPerSec" : 133.07625789304876
   },
@@ -1200,7 +1200,7 @@
 
     ],
     "cited" : true,
-    "domain" : "ministry",
+    "domain" : "private",
     "embedder" : "Qwen3-Embedding-0.6B",
     "facts" : 1,
     "id" : "h40",
@@ -1217,9 +1217,9 @@
     "rerankerModel" : "Qwen3-Reranker-0.6B",
     "seconds" : 4.508843898773193,
     "sources" : [
-      "[[ministry\/counseling\/rs\/rs-session-01#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
-      "[[ministry\/counseling\/rs\/rs-session-02#What can you highlight as significant background information?]]",
-      "[[ministry\/counseling\/rs\/rs-session-01#Give a summary of reason(s) the counselee came for counseling—the presentation problem(s).]]"
+      "[[private\/private\/rs\/rs-session-01#What was your planned agenda for this session? Was it accomplished? If not, why not?]]",
+      "[[private\/private\/rs\/rs-session-02#What can you highlight as significant background information?]]",
+      "[[private\/private\/rs\/rs-session-01#Give a summary of reason(s) the participant came for support—the presentation problem(s).]]"
     ],
     "tokPerSec" : 127.28043516193395
   }

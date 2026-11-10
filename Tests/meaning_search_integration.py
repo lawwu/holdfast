@@ -35,7 +35,9 @@ with tempfile.TemporaryDirectory(prefix=domain + "-") as directory:
     first.write_text("# Orchard\n\nOrchardquartz: the pear trees need watering every morning during summer.\n")
     stable = sources / "bicycle.md"
     stable.write_text("# Bicycle\n\nThe bicycle chain needs cleaning and a fresh coat of lubricant every month.\n")
-    env = {k: v for k, v in os.environ.items() if not k.startswith(("HOLDFAST_", "MACKB_"))}
+    legacy_source = (Path(__file__).resolve().parents[1] / "Sources/holdfast/LegacyCompatibility.swift").read_text()
+    legacy_prefix = legacy_source.split('environmentPrefix = "')[1].split('"')[0]
+    env = {k: v for k, v in os.environ.items() if not k.startswith(("HOLDFAST_", legacy_prefix))}
     env.update(HOLDFAST_VAULT=str(vault), HOLDFAST_PACKS="none", HOLDFAST_RERANK="0")
     index = vault / ".holdfast/index.sqlite"
     missing_model = {"HOLDFAST_EMBED_DIR": str(scratch / "no-model-here")}
@@ -55,7 +57,7 @@ with tempfile.TemporaryDirectory(prefix=domain + "-") as directory:
             return db.execute("SELECT rel_path, ord, text, vec, mtime FROM chunks ORDER BY rel_path, ord").fetchall()
 
     try:
-        defaults("write", domain, "migratedFromMacKB", "-bool", "true")
+        defaults("write", domain, "migratedAppIdentityV2", "-bool", "true")
         # An unconfigured install tries to load the embedding model: the default is on.
         result = run("index", overrides=missing_model, check=False)
         assert result.returncode != 0, "Meaning search should be enabled by default"

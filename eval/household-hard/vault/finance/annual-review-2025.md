@@ -187,9 +187,9 @@ riding the stationary bike by September. Mom (Ruth) carried a lot during the rec
 We set aside, informally, about $3,000 a year we would be glad to spend on them without
 asking each other first. We spent $1,250 of it in April.
 
-## Church and ministry
+## Church and private
 
-Erik started the biblical-counseling training at Hillcrest in the fall of 2025 (the
+Erik started the biblical-private training at Hillcrest in the fall of 2025 (the
 observation hours). It costs nothing but time: Thursday evenings and some Saturdays.
 Anna leads the 2nd-grade Sunday school class once a month. Our small group moved from
 Wednesday to Sunday evenings in September so more of the young families could come.

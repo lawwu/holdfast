@@ -459,7 +459,7 @@ struct VaultSettings: View {
             Picker("Profile", selection: $store.profile) {
                 ForEach(Profile.all, id: \.id) { Text($0.name).tag($0) }
             }
-            .help("Sets the answer prompt, the reranker's instruction and the suggested questions. Folders named like ministry or counseling always use the counseling profile.")
+            .help("Sets the answer prompt, the reranker's instruction and the suggested questions. Top-level folders beginning with private or confidential always use the private profile, as do protected folders from earlier versions.")
             HStack(spacing: 16) {
                 Label("\(store.notes.count) notes", systemImage: "doc.on.doc")
                 Label("\(store.indexCounts.chunks) passages", systemImage: "text.alignleft")
