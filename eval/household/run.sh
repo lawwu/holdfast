@@ -17,7 +17,8 @@
 #   qwen36moe    Qwen 3.6 35B A3B 4-bit · Qwen3-Embedding-0.6B · Qwen3-Reranker   (candidates, from
 #   gptoss20b    gpt-oss 20B MXFP4      ·   "                  ·   "              models-to-try.md)
 #   gemma31b     Gemma 4 31B 4-bit      ·   "                  ·   "
-#   qwen36d27b   Qwen 3.6 27B 4-bit     ·   "                  ·   "
+#                (Qwen 3.6 27B was run once, label qwen36d27b; its scores stay in report.md,
+#                and its weights were removed from this Mac on 2026-11-07)
 #   gemini       Gemini API (MACKB_GEMINI_MODEL, default gemini-flash-latest) · Qwen retrieval;
 #                only if GEMINI_API_KEY is set. Synthetic data only: this sends the fixture to Google.
 
@@ -31,7 +32,7 @@ G26=mlx-community/gemma-4-26b-a4b-it-4bit
 GE4=mlx-community/gemma-4-e4b-it-4bit
 # Candidates (stage: candidates): label=repo
 CANDIDATES=(qwen36moe=mlx-community/Qwen3.6-35B-A3B-4bit gptoss20b=mlx-community/gpt-oss-20b-MXFP4-Q8
-            gemma31b=mlx-community/gemma-4-31b-it-4bit qwen36d27b=mlx-community/Qwen3.6-27B-4bit)
+            gemma31b=mlx-community/gemma-4-31b-it-4bit)
 # Research mode on the questions that need several files or numbers from CSVs.
 # A fixture can list its own in research-ids.txt.
 HARD=(h21 h22 h23 h24 h25 h26 h27 h28 h29 h30 h33 h34 h35 h36)

@@ -142,9 +142,8 @@ struct UpcomingCard: View {
                     Text("+\(store.upcoming.count - Self.shown) more").font(Theme.caption).foregroundStyle(.tertiary)
                 }
             }
-            .padding(14)
-            .frame(maxWidth: 560)
-            .background(RoundedRectangle(cornerRadius: 12).fill(Color.primary.opacity(0.035)))
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .card(padding: 14)
         }
     }
 }

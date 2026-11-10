@@ -155,6 +155,22 @@ final class ToolContext: @unchecked Sendable {
     var sources: [Chunk] = []
     var log: [String] = []
     private lazy var tables = CSVTables()
+    /// Set when a tool returned anything from counseling notes, folders or tables: a request on
+    /// another Mac moves to this one before the result is sent (RemoteAgent).
+    private(set) var touchedCounseling = false
+    /// The vault read once per Research run, not once per tool call.
+    private lazy var vaultNotes: [Note] = allNotes()
+    private lazy var inboxNotes: [Note] = allNotes(in: [Config.inboxDir])
+
+    private func note(_ idOrPath: String) -> Note? {
+        let key = idOrPath.hasSuffix(".md") ? String(idOrPath.dropLast(3)) : idOrPath
+        let all = vaultNotes + inboxNotes
+        return all.first { $0.id == key } ?? all.first { $0.name == key }
+    }
+
+    private func mark(_ relPaths: [String]) {
+        if relPaths.contains(where: Profile.isCounseling) { touchedCounseling = true }
+    }
 
     init(embedder: Embedder?) { self.embedder = embedder }
 
@@ -178,12 +194,14 @@ final class ToolContext: @unchecked Sendable {
                 let q = str(call, "query")
                 step("Searched “\(q)”"); log.append("search: \(q)")
                 let hits = try await search(q, embedder: embedder, reranker: await Reranker.shared(), limit: 6)
+                mark(hits.map(\.relPath))
                 if hits.isEmpty { return "No relevant passages." }
                 return hits.map { h in "[\(cite(h))] \(h.relPath) › \(h.anchor)\n\(h.text.prefix(900))" }.joined(separator: "\n\n")
             case "read_note":
                 let p = str(call, "path").trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
                 step("Read \(p)"); log.append("read: \(p)")
-                guard let n = findNote(p) ?? Packs.note(p) else { return "No note at \(p). Use list_folder to see what exists." }
+                guard let n = note(p) ?? Packs.note(p) else { return "No note at \(p). Use list_folder to see what exists." }
+                mark([n.relPath])
                 var text = n.body
                 if text.count > Agent.readChars { text = String(text.prefix(Agent.readChars)) + "\n[… truncated]" }
                 let c = Chunk(noteId: n.id, relPath: n.relPath, title: n.title, anchor: n.title, text: text)
@@ -195,11 +213,14 @@ final class ToolContext: @unchecked Sendable {
             case "list_tables":
                 let f = str(call, "folder").trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
                 step("Listed tables\(f.isEmpty ? "" : " in " + f + "/")"); log.append("tables: \(f)")
+                mark(tables.files.filter { f.isEmpty || $0.hasPrefix(f + "/") })
                 return tables.catalog(under: f)
             case "query_table":
                 let sql = str(call, "sql")
                 step("Queried: \(sql.prefix(80))"); log.append("sql: \(sql)")
                 let (out, used) = try tables.query(sql, maxRows: Agent.maxRows)
+                mark(used)
+                if sql.lowercased().contains(CSVTables.propsTable), tables.propertiesIncludeCounseling { touchedCounseling = true }
                 let c = Chunk(noteId: used.joined(separator: ","), relPath: used.first ?? "data", title: "Query",
                               anchor: String(sql.prefix(120)), text: "SQL: \(sql)\n\(out)")
                 return "[\(cite(c))] Query over \(used.joined(separator: ", "))\n\(out)"
@@ -215,11 +236,13 @@ final class ToolContext: @unchecked Sendable {
         let prefix = p.isEmpty ? "" : p + "/"
         var dirs = Set<String>()
         var files: [Note] = []
-        for n in allNotes() where n.relPath.hasPrefix(prefix) {
+        if !p.isEmpty, Profile.isCounseling(p) { touchedCounseling = true }
+        for n in vaultNotes where n.relPath.hasPrefix(prefix) {
             let rest = n.relPath.dropFirst(prefix.count)
             if let slash = rest.firstIndex(of: "/") { dirs.insert(String(rest[..<slash])) } else { files.append(n) }
         }
         let csvs = tables.files.filter { $0.hasPrefix(prefix) && !$0.dropFirst(prefix.count).contains("/") }
+        mark(files.map(\.relPath) + csvs)
         if dirs.isEmpty && files.isEmpty && csvs.isEmpty { return "Nothing at \(p)." }
         var out = ""
         for d in dirs.sorted() { out += "\(prefix)\(d)/\n" }
@@ -262,6 +285,9 @@ final class CSVTables {
     /// Every note's properties (frontmatter) as one table: path, title, then a column per property.
     static let propsTable = "note_properties"
     private var propsLoaded = false
+
+    /// Whether the note_properties table holds any counseling note's properties.
+    var propertiesIncludeCounseling: Bool { propertyNotes().contains { Profile.isCounseling($0.relPath) } }
 
     private func propertyNotes() -> [Note] { Config.inPlace ? allNotes().filter { !$0.relPath.hasPrefix("@") && !Properties.of($0).isEmpty } : [] }
 

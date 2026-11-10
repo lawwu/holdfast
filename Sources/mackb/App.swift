@@ -86,6 +86,29 @@ enum Pane: String, CaseIterable, Identifiable {
         case .inbox: return "tray"
         }
     }
+    /// One line under the page title.
+    var subtitle: String {
+        switch self {
+        case .ask: return ""
+        case .history: return "Every conversation, saved with its answer and sources."
+        case .listen: return "Transcribe a call, another app, the microphone or a stream as it plays, on this Mac."
+        case .files: return "The folders and notes in this vault."
+        case .tables: return "Notes that share a type, as tables with a column per property."
+        case .graph: return ""
+        case .library: return "Your notes by kind, and the references searched beside them."
+        case .inbox: return "Nothing is saved to your notes until you approve it here."
+        }
+    }
+    /// Pages that lay themselves out across the whole window (no title header, no reading column).
+    var fullBleed: Bool { self == .ask || self == .graph }
+    /// Pages whose content needs the full width even with nothing open.
+    var wide: Bool { fullBleed || self == .tables }
+    /// The sidebar's sections.
+    static let groups: [(title: String?, panes: [Pane])] = [
+        (nil, [.ask, .listen]),
+        ("Notes", [.files, .library, .tables, .graph]),
+        ("Activity", [.inbox, .history]),
+    ]
 }
 
 /// Where answers are generated: an MLX model inside the app (which one is
@@ -275,6 +298,7 @@ final class Store: ObservableObject {
     }
 
     func reload() {
+        downloaded = [:]
         Config.vaultOverride = vault
         try? ensureVault()
         notes = allNotes()
@@ -304,7 +328,21 @@ final class Store: ObservableObject {
         return "\(spec.name) · \(spec.detail)"
     }
 
-    func isDownloaded(_ repo: String) -> Bool { MLXBackend.modelDir(repo: repo) != nil }
+    /// Whether a model is on disk, remembered: views ask on every streamed token, and the check
+    /// lists folders. Forgotten on reload (the app coming forward) and when a download ends.
+    private var downloaded: [String: Bool] = [:]
+
+    func isDownloaded(_ repo: String) -> Bool {
+        if let d = downloaded[repo] { return d }
+        let d = MLXBackend.modelDir(repo: repo) != nil
+        downloaded[repo] = d
+        return d
+    }
+
+    /// A Listen transcript was saved: file it now (in place) or index it (managed vault).
+    func transcriptSaved() {
+        if Config.inPlace { fileDropped() } else { rebuildIndex() }
+    }
 
     func selectMLX(_ repo: String) {
         guard isDownloaded(repo) else { return }
@@ -330,6 +368,7 @@ final class Store: ObservableObject {
                 downloadErrors[repo] = "\(error)"
             }
             downloads[repo] = nil
+            downloaded = [:]
         }
     }
 
@@ -388,6 +427,9 @@ final class Store: ObservableObject {
         let convo = conversationId ?? UUID()
         conversationId = convo
         let prior = turns.map { (q: $0.question, a: $0.answer) }
+        // Earlier answers go along as context; one drawn from counseling notes keeps the whole
+        // conversation on this Mac, even when the new question isn't about counseling.
+        let priorCounseling = turns.contains { $0.sources.contains { Profile.isCounseling($0.relPath) } }
         askedQuestion = q
         question = ""
         currentHistoryId = nil
@@ -399,7 +441,12 @@ final class Store: ObservableObject {
         askTask = Task {
             do {
                 let emb = await getEmbedder()
-                let llm = try await getLLM()
+                var llm = try await getLLM()
+                if llm is RemoteBackend, priorCounseling {
+                    busy = "Loading \(MLXBackend.currentRepo.split(separator: "/").last.map(String.init) ?? "this Mac's model")…"
+                    llm = try await MLXBackend.shared()
+                    Remote.keptLocal = true
+                }
                 busy = "Searching and writing the answer…"
                 let t0 = Date()
                 var a: Answer
@@ -465,7 +512,11 @@ final class Store: ObservableObject {
                 if !a.badCitations.isEmpty {
                     warning = "The answer cites passages that don't exist: " + a.badCitations.map { "[\($0)]" }.joined(separator: ", ")
                 }
-                var entry = HistoryEntry(question: q, answer: a.text, model: model, stats: answerStats!, sources: a.sources)
+                // Kept on this Mac (counseling) or the other Mac didn't answer: name the model that did.
+                let answeredBy = Remote.keptLocal || Remote.fellBack
+                    ? MLXModelSpec.find(MLXBackend.currentRepo).map { "\($0.name) · \($0.detail)" } ?? (MLXBackend.currentRepo.split(separator: "/").last.map(String.init) ?? model)
+                    : model
+                var entry = HistoryEntry(question: q, answer: a.text, model: answeredBy, stats: answerStats!, sources: a.sources)
                 if Remote.keptLocal {
                     steps.append("Counseling notes were involved, so this Mac's model answered")
                     Remote.keptLocal = false
@@ -553,7 +604,9 @@ final class Store: ObservableObject {
     }
 
     func open(_ c: Chunk) {
-        if let n = findNote(c.noteId) ?? notes.first(where: { $0.relPath == c.relPath }) ?? Packs.note(c.relPath) {
+        // The notes already in memory first: findNote re-reads the whole vault.
+        if let n = notes.first(where: { $0.relPath == c.relPath }) ?? notes.first(where: { $0.id == c.noteId })
+            ?? Packs.note(c.relPath) ?? findNote(c.noteId) {
             opened = Opened(note: n, anchor: c.anchor)
         }
     }
@@ -806,6 +859,10 @@ final class Store: ObservableObject {
         panel.message = "Choose a vault folder (Markdown notes; can be an Obsidian vault)"
         guard busy == nil, !asking, !filing, importProgress == nil else {
             error = "Wait for the current answer, filing or import to finish before switching vaults."
+            return
+        }
+        guard !Listener.shared.active else {
+            error = "Stop listening before switching vaults: the transcript is filed into the vault it was started in."
             return
         }
         guard panel.runModal() == .OK, let u = panel.url else { return }

@@ -32,7 +32,7 @@ enum Listen {
             case .stdin: return "stdin"
             case .url(let s, _): return s
             case .mic: return "microphone"
-            case .system(let app, let mic, _): return (app.map { "\($0) (app audio)" } ?? "system audio") + (mic ? " + microphone" : "")
+            case .system(let app, let mic, _): return (app.map { "\(SystemAudio.label($0)) (app audio)" } ?? "system audio") + (mic ? " + microphone" : "")
             }
         }
     }
@@ -52,16 +52,20 @@ enum Listen {
 
     /// Turns the manager's token revisions into finished transcript lines. Only words the manager
     /// marks stable (irrevocable) make a line, and the last line of those stays open until a later
-    /// line starts or the audio ends, so a printed line never changes.
+    /// line starts or the audio ends, so a printed line never changes. Each update works only on
+    /// the open line and the words after it, not the whole session.
     struct LineBuilder {
         private(set) var tokens: [TokenTiming] = []
         private(set) var stable = 0
-        private(set) var emitted = 0
+        /// Tokens already printed as lines: the open line starts here.
+        private(set) var consumed = 0
 
         mutating func apply(_ u: SlidingWindowTokenUpdate) -> [Segment] {
             let keep = min(u.revision.retainedTokenCount, tokens.count)
-            tokens = Array(tokens.prefix(keep)) + u.tokens
+            tokens.removeSubrange(keep..<tokens.count)
+            tokens.append(contentsOf: u.tokens)
             stable = min(u.revision.stableTokenCount, tokens.count)
+            consumed = min(consumed, stable)
             return closed(terminal: u.revision.isTerminal)
         }
 
@@ -72,16 +76,16 @@ enum Listen {
         }
 
         private mutating func closed(terminal: Bool) -> [Segment] {
-            let segs = segments(fromTokens: Array(tokens.prefix(stable)))
+            let segs = segmentRanges(tokens[consumed..<stable])
             let done = terminal ? segs.count : max(segs.count - 1, 0)
-            guard done > emitted else { return [] }
-            defer { emitted = done }
-            return Array(segs[emitted..<done])
+            guard done > 0 else { return [] }
+            consumed = segs[done - 1].end
+            return segs.prefix(done).map(\.segment)
         }
 
         /// Heard but not printed yet: the open line plus words that may still change.
         var pendingText: String {
-            let open = segments(fromTokens: Array(tokens.prefix(stable))).dropFirst(emitted).map(\.text)
+            let open = segmentRanges(tokens[consumed..<stable]).map(\.segment.text)
             let rest = tokens.dropFirst(stable).map { $0.token.replacingOccurrences(of: "▁", with: " ") }.joined()
             return (open.joined(separator: " ") + " " + rest).trimmingCharacters(in: .whitespaces)
         }
@@ -89,13 +93,23 @@ enum Listen {
 
     // MARK: audio in
 
+    /// Piped audio waits once this many slices (about a minute) are queued, so a file read faster
+    /// than real time isn't held in memory.
+    static let maxQueuedSlices = 120
+
     /// A stream of audio buffers that `stop()` ends at once, even while a reader is blocked on a pipe.
+    /// Whatever must happen on stop (ending ffmpeg, the microphone, a tap) is registered with
+    /// `whenStopped`; registered after a stop, it runs at once, so a Stop pressed while the model is
+    /// still loading can't leave a source running.
     final class Feed: @unchecked Sendable {
         let stream: AsyncStream<AVAudioPCMBuffer>
-        let cont: AsyncStream<AVAudioPCMBuffer>.Continuation
-        var onStop: [() -> Void] = []
+        private let cont: AsyncStream<AVAudioPCMBuffer>.Continuation
+        private var handlers: [() -> Void] = []
         private var stopped = false
         private let lock = NSLock()
+        private let room = DispatchSemaphore(value: Listen.maxQueuedSlices)
+        /// Set by a reader that can wait (piped audio); real-time sources never block.
+        private(set) var paced = false
 
         init() {
             var c: AsyncStream<AVAudioPCMBuffer>.Continuation!
@@ -103,13 +117,41 @@ enum Listen {
             cont = c
         }
 
+        var isStopped: Bool { lock.lock(); defer { lock.unlock() }; return stopped }
+
+        /// From a real-time source (an audio thread): never waits.
+        func yield(_ b: AVAudioPCMBuffer) { cont.yield(b) }
+
+        /// From a reader that can wait: blocks while a minute of audio is queued. False once stopped.
+        func yieldWaiting(_ b: AVAudioPCMBuffer) -> Bool {
+            paced = true
+            while room.wait(timeout: .now() + 0.5) == .timedOut { if isStopped { return false } }
+            if isStopped { return false }
+            cont.yield(b)
+            return true
+        }
+
+        /// The consumer took a buffer: room for the next one.
+        func took() { if paced { room.signal() } }
+
+        /// The source ended on its own (end of a file or stream).
+        func finish() { cont.finish() }
+
+        func whenStopped(_ f: @escaping () -> Void) {
+            lock.lock()
+            if stopped { lock.unlock(); f(); return }
+            handlers.append(f)
+            lock.unlock()
+        }
+
         func stop() {
             lock.lock()
-            let first = !stopped
+            guard !stopped else { lock.unlock(); return }
             stopped = true
+            let hs = handlers
+            handlers = []
             lock.unlock()
-            guard first else { return }
-            onStop.forEach { $0() }
+            hs.forEach { $0() }
             cont.finish()
         }
     }
@@ -118,15 +160,15 @@ enum Listen {
     static func readPCM(_ fh: FileHandle, into feed: Feed) {
         let t = Thread {
             var carry = Data()
-            while true {
+            while !feed.isStopped {
                 guard let d = try? fh.read(upToCount: sliceSamples * 2), !d.isEmpty else { break }
                 carry.append(d)
                 let whole = carry.count - carry.count % 2
                 if whole == 0 { continue }
-                if let b = buffer(fromS16LE: carry.prefix(whole)) { feed.cont.yield(b) }
+                if let b = buffer(fromS16LE: carry.prefix(whole)), !feed.yieldWaiting(b) { break }
                 carry = Data(carry.dropFirst(whole))
             }
-            feed.cont.finish()
+            feed.finish()
         }
         t.start()
     }
@@ -142,8 +184,34 @@ enum Listen {
         return b
     }
 
-    /// ffmpeg turns a stream URL or file into raw audio on a pipe; its errors go straight to stderr.
-    static func startFFmpeg(_ src: String, realtime: Bool, into feed: Feed) throws {
+    /// An ffmpeg run: its last error lines, to say why a stream gave nothing.
+    final class FFmpegRun: @unchecked Sendable {
+        let process: Process
+        let source: String
+        private let lock = NSLock()
+        private var err = ""
+        private var stoppedByUs = false
+        init(_ p: Process, source: String) { process = p; self.source = source }
+        /// Stop asked for it (ffmpeg exits 255 on SIGTERM, which isn't a failure).
+        func terminate() {
+            lock.lock(); stoppedByUs = true; lock.unlock()
+            if process.isRunning { process.terminate() }
+        }
+        func append(_ s: String) { lock.lock(); err = String((err + s).suffix(1500)); lock.unlock() }
+        var errors: String { lock.lock(); defer { lock.unlock() }; return err.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+        /// Why ffmpeg failed, once it has ended; nil when it finished or was stopped by us.
+        func failure() -> String? {
+            process.waitUntilExit()
+            lock.lock(); let ours = stoppedByUs; lock.unlock()
+            guard !ours, process.terminationReason == .exit, process.terminationStatus != 0 else { return nil }
+            let e = errors.split(separator: "\n").last.map(String.init) ?? "exit status \(process.terminationStatus)"
+            return "ffmpeg couldn't read \(source): \(e)"
+        }
+    }
+
+    /// ffmpeg turns a stream URL or file into raw audio on a pipe; its errors are kept (and shown on stderr).
+    static func startFFmpeg(_ src: String, realtime: Bool, into feed: Feed) throws -> FFmpegRun {
         guard let ffmpeg = findTool("ffmpeg") else {
             throw MacKBError("Listening to a stream needs ffmpeg. Install it with Homebrew (brew install ffmpeg), then try again.")
         }
@@ -155,12 +223,20 @@ enum Listen {
         }
         if realtime { a.append("-re") }
         p.arguments = a + ["-i", src, "-vn", "-ac", "1", "-ar", String(Int(sampleRate)), "-f", "s16le", "-"]
-        let out = Pipe()
+        let out = Pipe(), err = Pipe()
         p.standardOutput = out
-        p.standardError = FileHandle.standardError
+        p.standardError = err
+        let run = FFmpegRun(p, source: src)
+        err.fileHandleForReading.readabilityHandler = { h in
+            let d = h.availableData
+            guard !d.isEmpty else { h.readabilityHandler = nil; return }
+            run.append(String(decoding: d, as: UTF8.self))
+            if !launchedAsApp { FileHandle.standardError.write(d) }
+        }
         try p.run()
-        feed.onStop.append { if p.isRunning { p.terminate() } }
+        feed.whenStopped { run.terminate() }
         readPCM(out.fileHandleForReading, into: feed)
+        return run
     }
 
     /// The default input device through AVAudioEngine. A command-line run uses the terminal app's
@@ -176,18 +252,22 @@ enum Listen {
 
     /// Audio the Mac plays, all of it or one app's, through a Core Audio process tap
     /// (SystemAudio.swift), with the microphone mixed in when asked.
-    static func startSystem(app: String?, mic: Bool, mute: Bool, into feed: Feed, say: (String) -> Void) async throws -> SystemAudio.Capture {
-        var processes: [AudioObjectID]?
+    static func startSystem(app: String?, mic: Bool, mute: Bool, into feed: Feed, say: @escaping (String) -> Void) async throws -> SystemAudio.Capture {
+        var target: SystemAudio.Target?
         if let app {
-            let found = SystemAudio.find(app)
-            guard !found.isEmpty else {
-                let playing = Set(SystemAudio.processes().filter(\.playing).map(\.name)).sorted()
-                throw MacKBError("no app matching \"\(app)\" has opened audio yet. Start the call or playback first, then try again."
-                    + (playing.isEmpty ? "" : " Playing now: \(playing.joined(separator: ", ")).")
-                    + " (mackb listen --apps lists them; --system takes everything the Mac plays.)")
+            let t = try SystemAudio.resolve(app)
+            if t.processes.isEmpty {
+                guard t.app != nil else {
+                    let playing = Set(SystemAudio.processes().filter(\.playing).map(\.name)).sorted()
+                    throw MacKBError("no app named \"\(app)\" is running."
+                        + (playing.isEmpty ? "" : " Playing now: \(playing.joined(separator: ", ")).")
+                        + " (mackb listen --apps lists them; --system takes everything the Mac plays.)")
+                }
+                say("\(t.name) hasn't played any audio yet: listening for it to start")
+            } else {
+                say("tapping \(t.name)")
             }
-            say("tapping \(Set(found.map(\.name)).sorted().joined(separator: ", "))")
-            processes = found.map(\.object)
+            target = t
         }
         switch SystemAudio.audioCapturePermission() {
         case .granted, .unknown: break
@@ -197,15 +277,16 @@ enum Listen {
             guard await SystemAudio.requestAudioCapture() else { throw SystemAudio.captureDenied }
         }
         if mic { try await requireMic() }
-        let cap = try SystemAudio.Capture(processes: processes, mic: mic, mute: mute) { feed.cont.yield($0) }
-        feed.onStop.append { cap.stop() }
+        let cap = try SystemAudio.Capture(target: target, mic: mic, mute: mute, onEvent: say) { feed.yield($0) }
+        feed.whenStopped { cap.stop() }
         return cap
     }
 
-    /// Runs this same `listen` inside Holdfast.app (`open -n -g -W`), whose Info.plist says why it
-    /// records audio, so macOS asks Holdfast for System Audio Recording (and the microphone) instead
-    /// of handing a terminal silence. Its output comes back through two FIFOs; Ctrl-C is passed on,
-    /// and the app's run finishes the transcript as usual. Returns the exit status for the CLI.
+    /// Runs this same `listen` inside Holdfast.app, whose Info.plist says why it records audio, so
+    /// macOS asks Holdfast for System Audio Recording (and the microphone) instead of handing a
+    /// terminal silence. The relaunched run writes its pid and, when done, its exit status into a
+    /// folder shared with this process; its output comes back through two FIFOs. Ctrl-C and kill
+    /// are passed on to it, and this process waits until it has written and filed the transcript.
     static func relayThroughApp(_ listenArgs: [String]) throws -> Int32 {
         guard let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "net.lawrencewu.mackb") else {
             throw MacKBError("Recording another app's audio runs inside Holdfast.app, which asks macOS for permission. Build it with scripts/make_app.sh and open it once.")
@@ -216,17 +297,18 @@ enum Listen {
         let outPath = dir.appendingPathComponent("out").path, errPath = dir.appendingPathComponent("err").path
         guard mkfifo(outPath, 0o600) == 0, mkfifo(errPath, 0o600) == 0 else { throw MacKBError("couldn't create pipes to Holdfast.app") }
 
-        let token = UUID().uuidString
         var pass = listenArgs
         if let i = pass.firstIndex(of: "--out"), i + 1 < pass.count { pass[i + 1] = URL(fileURLWithPath: pass[i + 1]).path }  // relative to here
         var env: [String] = []
         for (k, v) in ProcessInfo.processInfo.environment where k.hasPrefix("MACKB_") { env += ["--env", "\(k)=\(v)"] }
         let p = Process()
         p.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        p.arguments = ["-n", "-g", "-W", "--stdout", outPath, "--stderr", errPath] + env
-            + ["-a", app.path, "--args", "listen"] + pass + ["--relay-token", token]
+        p.arguments = ["-n", "-g", "--stdout", outPath, "--stderr", errPath] + env
+            + ["-a", app.path, "--args", "listen"] + pass + ["--relay-dir", dir.path]
         log("running the capture inside Holdfast.app, so macOS asks Holdfast for permission (\(app.path))")
         try p.run()
+        p.waitUntilExit()  // returns once the app is launched
+        guard p.terminationStatus == 0 else { throw MacKBError("couldn't open \(app.path)") }
 
         let copying = DispatchGroup()
         for (path, dest) in [(outPath, FileHandle.standardOutput), (errPath, FileHandle.standardError)] {
@@ -234,58 +316,116 @@ enum Listen {
             DispatchQueue.global().async {
                 defer { copying.leave() }
                 guard let fh = FileHandle(forReadingAtPath: path) else { return }  // blocks until the app opens it
-                while let d = try? fh.read(upToCount: 4096), !d.isEmpty { dest.write(d) }
+                // availableData hands on each line as it comes; read(upToCount:) would wait for a full buffer.
+                while true {
+                    let d = fh.availableData
+                    if d.isEmpty { break }
+                    dest.write(d)
+                }
             }
         }
+        func unblockReaders() {
+            for path in [outPath, errPath] {
+                let fd = open(path, O_WRONLY | O_NONBLOCK)
+                if fd >= 0 { close(fd) }
+            }
+        }
+
+        // Signals arriving before the app has said who it is are held until it has.
+        let relay = RelayTarget()
         signal(SIGINT, SIG_IGN)
         signal(SIGTERM, SIG_IGN)
         let signals = [SIGINT, SIGTERM].map { sig -> DispatchSourceSignal in
             let s = DispatchSource.makeSignalSource(signal: sig, queue: .global())
-            s.setEventHandler { if let pid = pid(withArgument: token) { kill(pid, SIGINT) } }
+            s.setEventHandler { relay.interrupt() }
             s.resume()
             return s
         }
-        p.waitUntilExit()
-        signals.forEach { $0.cancel() }
-        // If the app never opened a pipe, open it here so its reader sees the end.
-        for path in [outPath, errPath] {
-            let fd = open(path, O_WRONLY | O_NONBLOCK)
-            if fd >= 0 { close(fd) }
+        defer { signals.forEach { $0.cancel() }; signal(SIGINT, SIG_DFL); signal(SIGTERM, SIG_DFL) }
+
+        let pidFile = dir.appendingPathComponent("pid"), statusFile = dir.appendingPathComponent("status")
+        let deadline = Date().addingTimeInterval(60)
+        while relay.pid == nil, Date() < deadline {
+            if let s = try? String(contentsOf: pidFile, encoding: .utf8), let pid = pid_t(s.trimmingCharacters(in: .whitespacesAndNewlines)) {
+                relay.found(pid)
+            } else {
+                usleep(100_000)
+            }
         }
-        _ = copying.wait(timeout: .now() + 5)
-        return p.terminationStatus
+        guard let pid = relay.pid else {
+            unblockReaders()
+            throw MacKBError("Holdfast.app opened but didn't start the capture within a minute")
+        }
+        // Wait for the capture to finish: it transcribes the last seconds and files the transcript first.
+        while kill(pid, 0) == 0 { usleep(200_000) }
+        unblockReaders()
+        _ = copying.wait(timeout: .now() + 10)
+        return (try? String(contentsOf: statusFile, encoding: .utf8)).flatMap { Int32($0.trimmingCharacters(in: .whitespacesAndNewlines)) } ?? 1
     }
 
-    /// The process started with this argument (the relaunched listen), via pgrep.
-    static func pid(withArgument token: String) -> pid_t? {
-        let p = Process()
-        p.executableURL = URL(fileURLWithPath: "/usr/bin/pgrep")
-        p.arguments = ["-f", token]
-        let out = Pipe()
-        p.standardOutput = out
-        guard (try? p.run()) != nil else { return nil }
-        p.waitUntilExit()
-        let s = String(data: out.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
-        return s.split(separator: "\n").compactMap { pid_t($0) }.first { $0 != getpid() }
+    /// The relaunched capture's pid, and Ctrl-C presses waiting for it.
+    final class RelayTarget: @unchecked Sendable {
+        private let lock = NSLock()
+        private var known: pid_t?
+        private var pending = 0
+        var pid: pid_t? { lock.lock(); defer { lock.unlock() }; return known }
+        func found(_ p: pid_t) {
+            lock.lock()
+            known = p
+            let n = pending
+            pending = 0
+            lock.unlock()
+            for _ in 0..<n { kill(p, SIGINT) }
+        }
+        func interrupt() {
+            lock.lock()
+            defer { lock.unlock() }
+            if let p = known { kill(p, SIGINT) } else { pending += 1 }
+        }
     }
 
-    static func startMic(into feed: Feed) async throws {
+    /// For a relaunched run (`--relay-dir`): who it is, then how it ended.
+    static func relayStarted(_ dir: String?) {
+        guard let dir else { return }
+        try? "\(getpid())".write(toFile: dir + "/pid", atomically: true, encoding: .utf8)
+    }
+
+    static func relayEnded(_ dir: String?, status: Int32) {
+        guard let dir else { return }
+        try? "\(status)".write(toFile: dir + "/status", atomically: true, encoding: .utf8)
+    }
+
+    static func startMic(into feed: Feed, say: @escaping (String) -> Void) async throws {
         try await requireMic()
         let engine = AVAudioEngine()
         let input = engine.inputNode
         let fmt = input.outputFormat(forBus: 0)
         guard fmt.sampleRate > 0, fmt.channelCount > 0 else { throw MacKBError("no microphone found") }
-        input.installTap(onBus: 0, bufferSize: 4096, format: fmt) { buf, _ in
+        let tap: AVAudioNodeTapBlock = { buf, _ in
             // The tap can reuse its buffer: hand on a copy.
             guard let c = AVAudioPCMBuffer(pcmFormat: buf.format, frameCapacity: buf.frameLength), let src = buf.floatChannelData,
                   let dst = c.floatChannelData else { return }
             c.frameLength = buf.frameLength
             for ch in 0..<Int(buf.format.channelCount) { dst[ch].update(from: src[ch], count: Int(buf.frameLength)) }
-            feed.cont.yield(c)
+            feed.yield(c)
         }
+        input.installTap(onBus: 0, bufferSize: 4096, format: fmt, block: tap)
         engine.prepare()
         try engine.start()
-        feed.onStop.append { input.removeTap(onBus: 0); engine.stop() }
+        // A headset plugged in or AirPods connecting stops the engine: start again on the new input.
+        let changed = NotificationCenter.default.addObserver(forName: .AVAudioEngineConfigurationChange, object: engine, queue: nil) { _ in
+            guard !feed.isStopped else { return }
+            input.removeTap(onBus: 0)
+            let f = input.outputFormat(forBus: 0)
+            guard f.sampleRate > 0, f.channelCount > 0 else { say("the microphone went away; waiting for one"); return }
+            input.installTap(onBus: 0, bufferSize: 4096, format: f, block: tap)
+            if (try? engine.start()) != nil { say("the microphone changed: listening on the new one") }
+        }
+        feed.whenStopped {
+            NotificationCenter.default.removeObserver(changed)
+            input.removeTap(onBus: 0)
+            engine.stop()
+        }
     }
 
     static let micDenied = MacKBError(
@@ -347,17 +487,25 @@ enum Listen {
         let updates = await asr.tokenUpdates  // subscribe before any audio
         if case .mic = input { try await asr.startStreaming(source: .microphone) } else { try await asr.startStreaming(source: .system) }
 
+        // Stopped while the model was loading: nothing to start.
+        if feed.isStopped {
+            await asr.cleanup()
+            h.status("Stopped before listening started.")
+            return Outcome(lines: 0, seconds: 0, transcript: nil, filed: nil)
+        }
+
         let started = Date()
         let name = title ?? defaultTitle(input, started)
         let journal = try journalURL(started, name)
         try ("# \(name)\n\nSource: \(input.source)\n\n## Transcript (still listening)\n\n").write(to: journal, atomically: true, encoding: .utf8)
 
         var capture: SystemAudio.Capture?
+        var ffmpeg: FFmpegRun?
         do {
             switch input {
             case .stdin: readPCM(.standardInput, into: feed)
-            case .url(let s, let rt): try startFFmpeg(s, realtime: rt, into: feed)
-            case .mic: try await startMic(into: feed)
+            case .url(let s, let rt): ffmpeg = try startFFmpeg(s, realtime: rt, into: feed)
+            case .mic: try await startMic(into: feed, say: h.status)
             case .system(let app, let mic, let mute): capture = try await startSystem(app: app, mic: mic, mute: mute, into: feed, say: h.status)
             }
         } catch {
@@ -400,14 +548,18 @@ enum Listen {
         var seconds = 0.0
         var warnedSilence = false
         for await buf in feed.stream {
+            feed.took()
             seconds += Double(buf.frameLength) / buf.format.sampleRate
             await asr.streamAudio(buf)
             if let m = maxSeconds, seconds >= m { break }
             // A tap without permission delivers silence, not an error.
             if let capture, !warnedSilence, seconds > silenceWarningSeconds, capture.peak == 0 {
                 warnedSilence = true
-                h.status("only silence so far. If something is playing, allow System Audio Recording for the app running mackb "
-                    + "(System Settings → Privacy & Security → Screen & System Audio Recording), then start again.")
+                // With permission granted, silence just means nothing is playing yet.
+                if SystemAudio.audioCapturePermission() != .granted {
+                    h.status("Only silence so far. If something is playing, allow System Audio Recording for \(launchedAsApp ? "Holdfast" : "the app running mackb") "
+                        + "(System Settings → Privacy & Security → Screen & System Audio Recording), then start again.")
+                }
             }
         }
         feed.stop()
@@ -418,6 +570,11 @@ enum Listen {
         try? journalHandle.close()
         await asr.cleanup()
         if let e = streamError ?? finishError { h.status("transcription stopped early: \(e). Keeping what was heard.") }
+        // A stream that failed to open (or broke) says why, instead of looking like silence.
+        if let f = ffmpeg?.failure() {
+            if lines.isEmpty { try? FileManager.default.removeItem(at: journal); throw MacKBError(f) }
+            h.status(f + ". Keeping what was heard.")
+        }
 
         guard !lines.isEmpty else {
             try? FileManager.default.removeItem(at: journal)
@@ -526,7 +683,7 @@ enum Listen {
         case .stdin: return "Live transcript \(when)"
         case .mic: return "Recording \(when)"
         case .system(let app, let mic, _):
-            if let app { return "\(app.capitalized) \(mic ? "call" : "audio") \(when)" }
+            if let app { return "\(SystemAudio.label(app)) \(mic ? "call" : "audio") \(when)" }
             return "\(mic ? "Meeting" : "Mac audio") \(when)"
         case .url(let s, _):
             if let u = URL(string: s), let host = u.host, !host.isEmpty { return "\(host) livestream \(when)" }

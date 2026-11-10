@@ -12,7 +12,7 @@ on Hugging Face; all fit comfortably in 64 GB next to the embedder and reranker.
 | 1 | `mlx-community/Qwen3.6-35B-A3B-4bit` | 20.4 GB | Mixture-of-experts with ~3B active: should run at Gemma 26B speed. The question is whether it keeps Qwen 3.8 27B's filing accuracy (100% place, 96% facts) at ~12 s/file instead of 63 s. The most likely new default. |
 | 2 | `mlx-community/gpt-oss-20b-MXFP4-Q8` | 12.1 GB | OpenAI's open model; strong at tool calls, which is what Research mode is. A reasoning model: needs its reasoning effort set low, or answers slow down. |
 | 3 | `mlx-community/gemma-4-31b-it-4bit` | 18.4 GB | Google's dense Gemma 4. Tests whether the 26B MoE's misses (79% in Research, the bank-statement filing) are from its 4B active parameters. |
-| 4 | `mlx-community/Qwen3.6-27B-4bit` | 16.1 GB | The previous dense Qwen, for a same-size check on 3.8. Low priority. |
+| 4 | `mlx-community/Qwen3.6-27B-4bit` | 16.1 GB | The previous dense Qwen, for a same-size check on 3.8. Run once (label `qwen36d27b`, scores in `report.md`); its weights were removed from this Mac on 2026-11-07, so it is out of `run.sh` and `memory.py`. |
 
 Skipped: Mistral Small 4 (119B MoE; too big for 64 GB at useful quality),
 Mistral Small 3.2 24B (older than the rest), DeepSeek V4 (hundreds of GB),

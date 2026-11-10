@@ -20,8 +20,10 @@ final class Listener: ObservableObject {
 
     struct AudioApp: Identifiable, Hashable {
         var name: String
+        /// What the capture is given: exact, so picking "Music" can't also catch YouTube Music.
+        var bundleID: String
         var playing: Bool
-        var id: String { name }
+        var id: String { bundleID }
     }
 
     @Published private(set) var lines: [Segment] = []
@@ -36,6 +38,8 @@ final class Listener: ObservableObject {
     @Published private(set) var active = false
 
     private var feed: Listen.Feed?
+    /// Called when a transcript was saved, so the app files or indexes it right away.
+    var onSaved: (() -> Void)?
 
     func start(_ input: Listen.Input, title: String?, file: Bool) {
         guard !active else { return }
@@ -88,7 +92,11 @@ final class Listener: ObservableObject {
         pending = ""
         outcome = o
         error = e.map { "\($0)" }
-        status = o.flatMap { $0.lines == 0 ? "Heard no speech in \(formatTime($0.seconds)) of audio; nothing was saved." : nil }
+        status = o.flatMap { o in
+            guard o.lines == 0 else { return nil }
+            return o.seconds == 0 ? "Stopped before listening started." : "Heard no speech in \(formatTime(o.seconds)) of audio; nothing was saved."
+        }
+        if let o, o.lines > 0 { onSaved?() }
         refreshRecent()
     }
 
@@ -101,16 +109,16 @@ final class Listener: ObservableObject {
     /// Running apps that have opened audio (a call app opens it when the call starts): playing, then call apps.
     static func audioApps() -> [AudioApp] {
         let procs = SystemAudio.processes()
-        var found: [String: Bool] = [:]
+        var found: [String: AudioApp] = [:]
         for app in NSWorkspace.shared.runningApplications where app.activationPolicy == .regular {
-            guard let bundle = app.bundleIdentifier?.lowercased(), let name = app.localizedName,
+            guard let bundle = app.bundleIdentifier, let name = app.localizedName,
                   app.processIdentifier != ProcessInfo.processInfo.processIdentifier else { continue }
-            let mine = procs.filter { $0.pid == app.processIdentifier || $0.bundleID.lowercased().hasPrefix(bundle) }
-            if !mine.isEmpty { found[name] = (found[name] ?? false) || mine.contains(where: \.playing) }
+            let b = bundle.lowercased()
+            let mine = procs.filter { $0.pid == app.processIdentifier || $0.bundleID.lowercased() == b || $0.bundleID.lowercased().hasPrefix(b + ".") }
+            if !mine.isEmpty { found[bundle] = AudioApp(name: name, bundleID: bundle, playing: mine.contains(where: \.playing)) }
         }
         func rank(_ a: AudioApp) -> Int { a.playing ? 0 : callApps.contains(a.name.lowercased()) ? 1 : 2 }
-        return found.map { AudioApp(name: $0.key, playing: $0.value) }
-            .sorted { (rank($0), $0.name.lowercased()) < (rank($1), $1.name.lowercased()) }
+        return found.values.sorted { (rank($0), $0.name.lowercased()) < (rank($1), $1.name.lowercased()) }
     }
 }
 
@@ -142,26 +150,25 @@ struct ListenView: View {
     @AppStorage("listenFile") private var fileIt = true
     @State private var apps: [Listener.AudioApp] = []
     @State private var title = ""
+    /// Keep the newest line in view; switch off to read back while it listens.
+    @State private var follow = true
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Listen").font(Theme.title2)
-                    Text("Transcribe a call, another app, the microphone or a stream as it plays. Transcribed on this Mac.")
-                        .font(Theme.callout).foregroundStyle(.secondary)
-                }
                 if listener.active { live } else { setup }
                 if !listener.active, listener.outcome != nil || listener.error != nil || listener.status != nil { result }
                 if !listener.recent.isEmpty { recent }
             }
-            .padding(.horizontal, 28).padding(.vertical, 26)
-            .frame(maxWidth: 820, alignment: .leading)
-            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 22).padding(.top, 10).padding(.bottom, 24)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .onAppear {
             refreshApps()
             listener.refreshRecent()
+            // A transcript saved in a managed vault is indexed now; in place, the drop folder files it now.
+            let s = store
+            listener.onSaved = { s.transcriptSaved() }
         }
     }
 
@@ -191,7 +198,7 @@ struct ListenView: View {
                             .font(Theme.callout).foregroundStyle(.secondary)
                     } else {
                         Picker("App", selection: $app) {
-                            ForEach(apps) { a in Text(a.playing ? "\(a.name) · playing" : a.name).tag(a.name) }
+                            ForEach(apps) { a in Text(a.playing ? "\(a.name) · playing" : a.name).tag(a.bundleID) }
                         }
                         .frame(maxWidth: 360)
                     }
@@ -232,7 +239,7 @@ struct ListenView: View {
 
     func refreshApps() {
         apps = Listener.audioApps()
-        if !apps.contains(where: { $0.name == app }) { app = apps.first?.name ?? "" }
+        if !apps.contains(where: { $0.bundleID == app }) { app = apps.first?.bundleID ?? "" }
     }
 
     func start() {
@@ -255,39 +262,47 @@ struct ListenView: View {
                 ListeningBadge().fixedSize()
                 Text(listener.source).font(Theme.callout).foregroundStyle(.secondary).lineLimit(1)
                 Spacer()
+                Toggle(isOn: $follow) { Label("Follow", systemImage: "arrow.down.to.line") }
+                    .toggleStyle(.button).controlSize(.small)
+                    .help("Keep the newest line in view. Switch off to scroll back and read.")
                 Button { listener.stop() } label: { Label("Stop", systemImage: "stop.fill") }
                     .buttonStyle(.borderedProminent).tint(.red)
                     .disabled(listener.stopping)
                     .keyboardShortcut(".", modifiers: .command)
             }
             if let s = listener.status { Text(s).font(Theme.caption).foregroundStyle(.secondary) }
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 10) {
-                        if listener.lines.isEmpty && listener.pending.isEmpty {
-                            Text("Lines appear here once they're final, about 10–25 seconds behind the speaker.")
-                                .font(Theme.callout).foregroundStyle(.tertiary)
-                        }
-                        ForEach(Array(listener.lines.enumerated()), id: \.offset) { _, s in
-                            HStack(alignment: .firstTextBaseline, spacing: 10) {
-                                Text(formatTime(s.start)).font(Theme.caption.monospacedDigit()).foregroundStyle(.secondary)
-                                Text(s.text).font(Theme.body).textSelection(.enabled)
-                            }
-                        }
-                        if !listener.pending.isEmpty {
-                            Text(listener.pending).font(Theme.body).foregroundStyle(.tertiary)
-                        }
-                        Color.clear.frame(height: 1).id("end")
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(4)
-                }
-                .frame(minHeight: 280, maxHeight: 480)
-                .onChange(of: listener.lines.count) { proxy.scrollTo("end", anchor: .bottom) }
-                .onChange(of: listener.pending) { proxy.scrollTo("end", anchor: .bottom) }
-            }
+            transcript(maxHeight: 480, live: true)
         }
         .card(highlighted: true)
+    }
+
+    /// The lines heard so far; while listening, words still settling follow in grey.
+    func transcript(maxHeight: CGFloat, live: Bool) -> some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 10) {
+                    if live, listener.lines.isEmpty, listener.pending.isEmpty {
+                        Text("Lines appear here once they're final, about 10–25 seconds behind the speaker.")
+                            .font(Theme.callout).foregroundStyle(.tertiary)
+                    }
+                    ForEach(Array(listener.lines.enumerated()), id: \.offset) { _, s in
+                        HStack(alignment: .firstTextBaseline, spacing: 10) {
+                            Text(formatTime(s.start)).font(Theme.caption.monospacedDigit()).foregroundStyle(.secondary)
+                            Text(s.text).font(Theme.body).textSelection(.enabled)
+                        }
+                    }
+                    if live, !listener.pending.isEmpty {
+                        Text(listener.pending).font(Theme.body).foregroundStyle(.tertiary)
+                    }
+                    Color.clear.frame(height: 1).id("end")
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(4)
+            }
+            .frame(minHeight: live ? 280 : 0, maxHeight: maxHeight)
+            .onChange(of: listener.lines.count) { if live, follow { proxy.scrollTo("end", anchor: .bottom) } }
+            .onChange(of: listener.pending) { if live, follow { proxy.scrollTo("end", anchor: .bottom) } }
+        }
     }
 
     // MARK: after
@@ -300,9 +315,14 @@ struct ListenView: View {
                 Label("\(o.lines) lines from \(formatTime(o.seconds)) of audio", systemImage: "checkmark.circle.fill")
                     .font(Theme.headline).foregroundStyle(.green)
                 if let f = o.filed { Text(f).font(Theme.callout).foregroundStyle(.secondary) }
+                transcript(maxHeight: 360, live: false)
                 HStack {
+                    Button("Copy Transcript") {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(listener.lines.map { "[\(formatTime($0.start))] \($0.text)" }.joined(separator: "\n"), forType: .string)
+                    }
                     if let t = o.transcript {
-                        Button("Show Transcript in Finder") { NSWorkspace.shared.activateFileViewerSelecting([t]) }
+                        Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([t]) }
                     }
                     if o.filed?.hasPrefix("Sent to the Inbox") == true {
                         Button("Open Inbox") { store.pane = .inbox }

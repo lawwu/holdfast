@@ -224,7 +224,8 @@ enum RemoteAgent {
                 let args = (try? JSONSerialization.jsonObject(with: Data(argText.utf8)) as? [String: Any]) ?? [:]
                 let call = ToolCall(function: .init(name: name, arguments: args.mapValues { "\($0)" as any Sendable }))
                 let result = await ctx.call(call) { onEvent(.step($0)) }
-                if Remote.touchesCounseling(ctx.sources) || (name == "read_note" && Profile.isCounseling(argText)) { throw KeepLocal() }
+                // Nothing from counseling notes, folders or tables is sent: the request moves to this Mac first.
+                if ctx.touchedCounseling || Remote.touchesCounseling(ctx.sources) { throw KeepLocal() }
                 var detail = "\(name)(\(argText))\n\n" + String(result.prefix(Steps.resultChars)) + (result.count > Steps.resultChars ? "\n[…]" : "")
                 let preamble = stripThoughts(said).trimmingCharacters(in: .whitespacesAndNewlines)
                 if k == 0, !preamble.isEmpty { detail = "Model: \(preamble)\n\n" + detail }

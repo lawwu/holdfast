@@ -14,6 +14,40 @@
   live lines, a sidebar badge while listening, Stop, recent transcripts, and filing through the Inbox.
 - Not yet tested: the microphone (alone or mixed into a call), `--mute`, a real call app. Each
   rebuild asks for the audio permission again (ad-hoc signing).
+- **New layout.** The sidebar is grouped (Ask and Listen; Notes; Activity) and shows when Holdfast is
+  listening or writing an answer. Every page has a title header and sits in a readable column when
+  no note is open beside it, instead of stretching across the window. Ask opens on a home page: a
+  greeting, the question box in the middle, suggestions, proposals waiting for approval, upcoming
+  follow-ups and recent conversations. In a conversation the question is a bubble on the right, the
+  answer's Copy button sits in its footer, sources lay out in two columns, and a new question
+  scrolls into view. Library rows show each note's folder in its folder's colour; the Files list
+  blends into the page. Listen keeps the transcript on the page after Stop, with Copy and a Follow
+  toggle for reading back. Checked on screen in light mode; dark mode not yet checked.
+
+### Fixed after a review of the above
+- Privacy: a follow-up in a conversation that used counseling notes stays on this Mac (earlier
+  answers go along as context); remote Research keeps folder listings, tables and properties from
+  counseling folders here too. Tested against a stand-in server: nothing counseling reached it, and
+  an ordinary question still did.
+- Listen from a terminal: kill and Ctrl-C reach the capture inside Holdfast.app (it found the wrong
+  process before and could keep recording), the terminal waits for the transcript and gets the real
+  exit status, and progress lines arrive as they happen.
+- `--app` and the Listen page take exactly the app chosen ("Music" no longer catches YouTube Music;
+  an ambiguous name is refused with the matches listed), follow an app's new audio processes within a
+  second, and can start before the app plays anything. An output device with a microphone of its own
+  (a USB headset) is no longer recorded unless the microphone is asked for. A device change (AirPods
+  connecting) rebuilds the capture; the microphone alone restarts on its new input.
+- Stop pressed while the model loads leaves nothing running; a stream ffmpeg can't open says why
+  instead of "heard no speech"; piped audio is paced, not held in memory; live lines are built from
+  the open line only, so long sessions don't slow down.
+- Transcripts: the model sees the beginning and end of a long one (40,000 characters, not the first
+  12,000), and the whole transcript is offered in the Inbox as its own note beside the summary.
+  Switching vaults while listening is refused; a transcript saved in a managed vault is indexed at
+  once. When this Mac answers instead of the other one, the answer names this Mac's model.
+- Speed: opening a citation no longer re-reads the whole vault, Research reads it once per run, and
+  the Ask page no longer checks the disk for the model on every streamed word.
+- Not tested: the headset-microphone fix and device-change rebuilds (no headset or device switch
+  here), switching vaults while listening, and a managed vault's transcript.
 
 ## 0.1.0 (unreleased)
 

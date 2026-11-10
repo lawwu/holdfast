@@ -277,7 +277,8 @@ do {
         }
     case "listen":
         let raw = args  // as typed, for a relaunch inside Holdfast.app
-        _ = option("--relay-token")  // marks a relaunched run; nothing to do with it here
+        let relayDir = option("--relay-dir").first  // set when this is the relaunched run inside Holdfast.app
+        Listen.relayStarted(relayDir)
         if flag("--apps") {
             // Apps Core Audio knows about, for --app: playing ones first.
             let ps = SystemAudio.processes().filter { $0.pid != ProcessInfo.processInfo.processIdentifier }
@@ -306,7 +307,13 @@ do {
         else if let url { input = .url(url, realtime: realtime) }
         else if args.first == "-" || isatty(STDIN_FILENO) == 0 { input = .stdin }
         else { throw MacKBError("listen to what? --app <name> or --system (add --mic for your side of a call), --url <stream or file>, --mic, or - for piped audio (mackb help)") }
-        try await Listen.run(input, title: title, json: json, out: out, file: !noFile, maxSeconds: seconds)
+        do {
+            try await Listen.run(input, title: title, json: json, out: out, file: !noFile, maxSeconds: seconds)
+            Listen.relayEnded(relayDir, status: 0)
+        } catch {
+            Listen.relayEnded(relayDir, status: 1)
+            throw error
+        }
     case "mcp":
         await MCPServer().serve()
     case "bench":
