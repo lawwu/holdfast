@@ -80,13 +80,10 @@ enum Config {
         EmbedSpec(rawValue: ProcessInfo.processInfo.environment["HOLDFAST_EMBED"] ?? "") ?? .qwen3
     }
 
-    /// The embedding model's folder in the Hugging Face cache; run in-process by MLX Swift.
+    /// The embedding model's folder in the Hugging Face cache or app downloads.
     static var embedModelDir: URL? {
         if let p = ProcessInfo.processInfo.environment["HOLDFAST_EMBED_DIR"] { return URL(fileURLWithPath: p) }
-        let snaps = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".cache/huggingface/hub/models--\(embedSpec.repo.replacingOccurrences(of: "/", with: "--"))/snapshots")
-        guard let first = try? FileManager.default.contentsOfDirectory(atPath: snaps.path).sorted().last else { return nil }
-        return snaps.appendingPathComponent(first)
+        return ModelFiles.directory(repo: embedSpec.repo, modelsDirectory: Prefs.modelsDir)
     }
     /// Qwen3-Embedding wants an instruction on the query side only.
     static let queryInstruction = "Given a question, retrieve transcript passages that answer it"

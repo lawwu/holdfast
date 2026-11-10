@@ -778,7 +778,7 @@ struct RecommendationRows: View {
         } else {
             Button(String(format: "Download %.0f GB", m.sizeGB)) { store.downloadRepo(m.repo) { store.selectMLX(m.repo) } }
                 .controlSize(.small)
-                .help("From huggingface.co/\(m.repo)")
+                .help("Download \(m.repo) using the source in Settings → Downloads.")
         }
     }
 }

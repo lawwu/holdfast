@@ -370,7 +370,7 @@ final class Store: ObservableObject {
 
     func download(_ spec: MLXModelSpec) { downloadRepo(spec.repo) }
 
-    /// Downloads a model into the Hugging Face cache (where search models are looked for too).
+    /// Downloads a model into the app's model folder using the configured source.
     /// When it is the embedder, the index is rebuilt so notes get meaning-search vectors.
     func downloadRepo(_ repo: String, then: (@MainActor () -> Void)? = nil) {
         guard downloads[repo] == nil else { return }

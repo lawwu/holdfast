@@ -9,6 +9,7 @@ struct SettingsView: View {
             AnswerSettings().tabItem { Label("Answer", systemImage: "sparkles") }
             SearchSettings().tabItem { Label("Search", systemImage: "magnifyingglass") }
             TranscriptionSettings().tabItem { Label("Transcription", systemImage: "waveform") }
+            DownloadSettings().tabItem { Label("Downloads", systemImage: "arrow.down.circle") }
             VaultSettings().tabItem { Label("Vault", systemImage: "folder") }
         }
         .frame(width: 580)
@@ -111,7 +112,7 @@ struct AnswerSettings: View {
             }
             HStack(spacing: 6) {
                 Image(systemName: "memorychip")
-                Text(String(format: "This Mac has %.0f GB of memory. Models download from Hugging Face (mlx-community).", ramGB))
+                Text(String(format: "This Mac has %.0f GB of memory. Choose a model source in the Downloads tab.", ramGB))
             }
             .font(Theme.caption).foregroundStyle(.secondary)
 
@@ -161,7 +162,7 @@ struct AnswerSettings: View {
                 Button("Download") { store.download(spec) }
                     .controlSize(.small)
                     .disabled(tooBig)
-                    .help("Download \(String(format: "%.1f", spec.sizeGB)) GB from huggingface.co/\(spec.repo)")
+                    .help("Download \(String(format: "%.1f", spec.sizeGB)) GB for \(spec.repo) using the source in Settings → Downloads.")
             }
         }
     }
@@ -233,6 +234,86 @@ struct TranscriptionSettings: View {
                 .font(Theme.caption).foregroundStyle(.secondary)
         }
         .padding(24)
+    }
+}
+
+// MARK: - Downloads
+
+struct DownloadSettings: View {
+    @State private var endpoint = ModelDownloadSource.savedEndpoint
+    @State private var token = ""
+    @State private var message: String?
+    @State private var failed = false
+
+    private let environment = ProcessInfo.processInfo.environment
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            SettingsHeader(title: "Model downloads",
+                           subtitle: "Download answer, embedding and reranker models from Hugging Face or a compatible mirror, including JFrog Artifactory.")
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Endpoint URL").font(Theme.callout.weight(.semibold))
+                TextField(ModelDownloadSource.defaultEndpoint, text: $endpoint)
+                    .textFieldStyle(.roundedBorder)
+                    .onChange(of: endpoint) { _, _ in
+                        // A token entered for one source must not follow an edited URL.
+                        token = ""
+                        message = nil
+                    }
+                Text("For JFrog, paste the HF_ENDPOINT URL from Set Me Up, for example:")
+                    .font(Theme.caption).foregroundStyle(.secondary)
+                Text("https://company.jfrog.io/artifactory/api/huggingfaceml/huggingface-remote")
+                    .font(Theme.caption).foregroundStyle(.secondary).textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Access token (optional)").font(Theme.callout.weight(.semibold))
+                SecureField("Artifactory or Hugging Face token", text: $token)
+                    .textFieldStyle(.roundedBorder)
+                Text("Paste the token only; Holdfast adds Bearer authentication. Saved in Keychain for this endpoint. Saving an empty field removes its saved token.")
+                    .font(Theme.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            HStack {
+                Button("Save") { save() }.keyboardShortcut(.defaultAction)
+                Button("Use Hugging Face") {
+                    endpoint = ModelDownloadSource.defaultEndpoint
+                    token = ""
+                    message = nil
+                }
+            }
+            if let message {
+                Text(message).font(Theme.callout).foregroundStyle(failed ? Color.red : Theme.accent)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if let value = environment["HF_ENDPOINT"], !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text("HF_ENDPOINT is set for this process and overrides the saved endpoint.")
+                    .font(Theme.caption).foregroundStyle(.secondary)
+            }
+            if let value = environment["HF_TOKEN"], !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text("HF_TOKEN is set for this process and overrides the saved token.")
+                    .font(Theme.caption).foregroundStyle(.secondary)
+            }
+            Text("Applies to new downloads. Already downloaded models stay available. Parakeet transcription downloads are managed separately by FluidAudio.")
+                .font(Theme.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(24)
+        .onAppear {
+            do { token = try ModelDownloadCredential.read(endpoint: ModelDownloadSource.normalize(endpoint)) ?? "" }
+            catch { failed = true; message = error.localizedDescription }
+        }
+    }
+
+    private func save() {
+        do {
+            try ModelDownloadSource.save(endpoint: endpoint, token: token)
+            failed = false
+            message = "Saved. New model downloads will use this source."
+        } catch {
+            failed = true
+            message = error.localizedDescription
+        }
     }
 }
 
