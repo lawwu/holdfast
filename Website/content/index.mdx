@@ -1,0 +1,47 @@
+---
+title: Holdfast documentation
+description: Search your notes, ask questions with sources, and approve changes before they are saved. A local-first knowledge base for macOS.
+template: splash
+editUrl: false
+hero:
+  title: Keep your knowledge close.
+  tagline: Search your notes, ask questions with sources, and review changes before they’re saved. Built for your Mac.
+  image:
+    file: ../../assets/mark.svg
+  actions:
+    - text: Get started
+      link: /holdfast-docs/getting-started/
+      icon: right-arrow
+    - text: Explore the architecture
+      link: /holdfast-docs/architecture/
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+## A home for what you know
+
+<CardGrid>
+  <Card title="Find the right passage" icon="magnifier">
+    Search across your notes and documents with keywords or meaning. Answers include sources you can open and check.
+  </Card>
+  <Card title="Keep the final say" icon="approve-check">
+    Ask for an edit and review the proposal in your Inbox. Apply it when you’re ready, with a saved copy available for Undo.
+  </Card>
+  <Card title="Choose where answers run" icon="laptop">
+    Use LocalMLX inside the app, or connect Ollama, LM Studio, or a compatible server. Private notes stay on this Mac.
+  </Card>
+</CardGrid>
+
+## Find your way
+
+<CardGrid>
+  <LinkCard title="Use Holdfast" description="Installation, your first vault, search, Ask, and the Inbox." href="/holdfast-docs/getting-started/" />
+  <LinkCard title="App and command-line guide" description="Imports, recordings, model settings, privacy, and commands." href="/holdfast-docs/guide/" />
+  <LinkCard title="Build with the packages" description="Reuse LocalMLX, ModelProviders, and the Pi adapter in another app." href="/holdfast-docs/architecture/" />
+  <LinkCard title="Follow the releases" description="Installer builds, checks, preview limitations, and what changed." href="/holdfast-docs/changelog/" />
+</CardGrid>
+
+:::note[Early preview]
+The installer supports **Apple Silicon and macOS 15 or later**. Releases are currently unsigned and not notarized by Apple. Model weights download separately. Preview downloads currently require access to the Holdfast repository.
+:::

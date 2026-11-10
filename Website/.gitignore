@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.astro/
+src/content/docs/
+public/explore/
+public/favicon.svg
+test-results/
+playwright-report/

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Searchable documentation on GitHub Pages, with getting-started and architecture
+  guides, package references, and release notes. Main-branch updates publish
+  automatically after link checks and desktop/mobile browser tests.
 - GitHub Actions checks reusable packages, Pi, and the macOS installer on pull requests
   and pushes to main. Version tags publish verified artifacts as unsigned prereleases.
 - Publication checks the tag, source revision, checksums, and test results, and refuses

@@ -1,0 +1,22 @@
+{
+  "name": "holdfast-docs",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.23.4" },
+  "scripts": {
+    "prepare-docs": "node scripts/prepare-docs.mjs",
+    "dev": "npm run prepare-docs && astro dev",
+    "build": "npm run prepare-docs && astro build",
+    "preview": "astro preview",
+    "test": "node scripts/check-links.mjs",
+    "test:browser": "playwright test"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "0.42.10",
+    "@astrojs/markdown-remark": "7.3.0",
+    "astro": "7.4.10"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0"
+  }
+}

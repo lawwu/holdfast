@@ -3,6 +3,13 @@
 A local-first knowledge base for macOS. Import documents and recordings, search your notes,
 and ask questions with citations. Changes proposed by the agent wait for your approval in the Inbox.
 
+**[Documentation](https://lawwu.github.io/holdfast-docs/)** ·
+[Getting started](https://lawwu.github.io/holdfast-docs/getting-started/) ·
+[Architecture](https://lawwu.github.io/holdfast-docs/architecture/)
+
+The documentation site updates automatically on every push to `main`.
+See [site maintenance](Website/README.md) for local preview and publishing instructions.
+
 Installer releases are distributed through [GitHub Releases](https://github.com/lawwu/holdfast/releases).
 The first version is **v0.0.1**, an Apple Silicon / macOS 15+ preview. Check each release's
 signing status before installing. Release installers include Node and install Holdfast in
