@@ -14,7 +14,7 @@ struct NoteView: View {
     @State private var saveState: SaveState = .saved
     @State private var saveTask: Task<Void, Never>?
     /// The outline (table of contents) beside the reader; remembered across notes.
-    @AppStorage("showOutline") private var showOutline = true
+    @AppStorage("showOutline") private var showOutline = false
     /// The first block on screen, so the outline can mark where you are.
     @State private var topVisible = -1
 
@@ -55,16 +55,21 @@ struct NoteView: View {
                 reader
             }
         }
+        .background(Theme.paper)
         .navigationTitle(note.title)
         .onAppear { loadDraft() }
         .onChange(of: opened.note.path) { _, _ in flush(); loadDraft() }
         .onChange(of: store.editing) { _, editing in if editing { loadDraft() } else { flush() } }
         .onDisappear { flush() }
+        .onChange(of: showOutline) { _, visible in
+            if visible { store.showList = false }
+        }
         .toolbar {
             ToolbarItemGroup(placement: .navigation) {
                 Button { store.showList.toggle() } label: {
-                    Label(store.showList ? "Hide File List" : "Show File List",
+                    Label(store.showList ? "Focus" : "Show Library",
                           systemImage: store.showList ? "rectangle.righthalf.inset.filled" : "rectangle.split.2x1")
+                        .labelStyle(.titleAndIcon)
                 }
                 .help(store.showList ? "Hide the file list to read the note wide (⇧⌘\\)" : "Show the file list again (⇧⌘\\)")
                 Button { store.goBack() } label: { Label("Back", systemImage: "chevron.left") }
@@ -75,7 +80,7 @@ struct NoteView: View {
                     .help(store.forwardStack.last.map { "Forward to \($0.note.title) (⌘])" } ?? "Forward (⌘])")
             }
             ToolbarItemGroup {
-                Toggle(isOn: $showOutline) { Label("Right Sidebar", systemImage: "sidebar.right") }
+                Toggle(isOn: $showOutline) { Label("Note Details", systemImage: "sidebar.right") }
                     .disabled(store.editing)
                     .help("Outline, backlinks, links and local graph (⌥⌘O)")
                     .keyboardShortcut("o", modifiers: [.command, .option])
@@ -113,9 +118,10 @@ struct NoteView: View {
         let kind = Theme.kind(of: note)
         let outline = bs.filter { b in if case .heading(let l) = b.kind { return l <= 4 } else { return false } }
         return ScrollViewReader { proxy in
+          GeometryReader { geometry in
           HStack(spacing: 0) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 14) {
                     NoteHeader(note: note, kind: kind).id(-1)
                     Divider().padding(.bottom, 6)
                     ForEach(bs) { b in
@@ -148,22 +154,23 @@ struct NoteView: View {
                     LinksFooter(note: note).padding(.top, 28)
                 }
                 .scrollTargetLayout()
-                .padding(.horizontal, 36).padding(.vertical, 28)
-                .frame(maxWidth: 800, alignment: .leading)
+                .padding(.horizontal, 40).padding(.vertical, 36)
+                .frame(maxWidth: 780, alignment: .leading)
                 .frame(maxWidth: .infinity)
             }
             .onScrollTargetVisibilityChange(idType: Int.self, threshold: 0.01) { ids in
                 topVisible = ids.min() ?? -1
             }
-            if showOutline {
+            if showOutline, geometry.size.width >= 720 {
                 Divider()
                 RightPanel(note: note, headings: outline,
                            current: outline.last { $0.id <= max(topVisible, 0) }?.id ?? (topVisible <= 0 ? nil : outline.first?.id)) { id in
                     withAnimation(.easeInOut(duration: 0.25)) { proxy.scrollTo(id, anchor: .top) }
                 }
-                .frame(width: 250)
+                .frame(width: 230)
                 .transition(.move(edge: .trailing).combined(with: .opacity))
             }
+          }
           }
           .animation(.easeOut(duration: 0.18), value: showOutline)
             .onAppear { if let i = anchorIdx { proxy.scrollTo(i, anchor: .top) } }
@@ -248,17 +255,19 @@ struct NoteHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
-                Pill(text: note.domain ?? Theme.label(kind).replacingOccurrences(of: "s$", with: "", options: .regularExpression),
-                     icon: note.domain == nil ? Theme.icon(kind) : "folder", color: note.domain.map(domainColor) ?? Theme.color(kind))
+                Label(note.domain ?? Theme.label(kind).replacingOccurrences(of: "s$", with: "", options: .regularExpression),
+                      systemImage: note.domain == nil ? Theme.icon(kind) : "folder")
+                    .font(Theme.caption2.weight(.medium)).foregroundStyle(Theme.accent)
                 ForEach(chips, id: \.self) { Pill(text: $0) }
                 Spacer()
-                Text(note.relPath).font(Theme.caption2).foregroundStyle(.tertiary).lineLimit(1).truncationMode(.head)
             }
             Text(note.title)
-                .font(.system(size: 26, weight: .bold, design: .serif))
+                .font(Theme.editorial).foregroundStyle(Theme.ink)
                 .fixedSize(horizontal: false, vertical: true)
+                .help(note.relPath)
             if !properties.isEmpty {
-                Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 4) {
+              DisclosureGroup("Properties") {
+                Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
                     ForEach(properties.prefix(10), id: \.0) { k, v in
                         GridRow {
                             Text(k).font(Theme.caption).foregroundStyle(.secondary)
@@ -267,7 +276,9 @@ struct NoteHeader: View {
                     }
                 }
                 .padding(10)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.primary.opacity(0.04)))
+                .frame(maxWidth: .infinity, alignment: .leading)
+              }
+              .font(Theme.caption).foregroundStyle(Theme.secondary)
             }
         }
         .padding(.bottom, 4)
@@ -278,7 +289,7 @@ struct NoteHeader: View {
 struct LinksFooter: View {
     @EnvironmentObject var store: Store
     var note: Note
-    @State private var showBack = true
+    @State private var showBack = false
     @State private var showOut = false
 
     var body: some View {

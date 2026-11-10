@@ -288,7 +288,7 @@ struct ListenView: View {
                     ForEach(Array(listener.lines.enumerated()), id: \.offset) { _, s in
                         HStack(alignment: .firstTextBaseline, spacing: 10) {
                             Text(formatTime(s.start)).font(Theme.caption.monospacedDigit()).foregroundStyle(.secondary)
-                            Text(s.text).font(Theme.body).textSelection(.enabled)
+                            Text(s.text).font(Theme.body).lineSpacing(4).textSelection(.enabled)
                         }
                     }
                     if live, !listener.pending.isEmpty {
