@@ -42,7 +42,9 @@ Vault: $HOLDFAST_VAULT (default ~/Holdfast). Model: $HOLDFAST_BACKEND=mlx (defau
   remote: $HOLDFAST_REMOTE_URL and $HOLDFAST_REMOTE_MODEL, an OpenAI-compatible server on another Mac.
   ollama: $HOLDFAST_LLM at $HOLDFAST_OLLAMA (default http://localhost:11434).
 Also: HOLDFAST_PACKS=id,id|none, HOLDFAST_EMBED=embeddinggemma|none, HOLDFAST_RERANK=0, HOLDFAST_THINK=1, HOLDFAST_TODAY=YYYY-MM-DD.
-ask also takes --research (the tool loop); index takes --force and --no-embed.
+Ask uses Pi by default. --conversation UUID continues a saved chat; --request-id UUID deduplicates completed requests.
+--pi selects Pi explicitly; HOLDFAST_AGENT_HARNESS=swift enables the comparison harness.
+index takes --force and --no-embed.
 """
 
 nonisolated(unsafe) var args = Array(CommandLine.arguments.dropFirst())
@@ -63,6 +65,10 @@ func runCLI() async {
 do {
     guard let cmd = args.first else { print(usage); exit(0) }
     args.removeFirst()
+    if cmd == "_agent-eval" {
+        try await AgentEvaluation.serve()
+        return
+    }
     try ensureVault()
     switch cmd {
     case "ingest":
@@ -102,14 +108,24 @@ do {
             print("[\(i + 1)] \(citation(c))" + (c.score.map { String(format: "  (%.2f)", $0) } ?? "") + "\n    \(preview)\n")
         }
     case "ask":
+        let pi = flag("--pi") || PiAgent.enabled
+        let explicitResearch = flag("--research")
+        let conversationValue = option("--conversation").first
+        let requestValue = option("--request-id").first
+        if let conversationValue, UUID(uuidString: conversationValue) == nil { throw HoldfastError("--conversation needs a UUID") }
+        if let requestValue, UUID(uuidString: requestValue) == nil { throw HoldfastError("--request-id needs a UUID") }
+        let conversation = conversationValue.flatMap(UUID.init(uuidString:)) ?? UUID()
         let emb = flag("--no-embed") ? nil : try await Embedder.load()
         let q = args.joined(separator: " ")
         // A change ("mark … done") needs the tools: it is proposed for the Inbox (Edits.swift).
-        let research = flag("--research") || Router.route(q) == .edit
+        let research = pi || explicitResearch || Router.route(q) == .edit
         let a: Answer
         if research {
             // Tool loop (this Mac's model or another Mac's): steps go to stderr, the answer to stdout at the end.
-            a = try await runResearch(q, embedder: emb, llm: try await makeBackend(), prior: []) { ev in
+            if pi { log("Pi conversation: \(conversation.uuidString)") }
+            let llm: LLMBackend = try await makeBackend()
+            a = try await runResearch(q, embedder: emb, llm: llm, prior: [], pi: pi, conversationID: conversation,
+                                      requestID: requestValue.flatMap(UUID.init(uuidString:))) { ev in
                 if case .step(let s) = ev { log("  → \(Steps.split(s).title)") }
             }
             print(a.text)

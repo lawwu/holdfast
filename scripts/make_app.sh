@@ -3,11 +3,19 @@
 # The same binary is the CLI and the app: launched from a .app it opens the window.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-xcodebuild -scheme holdfast -destination 'platform=macOS' -configuration Release \
-  -derivedDataPath .build/xcode -skipMacroValidation -skipPackagePluginValidation build -quiet
-P=.build/xcode/Build/Products/Release
-APP=build/Holdfast.app
-rm -rf "$APP" build/Holdfast.app
+DERIVED="${HOLDFAST_DERIVED_DATA:-.build/xcode}"
+if [[ "${1:-}" != "--package-only" ]]; then
+  npm ci --prefix Runtime/pi --omit=dev --ignore-scripts --no-audit --no-fund
+  xcodebuild -scheme holdfast -destination 'platform=macOS' -configuration Release \
+    -derivedDataPath "$DERIVED" -clonedSourcePackagesDirPath .build/xcode/SourcePackages \
+    -skipMacroValidation -skipPackagePluginValidation DEBUG_INFORMATION_FORMAT=dwarf build -quiet
+fi
+P="$DERIVED/Build/Products/Release"
+APP="${HOLDFAST_APP:-build/Holdfast.app}"
+BUNDLE_ID="${HOLDFAST_BUNDLE_ID:-net.lawrencewu.holdfast}"
+APP_NAME="${HOLDFAST_APP_NAME:-Holdfast}"
+test -x "$P/holdfast"
+rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$P/holdfast" "$APP/Contents/MacOS/holdfast"
 # SwiftPM resource bundles (MLX's Metal shaders, tokenizer resources). MLX looks
@@ -16,13 +24,14 @@ for b in "$P"/*.bundle; do
   cp -R "$b" "$APP/Contents/Resources/"
   cp -R "$b" "$APP/Contents/MacOS/"
 done
+bash scripts/bundle_pi_runtime.sh "$APP"
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-  <key>CFBundleName</key><string>Holdfast</string>
-  <key>CFBundleDisplayName</key><string>Holdfast</string>
-  <key>CFBundleIdentifier</key><string>net.lawrencewu.holdfast</string>
+  <key>CFBundleName</key><string>$APP_NAME</string>
+  <key>CFBundleDisplayName</key><string>$APP_NAME</string>
+  <key>CFBundleIdentifier</key><string>$BUNDLE_ID</string>
   <key>CFBundleExecutable</key><string>holdfast</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>0.1.0</string>
@@ -32,7 +41,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <!-- Citation and note links: selectable text hands link clicks to macOS, which sends them back here. -->
   <key>CFBundleURLTypes</key><array><dict>
-    <key>CFBundleURLName</key><string>net.lawrencewu.holdfast.links</string>
+    <key>CFBundleURLName</key><string>$BUNDLE_ID.links</string>
     <key>CFBundleURLSchemes</key><array><string>holdfast</string><string>holdfast-note</string><string>holdfast-rel</string></array>
   </dict></array>
   <key>NSAppTransportSecurity</key><dict>
@@ -66,7 +75,7 @@ cat > "$EXT/Contents/Info.plist" <<PLIST
 <plist version="1.0"><dict>
   <key>CFBundleName</key><string>Holdfast Preview</string>
   <key>CFBundleDisplayName</key><string>Holdfast Preview</string>
-  <key>CFBundleIdentifier</key><string>net.lawrencewu.holdfast.preview</string>
+  <key>CFBundleIdentifier</key><string>$BUNDLE_ID.preview</string>
   <key>CFBundleExecutable</key><string>HoldfastPreview</string>
   <key>CFBundlePackageType</key><string>XPC!</string>
   <key>CFBundleShortVersionString</key><string>0.1.0</string>

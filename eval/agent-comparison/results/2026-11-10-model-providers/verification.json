@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-10",
+  "default": "LocalMLX",
+  "providers": [
+    "LocalMLX",
+    "Ollama (native API)",
+    "LM Studio (compatible API)",
+    "Custom (compatible API)"
+  ],
+  "reusable_product": "ModelProviders",
+  "swift_package": "Packages/pi-swift-mlx/swift",
+  "app": "build/Holdfast Pi Extracted.app",
+  "checks": {
+    "app_build": "pass",
+    "standalone_host_build": "pass",
+    "app_signature": "pass",
+    "transport": "24 cases passed: discovery, streaming and typed calls, invalid/truncated/interrupted calls, authentication, redirects, cancellation",
+    "provider_integration": "6 provider/harness combinations: proposal, apply, byte-exact Undo, stale refusal; Pi follow-ups",
+    "counseling": "Swift and Pi HTTP blocked before private result; Pi restriction persisted across restart",
+    "pi_regression": "6 groups passed, including crash recovery, cancellation, generated-file/extension/path guards",
+    "native_regression": "validation/repair, proposal/apply/Undo and journal passed",
+    "agent_runtime": "13 checks passed",
+    "pi_provider_package": "6 groups passed; TypeScript check passed",
+    "durable_bridge": "2 recovery groups passed",
+    "html": "all 4 diagrams, mobile/desktop overflow and JavaScript error checks passed",
+    "packaged_app": "8 scenarios passed with a copy of the packaged executable outside its GUI bundle, using the bundled Pi runtime; signature verified",
+    "packaged_app_note": "Invoking the executable inside .app opens the GUI by design, so CLI tests use the same executable copied into a temporary directory."
+  },
+  "live": {
+    "ollama": "Installed qwen38-27b-q8-32k:latest on localhost:11434; synthetic vault; proposed exactly one checkbox, approval applied it, Undo restored BOM/CRLF bytes",
+    "LocalMLX": "Qwen3.8-27B-4bit: regular Pi and Pi Durable both completed typed tool call with numbers, boolean, array and null",
+    "LMStudio": "Not running on this Mac; protocol and end-to-end tests use a synthetic compatible server"
+  },
+  "limitations": [
+    "Native settings controls were compiled but not clicked through manually.",
+    "Custom compatibility and tool behavior depend on the selected server/model.",
+    "No commit or push made."
+  ]
+}

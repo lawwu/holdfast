@@ -1,0 +1,1418 @@
+{
+  "metadata": {
+    "created": "2026-11-09T22:23:23-0800",
+    "ollama": {
+      "version": "0.40.15"
+    },
+    "model": "qwen38-27b-q8-32k:latest",
+    "modelDetails": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen35",
+      "families": [
+        "qwen35"
+      ],
+      "parameter_size": "27.3B",
+      "quantization_level": "Q4_K_M"
+    },
+    "thinking": null,
+    "parameters": "top_p                          0.8\nnum_ctx                        32768\ntemperature                    0.7\ntop_k                          20",
+    "mlxModel": "mlx-community/Qwen3.8-27B-4bit",
+    "piVersion": "0.67.2",
+    "gitHead": "e08813085297b819042bd9a6fe03edb420a3fc34",
+    "dirtyTree": true,
+    "binarySHA256": "481c74897dd28b9874b4bf43945234d8cd24671af65f41d33ecf2f701f360a70",
+    "tags": {
+      "models": [
+        {
+          "name": "qwen38-27b-q8-32k:latest",
+          "model": "qwen38-27b-q8-32k:latest",
+          "modified_at": "2026-08-14T20:55:31.350447269-07:00",
+          "size": 31457991893,
+          "digest": "645ab4665c94fe3b716d3d3add929e691d9a60a2f9604e887c5f90f89b9eb21a",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen35",
+            "families": [
+              "qwen35"
+            ],
+            "parameter_size": "27.3B",
+            "quantization_level": "Q4_K_M",
+            "context_length": 262144,
+            "embedding_length": 5120,
+            "runner": "ggml"
+          },
+          "capabilities": [
+            "tools",
+            "thinking",
+            "completion"
+          ]
+        }
+      ]
+    },
+    "repeats": 1,
+    "hardware": {
+      "chip": "Apple M1 Max",
+      "memoryBytes": 68719476736
+    },
+    "ggufTensorTypes": {
+      "ggufVersion": 3,
+      "tensorCount": 866,
+      "bytes": 31457991680,
+      "tensorsByType": {
+        "F32": 360,
+        "Q8_0": 453,
+        "BF16": 53
+      },
+      "parametersByType": {
+        "F32": 2671616,
+        "Q8_0": 24746393600,
+        "BF16": 2571632640
+      }
+    },
+    "reviewNotes": [
+      "Manual review: all five Ollama task pairs produced identical tool names/arguments and identical final answers. The CSV task recovered from a wrong category filter by inspecting rows and retrying. Native MLX also recovered and answered correctly.",
+      "Response-quality limitation: all three setups correctly refused the generated-note edit, but then offered a CSV edit that propose_edit cannot perform (it supports .md and .txt only). The operational pass does not mean the responses were flawless. No CSV edit was attempted or applied.",
+      "All nine edit trials passed the pending-proposal, exact-content, stale-note refusal, Apply and exact Undo checks. Generated-note refusal was observed in model behavior; these cases did not force a prohibited propose_edit call.",
+      "On the checkbox case, the MLX journal reports 1,594 prompt tokens processed on the final turn after 64 on the preceding turn. Ollama reported 1,480 cached tokens out of 1,553 on its final turn. This is evidence to investigate cache reuse in the native adapter/library, not a general claim that one engine is faster.",
+      "Order-reversal checks are in ../2026-11-09-reversed/report.md. All four repeats passed, with identical answers and arguments between harnesses. The same Swift checkbox task varied from 57.0 to 87.9 seconds; concurrent Xcode/simulator activity was observed during the repeat, so these are not clean performance measurements."
+    ]
+  },
+  "results": [
+    {
+      "task": "checkbox",
+      "repeat": 1,
+      "arm": "pi-ollama",
+      "question": "Mark 'Protect pretax 401(k) basis' as done in finance/checklist.md. Leave the other items unchanged and tell me when the change is waiting for approval.",
+      "warmupSeconds": 18.891256125,
+      "ollamaLoaded": {
+        "models": [
+          {
+            "name": "qwen38-27b-q8-32k:latest",
+            "model": "qwen38-27b-q8-32k:latest",
+            "size": 32117798993,
+            "digest": "645ab4665c94fe3b716d3d3add929e691d9a60a2f9604e887c5f90f89b9eb21a",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen35",
+              "families": [
+                "qwen35"
+              ],
+              "parameter_size": "27.3B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-09T22:38:42.892239-08:00",
+            "size_vram": 32117798993,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "answer": "Done — the change is waiting for your approval in the Inbox.\n\nI proposed marking \"Protect pretax 401(k) basis\" as done (`[ ]` → `[x]`) in finance/checklist.md, leaving all other items unchanged [1]. Nothing is updated until you approve it in the Inbox.",
+      "loopSeconds": 55.489239583,
+      "loadSeconds": 0,
+      "turns": 3,
+      "calls": [
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/checklist.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] finance/checklist.md\n# Finance checklist\n\n## Do this quarter\n\n- [ ] Protect pretax 401(k) basis\n- [ ] Review umbrella insurance\n\n## Later\n\n- [ ] Compare mortgage rates\n"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "path": "finance/checklist.md",
+            "old_text": "- [ ] Protect pretax 401(k) basis",
+            "new_text": "- [x] Protect pretax 401(k) basis",
+            "why": "Mark 'Protect pretax 401(k) basis' as done."
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Protect pretax 401(k) basis\n+ - [x] Protect pretax 401(k) basis"
+          }
+        }
+      ],
+      "promptTokens": 4209,
+      "outputTokens": 201,
+      "processSeconds": 56.7421212909976,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "oneProposal": true,
+        "approvalExplained": true,
+        "exactRequestedEdit": true,
+        "staleApplyRefused": true,
+        "applyMatchesProposal": true,
+        "undoExact": true
+      },
+      "passed": true,
+      "firstRequestHash": "a190b1a519914931705cbb602ee788385f03049a85184d8eba027870d3e91dbc",
+      "modelRequests": 3,
+      "providerSeconds": 55.293472458957694,
+      "outsideProviderSeconds": 0.19576712404230534,
+      "firstSemanticRequestHash": "64c5c66cfb288924c7ce278dcca695a85dae73db014960108dadd585de8a48af"
+    },
+    {
+      "task": "checkbox",
+      "repeat": 1,
+      "arm": "swift-ollama",
+      "question": "Mark 'Protect pretax 401(k) basis' as done in finance/checklist.md. Leave the other items unchanged and tell me when the change is waiting for approval.",
+      "warmupSeconds": 13.4996075,
+      "ollamaLoaded": {
+        "models": [
+          {
+            "name": "qwen38-27b-q8-32k:latest",
+            "model": "qwen38-27b-q8-32k:latest",
+            "size": 32117798993,
+            "digest": "645ab4665c94fe3b716d3d3add929e691d9a60a2f9604e887c5f90f89b9eb21a",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen35",
+              "families": [
+                "qwen35"
+              ],
+              "parameter_size": "27.3B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-09T22:39:53.635801-08:00",
+            "size_vram": 32117798993,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "answer": "Done — the change is waiting for your approval in the Inbox.\n\nI proposed marking \"Protect pretax 401(k) basis\" as done (`[ ]` → `[x]`) in finance/checklist.md, leaving all other items unchanged [1]. Nothing is updated until you approve it in the Inbox.",
+      "badCitations": [],
+      "loadSeconds": 7.104873657226562e-05,
+      "loopSeconds": 57.033052921295166,
+      "outputSeconds": 56.92164194583893,
+      "outputTokens": 201,
+      "promptSeconds": 0,
+      "promptTokens": 4209,
+      "steps": [
+        "read: finance/checklist.md",
+        "edit: finance/checklist.md"
+      ],
+      "calls": [
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/checklist.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] finance/checklist.md\n# Finance checklist\n\n## Do this quarter\n\n- [ ] Protect pretax 401(k) basis\n- [ ] Review umbrella insurance\n\n## Later\n\n- [ ] Compare mortgage rates\n"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "path": "finance/checklist.md",
+            "old_text": "- [ ] Protect pretax 401(k) basis",
+            "new_text": "- [x] Protect pretax 401(k) basis",
+            "why": "Mark 'Protect pretax 401(k) basis' as done."
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Protect pretax 401(k) basis\n+ - [x] Protect pretax 401(k) basis"
+          }
+        }
+      ],
+      "processSeconds": 57.095501792035066,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "oneProposal": true,
+        "approvalExplained": true,
+        "exactRequestedEdit": true,
+        "staleApplyRefused": true,
+        "applyMatchesProposal": true,
+        "undoExact": true
+      },
+      "passed": true,
+      "firstRequestHash": "64c5c66cfb288924c7ce278dcca695a85dae73db014960108dadd585de8a48af",
+      "modelRequests": 3,
+      "providerSeconds": 56.8824542920338,
+      "outsideProviderSeconds": 0.15059862926136702,
+      "firstSemanticRequestHash": "64c5c66cfb288924c7ce278dcca695a85dae73db014960108dadd585de8a48af"
+    },
+    {
+      "task": "checkbox",
+      "repeat": 1,
+      "arm": "swift-mlx",
+      "question": "Mark 'Protect pretax 401(k) basis' as done in finance/checklist.md. Leave the other items unchanged and tell me when the change is waiting for approval.",
+      "answer": "Done — I proposed marking \"Protect pretax 401(k) basis\" as done in finance/checklist.md. The change is now waiting for your approval in the Inbox; nothing is updated until you approve it. The other items (\"Review umbrella insurance\" and \"Compare mortgage rates\") are left unchanged.",
+      "badCitations": [],
+      "loadSeconds": 2.824411988258362,
+      "loopSeconds": 72.12611401081085,
+      "outputSeconds": 19.43959403038025,
+      "outputTokens": 195,
+      "promptSeconds": 52.583322048187256,
+      "promptTokens": 2982,
+      "steps": [
+        "read: finance/checklist.md",
+        "edit: finance/checklist.md"
+      ],
+      "calls": [
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/checklist.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] finance/checklist.md\n# Finance checklist\n\n## Do this quarter\n\n- [ ] Protect pretax 401(k) basis\n- [ ] Review umbrella insurance\n\n## Later\n\n- [ ] Compare mortgage rates\n"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "path": "finance/checklist.md",
+            "old_text": "- [ ] Protect pretax 401(k) basis",
+            "why": "Mark 'Protect pretax 401(k) basis' as done",
+            "new_text": "- [x] Protect pretax 401(k) basis"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Protect pretax 401(k) basis\n+ - [x] Protect pretax 401(k) basis"
+          }
+        }
+      ],
+      "processSeconds": 75.1662743750494,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "oneProposal": true,
+        "approvalExplained": true,
+        "exactRequestedEdit": true,
+        "staleApplyRefused": true,
+        "applyMatchesProposal": true,
+        "undoExact": true
+      },
+      "passed": true
+    },
+    {
+      "task": "insert",
+      "repeat": 1,
+      "arm": "pi-ollama",
+      "question": "Add the open item 'Check HSA beneficiary' under 'Do this quarter' in finance/checklist.md. Keep the Later section unchanged and tell me when the change is waiting for approval.",
+      "warmupSeconds": 15.58900925,
+      "ollamaLoaded": {
+        "models": [
+          {
+            "name": "qwen38-27b-q8-32k:latest",
+            "model": "qwen38-27b-q8-32k:latest",
+            "size": 32117798993,
+            "digest": "645ab4665c94fe3b716d3d3add929e691d9a60a2f9604e887c5f90f89b9eb21a",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen35",
+              "families": [
+                "qwen35"
+              ],
+              "parameter_size": "27.3B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-09T22:42:22.374717-08:00",
+            "size_vram": 32117798993,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "answer": "Done — the change is waiting for your approval in the Inbox. Nothing is saved until you approve it.\n\n- Added `- [ ] Check HSA beneficiary` under **Do this quarter** in `finance/checklist.md` [1].\n- The **Later** section (Compare mortgage rates) is unchanged.",
+      "loopSeconds": 52.129954833,
+      "loadSeconds": 0,
+      "turns": 3,
+      "calls": [
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/checklist.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] finance/checklist.md\n# Finance checklist\n\n## Do this quarter\n\n- [ ] Protect pretax 401(k) basis\n- [ ] Review umbrella insurance\n\n## Later\n\n- [ ] Compare mortgage rates\n"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "path": "finance/checklist.md",
+            "old_text": "- [ ] Review umbrella insurance",
+            "new_text": "- [ ] Review umbrella insurance\n- [ ] Check HSA beneficiary",
+            "why": "Add open item 'Check HSA beneficiary' under Do this quarter."
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n+ - [ ] Check HSA beneficiary"
+          }
+        }
+      ],
+      "promptTokens": 4181,
+      "outputTokens": 190,
+      "processSeconds": 53.259543582913466,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "oneProposal": true,
+        "approvalExplained": true,
+        "itemOnceInCorrectSection": true,
+        "otherContentUnchanged": true,
+        "staleApplyRefused": true,
+        "applyMatchesProposal": true,
+        "undoExact": true
+      },
+      "passed": true,
+      "firstRequestHash": "6938359da704279b90a3734169f0b1966a2b338e5158db5b53e0f03b35c144d6",
+      "modelRequests": 3,
+      "providerSeconds": 51.87169945903588,
+      "outsideProviderSeconds": 0.25825537396411846,
+      "firstSemanticRequestHash": "20d39844a85d35fbb2ba080997dfcbbe1a4e30d3de626e2aa56ac5f70377b428"
+    },
+    {
+      "task": "insert",
+      "repeat": 1,
+      "arm": "swift-ollama",
+      "question": "Add the open item 'Check HSA beneficiary' under 'Do this quarter' in finance/checklist.md. Keep the Later section unchanged and tell me when the change is waiting for approval.",
+      "warmupSeconds": 16.839282958,
+      "ollamaLoaded": {
+        "models": [
+          {
+            "name": "qwen38-27b-q8-32k:latest",
+            "model": "qwen38-27b-q8-32k:latest",
+            "size": 29574981221,
+            "digest": "645ab4665c94fe3b716d3d3add929e691d9a60a2f9604e887c5f90f89b9eb21a",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen35",
+              "families": [
+                "qwen35"
+              ],
+              "parameter_size": "27.3B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-09T22:43:33.059118-08:00",
+            "size_vram": 29574981221,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "answer": "Done — the change is waiting for your approval in the Inbox. Nothing is saved until you approve it.\n\n- Added `- [ ] Check HSA beneficiary` under **Do this quarter** in `finance/checklist.md` [1].\n- The **Later** section (Compare mortgage rates) is unchanged.",
+      "badCitations": [],
+      "loadSeconds": 0.00013005733489990234,
+      "loopSeconds": 59.932767033576965,
+      "outputSeconds": 59.450628876686096,
+      "outputTokens": 190,
+      "promptSeconds": 0,
+      "promptTokens": 4181,
+      "steps": [
+        "read: finance/checklist.md",
+        "edit: finance/checklist.md"
+      ],
+      "calls": [
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/checklist.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] finance/checklist.md\n# Finance checklist\n\n## Do this quarter\n\n- [ ] Protect pretax 401(k) basis\n- [ ] Review umbrella insurance\n\n## Later\n\n- [ ] Compare mortgage rates\n"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "path": "finance/checklist.md",
+            "old_text": "- [ ] Review umbrella insurance",
+            "new_text": "- [ ] Review umbrella insurance\n- [ ] Check HSA beneficiary",
+            "why": "Add open item 'Check HSA beneficiary' under Do this quarter."
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n+ - [ ] Check HSA beneficiary"
+          }
+        }
+      ],
+      "processSeconds": 60.013854249962606,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "oneProposal": true,
+        "approvalExplained": true,
+        "itemOnceInCorrectSection": true,
+        "otherContentUnchanged": true,
+        "staleApplyRefused": true,
+        "applyMatchesProposal": true,
+        "undoExact": true
+      },
+      "passed": true,
+      "firstRequestHash": "20d39844a85d35fbb2ba080997dfcbbe1a4e30d3de626e2aa56ac5f70377b428",
+      "modelRequests": 3,
+      "providerSeconds": 59.35931591701228,
+      "outsideProviderSeconds": 0.5734511165646836,
+      "firstSemanticRequestHash": "20d39844a85d35fbb2ba080997dfcbbe1a4e30d3de626e2aa56ac5f70377b428"
+    },
+    {
+      "task": "insert",
+      "repeat": 1,
+      "arm": "swift-mlx",
+      "question": "Add the open item 'Check HSA beneficiary' under 'Do this quarter' in finance/checklist.md. Keep the Later section unchanged and tell me when the change is waiting for approval.",
+      "answer": "Done — the change is **waiting for your approval in the Inbox** before it takes effect.\n\nThe proposed edit adds `- [ ] Check HSA beneficiary` to the **Do this quarter** section of `finance/checklist.md`, right after \"Review umbrella insurance.\" The **Later** section (\"Compare mortgage rates\") is left unchanged. [1]\n\nNothing in the note has actually changed yet — it will only update once you approve it.",
+      "badCitations": [],
+      "loadSeconds": 3.727573037147522,
+      "loopSeconds": 77.33970296382904,
+      "outputSeconds": 24.624221920967102,
+      "outputTokens": 224,
+      "promptSeconds": 52.59464621543884,
+      "promptTokens": 2964,
+      "steps": [
+        "read: finance/checklist.md",
+        "edit: finance/checklist.md"
+      ],
+      "calls": [
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/checklist.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] finance/checklist.md\n# Finance checklist\n\n## Do this quarter\n\n- [ ] Protect pretax 401(k) basis\n- [ ] Review umbrella insurance\n\n## Later\n\n- [ ] Compare mortgage rates\n"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "why": "Add 'Check HSA beneficiary' open item under Do this quarter; Later section unchanged.",
+            "path": "finance/checklist.md",
+            "new_text": "- [ ] Review umbrella insurance\n- [ ] Check HSA beneficiary\n\n## Later",
+            "old_text": "- [ ] Review umbrella insurance\n\n## Later"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n+ - [ ] Check HSA beneficiary"
+          }
+        }
+      ],
+      "processSeconds": 81.31971995800268,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "oneProposal": true,
+        "approvalExplained": true,
+        "itemOnceInCorrectSection": true,
+        "otherContentUnchanged": true,
+        "staleApplyRefused": true,
+        "applyMatchesProposal": true,
+        "undoExact": true
+      },
+      "passed": true
+    },
+    {
+      "task": "combined",
+      "repeat": 1,
+      "arm": "pi-ollama",
+      "question": "In finance/checklist.md, mark 'Protect pretax 401(k) basis' done and change 'Review umbrella insurance' to 'Review umbrella insurance with Alex'. Leave everything else unchanged and propose both changes for approval.",
+      "warmupSeconds": 13.065433,
+      "ollamaLoaded": {
+        "models": [
+          {
+            "name": "qwen38-27b-q8-32k:latest",
+            "model": "qwen38-27b-q8-32k:latest",
+            "size": 32117798993,
+            "digest": "645ab4665c94fe3b716d3d3add929e691d9a60a2f9604e887c5f90f89b9eb21a",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen35",
+              "families": [
+                "qwen35"
+              ],
+              "parameter_size": "27.3B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-09T22:46:08.118582-08:00",
+            "size_vram": 32117798993,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "answer": "Both changes are proposed for approval in the Inbox — nothing is changed until you approve:\n\n1. Marked 'Protect pretax 401(k) basis' done (checked the box).\n2. Changed 'Review umbrella insurance' to 'Review umbrella insurance with Alex'.\n\nEverything else in finance/checklist.md stays as-is [1].",
+      "loopSeconds": 88.85448699999999,
+      "loadSeconds": 0,
+      "turns": 3,
+      "calls": [
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/checklist.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] finance/checklist.md\n# Finance checklist\n\n## Do this quarter\n\n- [ ] Protect pretax 401(k) basis\n- [ ] Review umbrella insurance\n\n## Later\n\n- [ ] Compare mortgage rates\n"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "path": "finance/checklist.md",
+            "old_text": "- [ ] Protect pretax 401(k) basis",
+            "new_text": "- [x] Protect pretax 401(k) basis",
+            "why": "Mark 'Protect pretax 401(k) basis' done."
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Protect pretax 401(k) basis\n+ - [x] Protect pretax 401(k) basis"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "path": "finance/checklist.md",
+            "old_text": "- [ ] Review umbrella insurance",
+            "new_text": "- [ ] Review umbrella insurance with Alex",
+            "why": "Change 'Review umbrella insurance' to 'Review umbrella insurance with Alex'."
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Protect pretax 401(k) basis\n- - [ ] Review umbrella insurance\n+ - [x] Protect pretax 401(k) basis\n+ - [ ] Review umbrella insurance with Alex"
+          }
+        }
+      ],
+      "promptTokens": 4405,
+      "outputTokens": 298,
+      "processSeconds": 89.83640924992505,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "oneProposal": true,
+        "approvalExplained": true,
+        "exactRequestedEdit": true,
+        "staleApplyRefused": true,
+        "applyMatchesProposal": true,
+        "undoExact": true
+      },
+      "passed": true,
+      "firstRequestHash": "7886aff43a25cbbb1bfe196203d02f1d15f39066a85f1777a384168dbaa7ea88",
+      "modelRequests": 3,
+      "providerSeconds": 88.73564516683109,
+      "outsideProviderSeconds": 0.11884183316890073,
+      "firstSemanticRequestHash": "8c4238db9f4b5919f57cc036a1a5a252ca0b1a2ad22f539ac55df33e1ff4a65f"
+    },
+    {
+      "task": "combined",
+      "repeat": 1,
+      "arm": "swift-ollama",
+      "question": "In finance/checklist.md, mark 'Protect pretax 401(k) basis' done and change 'Review umbrella insurance' to 'Review umbrella insurance with Alex'. Leave everything else unchanged and propose both changes for approval.",
+      "warmupSeconds": 16.014777333,
+      "ollamaLoaded": {
+        "models": [
+          {
+            "name": "qwen38-27b-q8-32k:latest",
+            "model": "qwen38-27b-q8-32k:latest",
+            "size": 29574981221,
+            "digest": "645ab4665c94fe3b716d3d3add929e691d9a60a2f9604e887c5f90f89b9eb21a",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen35",
+              "families": [
+                "qwen35"
+              ],
+              "parameter_size": "27.3B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-09T22:47:54.485335-08:00",
+            "size_vram": 29574981221,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "answer": "Both changes are proposed for approval in the Inbox — nothing is changed until you approve:\n\n1. Marked 'Protect pretax 401(k) basis' done (checked the box).\n2. Changed 'Review umbrella insurance' to 'Review umbrella insurance with Alex'.\n\nEverything else in finance/checklist.md stays as-is [1].",
+      "badCitations": [],
+      "loadSeconds": 6.699562072753906e-05,
+      "loopSeconds": 100.44264602661133,
+      "outputSeconds": 100.23298192024231,
+      "outputTokens": 298,
+      "promptSeconds": 0,
+      "promptTokens": 4405,
+      "steps": [
+        "read: finance/checklist.md",
+        "edit: finance/checklist.md",
+        "edit: finance/checklist.md"
+      ],
+      "calls": [
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/checklist.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] finance/checklist.md\n# Finance checklist\n\n## Do this quarter\n\n- [ ] Protect pretax 401(k) basis\n- [ ] Review umbrella insurance\n\n## Later\n\n- [ ] Compare mortgage rates\n"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "path": "finance/checklist.md",
+            "old_text": "- [ ] Protect pretax 401(k) basis",
+            "new_text": "- [x] Protect pretax 401(k) basis",
+            "why": "Mark 'Protect pretax 401(k) basis' done."
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Protect pretax 401(k) basis\n+ - [x] Protect pretax 401(k) basis"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "path": "finance/checklist.md",
+            "old_text": "- [ ] Review umbrella insurance",
+            "new_text": "- [ ] Review umbrella insurance with Alex",
+            "why": "Change 'Review umbrella insurance' to 'Review umbrella insurance with Alex'."
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Protect pretax 401(k) basis\n- - [ ] Review umbrella insurance\n+ - [x] Protect pretax 401(k) basis\n+ - [ ] Review umbrella insurance with Alex"
+          }
+        }
+      ],
+      "processSeconds": 100.50656737503596,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "oneProposal": true,
+        "approvalExplained": true,
+        "exactRequestedEdit": true,
+        "staleApplyRefused": true,
+        "applyMatchesProposal": true,
+        "undoExact": true
+      },
+      "passed": true,
+      "firstRequestHash": "8c4238db9f4b5919f57cc036a1a5a252ca0b1a2ad22f539ac55df33e1ff4a65f",
+      "modelRequests": 3,
+      "providerSeconds": 100.19558079307899,
+      "outsideProviderSeconds": 0.24706523353233933,
+      "firstSemanticRequestHash": "8c4238db9f4b5919f57cc036a1a5a252ca0b1a2ad22f539ac55df33e1ff4a65f"
+    },
+    {
+      "task": "combined",
+      "repeat": 1,
+      "arm": "swift-mlx",
+      "question": "In finance/checklist.md, mark 'Protect pretax 401(k) basis' done and change 'Review umbrella insurance' to 'Review umbrella insurance with Alex'. Leave everything else unchanged and propose both changes for approval.",
+      "answer": "I proposed both changes to finance/checklist.md; they're waiting in the Inbox for your approval, and nothing is changed until you approve.\n\n1. Marked \"Protect pretax 401(k) basis\" as done: `- [ ]` → `- [x]`.\n2. Changed \"Review umbrella insurance\" to \"Review umbrella insurance with Alex\".\n\nEverything else in the checklist (including the \"Compare mortgage rates\" item) is left unchanged.",
+      "badCitations": [],
+      "loadSeconds": 4.757767915725708,
+      "loopSeconds": 123.49309599399567,
+      "outputSeconds": 44.681049942970276,
+      "outputTokens": 314,
+      "promptSeconds": 78.59230482578278,
+      "promptTokens": 3165,
+      "steps": [
+        "read: finance/checklist.md",
+        "edit: finance/checklist.md",
+        "edit: finance/checklist.md"
+      ],
+      "calls": [
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/checklist.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] finance/checklist.md\n# Finance checklist\n\n## Do this quarter\n\n- [ ] Protect pretax 401(k) basis\n- [ ] Review umbrella insurance\n\n## Later\n\n- [ ] Compare mortgage rates\n"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "path": "finance/checklist.md",
+            "old_text": "- [ ] Protect pretax 401(k) basis",
+            "why": "Mark 'Protect pretax 401(k) basis' as done",
+            "new_text": "- [x] Protect pretax 401(k) basis"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Protect pretax 401(k) basis\n+ - [x] Protect pretax 401(k) basis"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "old_text": "- [ ] Review umbrella insurance",
+            "new_text": "- [ ] Review umbrella insurance with Alex",
+            "why": "Change 'Review umbrella insurance' to include Alex",
+            "path": "finance/checklist.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Protect pretax 401(k) basis\n- - [ ] Review umbrella insurance\n+ - [x] Protect pretax 401(k) basis\n+ - [ ] Review umbrella insurance with Alex"
+          }
+        }
+      ],
+      "processSeconds": 128.5211578749586,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "oneProposal": true,
+        "approvalExplained": true,
+        "exactRequestedEdit": true,
+        "staleApplyRefused": true,
+        "applyMatchesProposal": true,
+        "undoExact": true
+      },
+      "passed": true
+    },
+    {
+      "task": "table",
+      "repeat": 1,
+      "arm": "pi-ollama",
+      "question": "Using the CSV data in finance, what was total grocery spending for July through September 2026? Cite the result. Do not change any notes.",
+      "warmupSeconds": 12.792151125,
+      "ollamaLoaded": {
+        "models": [
+          {
+            "name": "qwen38-27b-q8-32k:latest",
+            "model": "qwen38-27b-q8-32k:latest",
+            "size": 32117798993,
+            "digest": "645ab4665c94fe3b716d3d3add929e691d9a60a2f9604e887c5f90f89b9eb21a",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen35",
+              "families": [
+                "qwen35"
+              ],
+              "parameter_size": "27.3B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-09T22:51:57.519656-08:00",
+            "size_vram": 32117798993,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "answer": "Total grocery spending for July–September 2026 was **$1,300** [3], broken down as:\n- July: $410\n- August: $460\n- September: $430\n\n[2]",
+      "loopSeconds": 89.90672179100001,
+      "loadSeconds": 0,
+      "turns": 5,
+      "calls": [
+        {
+          "name": "list_tables",
+          "arguments": {
+            "folder": "finance"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "finance_spending — finance/spending.csv, 6 rows: month, category, amount"
+          }
+        },
+        {
+          "name": "query_table",
+          "arguments": {
+            "sql": "SELECT SUM(amount) AS total FROM finance_spending WHERE category='grocery' AND month IN ('2026-07','2026-08','2026-09')"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] Query over finance/spending.csv\ntotal\n\n"
+          }
+        },
+        {
+          "name": "query_table",
+          "arguments": {
+            "sql": "SELECT month, category, amount FROM finance_spending ORDER BY month"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[2] Query over finance/spending.csv\nmonth | category | amount\n2026-07 | groceries | 410\n2026-07 | utilities | 120\n2026-08 | groceries | 460\n2026-08 | utilities | 140\n2026-09 | groceries | 430\n2026-09 | utilities | 110\n"
+          }
+        },
+        {
+          "name": "query_table",
+          "arguments": {
+            "sql": "SELECT SUM(amount) AS total FROM finance_spending WHERE category='groceries' AND month IN ('2026-07','2026-08','2026-09')"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[3] Query over finance/spending.csv\ntotal\n1300\n"
+          }
+        }
+      ],
+      "promptTokens": 7347,
+      "outputTokens": 259,
+      "processSeconds": 91.05245695798658,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "noProposal": true,
+        "correctTotal": true,
+        "citation": true,
+        "queriedCSV": true
+      },
+      "passed": true,
+      "firstRequestHash": "b8a19dfdc1f42573226e959a34e4331bcbcedc6215ae2a360f6255b0f0db1bef",
+      "modelRequests": 5,
+      "providerSeconds": 89.59465508186258,
+      "outsideProviderSeconds": 0.31206670913742585,
+      "firstSemanticRequestHash": "15a48f3d84d01e88c0de99042e6576883efd6ca47aea1d90c4f364e31c6443ec"
+    },
+    {
+      "task": "table",
+      "repeat": 1,
+      "arm": "swift-ollama",
+      "question": "Using the CSV data in finance, what was total grocery spending for July through September 2026? Cite the result. Do not change any notes.",
+      "warmupSeconds": 16.605326542,
+      "ollamaLoaded": {
+        "models": [
+          {
+            "name": "qwen38-27b-q8-32k:latest",
+            "model": "qwen38-27b-q8-32k:latest",
+            "size": 29574981221,
+            "digest": "645ab4665c94fe3b716d3d3add929e691d9a60a2f9604e887c5f90f89b9eb21a",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen35",
+              "families": [
+                "qwen35"
+              ],
+              "parameter_size": "27.3B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-09T22:53:45.393517-08:00",
+            "size_vram": 29574981221,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "answer": "Total grocery spending for July–September 2026 was **$1,300** [3], broken down as:\n- July: $410\n- August: $460\n- September: $430\n\n[2]",
+      "badCitations": [],
+      "loadSeconds": 5.900859832763672e-05,
+      "loopSeconds": 93.9128669500351,
+      "outputSeconds": 93.73933696746826,
+      "outputTokens": 259,
+      "promptSeconds": 0,
+      "promptTokens": 7347,
+      "steps": [
+        "tables: finance",
+        "sql: SELECT SUM(amount) AS total FROM finance_spending WHERE category='grocery' AND month IN ('2026-07','2026-08','2026-09')",
+        "sql: SELECT month, category, amount FROM finance_spending ORDER BY month",
+        "sql: SELECT SUM(amount) AS total FROM finance_spending WHERE category='groceries' AND month IN ('2026-07','2026-08','2026-09')"
+      ],
+      "calls": [
+        {
+          "name": "list_tables",
+          "arguments": {
+            "folder": "finance"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "finance_spending — finance/spending.csv, 6 rows: month, category, amount"
+          }
+        },
+        {
+          "name": "query_table",
+          "arguments": {
+            "sql": "SELECT SUM(amount) AS total FROM finance_spending WHERE category='grocery' AND month IN ('2026-07','2026-08','2026-09')"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] Query over finance/spending.csv\ntotal\n\n"
+          }
+        },
+        {
+          "name": "query_table",
+          "arguments": {
+            "sql": "SELECT month, category, amount FROM finance_spending ORDER BY month"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[2] Query over finance/spending.csv\nmonth | category | amount\n2026-07 | groceries | 410\n2026-07 | utilities | 120\n2026-08 | groceries | 460\n2026-08 | utilities | 140\n2026-09 | groceries | 430\n2026-09 | utilities | 110\n"
+          }
+        },
+        {
+          "name": "query_table",
+          "arguments": {
+            "sql": "SELECT SUM(amount) AS total FROM finance_spending WHERE category='groceries' AND month IN ('2026-07','2026-08','2026-09')"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[3] Query over finance/spending.csv\ntotal\n1300\n"
+          }
+        }
+      ],
+      "processSeconds": 93.96697104093619,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "noProposal": true,
+        "correctTotal": true,
+        "citation": true,
+        "queriedCSV": true
+      },
+      "passed": true,
+      "firstRequestHash": "15a48f3d84d01e88c0de99042e6576883efd6ca47aea1d90c4f364e31c6443ec",
+      "modelRequests": 5,
+      "providerSeconds": 93.68339170783293,
+      "outsideProviderSeconds": 0.2294752422021702,
+      "firstSemanticRequestHash": "15a48f3d84d01e88c0de99042e6576883efd6ca47aea1d90c4f364e31c6443ec"
+    },
+    {
+      "task": "table",
+      "repeat": 1,
+      "arm": "swift-mlx",
+      "question": "Using the CSV data in finance, what was total grocery spending for July through September 2026? Cite the result. Do not change any notes.",
+      "answer": "Total grocery spending for July through September 2026 was **$1,300** [3].\n\nThe CSV rows break down as:\n- July 2026: $410 [2]\n- August 2026: $460 [2]\n- September 2026: $430 [2]\n\nNo notes were changed.",
+      "badCitations": [],
+      "loadSeconds": 3.622913956642151,
+      "loopSeconds": 85.34327399730682,
+      "outputSeconds": 43.207197070121765,
+      "outputTokens": 279,
+      "promptSeconds": 41.87452006340027,
+      "promptTokens": 1538,
+      "steps": [
+        "tables: finance",
+        "sql: SELECT SUM(amount) AS total FROM finance_spending WHERE category = 'Groceries' AND month IN ('2026-07','2026-08','2026-09')",
+        "sql: SELECT * FROM finance_spending",
+        "sql: SELECT SUM(amount) AS total FROM finance_spending WHERE category = 'groceries' AND month IN ('2026-07','2026-08','2026-09')"
+      ],
+      "calls": [
+        {
+          "name": "list_tables",
+          "arguments": {
+            "folder": "finance"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "finance_spending — finance/spending.csv, 6 rows: month, category, amount"
+          }
+        },
+        {
+          "name": "query_table",
+          "arguments": {
+            "sql": "SELECT SUM(amount) AS total FROM finance_spending WHERE category = 'Groceries' AND month IN ('2026-07','2026-08','2026-09')"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] Query over finance/spending.csv\ntotal\n\n"
+          }
+        },
+        {
+          "name": "query_table",
+          "arguments": {
+            "sql": "SELECT * FROM finance_spending"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[2] Query over finance/spending.csv\nmonth | category | amount\n2026-07 | groceries | 410\n2026-08 | groceries | 460\n2026-09 | groceries | 430\n2026-07 | utilities | 120\n2026-08 | utilities | 140\n2026-09 | utilities | 110\n"
+          }
+        },
+        {
+          "name": "query_table",
+          "arguments": {
+            "sql": "SELECT SUM(amount) AS total FROM finance_spending WHERE category = 'groceries' AND month IN ('2026-07','2026-08','2026-09')"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[3] Query over finance/spending.csv\ntotal\n1300\n"
+          }
+        }
+      ],
+      "processSeconds": 89.24846187490039,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "noProposal": true,
+        "correctTotal": true,
+        "citation": true,
+        "queriedCSV": true
+      },
+      "passed": true
+    },
+    {
+      "task": "generated",
+      "repeat": 1,
+      "arm": "pi-ollama",
+      "question": "Update finance/generated.md so the groceries total says $1,400. If the note cannot be edited, explain why and what should be changed instead.",
+      "warmupSeconds": 12.496006791,
+      "ollamaLoaded": {
+        "models": [
+          {
+            "name": "qwen38-27b-q8-32k:latest",
+            "model": "qwen38-27b-q8-32k:latest",
+            "size": 32117798993,
+            "digest": "645ab4665c94fe3b716d3d3add929e691d9a60a2f9604e887c5f90f89b9eb21a",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen35",
+              "families": [
+                "qwen35"
+              ],
+              "parameter_size": "27.3B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-09T22:57:02.142523-08:00",
+            "size_vram": 32117798993,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "answer": "I can't edit that note, and here's why:\n\n`finance/generated.md` is a **GENERATED** file — it says \"GENERATED by scripts/spending.py. Change the source data and regenerate.\" [1] So its numbers are derived from `spending.csv`, not hand-maintained. Editing the markdown directly would be overwritten on the next run, so that's the wrong place to make a change.\n\n**What should be changed instead:** the source data in `finance/spending.csv`. But note the current groceries rows total **$1,300**, not $1,400:\n- 2026-07: $410\n- 2026-08: $460\n- 2026-09: $430 [4]\n\nSo the CSV already reflects $1,300. To make the total $1,400 you'd need to add **$100** to one of the groceries rows (or a new row) in `spending.csv`, then re-run `scripts/spending.py` to regenerate the report.\n\nWant me to propose that CSV edit? If so, tell me which month's groceries amount should go up by $100 (e.g., 2026-07 from $410 → $510).",
+      "loopSeconds": 157.51379679200002,
+      "loadSeconds": 0,
+      "turns": 5,
+      "calls": [
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/generated.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] finance/generated.md\n# Quarterly total\n> GENERATED by scripts/spending.py. Change the source data and regenerate.\n\nGroceries total: $1,300.\n"
+          }
+        },
+        {
+          "name": "list_folder",
+          "arguments": {
+            "path": "finance"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "finance/README.md — Finance\nfinance/checklist.md — Finance checklist\nfinance/generated.md — Quarterly total\nfinance/spending.csv (CSV table)\n"
+          }
+        },
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/README.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[2] finance/README.md\n# Finance\n\nThe checklist is in checklist.md. Quarterly expenses are in spending.csv; use the CSV for totals.\n"
+          }
+        },
+        {
+          "name": "list_tables",
+          "arguments": {
+            "folder": "finance"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "finance_spending — finance/spending.csv, 6 rows: month, category, amount"
+          }
+        },
+        {
+          "name": "query_table",
+          "arguments": {
+            "sql": "SELECT SUM(amount) AS total FROM finance_spending WHERE category = 'Groceries'"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[3] Query over finance/spending.csv\ntotal\n\n"
+          }
+        },
+        {
+          "name": "query_table",
+          "arguments": {
+            "sql": "SELECT * FROM finance_spending"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[4] Query over finance/spending.csv\nmonth | category | amount\n2026-07 | groceries | 410\n2026-08 | groceries | 460\n2026-09 | groceries | 430\n2026-07 | utilities | 120\n2026-08 | utilities | 140\n2026-09 | utilities | 110\n"
+          }
+        }
+      ],
+      "promptTokens": 7621,
+      "outputTokens": 472,
+      "processSeconds": 158.43231508298777,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "noProposal": true,
+        "generatedExplained": true,
+        "sourceOrScriptExplained": true
+      },
+      "passed": true,
+      "firstRequestHash": "b80cde770377072e381db8dd110e8f9ffdac1ef154dbc2741188dcf82e8a2a70",
+      "modelRequests": 5,
+      "providerSeconds": 157.26848170917947,
+      "outsideProviderSeconds": 0.2453150828205537,
+      "firstSemanticRequestHash": "c7f45e98e00e1ea4838b82d7e71e7b53a0ca5531e68dc7fae5abd6730302bbd6"
+    },
+    {
+      "task": "generated",
+      "repeat": 1,
+      "arm": "swift-ollama",
+      "question": "Update finance/generated.md so the groceries total says $1,400. If the note cannot be edited, explain why and what should be changed instead.",
+      "warmupSeconds": 15.978758167,
+      "ollamaLoaded": {
+        "models": [
+          {
+            "name": "qwen38-27b-q8-32k:latest",
+            "model": "qwen38-27b-q8-32k:latest",
+            "size": 29574981221,
+            "digest": "645ab4665c94fe3b716d3d3add929e691d9a60a2f9604e887c5f90f89b9eb21a",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen35",
+              "families": [
+                "qwen35"
+              ],
+              "parameter_size": "27.3B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-09T22:59:56.862514-08:00",
+            "size_vram": 29574981221,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "answer": "I can't edit that note, and here's why:\n\n`finance/generated.md` is a **GENERATED** file — it says \"GENERATED by scripts/spending.py. Change the source data and regenerate.\" [1] So its numbers are derived from `spending.csv`, not hand-maintained. Editing the markdown directly would be overwritten on the next run, so that's the wrong place to make a change.\n\n**What should be changed instead:** the source data in `finance/spending.csv`. But note the current groceries rows total **$1,300**, not $1,400:\n- 2026-07: $410\n- 2026-08: $460\n- 2026-09: $430 [4]\n\nSo the CSV already reflects $1,300. To make the total $1,400 you'd need to add **$100** to one of the groceries rows (or a new row) in `spending.csv`, then re-run `scripts/spending.py` to regenerate the report.\n\nWant me to propose that CSV edit? If so, tell me which month's groceries amount should go up by $100 (e.g., 2026-07 from $410 → $510).",
+      "badCitations": [],
+      "loadSeconds": 6.604194641113281e-05,
+      "loopSeconds": 154.48884296417236,
+      "outputSeconds": 154.3443511724472,
+      "outputTokens": 472,
+      "promptSeconds": 0,
+      "promptTokens": 7621,
+      "steps": [
+        "read: finance/generated.md",
+        "list: finance",
+        "read: finance/README.md",
+        "tables: finance",
+        "sql: SELECT SUM(amount) AS total FROM finance_spending WHERE category = 'Groceries'",
+        "sql: SELECT * FROM finance_spending"
+      ],
+      "calls": [
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/generated.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] finance/generated.md\n# Quarterly total\n> GENERATED by scripts/spending.py. Change the source data and regenerate.\n\nGroceries total: $1,300.\n"
+          }
+        },
+        {
+          "name": "list_folder",
+          "arguments": {
+            "path": "finance"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "finance/README.md — Finance\nfinance/checklist.md — Finance checklist\nfinance/generated.md — Quarterly total\nfinance/spending.csv (CSV table)\n"
+          }
+        },
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/README.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[2] finance/README.md\n# Finance\n\nThe checklist is in checklist.md. Quarterly expenses are in spending.csv; use the CSV for totals.\n"
+          }
+        },
+        {
+          "name": "list_tables",
+          "arguments": {
+            "folder": "finance"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "finance_spending — finance/spending.csv, 6 rows: month, category, amount"
+          }
+        },
+        {
+          "name": "query_table",
+          "arguments": {
+            "sql": "SELECT SUM(amount) AS total FROM finance_spending WHERE category = 'Groceries'"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[3] Query over finance/spending.csv\ntotal\n\n"
+          }
+        },
+        {
+          "name": "query_table",
+          "arguments": {
+            "sql": "SELECT * FROM finance_spending"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[4] Query over finance/spending.csv\nmonth | category | amount\n2026-07 | groceries | 410\n2026-08 | groceries | 460\n2026-09 | groceries | 430\n2026-07 | utilities | 120\n2026-08 | utilities | 140\n2026-09 | utilities | 110\n"
+          }
+        }
+      ],
+      "processSeconds": 154.55751620803494,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "noProposal": true,
+        "generatedExplained": true,
+        "sourceOrScriptExplained": true
+      },
+      "passed": true,
+      "firstRequestHash": "c7f45e98e00e1ea4838b82d7e71e7b53a0ca5531e68dc7fae5abd6730302bbd6",
+      "modelRequests": 5,
+      "providerSeconds": 154.31418229197152,
+      "outsideProviderSeconds": 0.1746606722008437,
+      "firstSemanticRequestHash": "c7f45e98e00e1ea4838b82d7e71e7b53a0ca5531e68dc7fae5abd6730302bbd6"
+    },
+    {
+      "task": "generated",
+      "repeat": 1,
+      "arm": "swift-mlx",
+      "question": "Update finance/generated.md so the groceries total says $1,400. If the note cannot be edited, explain why and what should be changed instead.",
+      "answer": "I can't edit `finance/generated.md` — it's a generated report, not something to hand-edit. Here's why and what should change instead:\n\n**Why I won't edit it:** `generated.md` is marked \"GENERATED by scripts/spending.py. Change the source data and regenerate.\" [1] It's a computed output, so hand-editing it would be overwritten on the next run and would break the \"source of truth\" rule (the CSV is the source for totals [2]).\n\n**What's actually wrong:** The note currently says **$1,300** [1], but the source data in `spending.csv` totals **$1,300** for groceries (410 + 460 + 430 = 1,300 across Jul–Sep 2026) [3]. So the generated figure is *correct* — it's not stale. The number you want, **$1,400**, is $100 higher than the data supports.\n\n**What should change instead:** To make the total read $1,400, one of two things must happen:\n- **If the data is out of date** (e.g., a real grocery expense changed): update the affected row in `spending.csv` so the groceries total becomes $1,400, then re-run `scripts/spending.py` to regenerate the note. I'd need to know which month's amount should move and by how much (e.g., bump one month by $100) to edit the CSV.\n- **If the data is right and only the display is wrong:** that's a bug in `scripts/spending.py`, which isn't in this knowledge base — I can't fix it here.\n\nI did **not** make any edit. Tell me which month's grocery amount should change (or confirm the CSV row to adjust) and I'll propose the `spending.csv` edit, after which you'd regenerate.",
+      "badCitations": [],
+      "loadSeconds": 4.6394970417022705,
+      "loopSeconds": 158.3812769651413,
+      "outputSeconds": 114.8315440416336,
+      "outputTokens": 708,
+      "promptSeconds": 43.18042302131653,
+      "promptTokens": 1666,
+      "steps": [
+        "read: finance/generated.md",
+        "list: finance",
+        "read: finance/README.md",
+        "tables: finance",
+        "sql: SELECT month, category, amount FROM finance_spending ORDER BY month, category",
+        "read: finance/checklist.md"
+      ],
+      "calls": [
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/generated.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] finance/generated.md\n# Quarterly total\n> GENERATED by scripts/spending.py. Change the source data and regenerate.\n\nGroceries total: $1,300.\n"
+          }
+        },
+        {
+          "name": "list_folder",
+          "arguments": {
+            "path": "finance"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "finance/README.md — Finance\nfinance/checklist.md — Finance checklist\nfinance/generated.md — Quarterly total\nfinance/spending.csv (CSV table)\n"
+          }
+        },
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/README.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[2] finance/README.md\n# Finance\n\nThe checklist is in checklist.md. Quarterly expenses are in spending.csv; use the CSV for totals.\n"
+          }
+        },
+        {
+          "name": "list_tables",
+          "arguments": {
+            "folder": "finance"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "finance_spending — finance/spending.csv, 6 rows: month, category, amount"
+          }
+        },
+        {
+          "name": "query_table",
+          "arguments": {
+            "sql": "SELECT month, category, amount FROM finance_spending ORDER BY month, category"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[3] Query over finance/spending.csv\nmonth | category | amount\n2026-07 | groceries | 410\n2026-07 | utilities | 120\n2026-08 | groceries | 460\n2026-08 | utilities | 140\n2026-09 | groceries | 430\n2026-09 | utilities | 110\n"
+          }
+        },
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/checklist.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[4] finance/checklist.md\n# Finance checklist\n\n## Do this quarter\n\n- [ ] Protect pretax 401(k) basis\n- [ ] Review umbrella insurance\n\n## Later\n\n- [ ] Compare mortgage rates\n"
+          }
+        }
+      ],
+      "processSeconds": 163.4937416659668,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "noProposal": true,
+        "generatedExplained": true,
+        "sourceOrScriptExplained": true
+      },
+      "passed": true
+    }
+  ]
+}

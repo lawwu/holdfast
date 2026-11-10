@@ -49,16 +49,16 @@ enum Versions {
     @discardableResult
     static func snapshot(_ url: URL, reason: String) -> URL? {
         let rel = Drop.relative(url)
-        guard !rel.hasPrefix("/"), let text = try? String(contentsOf: url, encoding: .utf8) else { return nil }
+        guard !rel.hasPrefix("/"), let text = try? Data(contentsOf: url) else { return nil }
         let existing = list(rel)
         if let last = existing.first {
-            if (try? String(contentsOf: last.url, encoding: .utf8)) == text { return last.url }
+            if (try? Data(contentsOf: last.url)) == text { return last.url }
             if reason == "edit", last.reason == "edit", Date().timeIntervalSince(last.date) < editInterval { return nil }
         }
         let f = folder(rel)
         try? FileManager.default.createDirectory(at: f, withIntermediateDirectories: true)
         let dest = Drop.unique(f.appendingPathComponent("\(stamp.string(from: Date()))--\(reason).md"), ifExists: true)
-        guard (try? text.write(to: dest, atomically: true, encoding: .utf8)) != nil else { return nil }
+        guard (try? text.write(to: dest, options: .atomic)) != nil else { return nil }
         for old in list(rel).dropFirst(keepPerNote) { try? FileManager.default.removeItem(at: old.url) }
         return dest
     }
@@ -76,9 +76,9 @@ enum Versions {
 
     /// Puts an earlier copy back, keeping the current text as a version first.
     static func restore(_ v: Version, to url: URL) throws {
-        let text = try String(contentsOf: v.url, encoding: .utf8)   // first: keeping the current text can prune this copy
+        let text = try Data(contentsOf: v.url)   // first: keeping the current text can prune this copy
         snapshot(url, reason: "before-restore")
-        try text.write(to: url, atomically: true, encoding: .utf8)
+        try text.write(to: url, options: .atomic)
     }
 }
 
@@ -155,9 +155,9 @@ enum FilingLog {
         let wasNew = r.action == "new"
         if hash(now) == r.after, wasNew {
             try FileManager.default.trashItem(at: dest, resultingItemURL: nil)   // untouched since it was created
-        } else if hash(now) == r.after, let s = r.snapshot, let old = try? String(contentsOf: URL(fileURLWithPath: s), encoding: .utf8) {
+        } else if hash(now) == r.after, let s = r.snapshot, let old = try? Data(contentsOf: URL(fileURLWithPath: s)) {
             Versions.snapshot(dest, reason: "before-undo")
-            try old.write(to: dest, atomically: true, encoding: .utf8)
+            try old.write(to: dest, options: .atomic)
         } else if !wasNew, r.action != "edit", let out = removeLines(r.addition, extra: r.extraLines ?? [], from: now) {
             // Changed since (or older filings): take out exactly the lines this filing added.
             Versions.snapshot(dest, reason: "before-undo")

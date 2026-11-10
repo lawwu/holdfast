@@ -1,0 +1,15 @@
+{
+  "ggufVersion": 3,
+  "tensorCount": 866,
+  "bytes": 31457991680,
+  "tensorsByType": {
+    "F32": 360,
+    "Q8_0": 453,
+    "BF16": 53
+  },
+  "parametersByType": {
+    "F32": 2671616,
+    "Q8_0": 24746393600,
+    "BF16": 2571632640
+  }
+}

@@ -18,6 +18,8 @@ struct HistoryEntry: Codable, Identifiable {
     var conversationId: UUID?
     /// How the router handled it ("Answered from the closest passages", "Looked deeper…").
     var route: String?
+    /// Carries the restriction even when private tool results have no counseling citation.
+    var localOnly: Bool?
 
     var thread: UUID { conversationId ?? id }
 

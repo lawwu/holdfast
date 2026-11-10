@@ -229,8 +229,8 @@ struct ListenView: View {
                      : "macOS asks once for permission the first time.")
                     .font(Theme.caption).foregroundStyle(.secondary)
             }
-            if store.backend == .remote, fileIt {
-                Label("Filing sends the transcript to \(Remote.host); counseling stays here.", systemImage: "network")
+            if store.backend != .mlx, fileIt {
+                Label("Filing uses the selected model server; counseling stays in LocalMLX here.", systemImage: "network")
                     .font(Theme.caption).foregroundStyle(.orange)
             }
         }

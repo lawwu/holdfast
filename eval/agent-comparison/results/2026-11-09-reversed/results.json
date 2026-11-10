@@ -1,0 +1,428 @@
+{
+  "metadata": {
+    "created": "2026-11-09T22:50:29-0800",
+    "ollama": {
+      "version": "0.40.15"
+    },
+    "model": "qwen38-27b-q8-32k:latest",
+    "modelDetails": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen35",
+      "families": [
+        "qwen35"
+      ],
+      "parameter_size": "27.3B",
+      "quantization_level": "Q4_K_M"
+    },
+    "thinking": null,
+    "parameters": "top_p                          0.8\nnum_ctx                        32768\ntemperature                    0.7\ntop_k                          20",
+    "mlxModel": "mlx-community/Qwen3.8-27B-4bit",
+    "piVersion": "0.67.2",
+    "gitHead": "e08813085297b819042bd9a6fe03edb420a3fc34",
+    "dirtyTree": true,
+    "binarySHA256": "481c74897dd28b9874b4bf43945234d8cd24671af65f41d33ecf2f701f360a70",
+    "tags": {
+      "models": [
+        {
+          "name": "qwen38-27b-q8-32k:latest",
+          "model": "qwen38-27b-q8-32k:latest",
+          "modified_at": "2026-08-14T20:55:31.350447269-07:00",
+          "size": 31457991893,
+          "digest": "645ab4665c94fe3b716d3d3add929e691d9a60a2f9604e887c5f90f89b9eb21a",
+          "details": {
+            "parent_model": "",
+            "format": "gguf",
+            "family": "qwen35",
+            "families": [
+              "qwen35"
+            ],
+            "parameter_size": "27.3B",
+            "quantization_level": "Q4_K_M",
+            "context_length": 262144,
+            "embedding_length": 5120,
+            "runner": "ggml"
+          },
+          "capabilities": [
+            "tools",
+            "thinking",
+            "completion"
+          ]
+        }
+      ]
+    },
+    "repeats": 1,
+    "hardware": {
+      "chip": "Apple M1 Max",
+      "memoryBytes": 68719476736
+    },
+    "reviewNotes": [
+      "These repeats reverse the initial arm order: Swift first, then Pi. Both repeated tasks passed with identical answers and tool arguments between harnesses.",
+      "Timing limitation: another Xcode compilation and simulator activity were observed during these repeats. The same Swift checkbox task varied from 57.0 seconds in the initial pass to 87.9 seconds here. Small Pi-versus-Swift gaps cannot be treated as a stable harness speed advantage. See environment-observation.json.",
+      "The initial five-task pass and these two repeated cases total 19 successful operational trials. All seven matched Ollama pairs produced identical final answers and tool arguments. Compaction, session restoration and production app integration were not evaluated."
+    ]
+  },
+  "results": [
+    {
+      "task": "checkbox",
+      "repeat": 1,
+      "arm": "swift-ollama",
+      "question": "Mark 'Protect pretax 401(k) basis' as done in finance/checklist.md. Leave the other items unchanged and tell me when the change is waiting for approval.",
+      "warmupSeconds": 16.225657167,
+      "ollamaLoaded": {
+        "models": [
+          {
+            "name": "qwen38-27b-q8-32k:latest",
+            "model": "qwen38-27b-q8-32k:latest",
+            "size": 32117798993,
+            "digest": "645ab4665c94fe3b716d3d3add929e691d9a60a2f9604e887c5f90f89b9eb21a",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen35",
+              "families": [
+                "qwen35"
+              ],
+              "parameter_size": "27.3B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-09T23:05:46.310589-08:00",
+            "size_vram": 32117798993,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "answer": "Done — the change is waiting for your approval in the Inbox.\n\nI proposed marking \"Protect pretax 401(k) basis\" as done (`[ ]` → `[x]`) in finance/checklist.md, leaving all other items unchanged [1]. Nothing is updated until you approve it in the Inbox.",
+      "badCitations": [],
+      "loadSeconds": 6.902217864990234e-05,
+      "loopSeconds": 87.86631405353546,
+      "outputSeconds": 87.7309399843216,
+      "outputTokens": 201,
+      "promptSeconds": 0,
+      "promptTokens": 4209,
+      "steps": [
+        "read: finance/checklist.md",
+        "edit: finance/checklist.md"
+      ],
+      "calls": [
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/checklist.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] finance/checklist.md\n# Finance checklist\n\n## Do this quarter\n\n- [ ] Protect pretax 401(k) basis\n- [ ] Review umbrella insurance\n\n## Later\n\n- [ ] Compare mortgage rates\n"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "path": "finance/checklist.md",
+            "old_text": "- [ ] Protect pretax 401(k) basis",
+            "new_text": "- [x] Protect pretax 401(k) basis",
+            "why": "Mark 'Protect pretax 401(k) basis' as done."
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Protect pretax 401(k) basis\n+ - [x] Protect pretax 401(k) basis"
+          }
+        }
+      ],
+      "processSeconds": 87.98433237499557,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "oneProposal": true,
+        "approvalExplained": true,
+        "exactRequestedEdit": true,
+        "staleApplyRefused": true,
+        "applyMatchesProposal": true,
+        "undoExact": true
+      },
+      "passed": true,
+      "firstRequestHash": "64c5c66cfb288924c7ce278dcca695a85dae73db014960108dadd585de8a48af",
+      "modelRequests": 3,
+      "firstSemanticRequestHash": "64c5c66cfb288924c7ce278dcca695a85dae73db014960108dadd585de8a48af",
+      "providerSeconds": 87.70469758298714,
+      "outsideProviderSeconds": 0.1616164705483243
+    },
+    {
+      "task": "checkbox",
+      "repeat": 1,
+      "arm": "pi-ollama",
+      "question": "Mark 'Protect pretax 401(k) basis' as done in finance/checklist.md. Leave the other items unchanged and tell me when the change is waiting for approval.",
+      "warmupSeconds": 16.563583292,
+      "ollamaLoaded": {
+        "models": [
+          {
+            "name": "qwen38-27b-q8-32k:latest",
+            "model": "qwen38-27b-q8-32k:latest",
+            "size": 29574981221,
+            "digest": "645ab4665c94fe3b716d3d3add929e691d9a60a2f9604e887c5f90f89b9eb21a",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen35",
+              "families": [
+                "qwen35"
+              ],
+              "parameter_size": "27.3B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-09T23:07:31.830705-08:00",
+            "size_vram": 29574981221,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "answer": "Done — the change is waiting for your approval in the Inbox.\n\nI proposed marking \"Protect pretax 401(k) basis\" as done (`[ ]` → `[x]`) in finance/checklist.md, leaving all other items unchanged [1]. Nothing is updated until you approve it in the Inbox.",
+      "loopSeconds": 82.895087708,
+      "loadSeconds": 0,
+      "turns": 3,
+      "calls": [
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/checklist.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] finance/checklist.md\n# Finance checklist\n\n## Do this quarter\n\n- [ ] Protect pretax 401(k) basis\n- [ ] Review umbrella insurance\n\n## Later\n\n- [ ] Compare mortgage rates\n"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "path": "finance/checklist.md",
+            "old_text": "- [ ] Protect pretax 401(k) basis",
+            "new_text": "- [x] Protect pretax 401(k) basis",
+            "why": "Mark 'Protect pretax 401(k) basis' as done."
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Protect pretax 401(k) basis\n+ - [x] Protect pretax 401(k) basis"
+          }
+        }
+      ],
+      "promptTokens": 4209,
+      "outputTokens": 201,
+      "processSeconds": 83.66169012500905,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "oneProposal": true,
+        "approvalExplained": true,
+        "exactRequestedEdit": true,
+        "staleApplyRefused": true,
+        "applyMatchesProposal": true,
+        "undoExact": true
+      },
+      "passed": true,
+      "firstRequestHash": "a190b1a519914931705cbb602ee788385f03049a85184d8eba027870d3e91dbc",
+      "modelRequests": 3,
+      "firstSemanticRequestHash": "64c5c66cfb288924c7ce278dcca695a85dae73db014960108dadd585de8a48af",
+      "providerSeconds": 82.44779012503568,
+      "outsideProviderSeconds": 0.44729758296432465
+    },
+    {
+      "task": "combined",
+      "repeat": 1,
+      "arm": "swift-ollama",
+      "question": "In finance/checklist.md, mark 'Protect pretax 401(k) basis' done and change 'Review umbrella insurance' to 'Review umbrella insurance with Alex'. Leave everything else unchanged and propose both changes for approval.",
+      "warmupSeconds": 3.565797875,
+      "ollamaLoaded": {
+        "models": [
+          {
+            "name": "qwen38-27b-q8-32k:latest",
+            "model": "qwen38-27b-q8-32k:latest",
+            "size": 29574981221,
+            "digest": "645ab4665c94fe3b716d3d3add929e691d9a60a2f9604e887c5f90f89b9eb21a",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen35",
+              "families": [
+                "qwen35"
+              ],
+              "parameter_size": "27.3B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-09T23:08:59.53535-08:00",
+            "size_vram": 29574981221,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "answer": "Both changes are proposed for approval in the Inbox — nothing is changed until you approve:\n\n1. Marked 'Protect pretax 401(k) basis' done (checked the box).\n2. Changed 'Review umbrella insurance' to 'Review umbrella insurance with Alex'.\n\nEverything else in finance/checklist.md stays as-is [1].",
+      "badCitations": [],
+      "loadSeconds": 0.0029799938201904297,
+      "loopSeconds": 108.22604894638062,
+      "outputSeconds": 108.10150706768036,
+      "outputTokens": 298,
+      "promptSeconds": 0,
+      "promptTokens": 4405,
+      "steps": [
+        "read: finance/checklist.md",
+        "edit: finance/checklist.md",
+        "edit: finance/checklist.md"
+      ],
+      "calls": [
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/checklist.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] finance/checklist.md\n# Finance checklist\n\n## Do this quarter\n\n- [ ] Protect pretax 401(k) basis\n- [ ] Review umbrella insurance\n\n## Later\n\n- [ ] Compare mortgage rates\n"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "path": "finance/checklist.md",
+            "old_text": "- [ ] Protect pretax 401(k) basis",
+            "new_text": "- [x] Protect pretax 401(k) basis",
+            "why": "Mark 'Protect pretax 401(k) basis' done."
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Protect pretax 401(k) basis\n+ - [x] Protect pretax 401(k) basis"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "path": "finance/checklist.md",
+            "old_text": "- [ ] Review umbrella insurance",
+            "new_text": "- [ ] Review umbrella insurance with Alex",
+            "why": "Change 'Review umbrella insurance' to 'Review umbrella insurance with Alex'."
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Protect pretax 401(k) basis\n- - [ ] Review umbrella insurance\n+ - [x] Protect pretax 401(k) basis\n+ - [ ] Review umbrella insurance with Alex"
+          }
+        }
+      ],
+      "processSeconds": 108.26830320898443,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "oneProposal": true,
+        "approvalExplained": true,
+        "exactRequestedEdit": true,
+        "staleApplyRefused": true,
+        "applyMatchesProposal": true,
+        "undoExact": true
+      },
+      "passed": true,
+      "firstRequestHash": "8c4238db9f4b5919f57cc036a1a5a252ca0b1a2ad22f539ac55df33e1ff4a65f",
+      "modelRequests": 3,
+      "firstSemanticRequestHash": "8c4238db9f4b5919f57cc036a1a5a252ca0b1a2ad22f539ac55df33e1ff4a65f",
+      "providerSeconds": 108.08025120897219,
+      "outsideProviderSeconds": 0.14579773740842938
+    },
+    {
+      "task": "combined",
+      "repeat": 1,
+      "arm": "pi-ollama",
+      "question": "In finance/checklist.md, mark 'Protect pretax 401(k) basis' done and change 'Review umbrella insurance' to 'Review umbrella insurance with Alex'. Leave everything else unchanged and propose both changes for approval.",
+      "warmupSeconds": 3.557161542,
+      "ollamaLoaded": {
+        "models": [
+          {
+            "name": "qwen38-27b-q8-32k:latest",
+            "model": "qwen38-27b-q8-32k:latest",
+            "size": 29574981221,
+            "digest": "645ab4665c94fe3b716d3d3add929e691d9a60a2f9604e887c5f90f89b9eb21a",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen35",
+              "families": [
+                "qwen35"
+              ],
+              "parameter_size": "27.3B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-09T23:10:51.686094-08:00",
+            "size_vram": 29574981221,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      },
+      "answer": "Both changes are proposed for approval in the Inbox — nothing is changed until you approve:\n\n1. Marked 'Protect pretax 401(k) basis' done (checked the box).\n2. Changed 'Review umbrella insurance' to 'Review umbrella insurance with Alex'.\n\nEverything else in finance/checklist.md stays as-is [1].",
+      "loopSeconds": 106.342389416,
+      "loadSeconds": 0,
+      "turns": 3,
+      "calls": [
+        {
+          "name": "read_note",
+          "arguments": {
+            "path": "finance/checklist.md"
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "[1] finance/checklist.md\n# Finance checklist\n\n## Do this quarter\n\n- [ ] Protect pretax 401(k) basis\n- [ ] Review umbrella insurance\n\n## Later\n\n- [ ] Compare mortgage rates\n"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "path": "finance/checklist.md",
+            "old_text": "- [ ] Protect pretax 401(k) basis",
+            "new_text": "- [x] Protect pretax 401(k) basis",
+            "why": "Mark 'Protect pretax 401(k) basis' done."
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Protect pretax 401(k) basis\n+ - [x] Protect pretax 401(k) basis"
+          }
+        },
+        {
+          "name": "propose_edit",
+          "arguments": {
+            "path": "finance/checklist.md",
+            "old_text": "- [ ] Review umbrella insurance",
+            "new_text": "- [ ] Review umbrella insurance with Alex",
+            "why": "Change 'Review umbrella insurance' to 'Review umbrella insurance with Alex'."
+          },
+          "result": {
+            "isError": false,
+            "localOnly": false,
+            "text": "Proposed a change to finance/checklist.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Protect pretax 401(k) basis\n- - [ ] Review umbrella insurance\n+ - [x] Protect pretax 401(k) basis\n+ - [ ] Review umbrella insurance with Alex"
+          }
+        }
+      ],
+      "promptTokens": 4405,
+      "outputTokens": 298,
+      "processSeconds": 107.02138845901936,
+      "checks": {
+        "vaultUnchangedBeforeApproval": true,
+        "oneProposal": true,
+        "approvalExplained": true,
+        "exactRequestedEdit": true,
+        "staleApplyRefused": true,
+        "applyMatchesProposal": true,
+        "undoExact": true
+      },
+      "passed": true,
+      "firstRequestHash": "7886aff43a25cbbb1bfe196203d02f1d15f39066a85f1777a384168dbaa7ea88",
+      "modelRequests": 3,
+      "firstSemanticRequestHash": "8c4238db9f4b5919f57cc036a1a5a252ca0b1a2ad22f539ac55df33e1ff4a65f",
+      "providerSeconds": 106.1655891649425,
+      "outsideProviderSeconds": 0.1768002510575002
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+
+> holdfast-pi@0.1.0 test
+> node --test test/*.test.mjs
+
+✔ regular Pi JSONL: tools, Unicode, follow-ups and completed-request deduplication (2219.188542ms)
+✔ interrupted tool is not replayed; a new request continues the saved conversation (1478.845791ms)
+✔ Stop cancels inference; next request can continue without executing stopped tools (1079.175208ms)
+✔ built-in file and shell tools are unavailable (508.653917ms)
+✔ native tool refusals stay errors in the saved Pi conversation (497.422542ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5914.741708

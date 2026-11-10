@@ -1,0 +1,47 @@
+{
+  "name": "pi-swift-mlx",
+  "version": "0.1.0",
+  "description": "Pi provider for an embedded or standalone Swift MLX engine",
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./provider.mjs"
+    },
+    "./process": {
+      "types": "./process.d.ts",
+      "import": "./process.mjs"
+    },
+    "./extension": "./extension.mjs"
+  },
+  "files": [
+    "*.mjs",
+    "*.d.ts",
+    "README.md",
+    "swift/Package.swift",
+    "swift/Sources",
+    "scripts"
+  ],
+  "pi": {
+    "extensions": [
+      "./extension.mjs"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "^1.5.1"
+  },
+  "devDependencies": {
+    "@earendil-works/chord": "1.5.1",
+    "@earendil-works/pi-ai": "1.5.1",
+    "@earendil-works/pi-coding-agent": "1.5.1",
+    "@earendil-works/pi-durable": "1.5.1",
+    "typescript": "5.9.3"
+  },
+  "scripts": {
+    "test": "npm run typecheck && node --test test/*.test.mjs",
+    "typecheck": "tsc --noEmit --strict --skipLibCheck --target es2022 --module nodenext test/types.ts"
+  }
+}

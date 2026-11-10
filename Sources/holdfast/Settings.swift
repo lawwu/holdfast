@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import ModelProviders
 
 /// Settings window (⌘,): the answer model (MLX short list or Ollama), the
 /// search reranker, the transcription model, and the vault.
@@ -94,7 +95,6 @@ struct StatusBadge: View {
 
 struct AnswerSettings: View {
     @EnvironmentObject var store: Store
-    @State private var ollamaStatus: ModelStatus = .checking
     @State private var tick = 0  // re-read load state after Unload
 
     let ramGB = Double(ProcessInfo.processInfo.physicalMemory) / 1_073_741_824
@@ -102,8 +102,33 @@ struct AnswerSettings: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             SettingsHeader(title: "Answer model",
-                           subtitle: "Runs on this Mac with MLX and writes answers from the passages search finds. Takes effect on the next question.")
-            RecommendationRows().card(padding: 14)
+                           subtitle: "LocalMLX runs inside Holdfast by default. You can also connect a model server. Changes take effect on the next question.")
+            Picker("Provider", selection: $store.backend) {
+                Text("LocalMLX · Built in").tag(Backend.mlx)
+                Text("Ollama").tag(Backend.ollama)
+                Text("LM Studio").tag(Backend.lmStudio)
+                Text("Custom server").tag(Backend.remote)
+            }.pickerStyle(.segmented).disabled(store.busy != nil || store.asking)
+            if let kind = store.backend.serverKind {
+                ServerConnectionSettings(kind: kind).id(kind)
+            } else {
+                RecommendationRows().card(padding: 14)
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                Label("Agent · Pi", systemImage: "arrow.triangle.branch").font(Theme.callout)
+                Text("Pi uses your selected model and saves conversations for follow-ups. Tools and Inbox approvals stay in Holdfast. Interrupted work waits for your next request.")
+                    .font(Theme.caption).foregroundStyle(.secondary)
+                ForEach(PiAgent.pending) { pending in
+                    Button("Open interrupted conversation: \(pending.question.prefix(60))") {
+                        store.newQuestion()
+                        store.pane = .ask
+                        store.conversationId = pending.conversationID
+                        store.question = "What was completed before the interruption?"
+                        // Open a draft. Never resubmit the interrupted job automatically.
+                    }.disabled(store.busy != nil || store.asking)
+                }
+            }.card(padding: 14)
+            if store.backend == .mlx {
             GroupBox2 {
                 ForEach(MLXModelSpec.shortList) { spec in mlxRow(spec) }
             }
@@ -113,16 +138,9 @@ struct AnswerSettings: View {
             }
             .font(Theme.caption).foregroundStyle(.secondary)
 
-            SettingsHeader(title: "Other runtime", subtitle: "For comparison; needs the Ollama server running.")
-            GroupBox2 {
-                ChoiceRow(selected: store.backend == .ollama, title: "Qwen 3.8 27B", tag: "8-bit · Ollama",
-                          subtitle: "~28 GB, ~5 tok/s. Measured 78% before the retrieval fixes.",
-                          action: { store.backend = .ollama }) {
-                    StatusBadge(status: ollamaStatus)
-                }
             }
             let _ = tick
-            if MLXBackend.isLoaded && store.backend == .ollama {
+            if MLXBackend.isLoaded && store.backend != .mlx {
                 HStack(spacing: 10) {
                     Image(systemName: "memorychip").foregroundStyle(.orange)
                     Text("\(MLXModelSpec.find(MLXBackend.loadedRepo ?? "")?.name ?? "The MLX model") is still in memory.").font(Theme.callout)
@@ -134,7 +152,7 @@ struct AnswerSettings: View {
             }
         }
         .padding(24)
-        .task { ollamaStatus = await checkOllama() }
+
     }
 
     @ViewBuilder func mlxRow(_ spec: MLXModelSpec) -> some View {
@@ -143,7 +161,7 @@ struct AnswerSettings: View {
         let measured = ModelCatalog.entries.first { $0.repo == spec.repo }
         let fit = measured.map { Recommend.fit($0, ramGB: ramGB) } ?? (spec.sizeGB > ramGB * 0.75 ? .no : .unknown)
         let tooBig = fit == .no
-        ChoiceRow(selected: store.backend == .mlx && store.mlxRepo == spec.repo, enabled: downloaded,
+        ChoiceRow(selected: store.backend == .mlx && store.mlxRepo == spec.repo, enabled: downloaded && store.busy == nil && !store.asking,
                   title: spec.name, tag: "\(spec.detail) · \(String(format: "%.0f", spec.sizeGB)) GB",
                   subtitle: tooBig ? "Too large for this Mac's memory. " + spec.blurb
                       : (store.downloadErrors[spec.repo].map { "Download failed: \($0)" } ?? (fit == .tight ? "Tight on this Mac's memory. " : "") + spec.blurb),
@@ -164,15 +182,7 @@ struct AnswerSettings: View {
         }
     }
 
-    func checkOllama() async -> ModelStatus {
-        var req = URLRequest(url: Config.ollamaURL.appendingPathComponent("api/tags"))
-        req.timeoutInterval = 2
-        guard let (data, _) = try? await URLSession.shared.data(for: req),
-              let j = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let models = j["models"] as? [[String: Any]] else { return .missing("Not running") }
-        let names = models.compactMap { $0["name"] as? String }
-        return names.contains(where: { $0.hasPrefix(Config.llmModel) }) ? .ready("Installed") : .missing("Model not installed")
-    }
+
 }
 
 // MARK: - Search

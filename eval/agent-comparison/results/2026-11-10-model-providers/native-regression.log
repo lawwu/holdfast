@@ -1,0 +1,1 @@
+PASS: real CLI → remote adapter → validation/repair → read → Inbox proposal → approve → exact undo; durable journal verified

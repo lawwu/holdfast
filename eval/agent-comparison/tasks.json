@@ -1,0 +1,7 @@
+[
+  {"id":"checkbox", "question":"Mark 'Protect pretax 401(k) basis' as done in finance/checklist.md. Leave the other items unchanged and tell me when the change is waiting for approval.", "kind":"checkbox"},
+  {"id":"insert", "question":"Add the open item 'Check HSA beneficiary' under 'Do this quarter' in finance/checklist.md. Keep the Later section unchanged and tell me when the change is waiting for approval.", "kind":"insert"},
+  {"id":"combined", "question":"In finance/checklist.md, mark 'Protect pretax 401(k) basis' done and change 'Review umbrella insurance' to 'Review umbrella insurance with Alex'. Leave everything else unchanged and propose both changes for approval.", "kind":"combined"},
+  {"id":"table", "question":"Using the CSV data in finance, what was total grocery spending for July through September 2026? Cite the result. Do not change any notes.", "kind":"table"},
+  {"id":"generated", "question":"Update finance/generated.md so the groceries total says $1,400. If the note cannot be edited, explain why and what should be changed instead.", "kind":"generated"}
+]

@@ -1,0 +1,69 @@
+{
+  "date": "2026-11-10",
+  "provider": "pi-swift-mlx 0.1.0",
+  "checks": [
+    {
+      "command": "npm test --prefix Packages/pi-swift-mlx",
+      "result": "passed",
+      "tests": 6,
+      "includes": [
+        "TypeScript consumer",
+        "regular Pi SDK",
+        "Pi Durable",
+        "typed JSON arguments",
+        "process cancellation/crash/timeout/restart"
+      ]
+    },
+    {
+      "command": "npm test --prefix Runtime/pi-durable",
+      "result": "passed",
+      "tests": 2,
+      "includes": [
+        "tool receipt replay",
+        "generation crash recovery",
+        "duplicate input",
+        "follow-up"
+      ]
+    },
+    {
+      "command": "python3 Tests/pi_integration.py .build/harness-xcode/Build/Products/Release/holdfast",
+      "result": "passed",
+      "groups": 6,
+      "includes": [
+        "proposal/approval/byte-exact Undo",
+        "citation restoration",
+        "idempotency/stale proposal",
+        "file guards",
+        "killed native host recovery",
+        "durable Stop"
+      ]
+    },
+    {
+      "command": "xcodebuild -scheme holdfast -configuration Release build",
+      "result": "passed"
+    },
+    {
+      "command": "bash Packages/pi-swift-mlx/scripts/build-host.sh",
+      "result": "passed",
+      "artifact": "Packages/pi-swift-mlx/build/host/pi-mlx-host"
+    },
+    {
+      "command": "node Packages/pi-swift-mlx/test/live.mjs",
+      "result": "passed",
+      "artifact": "standalone-live.json"
+    },
+    {
+      "command": "codesign --verify --deep --strict build/Holdfast Pi Extracted.app",
+      "result": "passed"
+    },
+    {
+      "check": "bundled provider import without checkout symlinks",
+      "result": "passed"
+    }
+  ],
+  "notes": [
+    "All editing integration tests use synthetic scratch vaults.",
+    "Local unpublished package; no commit or push.",
+    "LocalMLX is a proposed name; Swift module remains PiSwiftMLX."
+  ]
+}

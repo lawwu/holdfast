@@ -1,0 +1,647 @@
+[
+  {
+    "task": "repeated-item",
+    "arm": "pi-native",
+    "question": "In projects.md, mark 'Renew policy' as done only under Work. Keep the Home item and all other text, metadata and formatting unchanged.",
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "projects.md": {
+        "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "LS0tCnRpdGxlOiBRdWFydGVybHkgY2hlY2tsaXN0Cm93bmVyOiBBbGV4Ci0tLQojIFByb2plY3RzCgojIyBIb21lCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBSZXZpZXcg4oCcUGxhbiBB4oCdCgojIyBXb3JrCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBVcGRhdGUgdHJhdmVsIGJ1ZGdldAoKIyMgTGF0ZXIKLSBbIF0gQm9vayBhbm51YWwgdmlzaXQKCktlZXA6IOKAnENhZsOp4oCd4oCUwr0KSGFyZCBicmVhayAgCm5leHQgbGluZQo=",
+        "sha256": "94f6e2e0f1e98ab3c05e4544acf3650c81ca2f76d7daebf81ce2a6f76592d872"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "warmupSeconds": 20.269343958,
+    "answer": "Done. Marked the \"Renew policy\" item under **Work** as done (`[x]`); the Home item and all other text, metadata and formatting are unchanged.",
+    "loopSeconds": 37.920023083,
+    "calls": [
+      {
+        "name": "read",
+        "arguments": {
+          "path": "projects.md"
+        },
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "edit",
+        "arguments": {
+          "edits": [
+            {
+              "newText": "## Work\n- [x] Renew policy",
+              "oldText": "## Work\n- [ ] Renew policy"
+            }
+          ],
+          "path": "projects.md"
+        },
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "Successfully replaced 1 block(s) in projects.md."
+            }
+          ],
+          "details": {
+            "diff": "    ...\n  8 - [ ] Renew policy\n  9 - [ ] Review “Plan A”\n 10 \n 11 ## Work\n-12 - [ ] Renew policy\n+12 - [x] Renew policy\n 13 - [ ] Update travel budget\n 14 \n 15 ## Later\n 16 - [ ] Book annual visit\n    ...",
+            "firstChangedLine": 12
+          }
+        }
+      }
+    ],
+    "turns": 3,
+    "outputTokens": 132,
+    "system": "You edit files in a private knowledge base. Read the relevant file before editing it. Change only what the user asked and preserve all unrelated content, formatting and metadata. Use targeted edits for existing files; use write only when necessary. Files marked > GENERATED are generated reports: refuse direct edits and explain that their source or script must be changed. Summarize the actual outcome accurately and briefly.",
+    "processSeconds": 38.58552374993451,
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "projects.md": {
+        "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [x] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "LS0tCnRpdGxlOiBRdWFydGVybHkgY2hlY2tsaXN0Cm93bmVyOiBBbGV4Ci0tLQojIFByb2plY3RzCgojIyBIb21lCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBSZXZpZXcg4oCcUGxhbiBB4oCdCgojIyBXb3JrCi0gW3hdIFJlbmV3IHBvbGljeQotIFsgXSBVcGRhdGUgdHJhdmVsIGJ1ZGdldAoKIyMgTGF0ZXIKLSBbIF0gQm9vayBhbm51YWwgdmlzaXQKCktlZXA6IOKAnENhZsOp4oCd4oCUwr0KSGFyZCBicmVhayAgCm5leHQgbGluZQo=",
+        "sha256": "6c93745343b6488c2c382e3e48b3d75df357592350526af9bf9a78fa396dcc25"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "checks": {
+      "exactRequestedEdit": true,
+      "otherFilesExact": true
+    },
+    "passed": true
+  },
+  {
+    "task": "repeated-item",
+    "arm": "holdfast",
+    "question": "In projects.md, mark 'Renew policy' as done only under Work. Keep the Home item and all other text, metadata and formatting unchanged.",
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "projects.md": {
+        "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "LS0tCnRpdGxlOiBRdWFydGVybHkgY2hlY2tsaXN0Cm93bmVyOiBBbGV4Ci0tLQojIFByb2plY3RzCgojIyBIb21lCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBSZXZpZXcg4oCcUGxhbiBB4oCdCgojIyBXb3JrCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBVcGRhdGUgdHJhdmVsIGJ1ZGdldAoKIyMgTGF0ZXIKLSBbIF0gQm9vayBhbm51YWwgdmlzaXQKCktlZXA6IOKAnENhZsOp4oCd4oCUwr0KSGFyZCBicmVhayAgCm5leHQgbGluZQo=",
+        "sha256": "94f6e2e0f1e98ab3c05e4544acf3650c81ca2f76d7daebf81ce2a6f76592d872"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "warmupSeconds": 11.900549041,
+    "answer": "Done — proposed. The edit targets only the Work section's \"Renew policy\" line (changing `- [ ]` to `- [x]`), leaving the Home item, Later section, and all other text/metadata unchanged. It now waits in your Inbox for approval; nothing changes until you approve it.",
+    "badCitations": [],
+    "loadSeconds": 9.500980377197266e-05,
+    "loopSeconds": 54.560563921928406,
+    "outputSeconds": 54.44713008403778,
+    "outputTokens": 179,
+    "promptSeconds": 0,
+    "promptTokens": 4113,
+    "steps": [
+      "read: projects.md",
+      "edit: projects.md"
+    ],
+    "calls": [
+      {
+        "name": "read_note",
+        "arguments": {
+          "path": "projects.md"
+        },
+        "result": {
+          "isError": false,
+          "localOnly": false,
+          "text": "[1] projects.md\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n"
+        }
+      },
+      {
+        "name": "propose_edit",
+        "arguments": {
+          "path": "projects.md",
+          "old_text": "## Work\n- [ ] Renew policy",
+          "new_text": "## Work\n- [x] Renew policy",
+          "why": "Mark 'Renew policy' done under Work only"
+        },
+        "result": {
+          "isError": false,
+          "localOnly": false,
+          "text": "Proposed a change to projects.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Renew policy\n+ - [x] Renew policy"
+        }
+      }
+    ],
+    "processSeconds": 54.73797770799138,
+    "proposals": [
+      {
+        "id": "@inbox/20261109-edit-projects-md",
+        "raw": {
+          "text": "---\naction: \"edit\"\nbase_hash: \"94f6e2e0f1e98ab3c05e4544acf3650c81ca2f76d7daebf81ce2a6f76592d872\"\nkind: \"filing\"\nproposed: \"2026-11-09\"\nproposed_by: \"Ask\"\ntarget: \"projects.md\"\ntitle: \"Change projects.md\"\nwhy: \"Mark 'Renew policy' done under Work only\"\n---\n---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [x] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "base64": "LS0tCmFjdGlvbjogImVkaXQiCmJhc2VfaGFzaDogIjk0ZjZlMmUwZjFlOThhYjNjMDVlNDU0NGFjZjM2NTBjODFjYTJmNzZkN2RhZWJmODFjZTJhNmY3NjU5MmQ4NzIiCmtpbmQ6ICJmaWxpbmciCnByb3Bvc2VkOiAiMjAyNi0xMS0wOSIKcHJvcG9zZWRfYnk6ICJBc2siCnRhcmdldDogInByb2plY3RzLm1kIgp0aXRsZTogIkNoYW5nZSBwcm9qZWN0cy5tZCIKd2h5OiAiTWFyayAnUmVuZXcgcG9saWN5JyBkb25lIHVuZGVyIFdvcmsgb25seSIKLS0tCi0tLQp0aXRsZTogUXVhcnRlcmx5IGNoZWNrbGlzdApvd25lcjogQWxleAotLS0KIyBQcm9qZWN0cwoKIyMgSG9tZQotIFsgXSBSZW5ldyBwb2xpY3kKLSBbIF0gUmV2aWV3IOKAnFBsYW4gQeKAnQoKIyMgV29yawotIFt4XSBSZW5ldyBwb2xpY3kKLSBbIF0gVXBkYXRlIHRyYXZlbCBidWRnZXQKCiMjIExhdGVyCi0gWyBdIEJvb2sgYW5udWFsIHZpc2l0CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+          "sha256": "8babc29401c40c7111e3b9d7f2bf9e4face2de1bf4964791efcfd931cbcfaf9f"
+        },
+        "body": {
+          "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [x] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "base64": "LS0tCnRpdGxlOiBRdWFydGVybHkgY2hlY2tsaXN0Cm93bmVyOiBBbGV4Ci0tLQojIFByb2plY3RzCgojIyBIb21lCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBSZXZpZXcg4oCcUGxhbiBB4oCdCgojIyBXb3JrCi0gW3hdIFJlbmV3IHBvbGljeQotIFsgXSBVcGRhdGUgdHJhdmVsIGJ1ZGdldAoKIyMgTGF0ZXIKLSBbIF0gQm9vayBhbm51YWwgdmlzaXQKCktlZXA6IOKAnENhZsOp4oCd4oCUwr0KSGFyZCBicmVhayAgCm5leHQgbGluZQo=",
+          "sha256": "6c93745343b6488c2c382e3e48b3d75df357592350526af9bf9a78fa396dcc25"
+        }
+      }
+    ],
+    "apply": {
+      "code": 0,
+      "stdout": "approved → projects.md (run `holdfast index`)\n",
+      "stderr": "",
+      "seconds": 0.06622412498109043
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "projects.md": {
+        "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [x] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "LS0tCnRpdGxlOiBRdWFydGVybHkgY2hlY2tsaXN0Cm93bmVyOiBBbGV4Ci0tLQojIFByb2plY3RzCgojIyBIb21lCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBSZXZpZXcg4oCcUGxhbiBB4oCdCgojIyBXb3JrCi0gW3hdIFJlbmV3IHBvbGljeQotIFsgXSBVcGRhdGUgdHJhdmVsIGJ1ZGdldAoKIyMgTGF0ZXIKLSBbIF0gQm9vayBhbm51YWwgdmlzaXQKCktlZXA6IOKAnENhZsOp4oCd4oCUwr0KSGFyZCBicmVhayAgCm5leHQgbGluZQo=",
+        "sha256": "6c93745343b6488c2c382e3e48b3d75df357592350526af9bf9a78fa396dcc25"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "undo": {
+      "code": 0,
+      "stdout": "Undid filing to projects.md; the proposal is back in the inbox.\n",
+      "stderr": "",
+      "seconds": 0.05925879196729511
+    },
+    "checks": {
+      "unchangedBeforeApproval": true,
+      "oneProposal": true,
+      "approvalExplained": true,
+      "applySucceeded": true,
+      "exactRequestedEdit": true,
+      "otherFilesExact": true,
+      "undoExact": true
+    },
+    "passed": true
+  },
+  {
+    "task": "insert-section",
+    "arm": "holdfast",
+    "question": "In projects.md, add the open item 'Check HSA beneficiary' as the last checklist item under Work, before Later. Preserve all existing content, metadata and formatting.",
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "projects.md": {
+        "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "LS0tCnRpdGxlOiBRdWFydGVybHkgY2hlY2tsaXN0Cm93bmVyOiBBbGV4Ci0tLQojIFByb2plY3RzCgojIyBIb21lCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBSZXZpZXcg4oCcUGxhbiBB4oCdCgojIyBXb3JrCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBVcGRhdGUgdHJhdmVsIGJ1ZGdldAoKIyMgTGF0ZXIKLSBbIF0gQm9vayBhbm51YWwgdmlzaXQKCktlZXA6IOKAnENhZsOp4oCd4oCUwr0KSGFyZCBicmVhayAgCm5leHQgbGluZQo=",
+        "sha256": "94f6e2e0f1e98ab3c05e4544acf3650c81ca2f76d7daebf81ce2a6f76592d872"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "warmupSeconds": 15.684876584,
+    "answer": "I've proposed adding `- [ ] Check HSA beneficiary` as the last item under **Work**, right before **Later** [1]. All existing content, metadata and formatting are preserved. The change is waiting in your Inbox for approval — nothing is modified until you approve it.",
+    "badCitations": [],
+    "loadSeconds": 6.604194641113281e-05,
+    "loopSeconds": 69.81765794754028,
+    "outputSeconds": 69.70757496356964,
+    "outputTokens": 199,
+    "promptSeconds": 0,
+    "promptTokens": 4146,
+    "steps": [
+      "read: projects.md",
+      "edit: projects.md"
+    ],
+    "calls": [
+      {
+        "name": "read_note",
+        "arguments": {
+          "path": "projects.md"
+        },
+        "result": {
+          "isError": false,
+          "localOnly": false,
+          "text": "[1] projects.md\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n"
+        }
+      },
+      {
+        "name": "propose_edit",
+        "arguments": {
+          "path": "projects.md",
+          "old_text": "## Work\n- [ ] Renew policy\n- [ ] Update travel budget",
+          "new_text": "## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n- [ ] Check HSA beneficiary",
+          "why": "Add 'Check HSA beneficiary' as last item under Work, before Later."
+        },
+        "result": {
+          "isError": false,
+          "localOnly": false,
+          "text": "Proposed a change to projects.md for the user to approve in the Inbox (nothing is changed until then):\n+ - [ ] Check HSA beneficiary"
+        }
+      }
+    ],
+    "processSeconds": 69.86540416604839,
+    "proposals": [
+      {
+        "id": "@inbox/20261109-edit-projects-md",
+        "raw": {
+          "text": "---\naction: \"edit\"\nbase_hash: \"94f6e2e0f1e98ab3c05e4544acf3650c81ca2f76d7daebf81ce2a6f76592d872\"\nkind: \"filing\"\nproposed: \"2026-11-09\"\nproposed_by: \"Ask\"\ntarget: \"projects.md\"\ntitle: \"Change projects.md\"\nwhy: \"Add 'Check HSA beneficiary' as last item under Work, before Later.\"\n---\n---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n- [ ] Check HSA beneficiary\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "base64": "LS0tCmFjdGlvbjogImVkaXQiCmJhc2VfaGFzaDogIjk0ZjZlMmUwZjFlOThhYjNjMDVlNDU0NGFjZjM2NTBjODFjYTJmNzZkN2RhZWJmODFjZTJhNmY3NjU5MmQ4NzIiCmtpbmQ6ICJmaWxpbmciCnByb3Bvc2VkOiAiMjAyNi0xMS0wOSIKcHJvcG9zZWRfYnk6ICJBc2siCnRhcmdldDogInByb2plY3RzLm1kIgp0aXRsZTogIkNoYW5nZSBwcm9qZWN0cy5tZCIKd2h5OiAiQWRkICdDaGVjayBIU0EgYmVuZWZpY2lhcnknIGFzIGxhc3QgaXRlbSB1bmRlciBXb3JrLCBiZWZvcmUgTGF0ZXIuIgotLS0KLS0tCnRpdGxlOiBRdWFydGVybHkgY2hlY2tsaXN0Cm93bmVyOiBBbGV4Ci0tLQojIFByb2plY3RzCgojIyBIb21lCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBSZXZpZXcg4oCcUGxhbiBB4oCdCgojIyBXb3JrCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBVcGRhdGUgdHJhdmVsIGJ1ZGdldAotIFsgXSBDaGVjayBIU0EgYmVuZWZpY2lhcnkKCiMjIExhdGVyCi0gWyBdIEJvb2sgYW5udWFsIHZpc2l0CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+          "sha256": "3d280329ca2df77eb863502bdd283c32fecef8a82cb804e3f79a80b9f9a9ca36"
+        },
+        "body": {
+          "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n- [ ] Check HSA beneficiary\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "base64": "LS0tCnRpdGxlOiBRdWFydGVybHkgY2hlY2tsaXN0Cm93bmVyOiBBbGV4Ci0tLQojIFByb2plY3RzCgojIyBIb21lCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBSZXZpZXcg4oCcUGxhbiBB4oCdCgojIyBXb3JrCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBVcGRhdGUgdHJhdmVsIGJ1ZGdldAotIFsgXSBDaGVjayBIU0EgYmVuZWZpY2lhcnkKCiMjIExhdGVyCi0gWyBdIEJvb2sgYW5udWFsIHZpc2l0CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+          "sha256": "7d0975b43641f922cedfa616b4db2807091b8350152cec41bcd3cc39e622445d"
+        }
+      }
+    ],
+    "apply": {
+      "code": 0,
+      "stdout": "approved → projects.md (run `holdfast index`)\n",
+      "stderr": "",
+      "seconds": 0.06611591693945229
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "projects.md": {
+        "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n- [ ] Check HSA beneficiary\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "LS0tCnRpdGxlOiBRdWFydGVybHkgY2hlY2tsaXN0Cm93bmVyOiBBbGV4Ci0tLQojIFByb2plY3RzCgojIyBIb21lCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBSZXZpZXcg4oCcUGxhbiBB4oCdCgojIyBXb3JrCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBVcGRhdGUgdHJhdmVsIGJ1ZGdldAotIFsgXSBDaGVjayBIU0EgYmVuZWZpY2lhcnkKCiMjIExhdGVyCi0gWyBdIEJvb2sgYW5udWFsIHZpc2l0CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "7d0975b43641f922cedfa616b4db2807091b8350152cec41bcd3cc39e622445d"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "undo": {
+      "code": 0,
+      "stdout": "Undid filing to projects.md; the proposal is back in the inbox.\n",
+      "stderr": "",
+      "seconds": 0.053950458066537976
+    },
+    "checks": {
+      "unchangedBeforeApproval": true,
+      "oneProposal": true,
+      "approvalExplained": true,
+      "applySucceeded": true,
+      "itemOnceInWork": true,
+      "existingLinesExact": true,
+      "otherFilesExact": true,
+      "undoExact": true
+    },
+    "passed": true
+  },
+  {
+    "task": "insert-section",
+    "arm": "pi-native",
+    "question": "In projects.md, add the open item 'Check HSA beneficiary' as the last checklist item under Work, before Later. Preserve all existing content, metadata and formatting.",
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "projects.md": {
+        "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "LS0tCnRpdGxlOiBRdWFydGVybHkgY2hlY2tsaXN0Cm93bmVyOiBBbGV4Ci0tLQojIFByb2plY3RzCgojIyBIb21lCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBSZXZpZXcg4oCcUGxhbiBB4oCdCgojIyBXb3JrCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBVcGRhdGUgdHJhdmVsIGJ1ZGdldAoKIyMgTGF0ZXIKLSBbIF0gQm9vayBhbm51YWwgdmlzaXQKCktlZXA6IOKAnENhZsOp4oCd4oCUwr0KSGFyZCBicmVhayAgCm5leHQgbGluZQo=",
+        "sha256": "94f6e2e0f1e98ab3c05e4544acf3650c81ca2f76d7daebf81ce2a6f76592d872"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "warmupSeconds": 3.306891292,
+    "answer": "Added `- [ ] Check HSA beneficiary` as the last checklist item under **Work**, right before the **Later** section. All other content, metadata and formatting are unchanged.",
+    "loopSeconds": 55.531253708,
+    "calls": [
+      {
+        "name": "read",
+        "arguments": {
+          "path": "projects.md"
+        },
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "edit",
+        "arguments": {
+          "edits": [
+            {
+              "newText": "- [ ] Renew policy\n- [ ] Update travel budget\n- [ ] Check HSA beneficiary\n\n## Later",
+              "oldText": "- [ ] Renew policy\n- [ ] Update travel budget\n\n## Later"
+            }
+          ],
+          "path": "projects.md"
+        },
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "Successfully replaced 1 block(s) in projects.md."
+            }
+          ],
+          "details": {
+            "diff": "    ...\n 10 \n 11 ## Work\n 12 - [ ] Renew policy\n 13 - [ ] Update travel budget\n+14 - [ ] Check HSA beneficiary\n 14 \n 15 ## Later\n 16 - [ ] Book annual visit\n 17 \n    ...",
+            "firstChangedLine": 14
+          }
+        }
+      }
+    ],
+    "turns": 3,
+    "outputTokens": 152,
+    "system": "You edit files in a private knowledge base. Read the relevant file before editing it. Change only what the user asked and preserve all unrelated content, formatting and metadata. Use targeted edits for existing files; use write only when necessary. Files marked > GENERATED are generated reports: refuse direct edits and explain that their source or script must be changed. Summarize the actual outcome accurately and briefly.",
+    "processSeconds": 56.24322908301838,
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "projects.md": {
+        "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n- [ ] Check HSA beneficiary\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "LS0tCnRpdGxlOiBRdWFydGVybHkgY2hlY2tsaXN0Cm93bmVyOiBBbGV4Ci0tLQojIFByb2plY3RzCgojIyBIb21lCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBSZXZpZXcg4oCcUGxhbiBB4oCdCgojIyBXb3JrCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBVcGRhdGUgdHJhdmVsIGJ1ZGdldAotIFsgXSBDaGVjayBIU0EgYmVuZWZpY2lhcnkKCiMjIExhdGVyCi0gWyBdIEJvb2sgYW5udWFsIHZpc2l0CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "7d0975b43641f922cedfa616b4db2807091b8350152cec41bcd3cc39e622445d"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "checks": {
+      "itemOnceInWork": true,
+      "existingLinesExact": true,
+      "otherFilesExact": true
+    },
+    "passed": true
+  },
+  {
+    "task": "two-edits",
+    "arm": "pi-native",
+    "question": "In projects.md, mark Review “Plan A” under Home as done and change 'Book annual visit' to 'Book annual visit with Alex' under Later. Preserve everything else, including metadata and formatting.",
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "projects.md": {
+        "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "LS0tCnRpdGxlOiBRdWFydGVybHkgY2hlY2tsaXN0Cm93bmVyOiBBbGV4Ci0tLQojIFByb2plY3RzCgojIyBIb21lCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBSZXZpZXcg4oCcUGxhbiBB4oCdCgojIyBXb3JrCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBVcGRhdGUgdHJhdmVsIGJ1ZGdldAoKIyMgTGF0ZXIKLSBbIF0gQm9vayBhbm51YWwgdmlzaXQKCktlZXA6IOKAnENhZsOp4oCd4oCUwr0KSGFyZCBicmVhayAgCm5leHQgbGluZQo=",
+        "sha256": "94f6e2e0f1e98ab3c05e4544acf3650c81ca2f76d7daebf81ce2a6f76592d872"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "warmupSeconds": 3.629112833,
+    "answer": "Done. Marked “Review “Plan A”” under Home as done and updated the Later item to “Book annual visit with Alex.” Everything else is unchanged.",
+    "loopSeconds": 51.095687874999996,
+    "calls": [
+      {
+        "name": "read",
+        "arguments": {
+          "path": "projects.md"
+        },
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n"
+            }
+          ]
+        }
+      },
+      {
+        "name": "edit",
+        "arguments": {
+          "edits": [
+            {
+              "newText": "- [x] Review “Plan A”",
+              "oldText": "- [ ] Review “Plan A”"
+            },
+            {
+              "newText": "- [ ] Book annual visit with Alex",
+              "oldText": "- [ ] Book annual visit"
+            }
+          ],
+          "path": "projects.md"
+        },
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "Successfully replaced 2 block(s) in projects.md."
+            }
+          ],
+          "details": {
+            "diff": "    ...\n  5 # Projects\n  6 \n  7 ## Home\n  8 - [ ] Renew policy\n- 9 - [ ] Review “Plan A”\n+ 9 - [x] Review “Plan A”\n 10 \n 11 ## Work\n 12 - [ ] Renew policy\n 13 - [ ] Update travel budget\n 14 \n 15 ## Later\n-16 - [ ] Book annual visit\n+16 - [ ] Book annual visit with Alex\n 17 \n 18 Keep: “Café”—½\n 19 Hard break  \n 20 next line",
+            "firstChangedLine": 9
+          }
+        }
+      }
+    ],
+    "turns": 3,
+    "outputTokens": 150,
+    "system": "You edit files in a private knowledge base. Read the relevant file before editing it. Change only what the user asked and preserve all unrelated content, formatting and metadata. Use targeted edits for existing files; use write only when necessary. Files marked > GENERATED are generated reports: refuse direct edits and explain that their source or script must be changed. Summarize the actual outcome accurately and briefly.",
+    "processSeconds": 51.77901116607245,
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "projects.md": {
+        "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [x] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit with Alex\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "LS0tCnRpdGxlOiBRdWFydGVybHkgY2hlY2tsaXN0Cm93bmVyOiBBbGV4Ci0tLQojIFByb2plY3RzCgojIyBIb21lCi0gWyBdIFJlbmV3IHBvbGljeQotIFt4XSBSZXZpZXcg4oCcUGxhbiBB4oCdCgojIyBXb3JrCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBVcGRhdGUgdHJhdmVsIGJ1ZGdldAoKIyMgTGF0ZXIKLSBbIF0gQm9vayBhbm51YWwgdmlzaXQgd2l0aCBBbGV4CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "df0cd615e602ce3176a50e831843bd5fffd2597500ce5f975dd83c03125909c3"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "checks": {
+      "exactRequestedEdit": true,
+      "otherFilesExact": true
+    },
+    "passed": true
+  },
+  {
+    "task": "two-edits",
+    "arm": "holdfast",
+    "question": "In projects.md, mark Review “Plan A” under Home as done and change 'Book annual visit' to 'Book annual visit with Alex' under Later. Preserve everything else, including metadata and formatting.",
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "projects.md": {
+        "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "LS0tCnRpdGxlOiBRdWFydGVybHkgY2hlY2tsaXN0Cm93bmVyOiBBbGV4Ci0tLQojIFByb2plY3RzCgojIyBIb21lCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBSZXZpZXcg4oCcUGxhbiBB4oCdCgojIyBXb3JrCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBVcGRhdGUgdHJhdmVsIGJ1ZGdldAoKIyMgTGF0ZXIKLSBbIF0gQm9vayBhbm51YWwgdmlzaXQKCktlZXA6IOKAnENhZsOp4oCd4oCUwr0KSGFyZCBicmVhayAgCm5leHQgbGluZQo=",
+        "sha256": "94f6e2e0f1e98ab3c05e4544acf3650c81ca2f76d7daebf81ce2a6f76592d872"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "warmupSeconds": 3.343886917,
+    "answer": "Both changes are proposed in projects.md and waiting for your approval in the Inbox:\n\n1. Under **Home**, `Review \"Plan A\"` is now marked done (`[x]`).\n2. Under **Later**, `Book annual visit` is now `Book annual visit with Alex`.\n\nEverything else — metadata, the other checklist items, and formatting — is preserved.",
+    "badCitations": [],
+    "loadSeconds": 6.306171417236328e-05,
+    "loopSeconds": 97.57261395454407,
+    "outputSeconds": 97.45777606964111,
+    "outputTokens": 286,
+    "promptSeconds": 0,
+    "promptTokens": 4314,
+    "steps": [
+      "read: projects.md",
+      "edit: projects.md",
+      "edit: projects.md"
+    ],
+    "calls": [
+      {
+        "name": "read_note",
+        "arguments": {
+          "path": "projects.md"
+        },
+        "result": {
+          "isError": false,
+          "localOnly": false,
+          "text": "[1] projects.md\n# Projects\n\n## Home\n- [ ] Renew policy\n- [ ] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit\n\nKeep: “Café”—½\nHard break  \nnext line\n"
+        }
+      },
+      {
+        "name": "propose_edit",
+        "arguments": {
+          "path": "projects.md",
+          "old_text": "- [ ] Review “Plan A”",
+          "new_text": "- [x] Review “Plan A”",
+          "why": "Mark \"Review Plan A\" under Home as done."
+        },
+        "result": {
+          "isError": false,
+          "localOnly": false,
+          "text": "Proposed a change to projects.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Review “Plan A”\n+ - [x] Review “Plan A”"
+        }
+      },
+      {
+        "name": "propose_edit",
+        "arguments": {
+          "path": "projects.md",
+          "old_text": "- [ ] Book annual visit",
+          "new_text": "- [ ] Book annual visit with Alex",
+          "why": "Change \"Book annual visit\" to \"Book annual visit with Alex\" under Later."
+        },
+        "result": {
+          "isError": false,
+          "localOnly": false,
+          "text": "Proposed a change to projects.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Review “Plan A”\n+ - [x] Review “Plan A”\n… \n- - [ ] Book annual visit\n+ - [ ] Book annual visit with Alex"
+        }
+      }
+    ],
+    "processSeconds": 97.6333621670492,
+    "proposals": [
+      {
+        "id": "@inbox/20261109-edit-projects-md",
+        "raw": {
+          "text": "---\naction: \"edit\"\nbase_hash: \"94f6e2e0f1e98ab3c05e4544acf3650c81ca2f76d7daebf81ce2a6f76592d872\"\nkind: \"filing\"\nproposed: \"2026-11-09\"\nproposed_by: \"Ask\"\ntarget: \"projects.md\"\ntitle: \"Change projects.md\"\nwhy: \"Mark \\\"Review Plan A\\\" under Home as done. · Change \\\"Book annual visit\\\" to \\\"Book annual visit with Alex\\\" under Later.\"\n---\n---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [x] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit with Alex\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "base64": "LS0tCmFjdGlvbjogImVkaXQiCmJhc2VfaGFzaDogIjk0ZjZlMmUwZjFlOThhYjNjMDVlNDU0NGFjZjM2NTBjODFjYTJmNzZkN2RhZWJmODFjZTJhNmY3NjU5MmQ4NzIiCmtpbmQ6ICJmaWxpbmciCnByb3Bvc2VkOiAiMjAyNi0xMS0wOSIKcHJvcG9zZWRfYnk6ICJBc2siCnRhcmdldDogInByb2plY3RzLm1kIgp0aXRsZTogIkNoYW5nZSBwcm9qZWN0cy5tZCIKd2h5OiAiTWFyayBcIlJldmlldyBQbGFuIEFcIiB1bmRlciBIb21lIGFzIGRvbmUuIMK3IENoYW5nZSBcIkJvb2sgYW5udWFsIHZpc2l0XCIgdG8gXCJCb29rIGFubnVhbCB2aXNpdCB3aXRoIEFsZXhcIiB1bmRlciBMYXRlci4iCi0tLQotLS0KdGl0bGU6IFF1YXJ0ZXJseSBjaGVja2xpc3QKb3duZXI6IEFsZXgKLS0tCiMgUHJvamVjdHMKCiMjIEhvbWUKLSBbIF0gUmVuZXcgcG9saWN5Ci0gW3hdIFJldmlldyDigJxQbGFuIEHigJ0KCiMjIFdvcmsKLSBbIF0gUmVuZXcgcG9saWN5Ci0gWyBdIFVwZGF0ZSB0cmF2ZWwgYnVkZ2V0CgojIyBMYXRlcgotIFsgXSBCb29rIGFubnVhbCB2aXNpdCB3aXRoIEFsZXgKCktlZXA6IOKAnENhZsOp4oCd4oCUwr0KSGFyZCBicmVhayAgCm5leHQgbGluZQo=",
+          "sha256": "75eeb0e08d79648d2ed35d6e2b38e78f23f4f0a78dbbc67df52496bbb5e2e2d9"
+        },
+        "body": {
+          "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [x] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit with Alex\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "base64": "LS0tCnRpdGxlOiBRdWFydGVybHkgY2hlY2tsaXN0Cm93bmVyOiBBbGV4Ci0tLQojIFByb2plY3RzCgojIyBIb21lCi0gWyBdIFJlbmV3IHBvbGljeQotIFt4XSBSZXZpZXcg4oCcUGxhbiBB4oCdCgojIyBXb3JrCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBVcGRhdGUgdHJhdmVsIGJ1ZGdldAoKIyMgTGF0ZXIKLSBbIF0gQm9vayBhbm51YWwgdmlzaXQgd2l0aCBBbGV4CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+          "sha256": "df0cd615e602ce3176a50e831843bd5fffd2597500ce5f975dd83c03125909c3"
+        }
+      }
+    ],
+    "apply": {
+      "code": 0,
+      "stdout": "approved → projects.md (run `holdfast index`)\n",
+      "stderr": "",
+      "seconds": 0.049724083044566214
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "projects.md": {
+        "text": "---\ntitle: Quarterly checklist\nowner: Alex\n---\n# Projects\n\n## Home\n- [ ] Renew policy\n- [x] Review “Plan A”\n\n## Work\n- [ ] Renew policy\n- [ ] Update travel budget\n\n## Later\n- [ ] Book annual visit with Alex\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "LS0tCnRpdGxlOiBRdWFydGVybHkgY2hlY2tsaXN0Cm93bmVyOiBBbGV4Ci0tLQojIFByb2plY3RzCgojIyBIb21lCi0gWyBdIFJlbmV3IHBvbGljeQotIFt4XSBSZXZpZXcg4oCcUGxhbiBB4oCdCgojIyBXb3JrCi0gWyBdIFJlbmV3IHBvbGljeQotIFsgXSBVcGRhdGUgdHJhdmVsIGJ1ZGdldAoKIyMgTGF0ZXIKLSBbIF0gQm9vayBhbm51YWwgdmlzaXQgd2l0aCBBbGV4CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "df0cd615e602ce3176a50e831843bd5fffd2597500ce5f975dd83c03125909c3"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "undo": {
+      "code": 0,
+      "stdout": "Undid filing to projects.md; the proposal is back in the inbox.\n",
+      "stderr": "",
+      "seconds": 0.046163665945641696
+    },
+    "checks": {
+      "unchangedBeforeApproval": true,
+      "oneProposal": true,
+      "approvalExplained": true,
+      "applySucceeded": true,
+      "exactRequestedEdit": true,
+      "otherFilesExact": true,
+      "undoExact": true
+    },
+    "passed": true
+  }
+]

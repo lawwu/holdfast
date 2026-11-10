@@ -1,12 +1,11 @@
 import Foundation
-import MLXLMCommon
 import SQLite3
 
 /// Research mode: the answer model works in steps with tools — search, read a
 /// note, list a folder, list and query the vault's CSV tables — the way Claude
 /// Code works in a notes repo: read the domain README, follow its pointers, get
 /// numbers from data rather than prose. Everything it reads becomes a numbered
-/// source it can cite. Runs on MLX (in-process tool calling); read-only.
+/// source it can cite. Changes are proposals; only the Inbox can apply them.
 enum Agent {
     /// Tool rounds before it must answer.
     static let maxSteps = 8
@@ -40,11 +39,10 @@ enum Agent {
     say so in your answer. Change only what was asked.
     """
 
-    static var tools: [ToolSpec] {
-        func fn(_ name: String, _ desc: String, _ props: [String: [String: String]], _ required: [String]) -> ToolSpec {
-            ["type": "function",
-             "function": ["name": name, "description": desc,
-                          "parameters": ["type": "object", "properties": props, "required": required] as [String: any Sendable]] as [String: any Sendable]]
+    static var tools: [AgentRuntime.ToolSpec] {
+        func fn(_ name: String, _ desc: String, _ props: [String: [String: String]], _ required: [String]) -> AgentRuntime.ToolSpec {
+            AgentRuntime.ToolSpec(name: name, description: desc,
+                                  fields: props.mapValues { $0["description"] ?? "" }, required: required)
         }
         return [
             fn("search", "Search the knowledge base by keywords and meaning. Returns the most relevant passages.",
@@ -75,6 +73,10 @@ enum Agent {
             .filter { var d: ObjCBool = false; return fm.fileExists(atPath: Config.vault.appendingPathComponent($0).path, isDirectory: &d) && d.boolValue }
             .sorted()
         for d in dirs {
+            if Profile.isCounseling(d) {
+                out += "- \(d)/ — local-only notes\n"
+                continue
+            }
             let readme = Config.vault.appendingPathComponent("\(d)/README.md")
             let first = (try? String(contentsOf: readme, encoding: .utf8))?
                 .split(separator: "\n").first { !$0.hasPrefix("#") && !$0.trimmingCharacters(in: .whitespaces).isEmpty }
@@ -86,76 +88,73 @@ enum Agent {
 
     static func run(_ question: String, embedder: Embedder?, backend: MLXBackend, prior: [(q: String, a: String)] = [],
                     onEvent: @escaping @Sendable (Event) -> Void) async throws -> Answer {
+        try await run(question, embedder: embedder, model: MLXAgentModel(backend: backend), prior: prior, onEvent: onEvent)
+    }
+
+    /// Both adapters enter the same runtime. Tool policy and Inbox writes belong to Holdfast.
+    static func run(_ question: String, embedder: Embedder?, model: any AgentRuntime.Model,
+                    prior: [(q: String, a: String)] = [], onEvent: @escaping @Sendable (Event) -> Void) async throws -> Answer {
         let t0 = Date()
-        let profile = Profile.vaultDefault
-        let system = [profile.systemPrompt, instructions, todayLine(), vaultOverview()].joined(separator: "\n\n")
-        let params = GenerateParameters(maxTokens: 2000, temperature: Float(Config.temperature), topP: Float(Config.topP),
-                                        topK: Config.topK, presencePenalty: Float(Config.presencePenalty))
-        // One ChatSession for the whole run keeps the KV cache between steps, so
-        // each step only processes the new tool results, not the whole
-        // conversation again (that made the first version 12 minutes a question).
-        let session = ChatSession(backend.container, instructions: system, generateParameters: params,
-                                  additionalContext: Config.templateContext, tools: tools)
+        let system = [Profile.vaultDefault.systemPrompt, instructions, todayLine(), vaultOverview()].joined(separator: "\n\n")
         let ctx = ToolContext(embedder: embedder)
-        var stats = GenStats(promptTokens: 0, promptSeconds: 0, outputTokens: 0, outputSeconds: 0)
-        var final = ""
-        // Earlier turns of the conversation come first, so follow-ups make sense.
-        var next: [Chat.Message] = prior.suffix(Conversation.turns).flatMap { [Chat.Message.user($0.q), .assistant(String($0.a.prefix(Conversation.answerChars)))] }
-        next.append(.user(question))
-        for step in 0...maxSteps {
-            if step == maxSteps {
-                session.tools = nil
-                next.append(.user("Answer now from what the tools returned, with [n] citations."))
-            }
-            var text = ""
-            var calls: [ToolCall] = []
-            for try await g in session.streamDetails(to: next) {
-                if Task.isCancelled { break }
-                switch g {
-                case .chunk(let c): text += c; onEvent(.token(c))
-                case .toolCall(let c): calls.append(c)
-                case .info(let i):
-                    stats.promptTokens += i.promptTokenCount; stats.promptSeconds += i.promptTime
-                    stats.outputTokens += i.generationTokenCount; stats.outputSeconds += i.generateTime
-                default: break
-                }
-            }
-            if Task.isCancelled { final = text; break }  // Stop: no more steps
-            let (thought, said) = Thinking.split(text)
-            if !thought.isEmpty { onEvent(.step("Thinking" + Steps.sep + thought)) }
-            if calls.isEmpty || step == maxSteps {
-                final = said
-                break
-            }
-            onEvent(.resetText)
-            next = []
-            for (k, call) in calls.enumerated() {
-                let result = await ctx.call(call) { onEvent(.step($0)) }
-                // What was asked and what came back, shown when the step is clicked.
-                let args = (try? JSONEncoder().encode(call.function.arguments)).map { String(decoding: $0, as: UTF8.self) } ?? "{}"
-                var detail = "\(call.function.name)(\(args))\n\n" + String(result.prefix(Steps.resultChars))
-                    + (result.count > Steps.resultChars ? "\n[…]" : "")
-                let preamble = stripThoughts(said).trimmingCharacters(in: .whitespacesAndNewlines)
-                if k == 0, !preamble.isEmpty { detail = "Model: \(preamble)\n\n" + detail }
-                onEvent(.stepDetail(detail))
-                onEvent(.sources(ctx.sources))
-                next.append(.tool(result, name: call.function.name))
+        let registry = tools.map { spec in
+            AgentRuntime.Tool(spec: spec) { args in
+                let result = await ctx.call(spec.name, args: args)
+                return AgentRuntime.ToolResult(text: result, isError: result.hasPrefix("Error:"),
+                                               localOnly: ctx.touchedCounseling)
             }
         }
-        final = final.replacingOccurrences(of: #"(?s)<think>.*?</think>"#, with: "", options: .regularExpression)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let history: [AgentRuntime.Message] = prior.suffix(Conversation.turns).flatMap {
+            [.user($0.q), .assistant(.init(text: String($0.a.prefix(Conversation.answerChars))))]
+        }
+        var policy = AgentRuntime.Policy(maxToolRounds: maxSteps)
+        policy.makeLocalModel = {
+            guard MLXBackend.modelDir(repo: MLXBackend.currentRepo) != nil else {
+                throw HoldfastError("this needs counseling notes, which stay on this Mac, and no model is downloaded here")
+            }
+            onEvent(.step("Counseling notes stay on this Mac: continuing here"))
+            ModelPrivacy.keptLocal = true
+            return MLXAgentModel(backend: try await MLXBackend.shared())
+        }
+        // Connection errors stay visible; only the counseling policy switches to LocalMLX.
+        let journal = try AgentJournal(directory: Config.stateDir.appendingPathComponent("agent-runs"),
+                                       system: system, model: model.name, tools: tools, prior: history)
+        let session = try AgentRuntime.Session(system: system, model: model, tools: registry, prior: history,
+                                               localOnly: Profile.vaultDefault.id == Profile.counseling.id, policy: policy)
+        let result = try await session.run(question, record: { try journal.append($0) }) { event in
+            switch event {
+            case .text(let text): onEvent(.token(text))
+            case .assistant(let reply):
+                let (thought, _) = Thinking.split(reply.text)
+                let thinking = [reply.reasoning, thought].filter { !$0.isEmpty }.joined(separator: "\n\n")
+                if !thinking.isEmpty { onEvent(.step("Thinking" + Steps.sep + thinking)) }
+                if !reply.calls.isEmpty { onEvent(.resetText) }
+            case .toolStarted(let call):
+                onEvent(.step(ctx.title(call)))
+            case .toolFinished(let call, let result):
+                let detail = "\(call.name)(\(call.arguments))\n\n" + String(result.text.prefix(Steps.resultChars))
+                    + (result.text.count > Steps.resultChars ? "\n[…]" : "")
+                onEvent(.stepDetail(detail)); onEvent(.sources(ctx.sources))
+            case .modelChanged: onEvent(.resetText)
+            default: break
+            }
+        }
+        var final = stripThoughts(Thinking.split(result.text).rest)
         let cited = (try? NSRegularExpression(pattern: #"\[(\d+)\]"#))?
             .matches(in: final, range: NSRange(final.startIndex..., in: final))
             .compactMap { Range($0.range(at: 1), in: final).flatMap { Int(final[$0]) } } ?? []
         var bad = Array(Set(cited.filter { $0 < 1 || $0 > ctx.sources.count })).sorted()
-        // Answered from folder listings or tables alone: there are no passages to cite, so [n] markers mean nothing.
         if ctx.sources.isEmpty {
             final = final.replacingOccurrences(of: #"\s?\[\d+\]"#, with: "", options: .regularExpression)
             bad = []
         }
-        return Answer(text: stripThoughts(final), badCitations: bad, sources: ctx.sources, stats: stats,
-                      retrievalSeconds: Date().timeIntervalSince(t0), steps: ctx.log)
+        return Answer(text: final, badCitations: bad, sources: ctx.sources,
+                      stats: GenStats(promptTokens: result.usage.promptTokens, promptSeconds: result.usage.promptSeconds,
+                                      outputTokens: result.usage.outputTokens, outputSeconds: result.usage.outputSeconds),
+                      retrievalSeconds: Date().timeIntervalSince(t0), steps: ctx.log,
+                      localOnly: ctx.touchedCounseling || Profile.vaultDefault.id == Profile.counseling.id)
     }
+
 }
 
 /// Runs the tools and numbers what they return.
@@ -165,7 +164,7 @@ final class ToolContext: @unchecked Sendable {
     var log: [String] = []
     private lazy var tables = CSVTables()
     /// Set when a tool returned anything from counseling notes, folders or tables: a request on
-    /// another Mac moves to this one before the result is sent (RemoteAgent).
+    /// a server switches to LocalMLX before the result is sent.
     private(set) var touchedCounseling = false
     /// The vault read once per Research run, not once per tool call.
     private lazy var vaultNotes: [Note] = allNotes()
@@ -195,43 +194,51 @@ final class ToolContext: @unchecked Sendable {
         return sources.count
     }
 
-    private func str(_ call: ToolCall, _ key: String) -> String {
-        if case .string(let s)? = call.function.arguments[key] { return s }
-        return call.function.arguments[key].map { "\($0)" } ?? ""
+    func title(_ call: AgentRuntime.Call) -> String {
+        let args = (try? JSONDecoder().decode([String: String].self, from: Data(call.arguments.utf8))) ?? [:]
+        switch call.name {
+        case "search": return "Searching: \(args["query"] ?? "")"
+        case "read_note": return "Reading \(args["path"] ?? "")"
+        case "list_folder": return "Listing \(args["path"].flatMap { $0.isEmpty ? nil : $0 } ?? "the vault")"
+        case "list_tables": return "Listing tables"
+        case "query_table": return "Querying: \(String((args["sql"] ?? "").prefix(80)))"
+        case "propose_edit": return "Proposing a change to \(args["path"] ?? "")"
+        default: return "Tool: \(call.name)"
+        }
     }
 
-    func call(_ call: ToolCall, step: (String) -> Void) async -> String {
-        let name = call.function.name
+    func call(_ name: String, args: [String: String], operationID: String? = nil) async -> String {
+        func str(_ key: String) -> String { args[key] ?? "" }
         do {
             switch name {
             case "search":
-                let q = str(call, "query")
-                step("Searched “\(q)”"); log.append("search: \(q)")
+                let q = str("query")
+                log.append("search: \(q)")
                 let hits = try await search(q, embedder: embedder, reranker: await Reranker.shared(), limit: 6)
                 mark(hits.map(\.relPath))
                 if hits.isEmpty { return "No relevant passages." }
                 return hits.map { h in "[\(cite(h))] \(h.relPath) › \(h.anchor)\n\(h.text.prefix(900))" }.joined(separator: "\n\n")
             case "read_note":
-                let p = str(call, "path").trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
-                step("Read \(p)"); log.append("read: \(p)")
+                let p = str("path").trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
+                log.append("read: \(p)")
                 guard let n = note(p) ?? Packs.note(p) else { return "No note at \(p). Use list_folder to see what exists." }
-                mark([n.relPath])
+                mark([n.relPath, n.meta["target"] ?? ""])
                 var text = n.body
                 if text.count > Agent.readChars { text = String(text.prefix(Agent.readChars)) + "\n[… truncated]" }
                 let c = Chunk(noteId: n.id, relPath: n.relPath, title: n.title, anchor: n.title, text: text)
                 return "[\(cite(c))] \(n.relPath)\n\(text)"
             case "list_folder":
-                let p = str(call, "path").trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
-                step("Listed \(p.isEmpty ? "the vault" : p + "/")"); log.append("list: \(p)")
+                let p = str("path").trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
+                log.append("list: \(p)")
                 return listFolder(p)
             case "list_tables":
-                let f = str(call, "folder").trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
-                step("Listed tables\(f.isEmpty ? "" : " in " + f + "/")"); log.append("tables: \(f)")
+                let f = str("folder").trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
+                log.append("tables: \(f)")
                 mark(tables.files.filter { f.isEmpty || $0.hasPrefix(f + "/") })
                 return tables.catalog(under: f)
             case "query_table":
-                let sql = str(call, "sql")
-                step("Queried: \(sql.prefix(80))"); log.append("sql: \(sql)")
+                let sql = str("sql")
+                log.append("sql: \(sql)")
                 let (out, used) = try tables.query(sql, maxRows: Agent.maxRows)
                 mark(used)
                 if sql.lowercased().contains(CSVTables.propsTable), tables.propertiesIncludeCounseling { touchedCounseling = true }
@@ -239,10 +246,10 @@ final class ToolContext: @unchecked Sendable {
                               anchor: String(sql.prefix(120)), text: "SQL: \(sql)\n\(out)")
                 return "[\(cite(c))] Query over \(used.joined(separator: ", "))\n\(out)"
             case "propose_edit":
-                let p = str(call, "path").trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
-                step("Proposed a change to \(p)"); log.append("edit: \(p)")
+                let p = str("path").trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
+                log.append("edit: \(p)")
                 mark([p])
-                let out = try Edits.propose(path: p, old: str(call, "old_text"), new: str(call, "new_text"), why: str(call, "why"), by: proposer)
+                let out = try Edits.propose(path: p, old: str("old_text"), new: str("new_text"), why: str("why"), by: proposer, operationID: operationID)
                 proposedEdits.insert(p)
                 return out
             default:

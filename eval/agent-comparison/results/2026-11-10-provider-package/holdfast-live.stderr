@@ -1,0 +1,9 @@
+Pi conversation: F0D5E3F9-E94F-4CA0-9E85-11172A831310
+loading mlx-community/Qwen3.8-27B-4bit with MLX…
+loaded in 5.1s
+  → Pi Durable · Swift MLX on this Mac
+  → Searching: Test extracted provider checklist
+  → Listing the vault
+  → Reading checklist.md
+  → Proposing a change to checklist.md
+retrieval 86.56s · prompt 2930 tok at 47 tok/s · answer 186 tok at 8.1 tok/s

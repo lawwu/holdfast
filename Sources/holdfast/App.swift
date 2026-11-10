@@ -1,6 +1,7 @@
 import AppKit
 import AVFoundation
 import SwiftUI
+import ModelProviders
 
 // MARK: - App
 
@@ -128,7 +129,21 @@ enum Pane: String, CaseIterable, Identifiable {
 enum Backend: String, CaseIterable, Identifiable {
     case mlx = "Qwen 3.8 27B · MLX (in app)"
     case ollama = "Qwen 3.8 27B · Ollama"
-    case remote = "A model on another Mac"
+    case remote = "A model on another Mac" // Retain the persisted value for existing installations.
+    case lmStudio = "LM Studio"
+    var title: String {
+        switch self { case .mlx: return "LocalMLX"; case .ollama: return "Ollama"; case .lmStudio: return "LM Studio"; case .remote: return "Custom server" }
+    }
+    var serverKind: ServerKind? {
+        switch self { case .mlx: return nil; case .ollama: return .ollama; case .lmStudio: return .lmStudio; case .remote: return .custom }
+    }
+    var locationLabel: String {
+        guard let kind = serverKind else { return "On this Mac · LocalMLX" }
+        return "Server: " + (URL(string: ProviderSettings.current(kind).baseURL)?.host ?? title)
+    }
+    var privacyHelp: String {
+        serverKind == nil ? "Notes, search and answers stay on this Mac." : "Questions, retrieved passages and conversation context go to the selected server. Its own configuration determines where inference runs. Counseling content uses LocalMLX on this Mac."
+    }
     var id: String { rawValue }
 }
 
@@ -144,10 +159,17 @@ struct ThreadRef: Identifiable { var id: UUID }
 
 /// Research with whichever model answers: in-process MLX, or a model on another Mac.
 func runResearch(_ q: String, embedder: Embedder?, llm: LLMBackend, prior: [(q: String, a: String)],
+                 pi: Bool = PiAgent.enabled, conversationID: UUID = UUID(), requestID: UUID? = nil,
                  onEvent: @escaping @Sendable (Agent.Event) -> Void) async throws -> Answer {
-    if llm is RemoteBackend { return try await RemoteAgent.run(q, embedder: embedder, prior: prior, onEvent: onEvent) }
-    guard let mlx = llm as? MLXBackend else { throw HoldfastError("Research needs an MLX model or a model on another Mac") }
-    return try await Agent.run(q, embedder: embedder, backend: mlx, prior: prior, onEvent: onEvent)
+    let model: any AgentRuntime.Model
+    if let backend = llm as? ServerBackend { model = ServerAgentModel(backend: backend) }
+    else if let mlx = llm as? MLXBackend { model = MLXAgentModel(backend: mlx, allowsRebase: pi) }
+    else { throw HoldfastError("This provider does not support Holdfast's tools.") }
+    if pi {
+        return try await PiAgent.run(q, embedder: embedder, model: model, conversationID: conversationID,
+                                     requestID: requestID, prior: prior, onEvent: onEvent)
+    }
+    return try await Agent.run(q, embedder: embedder, model: model, prior: prior, onEvent: onEvent)
 }
 
 struct NoteTab: Identifiable {
@@ -261,7 +283,7 @@ final class Store: ObservableObject {
     @Published var backupStatus: String?
     @Published var showExport = false
     /// An answer is being written; other jobs leave `busy` alone meanwhile.
-    private var asking = false
+    @Published private(set) var asking = false
     /// Research's streamed text before reasoning is taken out.
     private var agentRaw = ""
     /// The answer being generated, so Stop can cancel it.
@@ -307,7 +329,7 @@ final class Store: ObservableObject {
         } else {
             vault = Config.vault
         }
-        if let b = UserDefaults.standard.string(forKey: "backend"), let v = Backend(rawValue: b) { backend = v }
+        backend = ProviderSettings.selected
         reload()
         dropTimer = Timer.scheduledTimer(withTimeInterval: Drop.pollSeconds, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.fileDropped() }
@@ -340,8 +362,10 @@ final class Store: ObservableObject {
 
     /// Short label for the model answering now, e.g. "Qwen 3.8 27B · 4-bit".
     var modelLabel: String {
-        if backend == .ollama { return "Qwen 3.8 27B · Ollama" }
-        if backend == .remote { return "\(Remote.model.split(separator: "/").last.map(String.init) ?? "Model") · on \(Remote.host)" }
+        if let kind = backend.serverKind {
+            let c = ProviderSettings.current(kind)
+            return "\(c.model.isEmpty ? "Choose a model" : c.model) · \(backend.title)"
+        }
         guard let spec = MLXModelSpec.find(mlxRepo) else { return mlxRepo.components(separatedBy: "/").last ?? mlxRepo }
         return "\(spec.name) · \(spec.detail)"
     }
@@ -400,10 +424,7 @@ final class Store: ObservableObject {
 
     private func getLLM() async throws -> LLMBackend {
         switch backend {
-        case .ollama: return OllamaBackend()
-        case .remote:
-            guard Remote.url != nil, !Remote.model.isEmpty else { throw HoldfastError("Set up the model on another Mac first (model menu → Another Mac → Set Up…)") }
-            return RemoteBackend()
+        case .ollama, .lmStudio, .remote: return try ServerBackend(kind: backend.serverKind!)
         case .mlx:
             if !(MLXBackend.isLoaded && MLXBackend.loadedRepo == mlxRepo) {
                 busy = "Loading \(modelLabel) into memory…"
@@ -430,8 +451,7 @@ final class Store: ObservableObject {
         default: break
         }
         asking = true
-        Remote.fellBack = false
-        Remote.keptLocal = false
+        ModelPrivacy.keptLocal = false
         agentRaw = ""
         answer = ""
         sources = []
@@ -447,7 +467,7 @@ final class Store: ObservableObject {
         let prior = turns.map { (q: $0.question, a: $0.answer) }
         // Earlier answers go along as context; one drawn from counseling notes keeps the whole
         // conversation on this Mac, even when the new question isn't about counseling.
-        let priorCounseling = turns.contains { $0.sources.contains { Profile.isCounseling($0.relPath) } }
+        let priorCounseling = turns.contains { $0.localOnly == true || $0.sources.contains { Profile.isCounseling($0.relPath) } }
         askedQuestion = q
         question = ""
         currentHistoryId = nil
@@ -456,24 +476,25 @@ final class Store: ObservableObject {
         let model = modelLabel
         routeNote = nil
         // Research and changes run as the tool-using agent; a change waits in the Inbox (Edits.swift).
-        let useAgent = (route == .research || route == .edit) && (backend == .mlx || backend == .remote)
+        let usePi = PiAgent.enabled
+        let useAgent = usePi || route == .research || route == .edit
         askTask = Task {
             do {
                 let emb = await getEmbedder()
-                var llm = try await getLLM()
-                if llm is RemoteBackend, priorCounseling {
+                var llm: LLMBackend = try await getLLM()
+                if usesModelServer(llm), priorCounseling {
                     busy = "Loading \(MLXBackend.currentRepo.split(separator: "/").last.map(String.init) ?? "this Mac's model")…"
                     llm = try await MLXBackend.shared()
-                    Remote.keptLocal = true
+                    ModelPrivacy.keptLocal = true
                 }
                 busy = "Searching and writing the answer…"
                 let t0 = Date()
                 var a: Answer
                 var escalated = false
-                if useAgent, llm is MLXBackend || llm is RemoteBackend {
+                if useAgent {
                     busy = "Researching…"
                     steps.append("Planning: this needs several notes or the tables")
-                    a = try await runResearch(q, embedder: emb, llm: llm, prior: prior) { ev in
+                    a = try await runResearch(q, embedder: emb, llm: llm, prior: prior, pi: usePi, conversationID: convo) { ev in
                         Task { @MainActor in
                             switch ev {
                             case .step(let s): self.steps.append(s); self.busy = Steps.split(s).title + "…"
@@ -504,7 +525,7 @@ final class Store: ObservableObject {
                                   : "Read \(a.sources.count) passages from \(noteCount) note\(noteCount == 1 ? "" : "s")")
                                  + (a.sources.isEmpty ? "" : Steps.sep + a.sources.enumerated().map { "[\($0.offset + 1)] \($0.element.relPath) › \($0.element.anchor)" }.joined(separator: "\n")))
                     // Found nothing? Look deeper before giving up.
-                    if !Task.isCancelled, Router.shouldEscalate(a), llm is MLXBackend || llm is RemoteBackend {
+                    if !Task.isCancelled, Router.shouldEscalate(a), llm is MLXBackend || usesModelServer(llm) {
                         escalated = true
                         answer = ""
                         sources = []
@@ -533,19 +554,17 @@ final class Store: ObservableObject {
                     warning = "The answer cites passages that don't exist: " + a.badCitations.map { "[\($0)]" }.joined(separator: ", ")
                 }
                 // Kept on this Mac (counseling) or the other Mac didn't answer: name the model that did.
-                let answeredBy = Remote.keptLocal || Remote.fellBack
+                let actualModel = ModelPrivacy.keptLocal
                     ? MLXModelSpec.find(MLXBackend.currentRepo).map { "\($0.name) · \($0.detail)" } ?? (MLXBackend.currentRepo.split(separator: "/").last.map(String.init) ?? model)
                     : model
+                let answeredBy = (usePi ? "Pi · " : "") + actualModel
                 var entry = HistoryEntry(question: q, answer: a.text, model: answeredBy, stats: answerStats!, sources: a.sources)
-                if Remote.keptLocal {
+                if ModelPrivacy.keptLocal {
                     steps.append("Counseling notes were involved, so this Mac's model answered")
-                    Remote.keptLocal = false
-                }
-                if Remote.fellBack {
-                    steps.append("\(Remote.host) didn't answer, so this Mac's model answered")
-                    Remote.fellBack = false
+                    ModelPrivacy.keptLocal = false
                 }
                 steps.append(String(format: Task.isCancelled ? "Stopped after %.0f s" : "Done in %.0f s", Date().timeIntervalSince(t0)))
+                entry.localOnly = a.localOnly || priorCounseling
                 entry.steps = steps
                 entry.conversationId = convo
                 entry.route = routeNote
@@ -553,6 +572,7 @@ final class Store: ObservableObject {
                 currentHistoryId = entry.id
                 History.save(history)
             } catch {
+                if usePi { inboxItems = inbox() }
                 self.error = "\(error)"
             }
             busy = nil

@@ -2,6 +2,34 @@
 
 ## Next (after 0.1.0)
 
+- **Regular Pi is now the default agent.** The normal app and CLI use Pi 1.5.1 with
+  saved JSONL conversations and Holdfast-only tools. LocalMLX and server providers,
+  Inbox approvals, byte-exact Undo and counseling restrictions are preserved.
+  Durable records remain untouched; interrupted jobs are not automatically replayed.
+  The normal app packager now includes the regular Pi runtime.
+
+- **Choose an answer provider.** LocalMLX is the default, with Ollama, LM Studio and
+  custom compatible servers in Answer settings. Model discovery, manual IDs, context
+  limits and endpoint-bound Keychain keys work with regular Pi and the Swift comparison harness.
+  The Foundation-only `ModelProviders` Swift product shares an inference interface with
+  LocalMLX and is reusable by other apps. Tools, proposals, approval, snapshots and Undo
+  remain in Holdfast. Counseling restrictions survive follow-ups and Pi restarts;
+  server failures are visible and redirects are refused.
+
+- **Reusable Swift MLX provider.** `Packages/pi-swift-mlx` contains an npm provider
+  for Pi and Pi Durable, the **LocalMLX** Swift inference library and the
+  **local-mlx-host** standalone helper. Full tool schemas and JSON arguments cross the provider boundary. Holdfast
+  retains its tools, validation, privacy policy, Inbox approvals and Undo.
+- **Archived Pi Durable prototype.** The earlier bridge remains under `Runtime/pi-durable`
+  for reference. Holdfast now uses regular Pi; `scripts/make_pi_prototype.sh` builds a
+  separate regular-Pi app. The reusable adapter continues to support both harnesses.
+- **Undo for successive approvals.** Each approved edit now keeps an unthrottled,
+  byte-exact snapshot; UTF-8 BOMs survive Apply Change and Undo.
+- **Native agent harness.** Local MLX and network Research now share one runtime with a
+  tool registry, validated arguments, conversation transcripts, lifecycle events, cancellation
+  and bounded execution. Local model handoff continues from tool results instead of replaying
+  earlier proposals. Private local journals record tool intent before execution and the outcome
+  afterward. The structure is informed by Pi and Pennant; no new runtime dependencies.
 - **Changes from Ask.** "Mark … done", "add … to …": the model reads the note and proposes the exact
   change, which waits in the Inbox with removed and added lines until approved; undo restores the
   copy kept first. A note changed since the proposal is refused, generated files are refused.

@@ -1,0 +1,6 @@
+{
+  "observedAt": "2026-11-09T22:54:07.585480-08:00",
+  "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+  "swap": "vm.swapusage: total = 30720.00M  used = 29396.38M  free = 1323.62M  (encrypted)",
+  "concurrentWork": "Another swift-frontend process was using about 328% CPU; iOS simulator services and Chrome were also active. These were not started by this comparison."
+}

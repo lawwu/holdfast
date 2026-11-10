@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-10",
+  "piVersion": "1.5.1",
+  "piDurableVersion": "1.5.1",
+  "provider": "pi-swift-mlx 0.1.0",
+  "transport": "packaged standalone Swift host over stdio",
+  "toolArguments": {
+    "limit": 2,
+    "enabled": false,
+    "values": [
+      0,
+      1,
+      2.5
+    ],
+    "metadata": {
+      "value": null
+    }
+  },
+  "runs": [
+    {
+      "harness": "pi",
+      "model": "mlx-community/Qwen3.8-27B-4bit",
+      "answer": "Finished.",
+      "tools": 1,
+      "seconds": 41.046721250000004
+    },
+    {
+      "harness": "durable",
+      "model": "mlx-community/Qwen3.8-27B-4bit",
+      "answer": "Finished.",
+      "tools": 1,
+      "seconds": 29.146440582999997
+    }
+  ]
+}

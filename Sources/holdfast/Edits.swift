@@ -22,13 +22,30 @@ enum Edits {
     /// Files a proposal for one change to a note and returns a short description for the model.
     /// `old` empty: `new` is added at the end of the note.
     @discardableResult
-    static func propose(path raw: String, old: String, new: String, why: String, by: String) throws -> String {
+    static func propose(path raw: String, old: String, new: String, why: String, by: String, operationID: String? = nil) throws -> String {
+        try Drop.withWriteLock { try proposeLocked(path: raw, old: old, new: new, why: why, by: by, operationID: operationID) }
+    }
+
+    private static func proposeLocked(path raw: String, old: String, new: String, why: String, by: String, operationID: String?) throws -> String {
         let path = raw.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
+        // Pi may restart after the proposal's atomic write but before receiving its result.
+        // Keep the trusted operation ID in that same write, and in the approval history.
+        if let operationID {
+            func contains(_ meta: [String: String]) -> Bool {
+                (meta["agent_operations"] ?? "").split(separator: " ").contains(Substring(operationID))
+            }
+            if let existing = pending(for: path), contains(existing.meta) {
+                return "This change to \(path) is already proposed and waiting for approval in the Inbox."
+            }
+            if FilingLog.load().contains(where: { $0.target == path && contains($0.proposal) }) {
+                return "This change to \(path) was already proposed and reviewed in the Inbox. No duplicate was created."
+            }
+        }
         let url = try Drop.safeTarget(path)
         guard editable.contains(url.pathExtension.lowercased()) else {
             throw HoldfastError("only notes (.md, .txt) can be changed this way; \(path) isn't one")
         }
-        guard let file = try? String(contentsOf: url, encoding: .utf8) else {
+        guard let bytes = try? Data(contentsOf: url), let file = try? String(contentsOf: url, encoding: .utf8) else {
             throw HoldfastError("no note at \(path); use list_folder to find it (new notes come in through the drop folder)")
         }
         if file.split(separator: "\n", omittingEmptySubsequences: false).prefix(12).contains(where: { $0.hasPrefix("> GENERATED") }) {
@@ -62,8 +79,9 @@ enum Edits {
         let today = Drop.dayString(holdfast.today())
         let name = (path as NSString).lastPathComponent
         var meta = existing?.meta ?? ["kind": "filing", "action": "edit", "target": path, "proposed_by": by,
-                                      "base_hash": FilingLog.hash(file), "title": "Change \(name)"]
+                                      "base_hash": FilingLog.hash(file), "base_bytes_hash": FilingLog.hashData(bytes), "title": "Change \(name)"]
         meta["proposed"] = today
+        if let operationID { meta["agent_operations"] = [meta["agent_operations"], operationID].compactMap { $0 }.joined(separator: " ") }
         let why = why.trimmingCharacters(in: .whitespacesAndNewlines)
         if !why.isEmpty { meta["why"] = [meta["why"], why].compactMap { $0 }.joined(separator: " · ") }
         let added = diff(file, updated).filter { $0.kind == "+" }.map(\.text).joined(separator: "\n")
@@ -113,17 +131,26 @@ enum Edits {
     /// Writes an approved change (the caller holds the write lock). Refused when the note changed
     /// after the proposal, so an edit made elsewhere is never overwritten.
     static func apply(_ item: Note, at dest: URL, target: String) throws -> URL {
-        guard let now = try? String(contentsOf: dest, encoding: .utf8) else {
+        guard let bytes = try? Data(contentsOf: dest), let now = try? String(contentsOf: dest, encoding: .utf8) else {
             throw HoldfastError("\(target) was moved or deleted after this change was proposed")
         }
         if let base = item.meta["base_hash"], FilingLog.hash(now) != base {
             throw HoldfastError("\(target) changed after this change was proposed; reject it and ask again")
         }
-        let before = Versions.snapshot(dest, reason: "edit")
-        try item.body.write(to: dest, atomically: true, encoding: .utf8)
+        if let base = item.meta["base_bytes_hash"], FilingLog.hashData(bytes) != base {
+            throw HoldfastError("\(target) changed after this change was proposed; reject it and ask again")
+        }
+        // Approved edits each need their own byte-exact undo copy. The editor's
+        // ten-minute snapshot throttle is inappropriate for separate approvals.
+        guard let before = Versions.snapshot(dest, reason: "approved-edit") else {
+            throw HoldfastError("Cannot save an undo copy of \(target); the change was not applied")
+        }
+        let bom = Data([0xEF, 0xBB, 0xBF])
+        let replacement = (bytes.starts(with: bom) ? bom : Data()) + Data(item.body.utf8)
+        try replacement.write(to: dest, options: .atomic)
         let added = diff(now, item.body).filter { $0.kind == "+" }.map(\.text).joined(separator: "\n")
         FilingLog.add(FilingRecord(title: item.meta["title"] ?? target, target: target, action: "edit", original: nil,
-                                   snapshot: before?.path, after: FilingLog.hash(item.body), addition: added,
+                                   snapshot: before.path, after: FilingLog.hash(item.body), addition: added,
                                    proposal: item.meta, proposalBody: item.body, rule: nil))
         return dest
     }

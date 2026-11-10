@@ -1,0 +1,8 @@
+{
+  "created": "2026-11-09T23:12:03-0800",
+  "mode": "models",
+  "model": "qwen38-27b-q8-32k:latest",
+  "piVersion": "0.67.2",
+  "binarySHA256": "481c74897dd28b9874b4bf43945234d8cd24671af65f41d33ecf2f701f360a70",
+  "note": "Same local Ollama weights/sampling for model trials. Different editor schemas and suitable system prompts; not a harness-only comparison. Stock Pi tools, no checkpoint/approval extensions; guarded scratch operations supplied by evaluation."
+}

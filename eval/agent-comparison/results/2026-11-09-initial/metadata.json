@@ -1,0 +1,80 @@
+{
+  "created": "2026-11-09T22:23:23-0800",
+  "ollama": {
+    "version": "0.40.15"
+  },
+  "model": "qwen38-27b-q8-32k:latest",
+  "modelDetails": {
+    "parent_model": "",
+    "format": "gguf",
+    "family": "qwen35",
+    "families": [
+      "qwen35"
+    ],
+    "parameter_size": "27.3B",
+    "quantization_level": "Q4_K_M"
+  },
+  "thinking": null,
+  "parameters": "top_p                          0.8\nnum_ctx                        32768\ntemperature                    0.7\ntop_k                          20",
+  "mlxModel": "mlx-community/Qwen3.8-27B-4bit",
+  "piVersion": "0.67.2",
+  "gitHead": "e08813085297b819042bd9a6fe03edb420a3fc34",
+  "dirtyTree": true,
+  "binarySHA256": "481c74897dd28b9874b4bf43945234d8cd24671af65f41d33ecf2f701f360a70",
+  "tags": {
+    "models": [
+      {
+        "name": "qwen38-27b-q8-32k:latest",
+        "model": "qwen38-27b-q8-32k:latest",
+        "modified_at": "2026-08-14T20:55:31.350447269-07:00",
+        "size": 31457991893,
+        "digest": "645ab4665c94fe3b716d3d3add929e691d9a60a2f9604e887c5f90f89b9eb21a",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen35",
+          "families": [
+            "qwen35"
+          ],
+          "parameter_size": "27.3B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 262144,
+          "embedding_length": 5120,
+          "runner": "ggml"
+        },
+        "capabilities": [
+          "tools",
+          "thinking",
+          "completion"
+        ]
+      }
+    ]
+  },
+  "repeats": 1,
+  "hardware": {
+    "chip": "Apple M1 Max",
+    "memoryBytes": 68719476736
+  },
+  "ggufTensorTypes": {
+    "ggufVersion": 3,
+    "tensorCount": 866,
+    "bytes": 31457991680,
+    "tensorsByType": {
+      "F32": 360,
+      "Q8_0": 453,
+      "BF16": 53
+    },
+    "parametersByType": {
+      "F32": 2671616,
+      "Q8_0": 24746393600,
+      "BF16": 2571632640
+    }
+  },
+  "reviewNotes": [
+    "Manual review: all five Ollama task pairs produced identical tool names/arguments and identical final answers. The CSV task recovered from a wrong category filter by inspecting rows and retrying. Native MLX also recovered and answered correctly.",
+    "Response-quality limitation: all three setups correctly refused the generated-note edit, but then offered a CSV edit that propose_edit cannot perform (it supports .md and .txt only). The operational pass does not mean the responses were flawless. No CSV edit was attempted or applied.",
+    "All nine edit trials passed the pending-proposal, exact-content, stale-note refusal, Apply and exact Undo checks. Generated-note refusal was observed in model behavior; these cases did not force a prohibited propose_edit call.",
+    "On the checkbox case, the MLX journal reports 1,594 prompt tokens processed on the final turn after 64 on the preceding turn. Ollama reported 1,480 cached tokens out of 1,553 on its final turn. This is evidence to investigate cache reuse in the native adapter/library, not a general claim that one engine is faster.",
+    "Order-reversal checks are in ../2026-11-09-reversed/report.md. All four repeats passed, with identical answers and arguments between harnesses. The same Swift checkbox task varied from 57.0 to 87.9 seconds; concurrent Xcode/simulator activity was observed during the repeat, so these are not clean performance measurements."
+  ]
+}

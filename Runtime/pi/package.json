@@ -1,0 +1,13 @@
+{
+  "name": "holdfast-pi",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "engines": { "node": ">=22.19.0" },
+  "scripts": { "test": "node --test test/*.test.mjs" },
+  "dependencies": {
+    "pi-swift-mlx": "file:../../Packages/pi-swift-mlx",
+    "@earendil-works/pi-ai": "1.5.1",
+    "@earendil-works/pi-coding-agent": "1.5.1"
+  }
+}

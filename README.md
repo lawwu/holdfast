@@ -9,8 +9,8 @@ and keeps using a default vault at `~/MacKB` if there is one.
 
 A local knowledge base for **biblical counselors**: import lessons, homework sheets,
 supervision recordings and past case reports, then search and ask questions of them
-with citations. Everything runs on the Mac, because case material is confidential.
-Nothing is sent to a cloud service.
+with citations. LocalMLX runs inside the Mac app by default. Optional model servers receive ordinary
+questions and their context; counseling content stays with embedded LocalMLX.
 
 This is the Phase 0–3 proof of concept from the Holdfast plan (kept in a
 separate notes repo). One binary is the CLI, the MCP server and a SwiftUI
@@ -26,7 +26,7 @@ window: `holdfast app`, or `scripts/make_app.sh` → `build/Holdfast.app`.
 | `holdfast listen -` · `--url <stream>` · `--mic` | Transcribes audio while it streams in (below). Finished `[hh:mm:ss]` lines go to stdout as they become final (`--json` for events); Ctrl-C stops, and the transcript is kept and filed like a dropped document |
 | `holdfast index` | Chunks each note on headings and timestamps; SQLite FTS5 + **Qwen3-Embedding-0.6B** vectors (in-process, MLX Swift). Only changed notes are re-indexed |
 | `holdfast search "…"` | Retrieval pipeline below |
-| `holdfast ask "…"` | The top 8 passages go to the answer model (MLX in-process by default, a model on another Mac, or Ollama; thinking off unless Show Thinking is on). The answer cites `[n]`, and each source prints as `[[note#anchor]]` |
+| `holdfast ask "…"` | Pi searches and reads through Holdfast's tools, using LocalMLX by default or a selected server. Answers cite `[n]`, and each source prints as `[[note#anchor]]`; proposed edits wait in the Inbox |
 | `holdfast app` | The window: Ask (cited answers; click a source to open it), Library (browse and search), Inbox (approve or reject agent memories), and a reader that jumps to the cited section |
 | `holdfast eval` | Scores Q&A against a question set; see `eval/README.md` |
 | `holdfast mcp` | MCP server: `search`, `get_note`, `ask`, `remember`, `list_inbox` |
@@ -57,6 +57,72 @@ The vault is plain Markdown with YAML frontmatter (`$HOLDFAST_VAULT`, default
 `~/Holdfast`): `sources/`, `memory/`, `inbox/`. It opens in Obsidian. The index in
 `.holdfast/` is a cache; delete it and run `holdfast index` again.
 
+## Pi agent
+
+**Regular Pi 1.5.1 is now Holdfast’s default Ask harness**, in the normal app and CLI.
+It runs the tool loop and saves JSONL conversations for follow-ups. LocalMLX is the
+independent default inference provider; Ollama, LM Studio and custom servers also work.
+Holdfast owns tool execution, privacy, Inbox approvals, snapshots and Undo.
+
+The reusable [`pi-swift-mlx`](Packages/pi-swift-mlx/README.md) adapter still works with
+both regular Pi and Pi Durable. The Swift library is **LocalMLX**, its standalone
+helper is **local-mlx-host**, and the reusable HTTP target is **ModelProviders**.
+The app uses `Runtime/pi`; Durable is no longer selected or bundled.
+
+Build with `bash scripts/make_app.sh`, or create a separate artifact with
+`bash scripts/make_pi_prototype.sh`. Node 22.19+ is required. There is no harness toggle
+in Settings. `ask --conversation UUID` continues a chat; `--pi` remains an explicit alias.
+See the [regular Pi bridge guide](Runtime/pi/README.md) and
+[HTML architecture guide](docs/local-mlx-architecture.html).
+
+Interrupted work waits for a new user request. Existing Durable SQLite records and pending
+jobs are preserved under `pi-durable/` and are never replayed by the new runtime. Old app
+conversations provide a short handoff; privacy and citation metadata carry forward.
+
+## Native comparison runtime
+
+The older Swift harness remains available for development with `HOLDFAST_AGENT_HARNESS=swift`. Its structure takes inspiration from [Pi's agent core](https://github.com/earendil-works/pi/tree/main/packages/agent)
+and [Pennant's runtime](https://github.com/pennant-dev/pennant/blob/main/docs/ARCHITECTURE.md);
+neither project is a dependency.
+
+- `AgentRuntime.swift`: a model interface, explicit tool registry, full user/assistant/tool
+  transcript, lifecycle events, argument validation, cancellation, and limits (8 tool rounds,
+  at most 32 calls, then a final answer with tools disabled). A runtime session can accept later
+  prompts with its tool history intact; overlapping runs are refused.
+- `AgentModels.swift`: MLX keeps one `ChatSession` and its inference cache between steps;
+  `ModelProviderSettings.swift` adapts the shared `ModelProviders` HTTP transport. Changing to the local model
+  continues from completed tool results, including pending proposals, without repeating them.
+- `Agent.swift`: Holdfast's six vault tools, source numbering and model-selection policy.
+  Tool results can require local inference; once set, that restriction lasts for the whole
+  runtime session. Counseling vaults start locally, and the folder overview omits counseling
+  README excerpts. The registry exposes `propose_edit`; applying a change remains an Inbox action.
+- `AgentJournal.swift`: each run has a private JSONL journal under the vault's state folder,
+  `agent-runs/`. It records configuration, finalized model replies, tool intent and tool outcome
+  with increasing sequence numbers. Token deltas are transient. Records include note text and
+  stay on this Mac. A failed intent write prevents execution; an intent without an outcome is
+  uncertain and is never automatically replayed.
+
+This is the runtime foundation. Ask still seeds each request from its existing short history;
+full transcript restoration in the UI, automatic compaction, steering, and crash-resume are not
+implemented in the comparison harness. Regular Pi supplies persistent sessions and compaction;
+it does not automatically replay interrupted jobs.
+Both embedded and server providers stream tokens; each complete tool call is validated before execution.
+
+Run the model-free runtime checks and, after building, the synthetic end-to-end check:
+
+```bash
+scripts/test_agent_runtime.sh
+python3 Tests/agent_integration.py .build/xcode/Build/Products/Release/holdfast
+```
+
+The integration check starts a loopback model stand-in, creates a throwaway vault, tests a bad
+call followed by a corrected read and an Inbox proposal, applies it, and verifies exact undo.
+It removes the scratch vault and its state afterward.
+
+The [Pi/Ollama comparison](eval/agent-comparison/README.md) runs the same synthetic
+tasks and Holdfast tools through Pi + Ollama, Swift + Ollama, and Swift + MLX, with
+saved requests, proposals, approval/undo checks and timing caveats.
+
 ## Household eval (synthetic)
 
 `eval/household/` is a made-up family's knowledge base (finance, home, health,
@@ -79,8 +145,9 @@ xcodebuild -scheme holdfast -destination 'platform=macOS' -configuration Release
 ln -sf "$PWD/.build/xcode/Build/Products/Release/holdfast" ~/.local/bin/holdfast
 ```
 
-The LLM is `HOLDFAST_BACKEND=mlx` (Qwen 3.8 27B 4-bit loaded in-process from the
-Hugging Face cache, `HOLDFAST_MLX_REPO`) or `ollama` (`HOLDFAST_LLM`). Audio and URLs also need `ffmpeg` and `yt-dlp`.
+The default is LocalMLX. `HOLDFAST_BACKEND=mlx|ollama|lmstudio|custom` overrides the saved
+provider; `HOLDFAST_MLX_REPO` selects the embedded model. Server configuration is below.
+Audio and URLs also need `ffmpeg` and `yt-dlp`.
 
 ## Use from Claude Code
 
@@ -212,23 +279,64 @@ live in `Sources/holdfast/ModelCatalog.swift`, generated by `eval/household/cata
 saved results: run more evals, then the script. Weights and thresholds are constants at the top of
 `Recommend.swift`.
 
-## A model on another Mac
+## Choose an inference provider
 
-Holdfast can send its questions to a model served by another Mac (say a Mac Studio)
-while the vault, the index and search stay on this one. On the other Mac run LM Studio
-(port 1234), `mlx_lm.server` (8080) or Ollama (11434) with its server on; in Holdfast,
-model menu → Another Mac → Set Up…, enter its address (its Tailscale name keeps the
-traffic encrypted), Connect, pick the model. Research's tools still run here; only the
-model's decisions come over the network. If that Mac doesn't answer, this Mac's model
-answers instead and the steps say so. CLI: `HOLDFAST_BACKEND=remote HOLDFAST_REMOTE_URL=http://studio:1234 HOLDFAST_REMOTE_MODEL=<id>`.
+**Settings → Answer → Provider** offers LocalMLX (default), Ollama, LM Studio and Custom server.
+For a server, enter its API base, optionally add a key, discover models or enter an ID manually,
+set the loaded model's context window (at least 16384), and **Save Connection**. Each provider
+keeps its own settings. Credentials are stored in Keychain, bound to the endpoint, and are never
+passed to the Node bridge. Editing an address clears the key field.
+
+| Provider | Default address | Protocol |
+| --- | --- | --- |
+| LocalMLX | No server | Embedded Swift MLX |
+| Ollama | `http://localhost:11434` | Native `/api/chat` and `/api/tags` |
+| LM Studio | `http://localhost:1234/v1` | OpenAI-compatible chat completions and model discovery |
+| Custom server | `http://localhost:8080/v1` | Same compatible API; supports explicit proxy prefixes |
+
+All choices support ordinary answers and the same six Holdfast tools in both the Swift harness
+and regular Pi. Use a model with tool support. Model discovery establishes connectivity, not
+behavioral compatibility. The server owns model loading and scheduling. HTTP errors stay visible;
+there is no automatic connection-error fallback. Counseling context switches to embedded LocalMLX
+before the next inference request, or fails closed when no local model is available. This restriction
+persists through follow-ups and Pi restarts. A loopback address alone does not prove a server runs
+its selected model locally.
+
+```sh
+HOLDFAST_BACKEND=ollama HOLDFAST_PROVIDER_MODEL=qwen38-27b-q8-32k:latest holdfast ask --research "…"
+HOLDFAST_BACKEND=lmstudio HOLDFAST_PROVIDER_MODEL=<model-id> holdfast ask --pi "…"
+HOLDFAST_BACKEND=custom HOLDFAST_PROVIDER_URL=https://server.example/v1 \
+  HOLDFAST_PROVIDER_MODEL=<model-id> holdfast ask "…"
+```
+
+Optional overrides: `HOLDFAST_PROVIDER_API_KEY`, `HOLDFAST_CONTEXT_WINDOW`.
+Legacy `HOLDFAST_OLLAMA`, `HOLDFAST_LLM`, and `HOLDFAST_BACKEND=remote` with
+`HOLDFAST_REMOTE_URL` / `HOLDFAST_REMOTE_MODEL` remain supported. URLs must use HTTP(S)
+and contain no credentials, query or fragment. Redirects are refused.
+
+The Foundation-only **ModelProviders** Swift product lives alongside **LocalMLX** in
+[`Packages/pi-swift-mlx/swift`](Packages/pi-swift-mlx/swift). Both `MLXSession` and
+`HTTPModelProvider` implement `ModelProvider` with shared `Inference.Request` / `Reply` types.
+Other apps can depend on these products without importing Holdfast, its vault or its approvals.
+`MLXProtocol` remains an alias for the version-1 wire types. See the
+[reusable package examples](Packages/pi-swift-mlx/README.md#use-the-same-interface-with-a-model-server).
+
+Checks (synthetic vaults, no personal data):
+
+```sh
+python3 Tests/model_provider_transport.py
+python3 Tests/provider_integration.py .build/harness-xcode/Build/Products/Release/holdfast
+# Optional: actual installed Ollama 27B, scratch-vault proposal/approval/Undo
+python3 Tests/provider_integration.py .build/harness-xcode/Build/Products/Release/holdfast --live-ollama
+```
 
 ## Privacy, in one place
 
 - Everything runs on this Mac by default: the vault, its index, search, and the answer model.
-- With **a model on another Mac**, the vault, index and search stay here; the other Mac receives
+- With **a server provider**, the vault, index and search stay here; the selected server receives
   each question with the passages found, the conversation so far, folder READMEs, Research's note
   reads and table results, documents dropped for filing, and note pairs when suggesting links.
   **Counseling notes never leave this Mac**: anything involving them is answered here instead.
-  The app's labels switch from "nothing leaves this Mac" to "sent to <host>" while it's in use.
+  The app labels the selected server host; server inference may run here or elsewhere.
 - Link import (YouTube, podcasts) fetches from the web by design. The Gemini backend exists for
   evals on synthetic data only and isn't offered in the app.

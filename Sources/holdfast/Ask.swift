@@ -12,6 +12,7 @@ struct Answer {
     var steps: [String] = []
     /// The model's reasoning, when thinking is on.
     var thinking = ""
+    var localOnly = false
 }
 
 /// Steps carry an optional detail after a separator: "Read finance/profile.md␟read_note({…})\n\n<result>".
@@ -32,7 +33,9 @@ enum Thinking {
     /// is reasoning until "</think>". Other models stream as usual.
     static var hidesUntilClose: Bool {
         guard on else { return false }
-        let name = UserDefaults.standard.string(forKey: "backend") == "A model on another Mac" ? Remote.model : MLXBackend.currentRepo
+        // HTTP providers return reasoning separately from visible content.
+        guard ProviderSettings.selected == .mlx else { return false }
+        let name = MLXBackend.currentRepo
         return name.lowercased().contains("qwen")
     }
 
@@ -77,7 +80,7 @@ final class TextBox: @unchecked Sendable {
 
 func citation(_ c: Chunk) -> String { "[[\(c.noteId)#\(c.anchor)]]" }
 
-func ask(_ question: String, embedder: Embedder?, llm askedLLM: LLMBackend = OllamaBackend(), prior: [(q: String, a: String)] = [],
+func ask(_ question: String, embedder: Embedder?, llm askedLLM: LLMBackend, prior: [(q: String, a: String)] = [],
          onSources: (@Sendable ([Chunk]) -> Void)? = nil,
          stream: (@Sendable (String) -> Void)? = nil) async throws -> Answer {
     let t0 = Date()
@@ -87,9 +90,9 @@ func ask(_ question: String, embedder: Embedder?, llm askedLLM: LLMBackend = Oll
     let hits = try await search(query, embedder: embedder, reranker: await Reranker.shared(), limit: Config.contextChunks)
     // Counseling notes never go to another Mac: answer those here.
     var llm = askedLLM
-    if llm is RemoteBackend, Remote.touchesCounseling(hits) {
+    if usesModelServer(llm), ModelPrivacy.touchesCounseling(hits) || Profile.vaultDefault.id == Profile.counseling.id {
         llm = try await MLXBackend.shared()
-        Remote.keptLocal = true
+        ModelPrivacy.keptLocal = true
     }
     let rt = Date().timeIntervalSince(t0)
     guard !hits.isEmpty else {
@@ -127,7 +130,7 @@ func ask(_ question: String, embedder: Embedder?, llm askedLLM: LLMBackend = Oll
     if Thinking.hidesUntilClose, !box.text.contains("</think>") {
         (thought, rest) = (box.text, Task.isCancelled ? "" : "The model used its whole answer length thinking and didn't reach an answer. Ask again, or turn off Show Thinking.")
     }
-    return Answer(text: stripThoughts(rest), badCitations: bad, sources: hits, stats: stats, retrievalSeconds: rt, thinking: thought)
+    return Answer(text: stripThoughts(rest), badCitations: bad, sources: hits, stats: stats, retrievalSeconds: rt, thinking: thought, localOnly: ModelPrivacy.touchesCounseling(hits) || Profile.vaultDefault.id == Profile.counseling.id)
 }
 
 /// Follow-ups: what earlier turns of a conversation the model sees.

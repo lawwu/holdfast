@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-10",
+  "library": "LocalMLX",
+  "wireTypes": "MLXProtocol",
+  "executable": "local-mlx-host",
+  "npmPackage": "pi-swift-mlx",
+  "checks": {
+    "Holdfast Release build": "passed",
+    "Standalone helper Release build": "passed",
+    "Provider tests and TypeScript declarations": "6 tests passed",
+    "Swift/Pi tools, approvals, Undo, crash recovery and Stop": "6 integration groups passed",
+    "App bundle signature and renamed npm archive contents": "passed",
+    "HTML guide": "4 arrangements; desktop/tablet/mobile; light/dark; no page errors or network requests"
+  },
+  "liveRuns": [
+    {
+      "harness": "pi",
+      "model": "mlx-community/Qwen3.8-27B-4bit",
+      "answer": "Finished",
+      "tools": 1,
+      "seconds": 30.872302791000003
+    },
+    {
+      "harness": "durable",
+      "model": "mlx-community/Qwen3.8-27B-4bit",
+      "answer": "Finished",
+      "tools": 1,
+      "seconds": 25.4405685
+    }
+  ],
+  "scope": "Real-model runs use a synthetic typed tool. Editing checks use a synthetic scratch vault. No commit or push."
+}

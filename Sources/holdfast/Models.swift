@@ -148,57 +148,10 @@ struct GenStats {
     var promptTokPerSec: Double { Double(promptTokens) / max(promptSeconds, 0.001) }
 }
 
-/// Ollama's native /api/chat (needed for `think: false`, which Qwen 3.8 needs:
-/// its default reasoning effort turns a 2-minute answer into 20).
-struct OllamaBackend: LLMBackend {
-    var model = Config.llmModel
-
-    func chat(system: String, user: String, temperature: Double?, onToken: @escaping @Sendable (String) -> Void) async throws -> GenStats {
-        var req = URLRequest(url: Config.ollamaURL.appendingPathComponent("api/chat"))
-        req.httpMethod = "POST"
-        req.timeoutInterval = 1800
-        let body: [String: Any] = [
-            "model": model, "stream": true, "think": false, "keep_alive": "30m",
-            "messages": [["role": "system", "content": system], ["role": "user", "content": user]],
-            "options": ["temperature": temperature ?? Config.temperature, "top_p": Config.topP, "top_k": Config.topK,
-                        "presence_penalty": Config.presencePenalty, "num_ctx": 16384],
-        ]
-        req.httpBody = try JSONSerialization.data(withJSONObject: body)
-        let bytes: URLSession.AsyncBytes, resp: URLResponse
-        do { (bytes, resp) = try await URLSession.shared.bytes(for: req) }
-        catch let e as URLError where e.code == .cannotConnectToHost || e.code == .cannotFindHost {
-            throw HoldfastError("Ollama isn't running on this Mac. Start it, or choose an MLX model in the model menu.")
-        }
-        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
-            throw HoldfastError("Ollama returned \((resp as? HTTPURLResponse)?.statusCode ?? 0); is the model \(model) installed in Ollama?")
-        }
-        var stats = GenStats(promptTokens: 0, promptSeconds: 0, outputTokens: 0, outputSeconds: 0)
-        for try await line in bytes.lines {
-            guard let d = line.data(using: .utf8), let j = try? JSONSerialization.jsonObject(with: d) as? [String: Any] else { continue }
-            if let e = j["error"] as? String { throw HoldfastError("Ollama: \(e)") }
-            if let m = j["message"] as? [String: Any], let c = m["content"] as? String, !c.isEmpty { onToken(c) }
-            if j["done"] as? Bool == true {
-                stats.promptTokens = j["prompt_eval_count"] as? Int ?? 0
-                stats.promptSeconds = Double(j["prompt_eval_duration"] as? Int ?? 0) / 1e9
-                stats.outputTokens = j["eval_count"] as? Int ?? 0
-                stats.outputSeconds = Double(j["eval_duration"] as? Int ?? 0) / 1e9
-            }
-        }
-        return stats
-    }
-}
-
-// MARK: - MLX backend: Qwen 3.8 27B 4-bit in-process (no Ollama)
-
-/// Pick the backend: HOLDFAST_BACKEND=mlx loads the model inside this process.
 func makeBackend() async throws -> LLMBackend {
-    switch ProcessInfo.processInfo.environment["HOLDFAST_BACKEND"] ?? "mlx" {
-    case "ollama": return OllamaBackend()
-    case "mlx": return try await MLXBackend.shared()
-    case "gemini": return try GeminiBackend()
-    case "remote": return RemoteBackend()
-    default: return OllamaBackend()
-    }
+    if ProcessInfo.processInfo.environment["HOLDFAST_BACKEND"] == "gemini" { return try GeminiBackend() }
+    if let kind = ProviderSettings.selected.serverKind { return try ServerBackend(kind: kind) }
+    return try await MLXBackend.shared()
 }
 
 /// Google's Gemini API, for evals on synthetic data only: the app never offers

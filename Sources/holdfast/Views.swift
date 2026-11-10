@@ -366,11 +366,12 @@ struct VaultCard: View {
             }
             .font(Theme.caption).foregroundStyle(.secondary).labelStyle(TightLabel())
             HStack(spacing: 5) {
-                Image(systemName: store.backend == .remote ? "network" : "lock.fill")
-                Text(store.backend == .remote ? "Notes here · model on \(Remote.host)" : "Stays on this Mac")
+                Image(systemName: store.backend != .mlx ? "network" : "lock.fill")
+                Text(store.backend.locationLabel)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            .font(Theme.caption2.weight(.medium)).foregroundStyle(store.backend == .remote ? Color.orange : .green)
-            .help(store.backend == .remote ? "Your vault and search stay on this Mac. Questions, the passages found, the conversation and documents to file go to \(Remote.host); counseling notes never do." : "Notes, search and the model all run on this Mac.")
+            .font(Theme.caption2.weight(.medium)).foregroundStyle(store.backend != .mlx ? Color.orange : Theme.accent)
+            .help(store.backend.privacyHelp)
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -854,19 +855,10 @@ struct Composer: View {
                                 set: { if $0 { store.selectMLX(spec.repo) } }))
                         }
                     }
-                    Section("Another Mac") {
-                        if let u = Remote.url, !Remote.model.isEmpty {
-                            Toggle("\(Remote.model) · \(u.host ?? "")", isOn: Binding(
-                                get: { store.backend == .remote },
-                                set: { if $0 { store.backend = .remote } }))
-                        }
-                        Button("Set Up…") { store.showRemoteSetup = true }
-                    }
-                    if store.backend == .ollama {
-                        Section("Ollama") {
-                            Toggle("\(Config.llmModel) · Ollama", isOn: Binding(
-                                get: { store.backend == .ollama },
-                                set: { if $0 { store.backend = .ollama } }))
+                    Section("Model servers") {
+                        ForEach([Backend.ollama, .lmStudio, .remote]) { backend in
+                            Toggle(backend.title, isOn: Binding(get: { store.backend == backend },
+                                set: { if $0 { store.backend = backend } }))
                         }
                     }
                     Divider()
@@ -878,6 +870,7 @@ struct Composer: View {
                     Label(store.modelLabel, systemImage: "cpu")
                 }
                 .menuStyle(.borderlessButton)
+                .disabled(store.busy != nil || store.asking)
                 .fixedSize()
                 .font(Theme.caption)
                 Button { store.chooseFilesToAdd() } label: {
@@ -889,10 +882,12 @@ struct Composer: View {
                       ? "Add documents, photos or recordings. The model proposes where each belongs; you approve it in the Inbox."
                       : "Add documents or recordings to the vault as sources.")
                 Spacer()
-                Label(store.backend == .remote ? "Sent to \(Remote.host) · counseling stays here" : "Private · nothing leaves this Mac",
-                      systemImage: store.backend == .remote ? "network" : "lock.fill")
+                Label(store.backend.locationLabel,
+                      systemImage: store.backend != .mlx ? "network" : "lock.fill")
                     .labelStyle(TightLabel())
-                    .font(Theme.caption).foregroundStyle(store.backend == .remote ? Color.orange : .secondary)
+                    .font(Theme.caption).foregroundStyle(store.backend != .mlx ? Color.orange : .secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .help(store.backend.privacyHelp)
             }
             .padding(.horizontal, 6)
         }

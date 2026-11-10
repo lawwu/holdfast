@@ -1,0 +1,9 @@
+{
+  "harness": "Holdfast + Pi Durable + extracted Swift library",
+  "model": "mlx-community/Qwen3.8-27B-4bit",
+  "seconds": 92.0292980670929,
+  "unchangedBeforeApproval": true,
+  "approvedCorrectly": true,
+  "undoExact": true,
+  "answer": "Done. I proposed marking \"Test extracted provider\" as done in checklist.md \u2014 the change waits in your Inbox for approval. [1]\n\n\nSources:\n  [1] [[checklist#Checklist]]  \u2014 checklist.md\n\n"
+}

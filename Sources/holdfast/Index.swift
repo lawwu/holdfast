@@ -3,7 +3,7 @@ import SQLite3
 
 /// A retrievable passage. `anchor` is what a citation points at: a timestamp
 /// (hh:mm:ss) for recordings, otherwise the nearest heading.
-struct Chunk {
+struct Chunk: Codable {
     var noteId: String
     var relPath: String
     var title: String

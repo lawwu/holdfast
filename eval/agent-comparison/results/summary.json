@@ -1,0 +1,64 @@
+{
+  "trials": 19,
+  "passed": 19,
+  "matchedOllamaPairs": [
+    {
+      "run": "initial",
+      "task": "checkbox",
+      "sameAnswer": true,
+      "sameCalls": true,
+      "piSeconds": 55.489239583,
+      "swiftSeconds": 57.033052921295166
+    },
+    {
+      "run": "initial",
+      "task": "combined",
+      "sameAnswer": true,
+      "sameCalls": true,
+      "piSeconds": 88.85448699999999,
+      "swiftSeconds": 100.44264602661133
+    },
+    {
+      "run": "initial",
+      "task": "generated",
+      "sameAnswer": true,
+      "sameCalls": true,
+      "piSeconds": 157.51379679200002,
+      "swiftSeconds": 154.48884296417236
+    },
+    {
+      "run": "initial",
+      "task": "insert",
+      "sameAnswer": true,
+      "sameCalls": true,
+      "piSeconds": 52.129954833,
+      "swiftSeconds": 59.932767033576965
+    },
+    {
+      "run": "initial",
+      "task": "table",
+      "sameAnswer": true,
+      "sameCalls": true,
+      "piSeconds": 89.90672179100001,
+      "swiftSeconds": 93.9128669500351
+    },
+    {
+      "run": "reversed",
+      "task": "checkbox",
+      "sameAnswer": true,
+      "sameCalls": true,
+      "piSeconds": 82.895087708,
+      "swiftSeconds": 87.86631405353546
+    },
+    {
+      "run": "reversed",
+      "task": "combined",
+      "sameAnswer": true,
+      "sameCalls": true,
+      "piSeconds": 106.342389416,
+      "swiftSeconds": 108.22604894638062
+    }
+  ],
+  "maxSecondsOutsideModelRequests": 0.5734511165646836,
+  "interpretation": "Pi is functionally compatible with Holdfast tools in these short tasks. Harness overhead is small. Timings are noisy and cross-engine weights differ; this does not establish a stable speed advantage."
+}

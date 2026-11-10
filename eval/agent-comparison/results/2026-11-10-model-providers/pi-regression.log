@@ -1,0 +1,6 @@
+PASS proposal → two approvals → byte-exact Undo (BOM/CRLF)
+PASS follow-up retains native citations across process restart
+PASS proposal replay is idempotent and stale approval is refused
+PASS generated / non-note / traversal guards
+PASS killed Swift host resumes durable work without another proposal
+PASS cancellation stops inference and persists a cancelled Pi run

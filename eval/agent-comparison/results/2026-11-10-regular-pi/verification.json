@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-10",
+  "harness": "regular Pi coding-agent SDK 1.5.1",
+  "default": "Pi for normal Holdfast app and CLI; LocalMLX for inference",
+  "runtime": "Runtime/pi",
+  "artifact": "build/Holdfast Pi.app",
+  "artifact_bundle_id": "net.lawrencewu.holdfast.pi-regular",
+  "checks": {
+    "build": "passed",
+    "bridge": "5 tests: saved history, deduplication, crash with no replay, Stop, tool allowlist, native error results",
+    "native_integration": "6 groups: edits, approvals, exact Undo, citations, guards, interruption, cancellation",
+    "providers": "all 3 server adapters in Pi and comparison Swift harness; private-data checks; archived Durable migration",
+    "package": "signature verified; regular Pi bundled, no Durable dependency; 9 scenarios passed using packaged executable and runtime",
+    "reusable_provider": "TypeScript check and all 6 package test groups passed; regular Pi and Pi Durable compatibility retained",
+    "real_models": "regular Pi with LocalMLX Qwen3.8-27B-4bit and installed Ollama 27B: proposal \u2192 approval \u2192 byte-exact Undo",
+    "architecture": "both Holdfast diagrams now use regular Pi; all four views checked at mobile/desktop widths; no JS errors"
+  },
+  "migration": {
+    "old_durable_files": "preserved; no SQLite import or job replay",
+    "privacy_and_sources": "read-only legacy sidecar copied when continuing the same conversation",
+    "old_app_history": "short handoff for a fresh Pi session"
+  },
+  "limits": [
+    "Interrupted jobs wait for a new user request; partial generations are not resumed.",
+    "LM Studio and custom-server tests use synthetic compatible servers.",
+    "Settings controls were compiled, not clicked through manually.",
+    "Node remains an external prerequisite."
+  ],
+  "committed": false,
+  "pushed": false
+}

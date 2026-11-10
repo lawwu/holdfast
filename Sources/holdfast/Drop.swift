@@ -209,9 +209,9 @@ enum Drop {
         let hits = (try? await search(probe, embedder: embedder, limit: 24, packs: false)) ?? []  // filing goes into your notes, never a pack
         // A document that looks like counseling material is filed with this Mac's model, never another Mac's.
         var llm = askedLLM
-        if llm is RemoteBackend, Remote.touchesCounseling(Array(hits.prefix(relatedNotes))) {
+        if usesModelServer(llm), ModelPrivacy.touchesCounseling(hits) || url.pathComponents.contains(where: Profile.isCounseling) || Profile.vaultDefault.id == Profile.counseling.id {
             llm = try await MLXBackend.shared()
-            Remote.keptLocal = true
+            ModelPrivacy.keptLocal = true
         }
         var seen = Set<String>(), related: [String] = [], shown: [String] = []
         for h in hits where !h.relPath.hasPrefix("@") && seen.insert(h.relPath).inserted {

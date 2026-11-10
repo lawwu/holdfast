@@ -622,70 +622,13 @@ struct FloatingPanel<Content: View>: View {
 // MARK: - A model on another Mac (setup)
 
 struct RemoteSetupSheet: View {
-    @EnvironmentObject var store: Store
     @Environment(\.dismiss) private var dismiss
-    @State private var address = UserDefaults.standard.string(forKey: "remoteURL") ?? ""
-    @State private var models: [String] = []
-    @State private var model = UserDefaults.standard.string(forKey: "remoteModel") ?? ""
-    @State private var status: String?
-    @State private var ok = false
-    @State private var checking = false
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Use a Model on Another Mac").font(Theme.title2)
-            Text("Your vault, its index and search stay on this Mac. The other Mac's model receives each question with the passages search found, the conversation so far, folder READMEs, Research's note reads and table results, documents you drop for filing, and note pairs when suggesting links. Counseling notes never leave this Mac: anything that involves them is answered here. Run LM Studio (or mlx_lm.server, or Ollama) there with its server on, and use its Tailscale name so the traffic is encrypted.")
-                .font(Theme.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            HStack {
-                TextField("http://studio:1234", text: $address).textFieldStyle(.roundedBorder).font(Theme.body)
-                Button(checking ? "Checking…" : "Connect") { Task { await check() } }.disabled(checking || address.isEmpty)
-            }
-            Text("LM Studio uses port 1234, mlx_lm.server 8080, Ollama 11434.").font(Theme.caption).foregroundStyle(.tertiary)
-            if let status {
-                Label(status, systemImage: ok ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                    .foregroundStyle(ok ? Color.green : Color.orange).font(Theme.callout)
-            }
-            if !models.isEmpty {
-                Picker("Model", selection: $model) {
-                    ForEach(models, id: \.self) { Text($0).tag($0) }
-                }
-            }
-            HStack {
-                Spacer()
-                Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
-                Button("Use This Model") {
-                    UserDefaults.standard.set(address.trimmingCharacters(in: .whitespaces), forKey: "remoteURL")
-                    UserDefaults.standard.set(model, forKey: "remoteModel")
-                    store.backend = .remote
-                    dismiss()
-                }
-                .keyboardShortcut(.defaultAction)
-                .disabled(!ok || model.isEmpty)
-            }
-        }
-        .padding(24)
-        .frame(width: 540)
-        .task { if !address.isEmpty { await check() } }
-    }
-
-    func check() async {
-        checking = true
-        defer { checking = false }
-        var a = address.trimmingCharacters(in: .whitespaces)
-        if !a.contains("://") { a = "http://" + a; address = a }
-        guard let u = URL(string: a), u.host != nil else { ok = false; status = "That doesn't look like an address."; return }
-        do {
-            let ms = try await Remote.ping(u)
-            models = try await Remote.models(at: u)
-            if !models.contains(model) { model = models.first ?? "" }
-            ok = true
-            let tailnet = u.host!.hasSuffix(".ts.net") || u.host!.hasPrefix("100.") || !u.host!.contains(".")
-            status = "Connected to \(u.host!) · \(ms) ms · \(models.count) model\(models.count == 1 ? "" : "s")"
-                + (u.scheme == "https" || tailnet ? "" : " · not a Tailscale address: traffic on your network isn't encrypted")
-        } catch {
-            ok = false
-            status = "Couldn't reach \(u.host ?? a): is its server on, and is this Mac on the same network or tailnet?"
-        }
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Custom model server").font(Theme.title2)
+            ServerConnectionSettings(kind: .custom)
+            HStack { Spacer(); Button("Done") { dismiss() }.keyboardShortcut(.defaultAction) }
+        }.padding(24).frame(width: 600)
     }
 }
 

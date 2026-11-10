@@ -1,0 +1,2599 @@
+[
+  {
+    "case": "exact-unicode",
+    "arm": "pi-native",
+    "input": {
+      "id": "exact-unicode",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ]
+      ]
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tool": {
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Successfully replaced 1 block(s) in note.md."
+          }
+        ],
+        "details": {
+          "diff": " 1 # Notes\n 2 \n-3 - [ ] Renew policy\n+3 - [x] Renew policy\n 4 \n 5 Keep: “Café”—½\n 6 Hard break  \n 7 next line",
+          "firstChangedLine": 3
+        }
+      },
+      "isError": false
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "cd68aa3b11dcc22c322b658384eda34be08ff1488c32c35866add024073b151b"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": "--- before\n+++ after\n@@ -1,6 +1,6 @@\n # Notes\n \n-- [ ] Renew policy\n+- [x] Renew policy\n \n Keep: “Café”—½\n Hard break  \n"
+  },
+  {
+    "case": "exact-unicode",
+    "arm": "holdfast",
+    "input": {
+      "id": "exact-unicode",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ]
+      ]
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tools": [
+      {
+        "isError": false,
+        "localOnly": false,
+        "text": "Proposed a change to note.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Renew policy\n+ - [x] Renew policy"
+      }
+    ],
+    "unchangedBeforeApproval": true,
+    "proposals": [
+      {
+        "id": "@inbox/20261109-edit-note-md",
+        "raw": {
+          "text": "---\naction: \"edit\"\nbase_hash: \"68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2\"\nkind: \"filing\"\nproposed: \"2026-11-09\"\nproposed_by: \"Ask\"\ntarget: \"note.md\"\ntitle: \"Change note.md\"\nwhy: \"Synthetic editor comparison\"\n---\n# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "base64": "LS0tCmFjdGlvbjogImVkaXQiCmJhc2VfaGFzaDogIjY4NTQzZmJkYTE4NmZhYmM5MzNlNGM3NGU1MzI5M2EwZjNjMTUzNTVhNDQyZTQwZDFjZDU0MmNjYTc1NzczYTIiCmtpbmQ6ICJmaWxpbmciCnByb3Bvc2VkOiAiMjAyNi0xMS0wOSIKcHJvcG9zZWRfYnk6ICJBc2siCnRhcmdldDogIm5vdGUubWQiCnRpdGxlOiAiQ2hhbmdlIG5vdGUubWQiCndoeTogIlN5bnRoZXRpYyBlZGl0b3IgY29tcGFyaXNvbiIKLS0tCiMgTm90ZXMKCi0gW3hdIFJlbmV3IHBvbGljeQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+          "sha256": "6ce87c48a99db3d7672ff68e0062dcc7e0cb8f58cc3e82bbadaac352cb2f4544"
+        },
+        "body": {
+          "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+          "sha256": "cd68aa3b11dcc22c322b658384eda34be08ff1488c32c35866add024073b151b"
+        }
+      }
+    ],
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "apply": {
+      "code": 0,
+      "stdout": "approved → note.md (run `holdfast index`)\n",
+      "stderr": "",
+      "seconds": 0.07580954197328538
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "cd68aa3b11dcc22c322b658384eda34be08ff1488c32c35866add024073b151b"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": "--- before\n+++ after\n@@ -1,6 +1,6 @@\n # Notes\n \n-- [ ] Renew policy\n+- [x] Renew policy\n \n Keep: “Café”—½\n Hard break  \n",
+    "undo": {
+      "code": 0,
+      "stdout": "Undid filing to note.md; the proposal is back in the inbox.\n",
+      "stderr": "",
+      "seconds": 0.07575637509580702
+    },
+    "undoExact": true,
+    "afterUndo": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    }
+  },
+  {
+    "case": "ambiguous",
+    "arm": "pi-native",
+    "input": {
+      "id": "ambiguous",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\n- [ ] Renew policy\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ]
+      ]
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\n- [ ] Renew policy\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUKCi0gWyBdIFJlbmV3IHBvbGljeQo=",
+        "sha256": "bf8a18ef0c9d0b7b01a1a76f2107f1043b0a692188e6423cdbab693c9bd384bf"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\n- [ ] Renew policy\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUKCi0gWyBdIFJlbmV3IHBvbGljeQo=",
+        "sha256": "bf8a18ef0c9d0b7b01a1a76f2107f1043b0a692188e6423cdbab693c9bd384bf"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tool": {
+      "isError": true,
+      "error": "Found 2 occurrences of the text in note.md. The text must be unique. Please provide more context to make it unique."
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\n- [ ] Renew policy\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUKCi0gWyBdIFJlbmV3IHBvbGljeQo=",
+        "sha256": "bf8a18ef0c9d0b7b01a1a76f2107f1043b0a692188e6423cdbab693c9bd384bf"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": ""
+  },
+  {
+    "case": "ambiguous",
+    "arm": "holdfast",
+    "input": {
+      "id": "ambiguous",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\n- [ ] Renew policy\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ]
+      ]
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\n- [ ] Renew policy\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUKCi0gWyBdIFJlbmV3IHBvbGljeQo=",
+        "sha256": "bf8a18ef0c9d0b7b01a1a76f2107f1043b0a692188e6423cdbab693c9bd384bf"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tools": [
+      {
+        "isError": true,
+        "localOnly": false,
+        "text": "Error: that text is in note.md 2 times; include more of the line so it matches once"
+      }
+    ],
+    "unchangedBeforeApproval": true,
+    "proposals": [],
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\n- [ ] Renew policy\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUKCi0gWyBdIFJlbmV3IHBvbGljeQo=",
+        "sha256": "bf8a18ef0c9d0b7b01a1a76f2107f1043b0a692188e6423cdbab693c9bd384bf"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\n- [ ] Renew policy\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUKCi0gWyBdIFJlbmV3IHBvbGljeQo=",
+        "sha256": "bf8a18ef0c9d0b7b01a1a76f2107f1043b0a692188e6423cdbab693c9bd384bf"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": ""
+  },
+  {
+    "case": "fuzzy-quotes",
+    "arm": "pi-native",
+    "input": {
+      "id": "fuzzy-quotes",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Review “Plan A”\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "- [ ] Review \"Plan A\"",
+          "- [x] Review \"Plan A\""
+        ]
+      ]
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Review “Plan A”\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmV2aWV3IOKAnFBsYW4gQeKAnQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+        "sha256": "5770700a373dde64a8af54e673e9c7279585181b5488b7a22d53721906b0c223"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Review “Plan A”\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmV2aWV3IOKAnFBsYW4gQeKAnQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+        "sha256": "5770700a373dde64a8af54e673e9c7279585181b5488b7a22d53721906b0c223"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tool": {
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Successfully replaced 1 block(s) in note.md."
+          }
+        ],
+        "details": {
+          "diff": " 1 # Notes\n 2 \n-3 - [ ] Review \"Plan A\"\n+3 - [x] Review \"Plan A\"\n 4 \n 5 Keep: \"Café\"-1⁄2\n 6 Hard break\n 7 next line",
+          "firstChangedLine": 3
+        }
+      },
+      "isError": false
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [x] Review \"Plan A\"\n\nKeep: \"Café\"-1⁄2\nHard break\nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbeF0gUmV2aWV3ICJQbGFuIEEiCgpLZWVwOiAiQ2Fmw6kiLTHigYQyCkhhcmQgYnJlYWsKbmV4dCBsaW5lCg==",
+        "sha256": "e8186b15c63267d49840010a5d097693c39232a69279ceeeb057f3fd3f1ff935"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": "--- before\n+++ after\n@@ -1,7 +1,7 @@\n # Notes\n \n-- [ ] Review “Plan A”\n+- [x] Review \"Plan A\"\n \n-Keep: “Café”—½\n-Hard break  \n+Keep: \"Café\"-1⁄2\n+Hard break\n next line\n"
+  },
+  {
+    "case": "fuzzy-quotes",
+    "arm": "holdfast",
+    "input": {
+      "id": "fuzzy-quotes",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Review “Plan A”\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "- [ ] Review \"Plan A\"",
+          "- [x] Review \"Plan A\""
+        ]
+      ]
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Review “Plan A”\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmV2aWV3IOKAnFBsYW4gQeKAnQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+        "sha256": "5770700a373dde64a8af54e673e9c7279585181b5488b7a22d53721906b0c223"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tools": [
+      {
+        "isError": true,
+        "localOnly": false,
+        "text": "Error: that text isn't in note.md; read_note it and copy the line exactly, including any - [ ] and **"
+      }
+    ],
+    "unchangedBeforeApproval": true,
+    "proposals": [],
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Review “Plan A”\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmV2aWV3IOKAnFBsYW4gQeKAnQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+        "sha256": "5770700a373dde64a8af54e673e9c7279585181b5488b7a22d53721906b0c223"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Review “Plan A”\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmV2aWV3IOKAnFBsYW4gQeKAnQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+        "sha256": "5770700a373dde64a8af54e673e9c7279585181b5488b7a22d53721906b0c223"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": ""
+  },
+  {
+    "case": "bom-crlf",
+    "arm": "pi-native",
+    "input": {
+      "id": "bom-crlf",
+      "path": "note.md",
+      "before": "﻿# Notes\r\n\r\n- [ ] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ]
+      ]
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "﻿# Notes\r\n\r\n- [ ] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+        "base64": "77u/IyBOb3Rlcw0KDQotIFsgXSBSZW5ldyBwb2xpY3kNCg0KS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQ0KSGFyZCBicmVhayAgDQpuZXh0IGxpbmUNCg==",
+        "sha256": "e19ed7571f28ff01bb72f9fcb1e895ea2f2c99a8a176df2a5597b2a078ec0a86"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "﻿# Notes\r\n\r\n- [ ] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+        "base64": "77u/IyBOb3Rlcw0KDQotIFsgXSBSZW5ldyBwb2xpY3kNCg0KS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQ0KSGFyZCBicmVhayAgDQpuZXh0IGxpbmUNCg==",
+        "sha256": "e19ed7571f28ff01bb72f9fcb1e895ea2f2c99a8a176df2a5597b2a078ec0a86"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tool": {
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Successfully replaced 1 block(s) in note.md."
+          }
+        ],
+        "details": {
+          "diff": " 1 # Notes\n 2 \n-3 - [ ] Renew policy\n+3 - [x] Renew policy\n 4 \n 5 Keep: “Café”—½\n 6 Hard break  \n 7 next line",
+          "firstChangedLine": 3
+        }
+      },
+      "isError": false
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "﻿# Notes\r\n\r\n- [x] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+        "base64": "77u/IyBOb3Rlcw0KDQotIFt4XSBSZW5ldyBwb2xpY3kNCg0KS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQ0KSGFyZCBicmVhayAgDQpuZXh0IGxpbmUNCg==",
+        "sha256": "12f04a9d823fc2de587c69bcf4edcdbd8bd217a9ea8bcc666447cd019d5d8315"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": "--- before\n+++ after\n@@ -1,6 +1,6 @@\n ﻿# Notes\r\n \r\n-- [ ] Renew policy\r\n+- [x] Renew policy\r\n \r\n Keep: “Café”—½\r\n Hard break  \r\n"
+  },
+  {
+    "case": "bom-crlf",
+    "arm": "holdfast",
+    "input": {
+      "id": "bom-crlf",
+      "path": "note.md",
+      "before": "﻿# Notes\r\n\r\n- [ ] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ]
+      ]
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "﻿# Notes\r\n\r\n- [ ] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+        "base64": "77u/IyBOb3Rlcw0KDQotIFsgXSBSZW5ldyBwb2xpY3kNCg0KS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQ0KSGFyZCBicmVhayAgDQpuZXh0IGxpbmUNCg==",
+        "sha256": "e19ed7571f28ff01bb72f9fcb1e895ea2f2c99a8a176df2a5597b2a078ec0a86"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tools": [
+      {
+        "isError": false,
+        "localOnly": false,
+        "text": "Proposed a change to note.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Renew policy\r\n+ - [x] Renew policy\r"
+      }
+    ],
+    "unchangedBeforeApproval": true,
+    "proposals": [
+      {
+        "id": "@inbox/20261109-edit-note-md",
+        "raw": {
+          "text": "---\naction: \"edit\"\nbase_hash: \"9c4a564a0feee128fc864537deb87505f334b09a8e47cd6af781872c64abfe88\"\nkind: \"filing\"\nproposed: \"2026-11-09\"\nproposed_by: \"Ask\"\ntarget: \"note.md\"\ntitle: \"Change note.md\"\nwhy: \"Synthetic editor comparison\"\n---\n# Notes\r\n\r\n- [x] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+          "base64": "LS0tCmFjdGlvbjogImVkaXQiCmJhc2VfaGFzaDogIjljNGE1NjRhMGZlZWUxMjhmYzg2NDUzN2RlYjg3NTA1ZjMzNGIwOWE4ZTQ3Y2Q2YWY3ODE4NzJjNjRhYmZlODgiCmtpbmQ6ICJmaWxpbmciCnByb3Bvc2VkOiAiMjAyNi0xMS0wOSIKcHJvcG9zZWRfYnk6ICJBc2siCnRhcmdldDogIm5vdGUubWQiCnRpdGxlOiAiQ2hhbmdlIG5vdGUubWQiCndoeTogIlN5bnRoZXRpYyBlZGl0b3IgY29tcGFyaXNvbiIKLS0tCiMgTm90ZXMNCg0KLSBbeF0gUmVuZXcgcG9saWN5DQoNCktlZXA6IOKAnENhZsOp4oCd4oCUwr0NCkhhcmQgYnJlYWsgIA0KbmV4dCBsaW5lDQo=",
+          "sha256": "e0d57a8c467f7acf2751145f3eb6308e957cb98666f3c5bf8d088c5ba85afa07"
+        },
+        "body": {
+          "text": "# Notes\r\n\r\n- [x] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+          "base64": "IyBOb3Rlcw0KDQotIFt4XSBSZW5ldyBwb2xpY3kNCg0KS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQ0KSGFyZCBicmVhayAgDQpuZXh0IGxpbmUNCg==",
+          "sha256": "da51712fbc50e301f6243d35cfa993dd2b35f0c188dc7780c47e56cec00daa13"
+        }
+      }
+    ],
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "﻿# Notes\r\n\r\n- [ ] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+        "base64": "77u/IyBOb3Rlcw0KDQotIFsgXSBSZW5ldyBwb2xpY3kNCg0KS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQ0KSGFyZCBicmVhayAgDQpuZXh0IGxpbmUNCg==",
+        "sha256": "e19ed7571f28ff01bb72f9fcb1e895ea2f2c99a8a176df2a5597b2a078ec0a86"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "apply": {
+      "code": 0,
+      "stdout": "approved → note.md (run `holdfast index`)\n",
+      "stderr": "",
+      "seconds": 0.058534624986350536
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\r\n\r\n- [x] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+        "base64": "IyBOb3Rlcw0KDQotIFt4XSBSZW5ldyBwb2xpY3kNCg0KS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQ0KSGFyZCBicmVhayAgDQpuZXh0IGxpbmUNCg==",
+        "sha256": "da51712fbc50e301f6243d35cfa993dd2b35f0c188dc7780c47e56cec00daa13"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": "--- before\n+++ after\n@@ -1,6 +1,6 @@\n-﻿# Notes\r\n+# Notes\r\n \r\n-- [ ] Renew policy\r\n+- [x] Renew policy\r\n \r\n Keep: “Café”—½\r\n Hard break  \r\n",
+    "undo": {
+      "code": 0,
+      "stdout": "Undid filing to note.md; the proposal is back in the inbox.\n",
+      "stderr": "",
+      "seconds": 0.07186316698789597
+    },
+    "undoExact": false,
+    "afterUndo": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\r\n\r\n- [ ] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+        "base64": "IyBOb3Rlcw0KDQotIFsgXSBSZW5ldyBwb2xpY3kNCg0KS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQ0KSGFyZCBicmVhayAgDQpuZXh0IGxpbmUNCg==",
+        "sha256": "9c4a564a0feee128fc864537deb87505f334b09a8e47cd6af781872c64abfe88"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    }
+  },
+  {
+    "case": "crlf-multiline",
+    "arm": "pi-native",
+    "input": {
+      "id": "crlf-multiline",
+      "path": "note.md",
+      "before": "# Notes\r\n\r\n- [ ] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+      "edits": [
+        [
+          "# Notes\n\n- [ ] Renew policy",
+          "# Notes\n\n- [x] Renew policy"
+        ]
+      ]
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\r\n\r\n- [ ] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+        "base64": "IyBOb3Rlcw0KDQotIFsgXSBSZW5ldyBwb2xpY3kNCg0KS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQ0KSGFyZCBicmVhayAgDQpuZXh0IGxpbmUNCg==",
+        "sha256": "9c4a564a0feee128fc864537deb87505f334b09a8e47cd6af781872c64abfe88"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\r\n\r\n- [ ] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+        "base64": "IyBOb3Rlcw0KDQotIFsgXSBSZW5ldyBwb2xpY3kNCg0KS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQ0KSGFyZCBicmVhayAgDQpuZXh0IGxpbmUNCg==",
+        "sha256": "9c4a564a0feee128fc864537deb87505f334b09a8e47cd6af781872c64abfe88"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tool": {
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Successfully replaced 1 block(s) in note.md."
+          }
+        ],
+        "details": {
+          "diff": " 1 # Notes\n 2 \n-3 - [ ] Renew policy\n+3 - [x] Renew policy\n 4 \n 5 Keep: “Café”—½\n 6 Hard break  \n 7 next line",
+          "firstChangedLine": 3
+        }
+      },
+      "isError": false
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\r\n\r\n- [x] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+        "base64": "IyBOb3Rlcw0KDQotIFt4XSBSZW5ldyBwb2xpY3kNCg0KS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQ0KSGFyZCBicmVhayAgDQpuZXh0IGxpbmUNCg==",
+        "sha256": "da51712fbc50e301f6243d35cfa993dd2b35f0c188dc7780c47e56cec00daa13"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": "--- before\n+++ after\n@@ -1,6 +1,6 @@\n # Notes\r\n \r\n-- [ ] Renew policy\r\n+- [x] Renew policy\r\n \r\n Keep: “Café”—½\r\n Hard break  \r\n"
+  },
+  {
+    "case": "crlf-multiline",
+    "arm": "holdfast",
+    "input": {
+      "id": "crlf-multiline",
+      "path": "note.md",
+      "before": "# Notes\r\n\r\n- [ ] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+      "edits": [
+        [
+          "# Notes\n\n- [ ] Renew policy",
+          "# Notes\n\n- [x] Renew policy"
+        ]
+      ]
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\r\n\r\n- [ ] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+        "base64": "IyBOb3Rlcw0KDQotIFsgXSBSZW5ldyBwb2xpY3kNCg0KS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQ0KSGFyZCBicmVhayAgDQpuZXh0IGxpbmUNCg==",
+        "sha256": "9c4a564a0feee128fc864537deb87505f334b09a8e47cd6af781872c64abfe88"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tools": [
+      {
+        "isError": true,
+        "localOnly": false,
+        "text": "Error: that text isn't in note.md; read_note it and copy the line exactly, including any - [ ] and **"
+      }
+    ],
+    "unchangedBeforeApproval": true,
+    "proposals": [],
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\r\n\r\n- [ ] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+        "base64": "IyBOb3Rlcw0KDQotIFsgXSBSZW5ldyBwb2xpY3kNCg0KS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQ0KSGFyZCBicmVhayAgDQpuZXh0IGxpbmUNCg==",
+        "sha256": "9c4a564a0feee128fc864537deb87505f334b09a8e47cd6af781872c64abfe88"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\r\n\r\n- [ ] Renew policy\r\n\r\nKeep: “Café”—½\r\nHard break  \r\nnext line\r\n",
+        "base64": "IyBOb3Rlcw0KDQotIFsgXSBSZW5ldyBwb2xpY3kNCg0KS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQ0KSGFyZCBicmVhayAgDQpuZXh0IGxpbmUNCg==",
+        "sha256": "9c4a564a0feee128fc864537deb87505f334b09a8e47cd6af781872c64abfe88"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": ""
+  },
+  {
+    "case": "multiple",
+    "arm": "pi-native",
+    "input": {
+      "id": "multiple",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ],
+        [
+          "next line",
+          "last line"
+        ]
+      ]
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tool": {
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Successfully replaced 2 block(s) in note.md."
+          }
+        ],
+        "details": {
+          "diff": " 1 # Notes\n 2 \n-3 - [ ] Renew policy\n+3 - [x] Renew policy\n 4 \n 5 Keep: “Café”—½\n 6 Hard break  \n-7 next line\n+7 last line",
+          "firstChangedLine": 3
+        }
+      },
+      "isError": false
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nlast line\n",
+        "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApsYXN0IGxpbmUK",
+        "sha256": "66336d014622ebdc8fb1fc44057ad42cf869edd6ce2c981beb502fe4bbef7158"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": "--- before\n+++ after\n@@ -1,7 +1,7 @@\n # Notes\n \n-- [ ] Renew policy\n+- [x] Renew policy\n \n Keep: “Café”—½\n Hard break  \n-next line\n+last line\n"
+  },
+  {
+    "case": "multiple",
+    "arm": "holdfast",
+    "input": {
+      "id": "multiple",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ],
+        [
+          "next line",
+          "last line"
+        ]
+      ]
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tools": [
+      {
+        "isError": false,
+        "localOnly": false,
+        "text": "Proposed a change to note.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Renew policy\n+ - [x] Renew policy"
+      },
+      {
+        "isError": false,
+        "localOnly": false,
+        "text": "Proposed a change to note.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Renew policy\n+ - [x] Renew policy\n… \n- next line\n+ last line"
+      }
+    ],
+    "unchangedBeforeApproval": true,
+    "proposals": [
+      {
+        "id": "@inbox/20261109-edit-note-md",
+        "raw": {
+          "text": "---\naction: \"edit\"\nbase_hash: \"68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2\"\nkind: \"filing\"\nproposed: \"2026-11-09\"\nproposed_by: \"Ask\"\ntarget: \"note.md\"\ntitle: \"Change note.md\"\nwhy: \"Synthetic editor comparison · Synthetic editor comparison\"\n---\n# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nlast line\n",
+          "base64": "LS0tCmFjdGlvbjogImVkaXQiCmJhc2VfaGFzaDogIjY4NTQzZmJkYTE4NmZhYmM5MzNlNGM3NGU1MzI5M2EwZjNjMTUzNTVhNDQyZTQwZDFjZDU0MmNjYTc1NzczYTIiCmtpbmQ6ICJmaWxpbmciCnByb3Bvc2VkOiAiMjAyNi0xMS0wOSIKcHJvcG9zZWRfYnk6ICJBc2siCnRhcmdldDogIm5vdGUubWQiCnRpdGxlOiAiQ2hhbmdlIG5vdGUubWQiCndoeTogIlN5bnRoZXRpYyBlZGl0b3IgY29tcGFyaXNvbiDCtyBTeW50aGV0aWMgZWRpdG9yIGNvbXBhcmlzb24iCi0tLQojIE5vdGVzCgotIFt4XSBSZW5ldyBwb2xpY3kKCktlZXA6IOKAnENhZsOp4oCd4oCUwr0KSGFyZCBicmVhayAgCmxhc3QgbGluZQo=",
+          "sha256": "abb9c264b314a9c7f70b720771d033345042ba17dbf8432ec146f733678881d4"
+        },
+        "body": {
+          "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nlast line\n",
+          "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApsYXN0IGxpbmUK",
+          "sha256": "66336d014622ebdc8fb1fc44057ad42cf869edd6ce2c981beb502fe4bbef7158"
+        }
+      }
+    ],
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "apply": {
+      "code": 0,
+      "stdout": "approved → note.md (run `holdfast index`)\n",
+      "stderr": "",
+      "seconds": 0.05887179193086922
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nlast line\n",
+        "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApsYXN0IGxpbmUK",
+        "sha256": "66336d014622ebdc8fb1fc44057ad42cf869edd6ce2c981beb502fe4bbef7158"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": "--- before\n+++ after\n@@ -1,7 +1,7 @@\n # Notes\n \n-- [ ] Renew policy\n+- [x] Renew policy\n \n Keep: “Café”—½\n Hard break  \n-next line\n+last line\n",
+    "undo": {
+      "code": 0,
+      "stdout": "Undid filing to note.md; the proposal is back in the inbox.\n",
+      "stderr": "",
+      "seconds": 0.06113395805004984
+    },
+    "undoExact": true,
+    "afterUndo": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    }
+  },
+  {
+    "case": "batch-missing",
+    "arm": "pi-native",
+    "input": {
+      "id": "batch-missing",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ],
+        [
+          "missing text",
+          "last line"
+        ]
+      ],
+      "partial": true
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tool": {
+      "isError": true,
+      "error": "Could not find edits[1] in note.md. The oldText must match exactly including all whitespace and newlines."
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": ""
+  },
+  {
+    "case": "batch-missing",
+    "arm": "holdfast",
+    "input": {
+      "id": "batch-missing",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ],
+        [
+          "missing text",
+          "last line"
+        ]
+      ],
+      "partial": true
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tools": [
+      {
+        "isError": false,
+        "localOnly": false,
+        "text": "Proposed a change to note.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Renew policy\n+ - [x] Renew policy"
+      },
+      {
+        "isError": true,
+        "localOnly": false,
+        "text": "Error: that text isn't in note.md; read_note it and copy the line exactly, including any - [ ] and **"
+      }
+    ],
+    "unchangedBeforeApproval": true,
+    "proposals": [
+      {
+        "id": "@inbox/20261109-edit-note-md",
+        "raw": {
+          "text": "---\naction: \"edit\"\nbase_hash: \"68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2\"\nkind: \"filing\"\nproposed: \"2026-11-09\"\nproposed_by: \"Ask\"\ntarget: \"note.md\"\ntitle: \"Change note.md\"\nwhy: \"Synthetic editor comparison\"\n---\n# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "base64": "LS0tCmFjdGlvbjogImVkaXQiCmJhc2VfaGFzaDogIjY4NTQzZmJkYTE4NmZhYmM5MzNlNGM3NGU1MzI5M2EwZjNjMTUzNTVhNDQyZTQwZDFjZDU0MmNjYTc1NzczYTIiCmtpbmQ6ICJmaWxpbmciCnByb3Bvc2VkOiAiMjAyNi0xMS0wOSIKcHJvcG9zZWRfYnk6ICJBc2siCnRhcmdldDogIm5vdGUubWQiCnRpdGxlOiAiQ2hhbmdlIG5vdGUubWQiCndoeTogIlN5bnRoZXRpYyBlZGl0b3IgY29tcGFyaXNvbiIKLS0tCiMgTm90ZXMKCi0gW3hdIFJlbmV3IHBvbGljeQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+          "sha256": "6ce87c48a99db3d7672ff68e0062dcc7e0cb8f58cc3e82bbadaac352cb2f4544"
+        },
+        "body": {
+          "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+          "sha256": "cd68aa3b11dcc22c322b658384eda34be08ff1488c32c35866add024073b151b"
+        }
+      }
+    ],
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": ""
+  },
+  {
+    "case": "generated",
+    "arm": "pi-native",
+    "input": {
+      "id": "generated",
+      "path": "note.md",
+      "before": "> GENERATED by scripts/report.py\n\n# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ]
+      ]
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "> GENERATED by scripts/report.py\n\n# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "PiBHRU5FUkFURUQgYnkgc2NyaXB0cy9yZXBvcnQucHkKCiMgTm90ZXMKCi0gWyBdIFJlbmV3IHBvbGljeQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+        "sha256": "235efc9c27f0dc4c21c68ff9130ac042f2983a8ef059b6f6eb869fcec34afd65"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "> GENERATED by scripts/report.py\n\n# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "PiBHRU5FUkFURUQgYnkgc2NyaXB0cy9yZXBvcnQucHkKCiMgTm90ZXMKCi0gWyBdIFJlbmV3IHBvbGljeQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+        "sha256": "235efc9c27f0dc4c21c68ff9130ac042f2983a8ef059b6f6eb869fcec34afd65"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tool": {
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Successfully replaced 1 block(s) in note.md."
+          }
+        ],
+        "details": {
+          "diff": "  1 > GENERATED by scripts/report.py\n  2 \n  3 # Notes\n  4 \n- 5 - [ ] Renew policy\n+ 5 - [x] Renew policy\n  6 \n  7 Keep: “Café”—½\n  8 Hard break  \n  9 next line",
+          "firstChangedLine": 5
+        }
+      },
+      "isError": false
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "> GENERATED by scripts/report.py\n\n# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "PiBHRU5FUkFURUQgYnkgc2NyaXB0cy9yZXBvcnQucHkKCiMgTm90ZXMKCi0gW3hdIFJlbmV3IHBvbGljeQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+        "sha256": "83233f506974395ddd1e33ef8c49a743cb6f31dbe22a2ce1065d111065886c14"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": "--- before\n+++ after\n@@ -2,7 +2,7 @@\n \n # Notes\n \n-- [ ] Renew policy\n+- [x] Renew policy\n \n Keep: “Café”—½\n Hard break  \n"
+  },
+  {
+    "case": "generated",
+    "arm": "holdfast",
+    "input": {
+      "id": "generated",
+      "path": "note.md",
+      "before": "> GENERATED by scripts/report.py\n\n# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ]
+      ]
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "> GENERATED by scripts/report.py\n\n# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "PiBHRU5FUkFURUQgYnkgc2NyaXB0cy9yZXBvcnQucHkKCiMgTm90ZXMKCi0gWyBdIFJlbmV3IHBvbGljeQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+        "sha256": "235efc9c27f0dc4c21c68ff9130ac042f2983a8ef059b6f6eb869fcec34afd65"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tools": [
+      {
+        "isError": true,
+        "localOnly": false,
+        "text": "Error: note.md is generated by a script; change the script and regenerate it instead"
+      }
+    ],
+    "unchangedBeforeApproval": true,
+    "proposals": [],
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "> GENERATED by scripts/report.py\n\n# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "PiBHRU5FUkFURUQgYnkgc2NyaXB0cy9yZXBvcnQucHkKCiMgTm90ZXMKCi0gWyBdIFJlbmV3IHBvbGljeQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+        "sha256": "235efc9c27f0dc4c21c68ff9130ac042f2983a8ef059b6f6eb869fcec34afd65"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "> GENERATED by scripts/report.py\n\n# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "PiBHRU5FUkFURUQgYnkgc2NyaXB0cy9yZXBvcnQucHkKCiMgTm90ZXMKCi0gWyBdIFJlbmV3IHBvbGljeQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+        "sha256": "235efc9c27f0dc4c21c68ff9130ac042f2983a8ef059b6f6eb869fcec34afd65"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": ""
+  },
+  {
+    "case": "csv",
+    "arm": "pi-native",
+    "input": {
+      "id": "csv",
+      "path": "data.csv",
+      "before": "item,status\npolicy,open\n",
+      "edits": [
+        [
+          "policy,open",
+          "policy,done"
+        ]
+      ]
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "data.csv": {
+        "text": "item,status\npolicy,open\n",
+        "base64": "aXRlbSxzdGF0dXMKcG9saWN5LG9wZW4K",
+        "sha256": "4c654f5573262ed676c9362f64994e051f9fd8fb3a031f52ad0005f61d781c24"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "data.csv": {
+        "text": "item,status\npolicy,open\n",
+        "base64": "aXRlbSxzdGF0dXMKcG9saWN5LG9wZW4K",
+        "sha256": "4c654f5573262ed676c9362f64994e051f9fd8fb3a031f52ad0005f61d781c24"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tool": {
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Successfully replaced 1 block(s) in data.csv."
+          }
+        ],
+        "details": {
+          "diff": " 1 item,status\n-2 policy,open\n+2 policy,done",
+          "firstChangedLine": 2
+        }
+      },
+      "isError": false
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "data.csv": {
+        "text": "item,status\npolicy,done\n",
+        "base64": "aXRlbSxzdGF0dXMKcG9saWN5LGRvbmUK",
+        "sha256": "c53c72b9387322a09aa29c803434aae4b80baa465e3ae2966e5e027efccdd57a"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": "--- before\n+++ after\n@@ -1,2 +1,2 @@\n item,status\n-policy,open\n+policy,done\n"
+  },
+  {
+    "case": "csv",
+    "arm": "holdfast",
+    "input": {
+      "id": "csv",
+      "path": "data.csv",
+      "before": "item,status\npolicy,open\n",
+      "edits": [
+        [
+          "policy,open",
+          "policy,done"
+        ]
+      ]
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "data.csv": {
+        "text": "item,status\npolicy,open\n",
+        "base64": "aXRlbSxzdGF0dXMKcG9saWN5LG9wZW4K",
+        "sha256": "4c654f5573262ed676c9362f64994e051f9fd8fb3a031f52ad0005f61d781c24"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tools": [
+      {
+        "isError": true,
+        "localOnly": false,
+        "text": "Error: only notes (.md, .txt) can be changed this way; data.csv isn't one"
+      }
+    ],
+    "unchangedBeforeApproval": true,
+    "proposals": [],
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "data.csv": {
+        "text": "item,status\npolicy,open\n",
+        "base64": "aXRlbSxzdGF0dXMKcG9saWN5LG9wZW4K",
+        "sha256": "4c654f5573262ed676c9362f64994e051f9fd8fb3a031f52ad0005f61d781c24"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "data.csv": {
+        "text": "item,status\npolicy,open\n",
+        "base64": "aXRlbSxzdGF0dXMKcG9saWN5LG9wZW4K",
+        "sha256": "4c654f5573262ed676c9362f64994e051f9fd8fb3a031f52ad0005f61d781c24"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": ""
+  },
+  {
+    "case": "new-file",
+    "arm": "pi-native",
+    "input": {
+      "id": "new-file",
+      "path": "note.md",
+      "before": null,
+      "edits": [
+        [
+          "",
+          "# New note\n"
+        ]
+      ],
+      "write": "# New note\n"
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tool": {
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Successfully wrote 11 bytes to note.md"
+          }
+        ]
+      },
+      "isError": false
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# New note\n",
+        "base64": "IyBOZXcgbm90ZQo=",
+        "sha256": "d6c78a93d09403fc10fd5e20d17fbc5c5159a98e6893ca4f281ffc6c174265bf"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": "--- before\n+++ after\n@@ -0,0 +1 @@\n+# New note\n"
+  },
+  {
+    "case": "new-file",
+    "arm": "holdfast",
+    "input": {
+      "id": "new-file",
+      "path": "note.md",
+      "before": null,
+      "edits": [
+        [
+          "",
+          "# New note\n"
+        ]
+      ],
+      "write": "# New note\n"
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tools": [
+      {
+        "isError": true,
+        "localOnly": false,
+        "text": "Error: no note at note.md; use list_folder to find it (new notes come in through the drop folder)"
+      }
+    ],
+    "unchangedBeforeApproval": true,
+    "proposals": [],
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": ""
+  },
+  {
+    "case": "stale-unrelated",
+    "arm": "pi-native",
+    "input": {
+      "id": "stale-unrelated",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ]
+      ],
+      "concurrent": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\nAdded by another writer.\n"
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "read": {
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n"
+          }
+        ]
+      },
+      "isError": false
+    },
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\nAdded by another writer.\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUKCkFkZGVkIGJ5IGFub3RoZXIgd3JpdGVyLgo=",
+        "sha256": "224bd3a6ae7ab4b2124063981c1b4708edd4ff96576476b24a0ee856f641c6eb"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tool": {
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Successfully replaced 1 block(s) in note.md."
+          }
+        ],
+        "details": {
+          "diff": "  1 # Notes\n  2 \n- 3 - [ ] Renew policy\n+ 3 - [x] Renew policy\n  4 \n  5 Keep: “Café”—½\n  6 Hard break  \n  7 next line\n    ...",
+          "firstChangedLine": 3
+        }
+      },
+      "isError": false
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\nAdded by another writer.\n",
+        "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUKCkFkZGVkIGJ5IGFub3RoZXIgd3JpdGVyLgo=",
+        "sha256": "26e7757bae00a89924273a7e681f6610939da6498cdefc3efa332dde368439bc"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": "--- before\n+++ after\n@@ -1,6 +1,6 @@\n # Notes\n \n-- [ ] Renew policy\n+- [x] Renew policy\n \n Keep: “Café”—½\n Hard break  \n"
+  },
+  {
+    "case": "stale-unrelated",
+    "arm": "holdfast",
+    "input": {
+      "id": "stale-unrelated",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ]
+      ],
+      "concurrent": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\nAdded by another writer.\n"
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tools": [
+      {
+        "isError": false,
+        "localOnly": false,
+        "text": "Proposed a change to note.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Renew policy\n+ - [x] Renew policy"
+      }
+    ],
+    "unchangedBeforeApproval": true,
+    "proposals": [
+      {
+        "id": "@inbox/20261109-edit-note-md",
+        "raw": {
+          "text": "---\naction: \"edit\"\nbase_hash: \"68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2\"\nkind: \"filing\"\nproposed: \"2026-11-09\"\nproposed_by: \"Ask\"\ntarget: \"note.md\"\ntitle: \"Change note.md\"\nwhy: \"Synthetic editor comparison\"\n---\n# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "base64": "LS0tCmFjdGlvbjogImVkaXQiCmJhc2VfaGFzaDogIjY4NTQzZmJkYTE4NmZhYmM5MzNlNGM3NGU1MzI5M2EwZjNjMTUzNTVhNDQyZTQwZDFjZDU0MmNjYTc1NzczYTIiCmtpbmQ6ICJmaWxpbmciCnByb3Bvc2VkOiAiMjAyNi0xMS0wOSIKcHJvcG9zZWRfYnk6ICJBc2siCnRhcmdldDogIm5vdGUubWQiCnRpdGxlOiAiQ2hhbmdlIG5vdGUubWQiCndoeTogIlN5bnRoZXRpYyBlZGl0b3IgY29tcGFyaXNvbiIKLS0tCiMgTm90ZXMKCi0gW3hdIFJlbmV3IHBvbGljeQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+          "sha256": "6ce87c48a99db3d7672ff68e0062dcc7e0cb8f58cc3e82bbadaac352cb2f4544"
+        },
+        "body": {
+          "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+          "sha256": "cd68aa3b11dcc22c322b658384eda34be08ff1488c32c35866add024073b151b"
+        }
+      }
+    ],
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\nAdded by another writer.\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUKCkFkZGVkIGJ5IGFub3RoZXIgd3JpdGVyLgo=",
+        "sha256": "224bd3a6ae7ab4b2124063981c1b4708edd4ff96576476b24a0ee856f641c6eb"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "apply": {
+      "code": 1,
+      "stdout": "",
+      "stderr": "error: note.md changed after this change was proposed; reject it and ask again\n",
+      "seconds": 0.08378495799843222
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\nAdded by another writer.\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUKCkFkZGVkIGJ5IGFub3RoZXIgd3JpdGVyLgo=",
+        "sha256": "224bd3a6ae7ab4b2124063981c1b4708edd4ff96576476b24a0ee856f641c6eb"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": ""
+  },
+  {
+    "case": "stale-target",
+    "arm": "pi-native",
+    "input": {
+      "id": "stale-target",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ]
+      ],
+      "concurrent": "# Notes\n\n- [ ] Renew different policy\n\nKeep: “Café”—½\nHard break  \nnext line\n"
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "read": {
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n"
+          }
+        ]
+      },
+      "isError": false
+    },
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew different policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgZGlmZmVyZW50IHBvbGljeQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+        "sha256": "70fa053a331bf8fc8f8ccc30ba7ca384d25861899040a92cf3d8f7644b843a46"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tool": {
+      "isError": true,
+      "error": "Could not find the exact text in note.md. The old text must match exactly including all whitespace and newlines."
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew different policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgZGlmZmVyZW50IHBvbGljeQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+        "sha256": "70fa053a331bf8fc8f8ccc30ba7ca384d25861899040a92cf3d8f7644b843a46"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": ""
+  },
+  {
+    "case": "stale-target",
+    "arm": "holdfast",
+    "input": {
+      "id": "stale-target",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ]
+      ],
+      "concurrent": "# Notes\n\n- [ ] Renew different policy\n\nKeep: “Café”—½\nHard break  \nnext line\n"
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tools": [
+      {
+        "isError": false,
+        "localOnly": false,
+        "text": "Proposed a change to note.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Renew policy\n+ - [x] Renew policy"
+      }
+    ],
+    "unchangedBeforeApproval": true,
+    "proposals": [
+      {
+        "id": "@inbox/20261109-edit-note-md",
+        "raw": {
+          "text": "---\naction: \"edit\"\nbase_hash: \"68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2\"\nkind: \"filing\"\nproposed: \"2026-11-09\"\nproposed_by: \"Ask\"\ntarget: \"note.md\"\ntitle: \"Change note.md\"\nwhy: \"Synthetic editor comparison\"\n---\n# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "base64": "LS0tCmFjdGlvbjogImVkaXQiCmJhc2VfaGFzaDogIjY4NTQzZmJkYTE4NmZhYmM5MzNlNGM3NGU1MzI5M2EwZjNjMTUzNTVhNDQyZTQwZDFjZDU0MmNjYTc1NzczYTIiCmtpbmQ6ICJmaWxpbmciCnByb3Bvc2VkOiAiMjAyNi0xMS0wOSIKcHJvcG9zZWRfYnk6ICJBc2siCnRhcmdldDogIm5vdGUubWQiCnRpdGxlOiAiQ2hhbmdlIG5vdGUubWQiCndoeTogIlN5bnRoZXRpYyBlZGl0b3IgY29tcGFyaXNvbiIKLS0tCiMgTm90ZXMKCi0gW3hdIFJlbmV3IHBvbGljeQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+          "sha256": "6ce87c48a99db3d7672ff68e0062dcc7e0cb8f58cc3e82bbadaac352cb2f4544"
+        },
+        "body": {
+          "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+          "sha256": "cd68aa3b11dcc22c322b658384eda34be08ff1488c32c35866add024073b151b"
+        }
+      }
+    ],
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew different policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgZGlmZmVyZW50IHBvbGljeQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+        "sha256": "70fa053a331bf8fc8f8ccc30ba7ca384d25861899040a92cf3d8f7644b843a46"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "apply": {
+      "code": 1,
+      "stdout": "",
+      "stderr": "error: note.md changed after this change was proposed; reject it and ask again\n",
+      "seconds": 0.05376433301717043
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew different policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgZGlmZmVyZW50IHBvbGljeQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+        "sha256": "70fa053a331bf8fc8f8ccc30ba7ca384d25861899040a92cf3d8f7644b843a46"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": ""
+  },
+  {
+    "case": "stale-whole-write",
+    "arm": "pi-native",
+    "input": {
+      "id": "stale-whole-write",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n"
+        ]
+      ],
+      "write": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "concurrent": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\nAdded by another writer.\n"
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "read": {
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n"
+          }
+        ]
+      },
+      "isError": false
+    },
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\nAdded by another writer.\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUKCkFkZGVkIGJ5IGFub3RoZXIgd3JpdGVyLgo=",
+        "sha256": "224bd3a6ae7ab4b2124063981c1b4708edd4ff96576476b24a0ee856f641c6eb"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tool": {
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Successfully wrote 67 bytes to note.md"
+          }
+        ]
+      },
+      "isError": false
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "cd68aa3b11dcc22c322b658384eda34be08ff1488c32c35866add024073b151b"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": "--- before\n+++ after\n@@ -1,9 +1,7 @@\n # Notes\n \n-- [ ] Renew policy\n+- [x] Renew policy\n \n Keep: “Café”—½\n Hard break  \n next line\n-\n-Added by another writer.\n"
+  },
+  {
+    "case": "stale-whole-write",
+    "arm": "holdfast",
+    "input": {
+      "id": "stale-whole-write",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n"
+        ]
+      ],
+      "write": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "concurrent": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\nAdded by another writer.\n"
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "tools": [
+      {
+        "isError": false,
+        "localOnly": false,
+        "text": "Proposed a change to note.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Renew policy\n+ - [x] Renew policy"
+      }
+    ],
+    "unchangedBeforeApproval": true,
+    "proposals": [
+      {
+        "id": "@inbox/20261109-edit-note-md",
+        "raw": {
+          "text": "---\naction: \"edit\"\nbase_hash: \"68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2\"\nkind: \"filing\"\nproposed: \"2026-11-09\"\nproposed_by: \"Ask\"\ntarget: \"note.md\"\ntitle: \"Change note.md\"\nwhy: \"Synthetic editor comparison\"\n---\n# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "base64": "LS0tCmFjdGlvbjogImVkaXQiCmJhc2VfaGFzaDogIjY4NTQzZmJkYTE4NmZhYmM5MzNlNGM3NGU1MzI5M2EwZjNjMTUzNTVhNDQyZTQwZDFjZDU0MmNjYTc1NzczYTIiCmtpbmQ6ICJmaWxpbmciCnByb3Bvc2VkOiAiMjAyNi0xMS0wOSIKcHJvcG9zZWRfYnk6ICJBc2siCnRhcmdldDogIm5vdGUubWQiCnRpdGxlOiAiQ2hhbmdlIG5vdGUubWQiCndoeTogIlN5bnRoZXRpYyBlZGl0b3IgY29tcGFyaXNvbiIKLS0tCiMgTm90ZXMKCi0gW3hdIFJlbmV3IHBvbGljeQoKS2VlcDog4oCcQ2Fmw6nigJ3igJTCvQpIYXJkIGJyZWFrICAKbmV4dCBsaW5lCg==",
+          "sha256": "6ce87c48a99db3d7672ff68e0062dcc7e0cb8f58cc3e82bbadaac352cb2f4544"
+        },
+        "body": {
+          "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+          "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+          "sha256": "cd68aa3b11dcc22c322b658384eda34be08ff1488c32c35866add024073b151b"
+        }
+      }
+    ],
+    "atExecution": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\nAdded by another writer.\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUKCkFkZGVkIGJ5IGFub3RoZXIgd3JpdGVyLgo=",
+        "sha256": "224bd3a6ae7ab4b2124063981c1b4708edd4ff96576476b24a0ee856f641c6eb"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "apply": {
+      "code": 1,
+      "stdout": "",
+      "stderr": "error: note.md changed after this change was proposed; reject it and ask again\n",
+      "seconds": 0.05300987500231713
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n\nAdded by another writer.\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUKCkFkZGVkIGJ5IGFub3RoZXIgd3JpdGVyLgo=",
+        "sha256": "224bd3a6ae7ab4b2124063981c1b4708edd4ff96576476b24a0ee856f641c6eb"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": ""
+  },
+  {
+    "case": "successive-approvals",
+    "arm": "pi-native",
+    "input": {
+      "id": "successive-approvals",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ],
+        [
+          "next line",
+          "last line"
+        ]
+      ],
+      "successive": true
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "steps": [
+      {
+        "tool": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Successfully replaced 1 block(s) in note.md."
+              }
+            ],
+            "details": {
+              "diff": " 1 # Notes\n 2 \n-3 - [ ] Renew policy\n+3 - [x] Renew policy\n 4 \n 5 Keep: “Café”—½\n 6 Hard break  \n 7 next line",
+              "firstChangedLine": 3
+            }
+          },
+          "isError": false
+        },
+        "after": {
+          ".agent-eval-synthetic": {
+            "text": "synthetic holdfast agent evaluation\n",
+            "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+            "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+          },
+          "note.md": {
+            "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+            "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+            "sha256": "cd68aa3b11dcc22c322b658384eda34be08ff1488c32c35866add024073b151b"
+          },
+          "untouched.txt": {
+            "text": "Unrelated file.  \n",
+            "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+            "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+          }
+        }
+      },
+      {
+        "tool": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Successfully replaced 1 block(s) in note.md."
+              }
+            ],
+            "details": {
+              "diff": "   ...\n 3 - [x] Renew policy\n 4 \n 5 Keep: “Café”—½\n 6 Hard break  \n-7 next line\n+7 last line",
+              "firstChangedLine": 7
+            }
+          },
+          "isError": false
+        },
+        "after": {
+          ".agent-eval-synthetic": {
+            "text": "synthetic holdfast agent evaluation\n",
+            "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+            "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+          },
+          "note.md": {
+            "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nlast line\n",
+            "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApsYXN0IGxpbmUK",
+            "sha256": "66336d014622ebdc8fb1fc44057ad42cf869edd6ce2c981beb502fe4bbef7158"
+          },
+          "untouched.txt": {
+            "text": "Unrelated file.  \n",
+            "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+            "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+          }
+        }
+      }
+    ],
+    "expectedAfterUndo": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "cd68aa3b11dcc22c322b658384eda34be08ff1488c32c35866add024073b151b"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nlast line\n",
+        "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApsYXN0IGxpbmUK",
+        "sha256": "66336d014622ebdc8fb1fc44057ad42cf869edd6ce2c981beb502fe4bbef7158"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "actualDiff": "--- before\n+++ after\n@@ -1,7 +1,7 @@\n # Notes\n \n-- [ ] Renew policy\n+- [x] Renew policy\n \n Keep: “Café”—½\n Hard break  \n-next line\n+last line\n"
+  },
+  {
+    "case": "successive-approvals",
+    "arm": "holdfast",
+    "input": {
+      "id": "successive-approvals",
+      "path": "note.md",
+      "before": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+      "edits": [
+        [
+          "- [ ] Renew policy",
+          "- [x] Renew policy"
+        ],
+        [
+          "next line",
+          "last line"
+        ]
+      ],
+      "successive": true
+    },
+    "before": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [ ] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbIF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "steps": [
+      {
+        "tool": {
+          "isError": false,
+          "localOnly": false,
+          "text": "Proposed a change to note.md for the user to approve in the Inbox (nothing is changed until then):\n- - [ ] Renew policy\n+ - [x] Renew policy"
+        },
+        "proposals": [
+          {
+            "id": "@inbox/20261109-edit-note-md",
+            "raw": {
+              "text": "---\naction: \"edit\"\nbase_hash: \"68543fbda186fabc933e4c74e53293a0f3c15355a442e40d1cd542cca75773a2\"\nkind: \"filing\"\nproposed: \"2026-11-09\"\nproposed_by: \"Ask\"\ntarget: \"note.md\"\ntitle: \"Change note.md\"\n---\n# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+              "base64": "LS0tCmFjdGlvbjogImVkaXQiCmJhc2VfaGFzaDogIjY4NTQzZmJkYTE4NmZhYmM5MzNlNGM3NGU1MzI5M2EwZjNjMTUzNTVhNDQyZTQwZDFjZDU0MmNjYTc1NzczYTIiCmtpbmQ6ICJmaWxpbmciCnByb3Bvc2VkOiAiMjAyNi0xMS0wOSIKcHJvcG9zZWRfYnk6ICJBc2siCnRhcmdldDogIm5vdGUubWQiCnRpdGxlOiAiQ2hhbmdlIG5vdGUubWQiCi0tLQojIE5vdGVzCgotIFt4XSBSZW5ldyBwb2xpY3kKCktlZXA6IOKAnENhZsOp4oCd4oCUwr0KSGFyZCBicmVhayAgCm5leHQgbGluZQo=",
+              "sha256": "7252381c455bcad09fca7d337dcf749c55e3bdf1b181d5cf4703fc25724a6329"
+            },
+            "body": {
+              "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+              "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+              "sha256": "cd68aa3b11dcc22c322b658384eda34be08ff1488c32c35866add024073b151b"
+            }
+          }
+        ],
+        "unchangedBeforeApproval": true,
+        "apply": {
+          "code": 0,
+          "stdout": "approved → note.md (run `holdfast index`)\n",
+          "stderr": "",
+          "seconds": 0.05049604189116508
+        },
+        "after": {
+          ".agent-eval-synthetic": {
+            "text": "synthetic holdfast agent evaluation\n",
+            "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+            "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+          },
+          "note.md": {
+            "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+            "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+            "sha256": "cd68aa3b11dcc22c322b658384eda34be08ff1488c32c35866add024073b151b"
+          },
+          "untouched.txt": {
+            "text": "Unrelated file.  \n",
+            "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+            "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+          }
+        }
+      },
+      {
+        "tool": {
+          "isError": false,
+          "localOnly": false,
+          "text": "Proposed a change to note.md for the user to approve in the Inbox (nothing is changed until then):\n- next line\n+ last line"
+        },
+        "proposals": [
+          {
+            "id": "@inbox/20261109-edit-note-md",
+            "raw": {
+              "text": "---\naction: \"edit\"\nbase_hash: \"cd68aa3b11dcc22c322b658384eda34be08ff1488c32c35866add024073b151b\"\nkind: \"filing\"\nproposed: \"2026-11-09\"\nproposed_by: \"Ask\"\ntarget: \"note.md\"\ntitle: \"Change note.md\"\n---\n# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nlast line\n",
+              "base64": "LS0tCmFjdGlvbjogImVkaXQiCmJhc2VfaGFzaDogImNkNjhhYTNiMTFkY2MyMmMzMjJiNjU4Mzg0ZWRhMzRiZTA4ZmYxNDg4YzMyYzM1ODY2YWRkMDI0MDczYjE1MWIiCmtpbmQ6ICJmaWxpbmciCnByb3Bvc2VkOiAiMjAyNi0xMS0wOSIKcHJvcG9zZWRfYnk6ICJBc2siCnRhcmdldDogIm5vdGUubWQiCnRpdGxlOiAiQ2hhbmdlIG5vdGUubWQiCi0tLQojIE5vdGVzCgotIFt4XSBSZW5ldyBwb2xpY3kKCktlZXA6IOKAnENhZsOp4oCd4oCUwr0KSGFyZCBicmVhayAgCmxhc3QgbGluZQo=",
+              "sha256": "b36a0eb2115b1f777145c08dfb43bd30073805ec5de0ffd7131788d56fe0bec1"
+            },
+            "body": {
+              "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nlast line\n",
+              "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApsYXN0IGxpbmUK",
+              "sha256": "66336d014622ebdc8fb1fc44057ad42cf869edd6ce2c981beb502fe4bbef7158"
+            }
+          }
+        ],
+        "unchangedBeforeApproval": true,
+        "apply": {
+          "code": 0,
+          "stdout": "approved → note.md (run `holdfast index`)\n",
+          "stderr": "",
+          "seconds": 0.04764704208355397
+        },
+        "after": {
+          ".agent-eval-synthetic": {
+            "text": "synthetic holdfast agent evaluation\n",
+            "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+            "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+          },
+          "note.md": {
+            "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nlast line\n",
+            "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApsYXN0IGxpbmUK",
+            "sha256": "66336d014622ebdc8fb1fc44057ad42cf869edd6ce2c981beb502fe4bbef7158"
+          },
+          "untouched.txt": {
+            "text": "Unrelated file.  \n",
+            "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+            "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+          }
+        }
+      }
+    ],
+    "expectedAfterUndo": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nnext line\n",
+        "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApuZXh0IGxpbmUK",
+        "sha256": "cd68aa3b11dcc22c322b658384eda34be08ff1488c32c35866add024073b151b"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "after": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nlast line\n",
+        "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApsYXN0IGxpbmUK",
+        "sha256": "66336d014622ebdc8fb1fc44057ad42cf869edd6ce2c981beb502fe4bbef7158"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "undo": {
+      "code": 1,
+      "stdout": "",
+      "stderr": "error: note.md changed after it was filed; open its History to go back to an earlier copy\n",
+      "seconds": 0.05839091702364385
+    },
+    "afterUndo": {
+      ".agent-eval-synthetic": {
+        "text": "synthetic holdfast agent evaluation\n",
+        "base64": "c3ludGhldGljIGhvbGRmYXN0IGFnZW50IGV2YWx1YXRpb24K",
+        "sha256": "77c6795372c80b7b1dc9925bd8a3716cbc61ec47c85f5393a9d9b1acdcf3736b"
+      },
+      "note.md": {
+        "text": "# Notes\n\n- [x] Renew policy\n\nKeep: “Café”—½\nHard break  \nlast line\n",
+        "base64": "IyBOb3RlcwoKLSBbeF0gUmVuZXcgcG9saWN5CgpLZWVwOiDigJxDYWbDqeKAneKAlMK9CkhhcmQgYnJlYWsgIApsYXN0IGxpbmUK",
+        "sha256": "66336d014622ebdc8fb1fc44057ad42cf869edd6ce2c981beb502fe4bbef7158"
+      },
+      "untouched.txt": {
+        "text": "Unrelated file.  \n",
+        "base64": "VW5yZWxhdGVkIGZpbGUuICAK",
+        "sha256": "00578cba588198410fb8cbb55f58c7e260b9dcd4c73a0fc204d01b203d2091ee"
+      }
+    },
+    "undoExact": false,
+    "actualDiff": "--- before\n+++ after\n@@ -1,7 +1,7 @@\n # Notes\n \n-- [ ] Renew policy\n+- [x] Renew policy\n \n Keep: “Café”—½\n Hard break  \n-next line\n+last line\n"
+  }
+]

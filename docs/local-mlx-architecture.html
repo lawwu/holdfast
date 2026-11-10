@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>LocalMLX · How the local AI layers fit together</title>
+  <style>
+    :root { --paper:#f6f4ee; --panel:#fffefb; --ink:#232d29; --muted:#57655e; --line:#cbd3cb; --green:#205942; --wash:#e7eee7; --code:#edf0eb; --amber:#755524; --max:1100px; }
+    @media(prefers-color-scheme:dark) { :root { --paper:#171d19; --panel:#202923; --ink:#e6eee7; --muted:#b0bfb3; --line:#455549; --green:#a7d6b7; --wash:#2b3c30; --code:#2d382f; --amber:#e0bf85; } }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; scroll-padding-top:24px; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    a { color:var(--green); text-underline-offset:3px; }
+    a:hover { text-decoration-thickness:2px; }
+    button,select { font:inherit; color:inherit; }
+    button { cursor:pointer; }
+    :focus-visible { outline:3px solid var(--green); outline-offset:4px; }
+    .shell { max-width:var(--max); margin:auto; padding:40px 28px 70px; }
+    .masthead { display:flex; justify-content:space-between; gap:16px; align-items:center; border-bottom:1px solid var(--line); padding-bottom:20px; }
+    .wordmark { font-weight:650; letter-spacing:.08em; text-transform:uppercase; font-size:.8rem; }
+    .meta,.source { font-size:.82rem; color:var(--muted); }
+    .print { background:transparent; border:1px solid var(--line); border-radius:7px; padding:7px 12px; }
+    .hero { padding:56px 0 32px; max-width:850px; }
+    .eyebrow { color:var(--green); text-transform:uppercase; letter-spacing:.08em; font-size:.76rem; font-weight:650; margin-bottom:14px; }
+    h1,h2,h3,p { margin:0; }
+    h1 { font:500 clamp(2.3rem,5.5vw,4.3rem)/1.08 Georgia,"Times New Roman",serif; letter-spacing:-.025em; max-width:830px; }
+    h2 { font:500 clamp(1.65rem,3vw,2.35rem)/1.22 Georgia,"Times New Roman",serif; margin-bottom:16px; }
+    h3 { font-size:1.08rem; line-height:1.4; margin-bottom:9px; }
+    p+p { margin-top:13px; }
+    .lede { margin-top:23px; font-size:1.14rem; max-width:760px; }
+    .answer { background:var(--wash); border-left:4px solid var(--green); padding:22px 26px; margin:4px 0 26px; }
+    .answer strong { color:var(--green); }
+    nav { display:flex; flex-wrap:wrap; gap:9px 22px; padding:16px 0 26px; border-bottom:1px solid var(--line); }
+    nav a { font-size:.9rem; }
+    section { padding-top:48px; }
+    .section-head { max-width:800px; margin-bottom:22px; }
+    .section-head p { color:var(--muted); }
+    .controls { display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center; margin-bottom:20px; }
+    .controls label { font-size:.9rem; font-weight:600; }
+    select { background:var(--panel); border:1px solid var(--line); border-radius:7px; padding:9px 34px 9px 12px; max-width:100%; }
+    .status { display:inline-block; color:var(--green); font-size:.8rem; font-weight:600; }
+    .diagram { display:grid; grid-template-columns:1.18fr 1fr; gap:34px; }
+    .lane-title { display:flex; align-items:baseline; justify-content:space-between; gap:12px; border-bottom:1px solid var(--line); padding-bottom:10px; margin-bottom:18px; }
+    .lane-title h3 { margin:0; }
+    .lane-title span { color:var(--muted); font-size:.78rem; }
+    .flow { list-style:none; padding:0; margin:0; }
+    .flow li { position:relative; padding-bottom:28px; }
+    .flow li:not(:last-child)::after { content:'↓'; position:absolute; bottom:1px; left:24px; color:var(--muted); }
+    .flow li:last-child { padding-bottom:0; }
+    .flow-node { width:100%; text-align:left; display:block; padding:15px 17px; border:1px solid var(--line); border-radius:8px; background:var(--panel); }
+    button.flow-node:hover { border-color:var(--green); }
+    .flow-node[aria-pressed=true] { background:var(--wash); border-color:var(--green); }
+    .flow-node strong { display:block; font-size:.98rem; overflow-wrap:anywhere; }
+    .flow-node small { display:block; color:var(--muted); font-size:.81rem; margin-top:3px; }
+    .flow-node .owner { display:block; color:var(--green); font-size:.7rem; font-weight:650; letter-spacing:.05em; text-transform:uppercase; margin-bottom:3px; }
+    .detail { margin-top:22px; padding:17px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); min-height:95px; }
+    .detail p { font-size:.92rem; }
+    .diagram-note { font-size:.82rem; color:var(--muted); margin-top:12px; }
+    .layers { display:grid; grid-template-columns:1fr 1fr; gap:0 32px; }
+    .layer { border-top:1px solid var(--line); padding:22px 0; }
+    .layer .tag { color:var(--green); font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; font-weight:650; margin-bottom:7px; }
+    .layer p { font-size:.94rem; }
+    .layer .boundary { color:var(--muted); margin-top:10px; }
+    code { background:var(--code); font-size:.86em; padding:2px 5px; border-radius:3px; overflow-wrap:anywhere; }
+    pre { background:var(--code); padding:20px; border-radius:8px; overflow:auto; font-size:.83rem; line-height:1.6; }
+    pre code { padding:0; background:none; }
+    .compare-wrap { overflow-x:auto; }
+    table { border-collapse:collapse; width:100%; font-size:.9rem; }
+    caption { text-align:left; font-size:.83rem; color:var(--muted); padding-bottom:12px; }
+    th,td { padding:16px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:var(--green); font-weight:600; background:var(--wash); }
+    th:first-child,td:first-child { padding-left:0; min-width:120px; }
+    td { min-width:175px; }
+    td strong { display:block; margin-bottom:5px; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:32px; margin-top:23px; }
+    .two article { border-top:2px solid var(--line); padding-top:17px; }
+    .two p { font-size:.94rem; }
+    .steps { list-style:none; padding:0; counter-reset:step; display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin:24px 0; }
+    .steps li { counter-increment:step; border-top:1px solid var(--line); padding-top:15px; font-size:.93rem; }
+    .steps li::before { content:counter(step,decimal-leading-zero); display:block; color:var(--green); font-size:.82rem; margin-bottom:8px; font-weight:650; }
+    .steps strong { display:block; margin-bottom:6px; }
+    ul { padding-left:22px; }
+    li+li { margin-top:7px; }
+    .flow li+li,.steps li+li { margin-top:0; }
+    .decision { padding:23px 25px; background:var(--wash); margin-top:24px; }
+    .decision h3 { color:var(--green); }
+    .limits { display:grid; grid-template-columns:1fr 1fr; gap:26px; margin-top:24px; }
+    .limits div { border-top:1px solid var(--line); padding-top:17px; }
+    .limits p { font-size:.93rem; }
+    footer { margin-top:48px; padding-top:22px; border-top:1px solid var(--line); color:var(--muted); font-size:.84rem; }
+    footer ul { columns:2; padding-left:20px; }
+    footer li { break-inside:avoid; padding-bottom:5px; }
+    @media(max-width:720px) { .shell { padding:24px 20px 45px; } .hero { padding-top:36px; } .diagram,.layers,.two,.limits { grid-template-columns:1fr; } .diagram { gap:30px; } .steps { grid-template-columns:1fr; } footer ul { columns:1; } .answer { padding:20px; } .meta { max-width:160px; text-align:right; } }
+    @media(max-width:400px) { .shell { padding-left:16px; padding-right:16px; } .controls { align-items:stretch; } .controls select { width:100%; } .masthead { flex-wrap:wrap; } .meta { text-align:left; } }
+    @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
+    @media print { :root { --paper:white; --panel:white; --ink:#111; --muted:#333; --line:#aaa; --green:#16442e; --wash:#f1f3f1; --code:#eee; } body { font-size:11pt; } .shell { max-width:none; padding:0; } .hero { padding-top:24px; } nav,.print,.controls { display:none; } section { padding-top:28px; } .diagram,.layers,.two { grid-template-columns:1fr 1fr; } .flow-node,article,.steps li { break-inside:avoid; } .compare-wrap { overflow:visible; } td { min-width:0; } a { color:inherit; } }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header class="masthead"><div class="wordmark">LocalMLX / architecture notes</div><div class="meta">10 November 2026 · local prototype</div><button class="print" type="button" id="print">Print / save PDF</button></header>
+  <div class="hero">
+    <div class="eyebrow">Holdfast today · other native apps next</div>
+    <h1>One local model.<br>Several distinct jobs.</h1>
+    <p class="lede">The model generates text. An inference engine runs it. A harness coordinates its work. Your app decides what it may read, change and remember.</p>
+  </div>
+  <div class="answer"><p><strong>Ollama, llama.cpp and LM Studio can be sufficient for inference.</strong> LocalMLX earns its place when we want a reusable Swift API around the MLX engine already inside our app. It is an integration choice, with maintenance costs—not a prerequisite for local AI, privacy, tool calls or Inbox approvals.</p></div>
+  <nav aria-label="Contents"><a href="#architecture">Explore the paths</a><a href="#layers">Every layer explained</a><a href="#alternatives">Compare the alternatives</a><a href="#edits">How an edit happens</a><a href="#decision">What I would choose</a><a href="#status">Built versus planned</a></nav>
+
+  <main>
+    <section id="architecture">
+      <div class="section-head"><h2>Change the inference path.<br>Keep the app’s rules.</h2><p>Select an arrangement, then select a component for more detail. Downward arrows show the request path; model responses and tool results return to the caller.</p></div>
+      <div class="controls"><label for="architecture-choice">Arrangement</label><select id="architecture-choice"><option value="embedded">Holdfast + Pi + embedded LocalMLX</option><option value="direct">Prayer app + direct LocalMLX</option><option value="standalone">Standalone Pi + local-mlx-host</option><option value="server">Holdfast + Pi + a model server</option></select><span class="status" id="architecture-status">Built prototype</span></div>
+      <div class="diagram">
+        <div><div class="lane-title"><h3>Inference path</h3><span>Produces text and tool requests</span></div><ol class="flow" id="inference-flow"></ol></div>
+        <div><div class="lane-title"><h3 id="action-title">Action path</h3><span id="action-subtitle">Executes app-approved operations</span></div><ol class="flow" id="action-flow"></ol><p class="diagram-note" id="architecture-note"></p></div>
+      </div>
+      <div class="detail" aria-live="polite" aria-atomic="true"><h3 id="component-title">LocalMLX</h3><p id="component-detail">The Swift library around an already-loaded model. It handles generation and conversation-cache reuse; it does not own tools or approvals.</p></div>
+      <noscript><p>The interactive comparison needs JavaScript. The complete layer descriptions, alternative comparison and edit walkthrough below remain available.</p></noscript>
+    </section>
+
+    <section id="layers">
+      <div class="section-head"><h2>The layers, from model to product</h2><p>These are responsibilities, not necessarily separate programs. LocalMLX is a library linked into a Swift process; Pi runs in a Node process in this prototype.</p></div>
+      <div class="layers">
+        <article class="layer"><div class="tag">01 · model data</div><h3>Local LLM: weights + tokenizer</h3><p>The downloaded model contains learned numerical parameters and the rules for turning text into tokens. Its training, size and quantization strongly affect the answers. The tested model is a local Qwen 27B model in MLX format.</p><p class="boundary">Model files do not manage an agent, read your journal or approve edits. Changing the harness does not retrain the model. GGUF and MLX models are different packaging/runtime paths, even when derived from the same base model.</p></article>
+        <article class="layer"><div class="tag">02 · upstream inference libraries</div><h3>Apple MLX + Swift model libraries</h3><p>MLX supplies the numerical operations. <code>mlx-swift</code> exposes them to Swift; <code>mlx-swift-lm</code> provides language-model machinery, including <code>ModelContainer</code> and <code>ChatSession</code>. CPU/GPU work uses the Mac’s Apple Silicon hardware and unified memory.</p><p class="boundary">This is where the bulk of inference is implemented. LocalMLX wraps these libraries; we are not writing a new GPU engine. <a href="https://ml-explore.github.io/mlx/build/html/usage/unified_memory.html">MLX memory model</a> · <a href="https://github.com/ml-explore/mlx-swift-lm">Swift model library</a></p></article>
+        <article class="layer"><div class="tag">03 · our reusable Swift API</div><h3>LocalMLX</h3><p><code>MLXSession</code> accepts a loaded model and typed <code>MLXProtocol.Request</code> values. It streams text, returns tool-call data, handles cancellation and reuses the conversation’s KV cache when its history still matches. The cache stores computation from earlier tokens, reducing repeated work.</p><p class="boundary">The caller loads the model. The library does not download models, execute tools, store journals or schedule multiple apps. A changed history or cancelled generation can require rebuilding the cache. A prayer app can use this layer directly with no Pi or Node.</p></article>
+        <article class="layer"><div class="tag">04 · process transport</div><h3>App bridge or local-mlx-host</h3><p>JavaScript cannot directly invoke a Swift object in another process. The bridge carries versioned JSON messages over private stdin/stdout pipes. Holdfast’s <code>PiAgent</code> routes model requests through <code>MLXAgentModel</code> into LocalMLX, or through <code>ServerAgentModel</code> into the reusable HTTP transport. Credentials and local-only data policy stay in Swift.</p><p class="boundary">Standalone Pi instead launches <code>local-mlx-host</code>, which loads local model files and calls LocalMLX. This helper is an alternative to the embedded app path—not another required process in that path. It is currently a single-client inference helper, not a shared multi-app server.</p></article>
+        <article class="layer"><div class="tag">05 · Pi provider adapter</div><h3>pi-swift-mlx</h3><p>This JavaScript package translates Pi’s <code>pi-ai</code> messages, tool schemas and generation options into our Swift protocol. It translates streamed replies, usage and tool calls back into Pi events. The same provider works with regular Pi and Pi Durable.</p><p class="boundary">The provider has no vault or Inbox. It carries tool declarations and requests, but does not execute them. <code>createProcessTransport</code> serves standalone use; Holdfast injects its own bridge. In Holdfast, the same bridge reaches either LocalMLX or the Swift HTTP adapter. API keys stay in Swift.</p></article>
+        <article class="layer"><div class="tag">06 · agent harness</div><h3>Pi or Pi Durable</h3><p>The harness repeats the conversation → model → tool → model cycle and manages context. Regular Pi supplies a coding-agent SDK/CLI and session machinery. Pi Durable is an alternative harness with persisted tasks, checkpointing and recovery; it is not a second agent loop placed after regular Pi.</p><p class="boundary">Holdfast now uses regular Pi with saved JSONL sessions. Follow-ups retain the conversation, but interrupted jobs are not replayed automatically. Holdfast retains its native receipts, privacy policy and Inbox. Earlier Durable databases remain untouched. <a href="https://github.com/earendil-works/pi/tree/main/packages/durable">Pi Durable</a></p></article>
+        <article class="layer"><div class="tag">07 · application behavior and policy</div><h3>Tools, retrieval, storage and approval</h3><p>Holdfast implements search, note reads and <code>propose_edit</code>. It validates arguments, applies file rules, tracks citations and stores pending changes. The Inbox shows the diff; the user applies it. Snapshotting, stale-file rejection and Undo belong here.</p><p class="boundary">A prayer app supplies its own journal data, prompts, retrieval and allowed actions. If it needs persistent tools, it can reuse the harness pattern. If it only generates a reflection from supplied text, a direct model request is enough. Neither choice requires sharing Holdfast’s notes.</p></article>
+        <article class="layer"><div class="tag">08 · product and lifecycle</div><h3>Holdfast or the prayer app</h3><p>The SwiftUI app owns screens, user preferences, selected model, loading progress and what happens when a user closes a conversation. Holdfast also owns its model-download workflow. The app presents the answer and decides when private context is included.</p><p class="boundary">LocalMLX currently covers text generation. It is not the complete implementation of a journal, search index, speech system, sync service or model-download manager. Reuse the pieces that actually recur between apps.</p></article>
+      </div>
+    </section>
+
+    <section id="alternatives">
+      <div class="section-head"><h2>Why not just use llama.cpp,<br>Ollama or LM Studio?</h2><p>We can. The choice is mostly about where inference runs, who manages it and how much integration code we want to maintain.</p></div>
+      <div class="compare-wrap"><table><caption>These alternatives can preserve app-owned tools and approvals. The provider connection changes; the Inbox does not have to.</caption><thead><tr><th scope="col">Option</th><th scope="col">What it supplies</th><th scope="col">How our app connects</th><th scope="col">Main tradeoff</th></tr></thead><tbody>
+        <tr><td><strong>LocalMLX</strong>Our small Swift wrapper</td><td>Generation, streamed output and cache reuse over Apple’s Swift MLX stack.</td><td>Swift calls inside the app, or our native helper through <code>pi-swift-mlx</code>.</td><td>Close control of app lifecycle and the existing model. We maintain the wrapper, protocol, packaging and compatibility tests.</td></tr>
+        <tr><td><strong>llama.cpp</strong>C/C++ engine</td><td>Local inference, Metal support and a server with function calling. <a href="https://github.com/ggml-org/llama.cpp">Project</a> · <a href="https://github.com/ggml-org/llama.cpp/blob/master/docs/function-calling.md">tools</a></td><td>Embed its library/XCFramework in Swift, or call its local HTTP server. <a href="https://github.com/ggml-org/llama.cpp/blob/master/docs/xcframework.md">Swift integration</a></td><td>A serious embedded alternative. Replacing MLX means adapting its API, model files, templates and lifecycle—not just changing a package name.</td></tr>
+        <tr><td><strong>Ollama</strong>Model service</td><td>Model management and local APIs, including compatible chat endpoints and tool calling. <a href="https://docs.ollama.com/api/openai-compatibility">API</a> · <a href="https://docs.ollama.com/capabilities/tool-calling">tools</a></td><td>Swift or Pi sends requests to a running local service.</td><td>Less inference infrastructure to build. The service’s availability, model configuration and lifecycle become part of the app setup.</td></tr>
+        <tr><td><strong>LM Studio</strong>App + model runtime</td><td>Model browsing, chat, local APIs, and both llama.cpp and MLX runtimes. <a href="https://lmstudio.ai/docs/app">Runtime support</a></td><td>Use its API; the headless <code>llmster</code> daemon can serve without the desktop GUI. <a href="https://lmstudio.ai/docs/app/basics/lmstudio-vs-llmster-vs-lms">Serving options</a></td><td>A practical way to use MLX without maintaining our own host. The server is a separate dependency rather than part of the Swift app.</td></tr>
+      </tbody></table></div>
+      <div class="two">
+        <article><h3>LocalMLX is not needed to get MLX</h3><p>LM Studio already supports MLX on Apple Silicon. It also documents tool use with MLX models. “We want MLX and tool calling” therefore does not, by itself, justify a custom provider. <a href="https://lmstudio.ai/docs/developer/openai-compat/tools">LM Studio tool-use documentation</a></p><p>Our reason is narrower: Holdfast already has a loaded Swift MLX model. LocalMLX lets us reuse that implementation and expose it to Pi while keeping inference in the app.</p></article>
+        <article><h3>Native embedding is not unique to MLX</h3><p>llama.cpp publishes an XCFramework usable from Swift and provides a SwiftUI example. We could build the same kind of app around it. <a href="https://github.com/ggml-org/llama.cpp/blob/master/docs/xcframework.md">XCFramework</a> · <a href="https://github.com/ggml-org/llama.cpp/tree/master/examples/llama.swiftui">SwiftUI example</a></p><p>The benefit of staying with MLX here is continuity with our existing model loader and Swift code. It does not establish that MLX is universally faster, more accurate or easier to maintain.</p></article>
+      </div>
+      <div class="two">
+        <article><h3>One server can serve several apps</h3><p>Sharing a library shares code. It does not automatically share a loaded model across app processes. A common service can own the loaded weights and accept requests from both apps; conversations still need separate context and scheduling.</p><p>Ollama provides queueing, residency controls and concurrent-request configuration. LM Studio also documents parallel requests, with runtime-dependent support. Those capabilities are beyond our current helper. <a href="https://docs.ollama.com/faq#how-does-ollama-handle-concurrent-requests">Ollama scheduling</a> · <a href="https://lmstudio.ai/docs/app/advanced/parallel-requests">LM Studio concurrency</a></p></article>
+        <article><h3>Local HTTP can still stay on this Mac</h3><p>“HTTP” does not mean “cloud.” A loopback service using a local model can keep inference on the machine. Ollama documents a local-only mode; LM Studio supports offline use after the model is downloaded. <a href="https://docs.ollama.com/faq#how-do-i-disable-ollamas-cloud-features">Ollama local-only configuration</a> · <a href="https://lmstudio.ai/docs/app/offline">LM Studio offline operation</a></p><p>Holdfast must still enforce its data rules at the app boundary. Its current HTTP adapter is treated as remote, so allowing it for sensitive local-only notes requires deliberate integration and tests. A process bridge is also not an OS security sandbox.</p></article>
+      </div>
+      <div class="decision"><h3>What remains ours with every backend</h3><p>Domain tools, journal retrieval, citations, proposal validation, approval screens and Undo. A tool-capable model returns a request to act; the configured application or tool runner performs the action. Existing servers also offer agent/MCP features, but those do not automatically implement Holdfast’s rules.</p><p>We have tested correctness with the local 27B model. We have not established a speed or quality advantage for this extracted package over the alternatives. A fair comparison must control model, quantization, context, prompts and tool behavior.</p></div>
+    </section>
+
+    <section id="edits">
+      <div class="section-head"><h2>A file edit, end to end</h2><p>Example: “Mark this checklist item as done.” The model proposes an action; the app controls the write.</p></div>
+      <ol class="steps">
+        <li><strong>Build the request</strong>Holdfast supplies the question, relevant context and allowed tool schemas to regular Pi.</li>
+        <li><strong>Generate a tool request</strong>The provider and bridge reach LocalMLX. The model asks to read the note; Holdfast validates and performs that read.</li>
+        <li><strong>Propose the edit</strong>The tool result returns through the harness. The next model turn requests an exact replacement using <code>propose_edit</code>.</li>
+        <li><strong>Save a pending proposal</strong>Holdfast checks the file and replacement and writes an Inbox proposal. The original note is still unchanged.</li>
+        <li><strong>Apply only after review</strong>The user chooses Apply Change. Holdfast checks that the original has not changed, saves a snapshot and writes the approved content.</li>
+        <li><strong>Recover or undo</strong>Saved operation IDs/receipts prevent replayed tool calls from duplicating proposals. Undo restores the snapshot; this is separate from harness recovery.</li>
+      </ol>
+      <p>Replacing LocalMLX with an existing inference server can leave this approval sequence intact. Preserve the native tools and validation, and change only the model connection. Do not substitute ordinary coding-agent file tools if the product promises Inbox review.</p>
+    </section>
+
+    <section id="decision">
+      <div class="section-head"><h2>What I would choose for your apps</h2><p>These are engineering judgments based on the responsibilities above, rather than claims that one engine wins every workload.</p></div>
+      <div class="two">
+        <article><h3>For Holdfast as a native product</h3><p>Keep LocalMLX small and use the existing embedded model. This preserves the loading experience and avoids requiring a separately configured model server. Use regular Pi for the agent loop and saved conversations. Both Pi variants use a Node helper; Durable would additionally bring checkpointed jobs if the app later needs them.</p><p>The native app still needs packaging, model management and lifecycle work. Moving inference in process does not eliminate those jobs.</p></article>
+        <article><h3>For a family of personal apps</h3><p>Try an existing local server before building our own shared service. If your priority is “Holdfast and a prayer app use the same loaded model,” Ollama or LM Studio may offer a shorter route. Keep each app’s context and tools separate.</p><p>LocalMLX remains useful when each app should run independently, or when you want direct access to the Swift engine. It is not automatically the easiest way to scale concurrent apps.</p></article>
+      </div>
+      <div class="two">
+        <article><h3>For a first prayer-app feature</h3><p>Start with a direct request: the app selects journal entries, constructs a prompt and displays a reflection. LocalMLX or an existing local HTTP service can do that. Add Pi when the feature needs a model-directed sequence of tools; add Durable when interrupted work needs reliable recovery.</p></article>
+        <article><h3>For broader engine flexibility</h3><p>Keep app tools above a narrow inference interface. That preserves the option of embedded MLX, embedded llama.cpp or a server. The current <code>pi-swift-mlx</code> package is intentionally an MLX adapter; it should not grow into a replacement for every serving product.</p></article>
+      </div>
+    </section>
+
+    <section id="status">
+      <div class="section-head"><h2>What exists now</h2><p>The names are now <strong>LocalMLX</strong> for the Swift library, <strong>local-mlx-host</strong> for the executable, and <strong>pi-swift-mlx</strong> for the Pi adapter. The wire format stays at version 1.</p></div>
+      <div class="limits">
+        <div><h3>Implemented</h3><p>LocalMLX as Holdfast’s default; a reusable Foundation-only ModelProviders target for Ollama, LM Studio and custom servers, with model discovery and Keychain credentials in the app; an inference-only JSONL helper; the reusable Pi provider; regular Pi and Pi Durable integration tests; and Holdfast’s native tools, Inbox approvals, snapshots and Undo. Both engines implement <code>ModelProvider</code> with <code>Inference.Request</code> and <code>Reply</code>; <code>MLXProtocol</code> remains a compatibility alias.</p></div>
+        <div><h3>Not part of this prototype</h3><p>A built prayer app, a multi-client model daemon, automatic cross-app model sharing, an iOS integration, or a complete product distribution system, or automatic replay of interrupted agent jobs. The current package targets macOS 15+ and text generation, with one active generation per engine/transport.</p></div>
+      </div>
+      <pre><code>import LocalMLX
+
+// The app supplies the loaded model and owns its journal data.
+let engine = MLXSession(container: alreadyLoadedModel)
+let request = MLXProtocol.Request(
+    model: modelID,
+    sessionID: conversationID,
+    system: "Help the user reflect on their journal.",
+    messages: [.init(role: "user", text: journalExcerpt)],
+    tools: []
+)
+let reply = try await engine.respond(to: request) { textDelta in
+    // Deliver streamed text to the UI.
+}</code></pre>
+      <p class="source">The Pi extension still uses <code>PI_MLX_HOST</code>, now pointing at <code>local-mlx-host</code>. <code>createSwiftMLXProvider</code> is unchanged. New Holdfast sessions use the holdfast-swift provider ID; older Durable files stay separate. <a href="../Packages/pi-swift-mlx/README.md">Package guide</a> · <a href="../Runtime/pi/README.md">Holdfast bridge guide</a></p>
+    </section>
+  </main>
+
+  <footer><h3>Sources and scope</h3><p>Implementation details were checked against this checkout. Product capabilities were checked against the official sources below on 10 November 2026. This file runs locally with no external scripts, fonts or network requests; source links open only when followed.</p>
+    <ul>
+      <li><a href="https://ml-explore.github.io/mlx/build/html/usage/unified_memory.html">Apple MLX: unified memory</a></li>
+      <li><a href="https://github.com/ml-explore/mlx-swift-lm">mlx-swift-lm</a></li>
+      <li><a href="https://github.com/earendil-works/pi/tree/main/packages/durable">Pi Durable</a> · tested SDK version 1.5.1</li>
+      <li><a href="https://github.com/ggml-org/llama.cpp">llama.cpp</a> · <a href="https://github.com/ggml-org/llama.cpp/blob/master/docs/xcframework.md">XCFramework</a></li>
+      <li><a href="https://docs.ollama.com/api/openai-compatibility">Ollama API compatibility</a> · <a href="https://docs.ollama.com/capabilities/tool-calling">tool calling</a> · <a href="https://docs.ollama.com/faq">FAQ</a></li>
+      <li><a href="https://lmstudio.ai/docs/app">LM Studio runtimes</a> · <a href="https://lmstudio.ai/docs/app/basics/lmstudio-vs-llmster-vs-lms">headless serving</a> · <a href="https://lmstudio.ai/docs/developer/openai-compat/tools">tools</a></li>
+    </ul>
+  </footer>
+</div>
+<script>
+(() => {
+  const nodes = {
+    app: ['Swift app','Holdfast','Owns the UI, prompts and private context.','The app decides what data enters a request, which model to load and which operations are available. Holdfast already owns its tools, Inbox and model-loading workflow.'],
+    prayerapp: ['Swift app · proposed','Prayer app','Own journal, prompts and user experience.','This is a proposed consumer of LocalMLX. It could call the Swift library directly while implementing its own journal storage and product behavior.'],
+    apps: ['App clients · alternative','Holdfast / prayer app','Separate context; common inference service.','Multiple apps can address the same local inference service. Each app retains its own user data, prompts and tool policy; this does not require sharing conversations.'],
+    durable: ['Node process','Pi Durable','Agent loop + SQLite task recovery.','Pi Durable manages conversation work and checkpointed tasks. Holdfast supplies its own native tool implementations and replay receipts. Persisted task state is separate from the model’s in-memory KV cache.'],
+    pi: ['Node process','Pi','Agent loop + saved JSONL conversations.','Regular Pi is now Holdfast’s default harness. It saves conversations and compacts context. The app exposes only its six tools; no built-in file editing or shell tools are enabled. Interrupted work waits for a new user request.'],
+    provider: ['Node process','pi-swift-mlx','Pi messages ↔ typed Swift inference protocol.','The adapter translates messages, tool schemas, streaming events and tool-call data. It never executes a tool or applies an edit.'],
+    bridge: ['Private process pipes','PiAgent → Swift adapter','JSONL transport + app data policy.','PiAgent receives model and tool RPCs over private pipes. Model requests reach the selected Swift adapter; tool requests go to the app’s validated tool service. Server credentials stay in Swift. Counseling results force embedded LocalMLX before the next request, including after restart.'],
+    host: ['Separate Swift process','local-mlx-host','Loads model files; serves inference over JSONL.','The optional helper loads a local model and invokes LocalMLX. The JavaScript process transport launches it lazily. It has one client and one active generation; it is not a shared model server.'],
+    localmlx: ['Swift library','LocalMLX','MLXSession + generation + cache reuse.','The library wraps an already-loaded ModelContainer. It handles text streaming, cancellation and cached conversation continuation, and returns tool-call data. It owns neither app tools nor persistent data.'],
+    upstream: ['Upstream libraries + hardware','Apple MLX → local LLM','Swift model library · weights/tokenizer · Metal.','mlx-swift-lm handles the language-model machinery on top of MLX. The loaded weights determine model behavior; MLX executes operations on the Mac. Sharing Swift source between apps does not share this loaded model across processes.'],
+    client: ['Reusable Swift target','ModelProviders','HTTPModelProvider · streaming · discovery.','Ollama uses its native API; LM Studio and custom servers use compatible chat completions. The Foundation-only target shares Inference types and ModelProvider with LocalMLX. Holdfast owns Keychain credentials, data policy and tools; other apps can reuse the transport independently.'],
+    server: ['Shared local service','Ollama / LM Studio / llama.cpp','Owns model loading and inference serving.','A running local server can accept requests from multiple apps and keep model weights resident. Per-request conversation context, scheduling and model support depend on the server/runtime. The apps still own their domain tools and approvals.'],
+    tools: ['Swift app','Validate + execute tools','Search / read_note / propose_edit.','The harness requests an action. Holdfast checks the tool name and arguments and executes the native implementation. It exposes proposals instead of arbitrary write or shell tools.'],
+    inbox: ['Swift app','Inbox proposal','Pending diff; original note unchanged.','The app stores the proposed content and original-file identity. Several proposals for one note can coalesce. Pi can create a proposal but cannot press Apply Change.'],
+    apply: ['User + Swift app','Apply Change → snapshot → write','Stale-file checks and Undo remain app code.','Only an explicit user application writes the proposed change. Holdfast verifies the original has not changed and snapshots it first. Undo restores that saved content.'],
+    journal: ['Prayer app · proposed','Journal context → prompt','App selects the entries to include.','A reflection feature can start with a single request over text chosen by the app. An agent harness is optional when there is no model-directed tool sequence.'],
+    display: ['Prayer app · proposed','Display / save reflection','Product-defined save and review behavior.','The model returns text. The app decides how to show it, whether to save it and whether any review is needed. This behavior is separate from inference.'],
+    stock: ['Pi tool configuration','Installed Pi tools','Ordinary coding tools may write directly.','The model extension does not add an Inbox. Standalone Pi’s configured toolset controls file access and writes. Use app-owned proposal tools when approval and Undo are product requirements.']
+  };
+  const arrangements = {
+    embedded: {status:'Built prototype', inference:['app','pi','provider','bridge','localmlx','upstream'], action:['tools','inbox','apply'], note:'Model and tool requests branch at the harness. The app’s loaded model stays inside its Swift process.'},
+    direct: {status:'Proposed prayer-app integration', inference:['prayerapp','localmlx','upstream'], action:['journal','display'], note:'No Pi, Node process or host executable is needed for direct Swift generation. The prayer app still implements its own storage and lifecycle.'},
+    standalone: {status:'Provider + host tested', inference:['pi','provider','host','localmlx','upstream'], action:['stock'], note:'This arrangement has no Holdfast app and therefore no Holdfast Inbox. The native host only generates model responses.'},
+    server: {status:'Implemented in Holdfast · Settings → Answer', inference:['app','pi','provider','bridge','client','server'], action:['tools','inbox','apply'], note:'LocalMLX is the default. Ollama, LM Studio and custom servers also work with the comparison Swift harness or regular Pi. Only inference changes; tools, Inbox, snapshots and Undo remain in the app. A server may run inference here or elsewhere.'}
+  };
+  const select=document.getElementById('architecture-choice');
+  let selected='localmlx';
+  function detail(id){
+    selected=id;
+    document.getElementById('component-title').textContent=nodes[id][1];
+    document.getElementById('component-detail').textContent=nodes[id][3];
+    document.querySelectorAll('[data-component]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.component===id)));
+  }
+  function drawList(element,ids){
+    element.replaceChildren();
+    for(const id of ids){
+      const li=document.createElement('li'),b=document.createElement('button');b.type='button';b.className='flow-node';b.dataset.component=id;
+      const owner=document.createElement('span');owner.className='owner';owner.textContent=nodes[id][0];
+      const title=document.createElement('strong');title.textContent=nodes[id][1];
+      const sub=document.createElement('small');sub.textContent=nodes[id][2];
+      b.append(owner,title,sub);b.addEventListener('click',()=>detail(id));li.append(b);element.append(li);
+    }
+  }
+  function render(){
+    const a=arrangements[select.value];
+    document.getElementById('architecture-status').textContent=a.status;
+    document.getElementById('architecture-note').textContent=a.note;
+    document.getElementById('action-title').textContent=select.value==='direct'?'App behavior':'Action path';
+    document.getElementById('action-subtitle').textContent=select.value==='direct'?'Supplies context and presents results':select.value==='standalone'?'Configured Pi tools':'App validation and approval';
+    drawList(document.getElementById('inference-flow'),a.inference);drawList(document.getElementById('action-flow'),a.action);
+    detail(a.inference.includes('localmlx')?'localmlx':a.inference[0]);
+  }
+  select.addEventListener('change',render);
+  document.getElementById('print').addEventListener('click',()=>window.print());
+  render();
+})();
+</script>
+</body>
+</html>

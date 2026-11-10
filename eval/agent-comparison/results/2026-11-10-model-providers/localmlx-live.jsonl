@@ -1,0 +1,2 @@
+{"harness":"pi","model":"mlx-community/Qwen3.8-27B-4bit","answer":"Finished.","tools":1,"seconds":75.745751292}
+{"harness":"durable","model":"mlx-community/Qwen3.8-27B-4bit","answer":"Finished","tools":1,"seconds":27.395317791000007}
