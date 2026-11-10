@@ -16,6 +16,14 @@ This is the Phase 0–3 proof of concept from the Holdfast plan (kept in a
 separate notes repo). One binary is the CLI, the MCP server and a SwiftUI
 window: `holdfast app`, or `scripts/make_app.sh` → `build/Holdfast.app`.
 
+The **Paper & Pine** interface uses warm reading surfaces and evergreen accents in light and
+dark mode. Its sidebar has Ask, Library, Inbox and Listen. Library's view picker switches between
+Notes, Folders, Tables and Graph; Ask's recent questions and **All conversations** open saved
+conversations. **Focus** hides the browser while reading; **Note Details** opens the outline and
+linked notes. Source rows can preview the full passage, and **Answer details** reveals model and
+generation statistics. The bound-page H icon is drawn from `Sources/holdfast/AppIcon.swift` for
+both the app and its packaged icon.
+
 ## What it does
 
 | Command | What happens |

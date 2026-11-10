@@ -92,7 +92,9 @@ PLIST
 # App icon: drawn by scripts/make_icon.swift (the same mark the app shows) into AppIcon.icns.
 ICONSET=$(mktemp -d)/AppIcon.iconset
 mkdir -p "$ICONSET"
-swift scripts/make_icon.swift "$ICONSET" >/dev/null && iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns"
+swiftc Sources/holdfast/AppIcon.swift scripts/make_icon.swift -o "$(dirname "$ICONSET")/make-icon"
+"$(dirname "$ICONSET")/make-icon" "$ICONSET"
+iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns"
 rm -rf "$(dirname "$ICONSET")"
 # Sign inside-out: the resource bundles, the extension (with its sandbox), then the app.
 for b in "$APP"/Contents/MacOS/*.bundle "$APP"/Contents/Resources/*.bundle; do codesign --force --sign - "$b" >/dev/null; done
