@@ -218,7 +218,7 @@ enum MarkdownStyler {
         for m in reMdLink.matches(in: ts.string, range: full) {
             let target = s.substring(with: m.range(at: 2))
             let url: URL? = target.contains(":") ? URL(string: target)
-                : URL(string: "mackb-rel:" + (target.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? target))
+                : URL(string: "holdfast-rel:" + (target.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? target))
             ts.addAttribute(.foregroundColor, value: faint, range: m.range)
             ts.addAttribute(.foregroundColor, value: accent, range: m.range(at: 1))
             if let url { ts.addAttribute(.link, value: url, range: m.range(at: 1)) }
@@ -228,7 +228,7 @@ enum MarkdownStyler {
             ts.addAttribute(.foregroundColor, value: faint, range: m.range)
             let inner = NSRange(location: m.range.location + 2, length: m.range.length - 4)
             ts.addAttribute(.foregroundColor, value: accent, range: inner)
-            if let u = URL(string: "mackb-note:" + (target.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? target)) {
+            if let u = URL(string: "holdfast-note:" + (target.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? target)) {
                 ts.addAttribute(.link, value: u, range: inner)
             }
         }

@@ -63,7 +63,7 @@ final class MCPServer {
         case "initialize":
             return ["protocolVersion": (p["protocolVersion"] as? String) ?? "2025-06-18",
                     "capabilities": ["tools": [:]],
-                    "serverInfo": ["name": "mackb", "version": "0.1.0"]]
+                    "serverInfo": ["name": "holdfast", "version": "0.1.0"]]
         case "ping": return [:]
         case "tools/list": return ["tools": Self.tools]
         case "tools/call":
@@ -71,7 +71,7 @@ final class MCPServer {
             let a = p["arguments"] as? [String: Any] ?? [:]
             return try await call(name, a)
         default:
-            throw MacKBError("unknown method \(method)")
+            throw HoldfastError("unknown method \(method)")
         }
     }
 
@@ -92,7 +92,7 @@ final class MCPServer {
             let tags = a["tags"] as? [String] ?? []
             let (n, flags) = try propose(title: a["title"] as? String ?? "Untitled", text: a["text"] as? String ?? "",
                                          tags: tags, by: "mcp-agent")
-            var s = "Saved to the approval inbox as \(n.id). The counselor approves it with `mackb approve \(n.id)`."
+            var s = "Saved to the approval inbox as \(n.id). The counselor approves it with `holdfast approve \(n.id)`."
             if !flags.isEmpty { s += "\nPrivacy flags for the counselor to check: " + flags.joined(separator: "; ") }
             return text(s)
         case "list_inbox":

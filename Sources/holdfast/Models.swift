@@ -17,8 +17,8 @@ final class Embedder: @unchecked Sendable {
 
     static func load() async throws -> Embedder? {
         let spec = Config.embedSpec
-        // MACKB_EMBED=none: keyword search only (to measure what embeddings add).
-        if ProcessInfo.processInfo.environment["MACKB_EMBED"] == "none" { return nil }
+        // HOLDFAST_EMBED=none: keyword search only (to measure what embeddings add).
+        if ProcessInfo.processInfo.environment["HOLDFAST_EMBED"] == "none" { return nil }
         guard let dir = Config.embedModelDir else {
             log("no \(spec.label) in the HF cache; keyword search only")
             return nil
@@ -74,9 +74,9 @@ final class Reranker: @unchecked Sendable {
     // Instruction-aware reranking adds a few points for Qwen3-Reranker; the
     // instruction comes from the vault's profile (Profile.swift).
 
-    /// Which reranker: MACKB_RERANK_REPO (e.g. mlx-community/Qwen3-Reranker-4B-mxfp8), else 0.6B 4-bit.
+    /// Which reranker: HOLDFAST_RERANK_REPO (e.g. mlx-community/Qwen3-Reranker-4B-mxfp8), else 0.6B 4-bit.
     static var repo: String {
-        ProcessInfo.processInfo.environment["MACKB_RERANK_REPO"] ?? "mlx-community/Qwen3-Reranker-0.6B-4bit"
+        ProcessInfo.processInfo.environment["HOLDFAST_RERANK_REPO"] ?? "mlx-community/Qwen3-Reranker-0.6B-4bit"
     }
     /// Short name for reports, e.g. "Qwen3-Reranker-4B".
     static var label: String {
@@ -84,19 +84,19 @@ final class Reranker: @unchecked Sendable {
     }
 
     static var modelDir: URL? {
-        if let p = ProcessInfo.processInfo.environment["MACKB_RERANK_DIR"] { return URL(fileURLWithPath: p) }
+        if let p = ProcessInfo.processInfo.environment["HOLDFAST_RERANK_DIR"] { return URL(fileURLWithPath: p) }
         let snaps = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent(".cache/huggingface/hub/models--\(repo.replacingOccurrences(of: "/", with: "--"))/snapshots")
         guard let s = try? FileManager.default.contentsOfDirectory(atPath: snaps.path).sorted().last else { return nil }
         return snaps.appendingPathComponent(s)
     }
 
-    /// Loaded once; nil (keyword + vector only) if missing or MACKB_RERANK=0.
+    /// Loaded once; nil (keyword + vector only) if missing or HOLDFAST_RERANK=0.
     static func shared() async -> Reranker? {
         guard Prefs.rerankerOn else { return nil }
         if tried { return cached }
         tried = true
-        guard ProcessInfo.processInfo.environment["MACKB_RERANK"] != "0", let dir = modelDir else { return nil }
+        guard ProcessInfo.processInfo.environment["HOLDFAST_RERANK"] != "0", let dir = modelDir else { return nil }
         do {
             let c = try await RerankerModelFactory.shared.loadContainer(
                 from: dir, using: #huggingFaceTokenizerLoader(), allowUnverifiedModel: true)
@@ -167,15 +167,15 @@ struct OllamaBackend: LLMBackend {
         let bytes: URLSession.AsyncBytes, resp: URLResponse
         do { (bytes, resp) = try await URLSession.shared.bytes(for: req) }
         catch let e as URLError where e.code == .cannotConnectToHost || e.code == .cannotFindHost {
-            throw MacKBError("Ollama isn't running on this Mac. Start it, or choose an MLX model in the model menu.")
+            throw HoldfastError("Ollama isn't running on this Mac. Start it, or choose an MLX model in the model menu.")
         }
         guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
-            throw MacKBError("Ollama returned \((resp as? HTTPURLResponse)?.statusCode ?? 0); is the model \(model) installed in Ollama?")
+            throw HoldfastError("Ollama returned \((resp as? HTTPURLResponse)?.statusCode ?? 0); is the model \(model) installed in Ollama?")
         }
         var stats = GenStats(promptTokens: 0, promptSeconds: 0, outputTokens: 0, outputSeconds: 0)
         for try await line in bytes.lines {
             guard let d = line.data(using: .utf8), let j = try? JSONSerialization.jsonObject(with: d) as? [String: Any] else { continue }
-            if let e = j["error"] as? String { throw MacKBError("Ollama: \(e)") }
+            if let e = j["error"] as? String { throw HoldfastError("Ollama: \(e)") }
             if let m = j["message"] as? [String: Any], let c = m["content"] as? String, !c.isEmpty { onToken(c) }
             if j["done"] as? Bool == true {
                 stats.promptTokens = j["prompt_eval_count"] as? Int ?? 0
@@ -190,9 +190,9 @@ struct OllamaBackend: LLMBackend {
 
 // MARK: - MLX backend: Qwen 3.8 27B 4-bit in-process (no Ollama)
 
-/// Pick the backend: MACKB_BACKEND=mlx loads the model inside this process.
+/// Pick the backend: HOLDFAST_BACKEND=mlx loads the model inside this process.
 func makeBackend() async throws -> LLMBackend {
-    switch ProcessInfo.processInfo.environment["MACKB_BACKEND"] ?? "mlx" {
+    switch ProcessInfo.processInfo.environment["HOLDFAST_BACKEND"] ?? "mlx" {
     case "ollama": return OllamaBackend()
     case "mlx": return try await MLXBackend.shared()
     case "gemini": return try GeminiBackend()
@@ -203,14 +203,14 @@ func makeBackend() async throws -> LLMBackend {
 
 /// Google's Gemini API, for evals on synthetic data only: the app never offers
 /// it, because anything sent here leaves the Mac. Needs GEMINI_API_KEY;
-/// MACKB_GEMINI_MODEL picks the model.
+/// HOLDFAST_GEMINI_MODEL picks the model.
 struct GeminiBackend: LLMBackend {
-    var model = ProcessInfo.processInfo.environment["MACKB_GEMINI_MODEL"] ?? "gemini-flash-latest"
+    var model = ProcessInfo.processInfo.environment["HOLDFAST_GEMINI_MODEL"] ?? "gemini-flash-latest"
     let key: String
 
     init() throws {
         guard let k = ProcessInfo.processInfo.environment["GEMINI_API_KEY"], !k.isEmpty else {
-            throw MacKBError("set GEMINI_API_KEY to use the Gemini backend")
+            throw HoldfastError("set GEMINI_API_KEY to use the Gemini backend")
         }
         key = k
     }
@@ -232,7 +232,7 @@ struct GeminiBackend: LLMBackend {
         let secs = Date().timeIntervalSince(t0)
         guard (resp as? HTTPURLResponse)?.statusCode == 200,
               let j = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            throw MacKBError("Gemini returned \((resp as? HTTPURLResponse)?.statusCode ?? 0): \(String(data: data, encoding: .utf8)?.prefix(300) ?? "")")
+            throw HoldfastError("Gemini returned \((resp as? HTTPURLResponse)?.statusCode ?? 0): \(String(data: data, encoding: .utf8)?.prefix(300) ?? "")")
         }
         let parts = ((j["candidates"] as? [[String: Any]])?.first?["content"] as? [String: Any])?["parts"] as? [[String: Any]] ?? []
         let text = parts.filter { ($0["thought"] as? Bool) != true }.compactMap { $0["text"] as? String }.joined()
@@ -248,13 +248,13 @@ final class MLXBackend: LLMBackend, @unchecked Sendable {
     let loadSeconds: Double
     nonisolated(unsafe) private static var cached: MLXBackend?
 
-    /// Which repo to run: MACKB_MLX_REPO, else the Settings choice.
-    static var currentRepo: String { ProcessInfo.processInfo.environment["MACKB_MLX_REPO"] ?? Prefs.mlxRepo }
+    /// Which repo to run: HOLDFAST_MLX_REPO, else the Settings choice.
+    static var currentRepo: String { ProcessInfo.processInfo.environment["HOLDFAST_MLX_REPO"] ?? Prefs.mlxRepo }
     nonisolated(unsafe) private(set) static var loadedRepo: String?
 
-    /// MACKB_MLX_DIR wins; then the Hugging Face cache; then the app's own downloads.
+    /// HOLDFAST_MLX_DIR wins; then the Hugging Face cache; then the app's own downloads.
     static func modelDir(repo: String = currentRepo) -> URL? {
-        if let p = ProcessInfo.processInfo.environment["MACKB_MLX_DIR"] { return URL(fileURLWithPath: p) }
+        if let p = ProcessInfo.processInfo.environment["HOLDFAST_MLX_DIR"] { return URL(fileURLWithPath: p) }
         let snaps = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent(".cache/huggingface/hub/models--\(repo.replacingOccurrences(of: "/", with: "--"))/snapshots")
         if let s = try? FileManager.default.contentsOfDirectory(atPath: snaps.path).sorted().last {
@@ -288,7 +288,7 @@ final class MLXBackend: LLMBackend, @unchecked Sendable {
         let repo = currentRepo
         if let c = cached, loadedRepo == repo { return c }
         if cached != nil { unload() }  // switching models: free the old one first
-        guard let dir = modelDir(repo: repo) else { throw MacKBError("\(repo) is not downloaded; download it in Settings") }
+        guard let dir = modelDir(repo: repo) else { throw HoldfastError("\(repo) is not downloaded; download it in Settings") }
         let t0 = Date()
         log("loading \(repo) with MLX…")
         let c = try await LLMModelFactory.shared.loadContainer(from: dir, using: #huggingFaceTokenizerLoader())

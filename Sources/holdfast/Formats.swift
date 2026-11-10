@@ -31,7 +31,7 @@ enum Formats {
     /// Text in UTF-8, UTF-16 (with a byte-order mark) or, failing those, Windows-1252.
     static func readText(_ url: URL) throws -> String {
         let attrs = try FileManager.default.attributesOfItem(atPath: url.path)
-        if let n = attrs[.size] as? Int, n > maxFileBytes { throw MacKBError("\(url.lastPathComponent) is too large to read (\(n / 1_048_576) MB)") }
+        if let n = attrs[.size] as? Int, n > maxFileBytes { throw HoldfastError("\(url.lastPathComponent) is too large to read (\(n / 1_048_576) MB)") }
         return decodeText(try Data(contentsOf: url))
     }
 
@@ -46,7 +46,7 @@ enum Formats {
     static func text(_ url: URL) throws -> String {
         let ext = url.pathExtension.lowercased()
         if let n = (try? FileManager.default.attributesOfItem(atPath: url.path))?[.size] as? Int, n > maxFileBytes {
-            throw MacKBError("\(url.lastPathComponent) is too large to read (\(n / 1_048_576) MB)")
+            throw HoldfastError("\(url.lastPathComponent) is too large to read (\(n / 1_048_576) MB)")
         }
         switch ext {
         case "xlsx":
@@ -82,11 +82,11 @@ enum Formats {
             if let info = try? run("/usr/bin/zipinfo", ["-t", zip.path]) {
                 if let m = info.range(of: #"([0-9]+) bytes uncompressed"#, options: .regularExpression),
                    let n = Int64(info[m].split(separator: " ").first ?? ""), n > Formats.maxUnzippedBytes {
-                    throw MacKBError("\(zip.lastPathComponent) would unpack to \(n / 1_073_741_824) GB; not opened")
+                    throw HoldfastError("\(zip.lastPathComponent) would unpack to \(n / 1_073_741_824) GB; not opened")
                 }
                 if let m = info.range(of: #"^([0-9]+) files"#, options: .regularExpression),
                    let n = Int(info[m].split(separator: " ").first ?? ""), n > Formats.maxZipEntries {
-                    throw MacKBError("\(zip.lastPathComponent) holds \(n) files; not opened (the limit is \(Formats.maxZipEntries))")
+                    throw HoldfastError("\(zip.lastPathComponent) holds \(n) files; not opened (the limit is \(Formats.maxZipEntries))")
                 }
             }
             root = FileManager.default.temporaryDirectory.appendingPathComponent("holdfast-zip-" + UUID().uuidString)
@@ -112,7 +112,7 @@ enum Formats {
         /// An entry's bytes; "a/../b" style paths are resolved but must stay inside the archive.
         func read(_ entry: String) throws -> Data {
             let u = root.appendingPathComponent(entry).resolvingSymlinksInPath().standardizedFileURL
-            guard u.path.hasPrefix(base) else { throw MacKBError("archive entry outside the archive: \(entry)") }
+            guard u.path.hasPrefix(base) else { throw HoldfastError("archive entry outside the archive: \(entry)") }
             return try Data(contentsOf: u)
         }
 

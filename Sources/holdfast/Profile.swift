@@ -97,9 +97,9 @@ func todayLine() -> String {
     return "Today is \(f.string(from: today())) (America/Los_Angeles)."
 }
 
-/// Now, or MACKB_TODAY (YYYY-MM-DD) so evals over a fixture give the same answers any day.
+/// Now, or HOLDFAST_TODAY (YYYY-MM-DD) so evals over a fixture give the same answers any day.
 func today() -> Date {
-    if let s = ProcessInfo.processInfo.environment["MACKB_TODAY"] {
+    if let s = ProcessInfo.processInfo.environment["HOLDFAST_TODAY"] {
         let f = DateFormatter()
         f.timeZone = TimeZone(identifier: "America/Los_Angeles")
         f.dateFormat = "yyyy-MM-dd HH:mm"

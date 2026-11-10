@@ -22,7 +22,7 @@ Qwen3-Coder-Next (a coding model, ~52 GB).
 
 | Try | Repo | Size | Why |
 | --- | --- | --- | --- |
-| 1 | `mlx-community/Qwen3-Embedding-8B-4bit-DWQ` | 4.3 GB | The most-cited open embedder (only a stub of the full model is in the HF cache). Search-only runs take minutes, so this is the cheapest test: `MACKB_EMBED_DIR=<snapshot> run.sh retrieval`. |
+| 1 | `mlx-community/Qwen3-Embedding-8B-4bit-DWQ` | 4.3 GB | The most-cited open embedder (only a stub of the full model is in the HF cache). Search-only runs take minutes, so this is the cheapest test: `HOLDFAST_EMBED_DIR=<snapshot> run.sh retrieval`. |
 | 2 | `mlx-community/Qwen3-Embedding-4B-4bit-DWQ` | 2.3 GB | Middle size if 8B is slow to index. |
 | 3 | `mlx-community/Qwen3-Reranker-4B-mxfp8` | 4.2 GB | The reranker did more for search than the embedder did (+6 to +12 points); a bigger one may help again. |
 
@@ -38,7 +38,7 @@ stays; adding a few synthetic voice memos to `drops/` would let
 
 ## Cloud baseline
 
-Gemini (`MACKB_BACKEND=gemini`, needs `GEMINI_API_KEY`) is wired up for the
+Gemini (`HOLDFAST_BACKEND=gemini`, needs `GEMINI_API_KEY`) is wired up for the
 synthetic fixture only. Worth one run as a ceiling for the local models.
 
 ## Sources

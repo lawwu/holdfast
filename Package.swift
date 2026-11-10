@@ -2,9 +2,9 @@
 import PackageDescription
 
 let package = Package(
-    name: "mac-kb",
+    name: "holdfast",
     platforms: [.macOS(.v15)],
-    products: [.executable(name: "mackb", targets: ["mackb"])],
+    products: [.executable(name: "holdfast", targets: ["holdfast"])],
     dependencies: [
         .package(url: "https://github.com/FluidInference/FluidAudio.git", from: "0.18.0"),
         .package(url: "https://github.com/ml-explore/mlx-swift-lm.git", from: "3.32.3"),  // pinned to releases, not main
@@ -12,7 +12,7 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "mackb",
+            name: "holdfast",
             dependencies: [
                 .product(name: "FluidAudio", package: "FluidAudio"),
                 .product(name: "MLXEmbedders", package: "mlx-swift-lm"),

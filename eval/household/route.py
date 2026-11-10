@@ -1,7 +1,7 @@
-"""Scores the router (Sources/mackb/Router.swift) against saved results: for each
+"""Scores the router (Sources/holdfast/Router.swift) against saved results: for each
 question, did a direct answer or Research do better? Stdlib only.
 
-  mackb route --file eval/household/questions.json > /tmp/routes.tsv
+  holdfast route --file eval/household/questions.json > /tmp/routes.tsv
   python3 eval/household/route.py /tmp/routes.tsv [--models qwen27b gemma26b ...]
 
 Every answerable question counts. Where a model has both a plain and a research

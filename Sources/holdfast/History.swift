@@ -1,7 +1,7 @@
 import Foundation
 
 /// Past questions and answers, one JSON file per vault in its state folder
-/// (`.mackb/history.json`, or Application Support for an in-place vault). Kept out of the indexed notes on purpose: the model's
+/// (`.holdfast/history.json`, or Application Support for an in-place vault). Kept out of the indexed notes on purpose: the model's
 /// own earlier answers must never come back as evidence for new ones.
 struct HistoryEntry: Codable, Identifiable {
     var id = UUID()

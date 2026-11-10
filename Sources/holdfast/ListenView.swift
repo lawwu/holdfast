@@ -3,7 +3,7 @@ import SwiftUI
 
 // MARK: - Listen, in the window
 //
-// The same session as `mackb listen` (Listen.swift): pick a call or app, everything the Mac plays,
+// The same session as `holdfast listen` (Listen.swift): pick a call or app, everything the Mac plays,
 // the microphone or a stream; lines appear as they become final, words still settling in grey.
 // When it stops, the transcript is kept in the vault's state folder and handed to the drop folder,
 // so the Inbox shows where the model proposes to file it, like any dropped document.

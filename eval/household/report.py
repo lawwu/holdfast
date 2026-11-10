@@ -1,7 +1,7 @@
 """Metrics for the household fixture, one row per model run.
 
-Reads eval/household/results/qa/*.json (from `mackb eval`) and
-eval/household/results/filing/*.json (from `mackb eval-filing`) and writes
+Reads eval/household/results/qa/*.json (from `holdfast eval`) and
+eval/household/results/filing/*.json (from `holdfast eval-filing`) and writes
 eval/household/report.md. Stdlib only; no LLM judge, so reruns are comparable.
 
   python3 eval/household/report.py
@@ -18,8 +18,8 @@ regex), facts kept, leaks (forbidden ids or full names saved), errors.
 import json, pathlib, statistics
 
 import os
-# The fixture: this folder, or another with the same layout (MACKB_FIXTURE=eval/household-hard).
-HERE = pathlib.Path(os.environ.get("MACKB_FIXTURE") or pathlib.Path(__file__).parent).resolve()
+# The fixture: this folder, or another with the same layout (HOLDFAST_FIXTURE=eval/household-hard).
+HERE = pathlib.Path(os.environ.get("HOLDFAST_FIXTURE") or pathlib.Path(__file__).parent).resolve()
 RES = HERE / "results"
 
 

@@ -312,7 +312,7 @@ struct LinksFooter: View {
             DisclosureGroup(isExpanded: $showOut) {
                 FlowChips(items: out.map { ($0.id, $0.title) } + missing.map { ("?" + $0, $0) }) { id in
                     if id.hasPrefix("?") {
-                        store.openLink(URL(string: "mackb-note:" + (String(id.dropFirst()).addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""))!, from: note)
+                        store.openLink(URL(string: "holdfast-note:" + (String(id.dropFirst()).addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""))!, from: note)
                     } else if let n = store.links.byId[id] { store.openNote(n) }
                 }
                 .padding(.top, 6)

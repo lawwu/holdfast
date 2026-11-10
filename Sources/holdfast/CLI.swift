@@ -1,41 +1,41 @@
 import Foundation
 
 let usage = """
-mackb — Holdfast's command line: a private knowledge base over a folder of Markdown notes
+holdfast — Holdfast's command line: a private knowledge base over a folder of Markdown notes
 
-  mackb ingest <file|folder|url> [--tag t]...   import docs (docx/pdf/md/txt), audio/video, or a YouTube URL
-  mackb listen --app <name> | --system | --url <stream|file> | --mic | -
+  holdfast ingest <file|folder|url> [--tag t]...   import docs (docx/pdf/md/txt), audio/video, or a YouTube URL
+  holdfast listen --app <name> | --system | --url <stream|file> | --mic | -
                                                transcribe audio as it streams in; Ctrl-C stops and files the transcript
         [--mic] [--mute] [--title T] [--json] [--out file.md] [--no-file] [--seconds N] [--realtime]
                                                --app zoom --mic: both sides of a call; --system: everything the Mac plays
-                                               - reads raw 16 kHz mono s16le, e.g. ffmpeg … -f s16le -ar 16000 -ac 1 - | mackb listen -
-  mackb listen --apps                          apps that have opened audio (names for --app)
-  mackb index [--force] [--no-embed]           (re)build the search index from the vault
-  mackb search "<query>"                       hybrid keyword + semantic search
-  mackb ask "<question>"                       answer with the local Qwen model, with citations
-  mackb remember "<title>" "<text>"            propose a memory (goes to the inbox)
-  mackb inbox | approve <id> | reject <id>     review agent-proposed memories and filings
-  mackb drop [file...]                         file what is in the drop folder (adding these files first)
-  mackb import <path...> [--as-is <folder>]   bulk import: file each one (default), or copy and convert into a folder
-  mackb pack list | install <folder> | index <id> | on <id> | off <id> | remove <id>
+                                               - reads raw 16 kHz mono s16le, e.g. ffmpeg … -f s16le -ar 16000 -ac 1 - | holdfast listen -
+  holdfast listen --apps                          apps that have opened audio (names for --app)
+  holdfast index [--force] [--no-embed]           (re)build the search index from the vault
+  holdfast search "<query>"                       hybrid keyword + semantic search
+  holdfast ask "<question>"                       answer with the local Qwen model, with citations
+  holdfast remember "<title>" "<text>"            propose a memory (goes to the inbox)
+  holdfast inbox | approve <id> | reject <id>     review agent-proposed memories and filings
+  holdfast drop [file...]                         file what is in the drop folder (adding these files first)
+  holdfast import <path...> [--as-is <folder>]   bulk import: file each one (default), or copy and convert into a folder
+  holdfast pack list | install <folder> | index <id> | on <id> | off <id> | remove <id>
                                                knowledge packs (read-only references Ask can quote)
-  mackb pack create <id> --name N --license L --attribution A --source URL --cite C <files/folders...>
-  mackb filings | undo <n>                     recent filings; undo the nth (1 = newest)
-  mackb upcoming                               open follow-ups due soon or overdue
-  mackb related <note.md>                      notes closest to a note (search embeddings)
-  mackb rules                                  filing rules, and rules suggested from approvals
-  mackb mcp                                    run the MCP server on stdio (for Claude Code etc.)
-  mackb bench                                  measure LLM speed on a fixed prompt
-  mackb eval [questions.json] --label <name>   score Q&A against a question set (see eval/)
+  holdfast pack create <id> --name N --license L --attribution A --source URL --cite C <files/folders...>
+  holdfast filings | undo <n>                     recent filings; undo the nth (1 = newest)
+  holdfast upcoming                               open follow-ups due soon or overdue
+  holdfast related <note.md>                      notes closest to a note (search embeddings)
+  holdfast rules                                  filing rules, and rules suggested from approvals
+  holdfast mcp                                    run the MCP server on stdio (for Claude Code etc.)
+  holdfast bench                                  measure LLM speed on a fixed prompt
+  holdfast eval [questions.json] --label <name>   score Q&A against a question set (see eval/)
                 [--research] [--retrieval-only]   answer with the tool loop, or score search alone
-  mackb eval-filing [filing.json] --label <name>  score where dropped documents get filed (eval/household/)
-  mackb status                                 vault and index counts
+  holdfast eval-filing [filing.json] --label <name>  score where dropped documents get filed (eval/household/)
+  holdfast status                                 vault and index counts
 
-Vault: $MACKB_VAULT (default ~/MacKB). Model: $MACKB_BACKEND=mlx (default) | remote | ollama.
-  mlx: $MACKB_MLX_REPO (default mlx-community/Qwen3.8-27B-4bit), run in this process.
-  remote: $MACKB_REMOTE_URL and $MACKB_REMOTE_MODEL, an OpenAI-compatible server on another Mac.
-  ollama: $MACKB_LLM at $MACKB_OLLAMA (default http://localhost:11434).
-Also: MACKB_PACKS=id,id|none, MACKB_EMBED=embeddinggemma|none, MACKB_RERANK=0, MACKB_THINK=1, MACKB_TODAY=YYYY-MM-DD.
+Vault: $HOLDFAST_VAULT (default ~/Holdfast). Model: $HOLDFAST_BACKEND=mlx (default) | remote | ollama.
+  mlx: $HOLDFAST_MLX_REPO (default mlx-community/Qwen3.8-27B-4bit), run in this process.
+  remote: $HOLDFAST_REMOTE_URL and $HOLDFAST_REMOTE_MODEL, an OpenAI-compatible server on another Mac.
+  ollama: $HOLDFAST_LLM at $HOLDFAST_OLLAMA (default http://localhost:11434).
+Also: HOLDFAST_PACKS=id,id|none, HOLDFAST_EMBED=embeddinggemma|none, HOLDFAST_RERANK=0, HOLDFAST_THINK=1, HOLDFAST_TODAY=YYYY-MM-DD.
 ask also takes --research (the tool loop); index takes --force and --no-embed.
 """
 
@@ -62,14 +62,14 @@ do {
     case "ingest":
         let tags = option("--tag")
         let title = option("--title").first
-        guard let target = args.first else { throw MacKBError("ingest what?") }
+        guard let target = args.first else { throw HoldfastError("ingest what?") }
         if target.hasPrefix("http://") || target.hasPrefix("https://") {
             let n = try await ingestURL(target, tags: tags)
             print("→ \(n.relPath)")
         } else {
             let u = URL(fileURLWithPath: (target as NSString).expandingTildeInPath).standardizedFileURL
             var isDir: ObjCBool = false
-            guard FileManager.default.fileExists(atPath: u.path, isDirectory: &isDir) else { throw MacKBError("not found: \(u.path)") }
+            guard FileManager.default.fileExists(atPath: u.path, isDirectory: &isDir) else { throw HoldfastError("not found: \(u.path)") }
             if isDir.boolValue {
                 let t0 = Date()
                 let r = try ingestFolder(u, tags: tags)
@@ -83,7 +83,7 @@ do {
                 print("→ \(n.relPath)")
             }
         }
-        print("run `mackb index` to make new notes searchable")
+        print("run `holdfast index` to make new notes searchable")
     case "index":
         let force = flag("--force")
         let emb = flag("--no-embed") ? nil : try await Embedder.load()
@@ -121,7 +121,7 @@ do {
                    a.retrievalSeconds, a.stats.promptTokens, a.stats.promptTokPerSec, a.stats.outputTokens, a.stats.tokPerSec))
     case "remember":
         let tags = option("--tag")
-        guard args.count >= 2 else { throw MacKBError("remember \"<title>\" \"<text>\"") }
+        guard args.count >= 2 else { throw HoldfastError("remember \"<title>\" \"<text>\"") }
         let (n, flags) = try propose(title: args[0], text: args[1], tags: tags, by: "cli")
         print("inbox: \(n.id)")
         for f in flags { print("  ⚠ \(f)") }
@@ -135,7 +135,7 @@ do {
         }
     case "approve":
         let n = try approve(args.first ?? "")
-        print("approved → \(n.relPath) (run `mackb index`)")
+        print("approved → \(n.relPath) (run `holdfast index`)")
     case "reject":
         try reject(args.first ?? "")
         print("moved to Trash")
@@ -151,7 +151,7 @@ do {
             for f in r.flagged.prefix(20) { print("  check for personal details: \(f)") }
         } else {
             let r = try BulkImport.queue(urls)
-            print("queued \(r.queued) files in the drop folder (skipped \(r.skipped.count)); run `mackb drop` to file them")
+            print("queued \(r.queued) files in the drop folder (skipped \(r.skipped.count)); run `holdfast drop` to file them")
         }
     case "pack":
         let sub = args.first ?? "list"
@@ -165,7 +165,7 @@ do {
             }
         case "install":
             let m = try Packs.install(from: URL(fileURLWithPath: rest.first ?? "."))
-            print("installed \(m.id) (\(m.name)); run `mackb pack index \(m.id)` then `mackb pack on \(m.id)`")
+            print("installed \(m.id) (\(m.name)); run `holdfast pack index \(m.id)` then `holdfast pack on \(m.id)`")
         case "index":
             let emb = try? await Embedder.load()
             try await Packs.reindex(rest.first ?? "", embedder: emb, force: flag("--force"))
@@ -187,12 +187,12 @@ do {
             let report = try await Packs.create(id: id, name: name.isEmpty ? id : name, license: lic, attribution: att, source: src,
                                                 description: opt("--description"), cite: cite.isEmpty ? id : cite,
                                                 from: r.map { URL(fileURLWithPath: $0) })
-            print("pack \(id): \(report.notes) notes; skipped \(report.skipped.count). Run `mackb pack index \(id)`.")
+            print("pack \(id): \(report.notes) notes; skipped \(report.skipped.count). Run `holdfast pack index \(id)`.")
         default:
-            throw MacKBError("pack list | install | index | on | off | remove | create")
+            throw HoldfastError("pack list | install | index | on | off | remove | create")
         }
     case "job":
-        guard args.first == "crosslink" else { throw MacKBError("job crosslink [--dry] [--limit N] [--candidates] [--out file.json]") }
+        guard args.first == "crosslink" else { throw HoldfastError("job crosslink [--dry] [--limit N] [--candidates] [--out file.json]") }
         let dry = flag("--dry"), candOnly = flag("--candidates")
         let limit = option("--limit").first.flatMap(Int.init), out = option("--out").first
         if candOnly {
@@ -214,7 +214,7 @@ do {
         let cases = try JSONDecoder().decode([Labeled].self, from: Data(contentsOf: URL(fileURLWithPath: args.first ?? "eval/household/crosslink.json")))
         let byPath = Dictionary(allNotes().map { ($0.relPath, $0) }, uniquingKeysWith: { a, _ in a })
         guard cases.contains(where: { byPath[$0.a] != nil && byPath[$0.b] != nil }) else {
-            throw MacKBError("none of the labeled pairs are in this vault (set MACKB_VAULT to the fixture's vault)")
+            throw HoldfastError("none of the labeled pairs are in this vault (set HOLDFAST_VAULT to the fixture's vault)")
         }
         let llm = try await makeBackend()
         var tp = 0, fp = 0, fn = 0, tn = 0, secs: [Double] = [], wrong: [String] = []
@@ -235,7 +235,7 @@ do {
                      Double(tp + tn) / n * 100, Double(tp) / Double(max(tp + fp, 1)) * 100, Double(tp) / Double(max(tp + fn, 1)) * 100,
                      fp, secs.sorted()[secs.count / 2]))
     case "route":
-        // How the one box would handle each request: mackb route "<request>" … (or --file questions.json)
+        // How the one box would handle each request: holdfast route "<request>" … (or --file questions.json)
         var qs = args
         if let f = option("--file").first, let d = try? Data(contentsOf: URL(fileURLWithPath: f)),
            let arr = try? JSONSerialization.jsonObject(with: d) as? [[String: Any]] {
@@ -251,7 +251,7 @@ do {
         }
     case "undo":
         let rs = FilingLog.load()
-        guard let k = Int(args.first ?? "1"), k >= 1, k <= rs.count else { throw MacKBError("undo <n>: see `mackb filings`") }
+        guard let k = Int(args.first ?? "1"), k >= 1, k <= rs.count else { throw HoldfastError("undo <n>: see `holdfast filings`") }
         print(try FilingLog.undo(rs[k - 1].id))
     case "upcoming":
         let items = Upcoming.scan(allNotes())
@@ -306,7 +306,7 @@ do {
         else if mic { input = .mic }
         else if let url { input = .url(url, realtime: realtime) }
         else if args.first == "-" || isatty(STDIN_FILENO) == 0 { input = .stdin }
-        else { throw MacKBError("listen to what? --app <name> or --system (add --mic for your side of a call), --url <stream or file>, --mic, or - for piped audio (mackb help)") }
+        else { throw HoldfastError("listen to what? --app <name> or --system (add --mic for your side of a call), --url <stream or file>, --mic, or - for piped audio (holdfast help)") }
         do {
             try await Listen.run(input, title: title, json: json, out: out, file: !noFile, maxSeconds: seconds)
             Listen.relayEnded(relayDir, status: 0)

@@ -2,7 +2,7 @@
 
 ## Next (after 0.1.0)
 
-- **`mackb listen`: live transcription.** Audio from a stream URL (via ffmpeg), the microphone, or raw
+- **`holdfast listen`: live transcription.** Audio from a stream URL (via ffmpeg), the microphone, or raw
   audio on stdin is transcribed as it arrives; finished lines print as they become final (JSON events
   with `--json`), and the transcript is kept and filed like a dropped document when it ends. CLI only
   for now; `--mic` is untested.

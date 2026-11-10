@@ -103,7 +103,7 @@ enum CrossLink {
     /// An Inbox proposal for a "yes".
     @discardableResult
     static func propose(_ v: Verdict, a: Note, b: Note, model: String) throws -> Note {
-        let today = Drop.dayString(mackb.today())
+        let today = Drop.dayString(holdfast.today())
         let meta = ["title": "Link \(a.title) → \(b.title)", "kind": "filing", "action": "link", "target": a.relPath,
                     "why": v.reason, "proposed_by": "Cross-link job · \(model)", "proposed": today]
         let slug = slugify("link " + a.name + " " + b.name)

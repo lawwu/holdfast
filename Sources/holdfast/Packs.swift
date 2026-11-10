@@ -25,7 +25,7 @@ struct PackManifest: Codable, Identifiable, Equatable {
 enum Packs {
     /// Shared by all vaults.
     static var dir: URL {
-        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/MacKB/packs")
+        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/Holdfast/packs")
     }
     static let prefix = "pack:"
 
@@ -38,7 +38,7 @@ enum Packs {
     }
 
     static func checkID(_ id: String) throws {
-        guard validID(id) else { throw MacKBError("not a pack id: \"\(id)\" (lowercase letters, digits, - and _)") }
+        guard validID(id) else { throw HoldfastError("not a pack id: \"\(id)\" (lowercase letters, digits, - and _)") }
     }
     static func notesDir(_ id: String) -> URL { folder(id).appendingPathComponent("notes") }
     static func indexPath(_ id: String) -> URL { folder(id).appendingPathComponent(Config.indexPath.lastPathComponent) }
@@ -54,9 +54,9 @@ enum Packs {
 
     static var enabledURL: URL { dir.appendingPathComponent("enabled.json") }
 
-    /// Packs Search and Ask use. MACKB_PACKS=id,id (or "none") overrides, for evals and the CLI.
+    /// Packs Search and Ask use. HOLDFAST_PACKS=id,id (or "none") overrides, for evals and the CLI.
     static func enabled() -> Set<String> {
-        if let env = ProcessInfo.processInfo.environment["MACKB_PACKS"] {
+        if let env = ProcessInfo.processInfo.environment["HOLDFAST_PACKS"] {
             return env == "none" ? [] : Set(env.split(separator: ",").map(String.init))
         }
         guard let d = try? Data(contentsOf: enabledURL), let ids = try? JSONDecoder().decode([String].self, from: d) else { return [] }
@@ -122,7 +122,7 @@ enum Packs {
 
     static func reindex(_ id: String, embedder: Embedder?, force: Bool = false) async throws {
         try checkID(id)
-        guard FileManager.default.fileExists(atPath: folder(id).appendingPathComponent("pack.json").path) else { throw MacKBError("no pack named \(id)") }
+        guard FileManager.default.fileExists(atPath: folder(id).appendingPathComponent("pack.json").path) else { throw HoldfastError("no pack named \(id)") }
         try await reindexNotes(Index(path: indexPath(id)), notes: notes(id), embedder: embedder, force: force)
     }
 
@@ -136,7 +136,7 @@ enum Packs {
     static func create(id: String, name: String, license: String, attribution: String, source: String,
                        description: String, cite: String, from sources: [URL]) async throws -> BulkImport.Report {
         try checkID(id)
-        let m = PackManifest(id: id, name: name, version: Drop.dayString(mackb.today()), license: license, attribution: attribution,
+        let m = PackManifest(id: id, name: name, version: Drop.dayString(holdfast.today()), license: license, attribution: attribution,
                              source: source, description: description, cite: cite)
         try FileManager.default.createDirectory(at: folder(id), withIntermediateDirectories: true)
         let enc = JSONEncoder()

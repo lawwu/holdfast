@@ -1,16 +1,15 @@
 #!/bin/bash
-# Build mackb and wrap it as build/Holdfast.app (ad-hoc signed, for this Mac only).
-# Holdfast is the product name; mackb stays the codename (binary, CLI, bundle id, data folder).
+# Build holdfast and wrap it as build/Holdfast.app (ad-hoc signed, for this Mac only).
 # The same binary is the CLI and the app: launched from a .app it opens the window.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-xcodebuild -scheme mac-kb -destination 'platform=macOS' -configuration Release \
+xcodebuild -scheme holdfast -destination 'platform=macOS' -configuration Release \
   -derivedDataPath .build/xcode -skipMacroValidation -skipPackagePluginValidation build -quiet
 P=.build/xcode/Build/Products/Release
 APP=build/Holdfast.app
-rm -rf "$APP" build/MacKB.app
+rm -rf "$APP" build/Holdfast.app
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp "$P/mackb" "$APP/Contents/MacOS/mackb"
+cp "$P/holdfast" "$APP/Contents/MacOS/holdfast"
 # SwiftPM resource bundles (MLX's Metal shaders, tokenizer resources). MLX looks
 # next to the binary, SwiftPM's Bundle.module in Resources: put them in both.
 for b in "$P"/*.bundle; do
@@ -23,8 +22,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <plist version="1.0"><dict>
   <key>CFBundleName</key><string>Holdfast</string>
   <key>CFBundleDisplayName</key><string>Holdfast</string>
-  <key>CFBundleIdentifier</key><string>net.lawrencewu.mackb</string>
-  <key>CFBundleExecutable</key><string>mackb</string>
+  <key>CFBundleIdentifier</key><string>net.lawrencewu.holdfast</string>
+  <key>CFBundleExecutable</key><string>holdfast</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>0.1.0</string>
   <key>CFBundleVersion</key><string>1</string>
@@ -41,7 +40,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
       </dict>
     </dict>
   </dict>
-  <!-- mackb listen: another app's audio (a call) and the microphone, transcribed on this Mac. -->
+  <!-- holdfast listen: another app's audio (a call) and the microphone, transcribed on this Mac. -->
   <key>NSAudioCaptureUsageDescription</key><string>Holdfast transcribes a call or another app's audio on this Mac when you ask it to listen. Nothing is sent anywhere.</string>
   <key>NSMicrophoneUsageDescription</key><string>Holdfast transcribes your side of a call on this Mac when you ask it to listen. Nothing is sent anywhere.</string>
   <key>NSHumanReadableCopyright</key><string>“Prove all things; hold fast that which is good.” 1 Thessalonians 5:21</string>
@@ -62,7 +61,7 @@ cat > "$EXT/Contents/Info.plist" <<PLIST
 <plist version="1.0"><dict>
   <key>CFBundleName</key><string>Holdfast Preview</string>
   <key>CFBundleDisplayName</key><string>Holdfast Preview</string>
-  <key>CFBundleIdentifier</key><string>net.lawrencewu.mackb.preview</string>
+  <key>CFBundleIdentifier</key><string>net.lawrencewu.holdfast.preview</string>
   <key>CFBundleExecutable</key><string>HoldfastPreview</string>
   <key>CFBundlePackageType</key><string>XPC!</string>
   <key>CFBundleShortVersionString</key><string>0.1.0</string>

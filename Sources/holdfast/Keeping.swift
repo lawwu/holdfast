@@ -143,12 +143,12 @@ enum FilingLog {
 
     private static func undoLocked(_ id: UUID) throws -> String {
         var rs = load()
-        guard let i = rs.firstIndex(where: { $0.id == id }) else { throw MacKBError("no such filing") }
-        guard !rs[i].undone else { throw MacKBError("already undone") }
+        guard let i = rs.firstIndex(where: { $0.id == id }) else { throw HoldfastError("no such filing") }
+        guard !rs[i].undone else { throw HoldfastError("already undone") }
         let r = rs[i]
         let dest = try Drop.safeTarget(r.target)
         guard let now = try? String(contentsOf: dest, encoding: .utf8) else {
-            throw MacKBError("\(r.target) was moved or deleted after it was filed, so there is nothing to undo there")
+            throw HoldfastError("\(r.target) was moved or deleted after it was filed, so there is nothing to undo there")
         }
         let wasNew = r.action == "new"
         if hash(now) == r.after, wasNew {
@@ -161,13 +161,13 @@ enum FilingLog {
             Versions.snapshot(dest, reason: "before-undo")
             try out.write(to: dest, atomically: true, encoding: .utf8)
         } else {
-            throw MacKBError("\(r.target) changed after it was filed; open its History to go back to an earlier copy")
+            throw HoldfastError("\(r.target) changed after it was filed; open its History to go back to an earlier copy")
         }
         if let h = r.originalHash { FiledHashes.remove(h) }
         var meta = r.proposal
-        meta["undone"] = Drop.dayString(mackb.today())
+        meta["undone"] = Drop.dayString(holdfast.today())
         let slug = slugify(r.title).isEmpty ? "filing" : slugify(r.title)
-        let path = Drop.unique(Config.inboxDir.appendingPathComponent("\(Drop.dayString(mackb.today()).replacingOccurrences(of: "-", with: ""))-\(slug).md"), ifExists: true)
+        let path = Drop.unique(Config.inboxDir.appendingPathComponent("\(Drop.dayString(holdfast.today()).replacingOccurrences(of: "-", with: ""))-\(slug).md"), ifExists: true)
         try Note(path: path, meta: meta, body: r.proposalBody).write()
         rs[i].undone = true
         save(rs)
@@ -237,7 +237,7 @@ struct FollowUp: Identifiable {
     var text: String
     var due: String
     var id: String { note.relPath + "|" + raw }
-    var overdue: Bool { due < Drop.dayString(mackb.today()) }
+    var overdue: Bool { due < Drop.dayString(holdfast.today()) }
 }
 
 enum Upcoming {
@@ -247,7 +247,7 @@ enum Upcoming {
 
     static func scan(_ notes: [Note]) -> [FollowUp] {
         let re = try! NSRegularExpression(pattern: pattern)
-        let horizon = Drop.dayString(Calendar.current.date(byAdding: .day, value: horizonDays, to: mackb.today())!)
+        let horizon = Drop.dayString(Calendar.current.date(byAdding: .day, value: horizonDays, to: holdfast.today())!)
         var out: [FollowUp] = []
         for n in notes where !n.relPath.hasPrefix("@") {
             for line in n.body.components(separatedBy: "\n") where line.contains("📅") {
@@ -266,11 +266,11 @@ enum Upcoming {
         let text = try String(contentsOf: f.note.path, encoding: .utf8)
         let eol = text.contains("\r\n") ? "\r\n" : "\n"
         var lines = text.components(separatedBy: eol)
-        guard let k = lines.firstIndex(of: f.raw) else { throw MacKBError("that follow-up changed in \(f.note.relPath)") }
+        guard let k = lines.firstIndex(of: f.raw) else { throw HoldfastError("that follow-up changed in \(f.note.relPath)") }
         Versions.snapshot(f.note.path, reason: "edit")
         var done = f.raw
         if let box = done.range(of: "[ ]") { done.replaceSubrange(box, with: "[x]") }
-        lines[k] = done + " ✅ " + Drop.dayString(mackb.today())
+        lines[k] = done + " ✅ " + Drop.dayString(holdfast.today())
         try lines.joined(separator: eol).write(to: f.note.path, atomically: true, encoding: .utf8)
     }
 

@@ -236,11 +236,11 @@ struct RootView: View {
             if !store.editing { store.reload() }
         }
         .environment(\.openURL, OpenURLAction { url in
-            if url.scheme == "mackb", let n = Int(url.lastPathComponent) {
+            if url.scheme == "holdfast", let n = Int(url.lastPathComponent) {
                 store.openSource(n)
                 return .handled
             }
-            if url.scheme == "mackb-note" || url.scheme == "mackb-rel" {
+            if url.scheme == "holdfast-note" || url.scheme == "holdfast-rel" {
                 let mods = NSEvent.modifierFlags
                 if mods.contains(.option) {  // ⌥-click: preview without leaving
                     store.preview = store.resolveLink(url, from: store.opened?.note)
@@ -1290,17 +1290,17 @@ struct SearchFieldLike: View {
 // MARK: - Markdown rendering (enough for answers and notes)
 
 /// Inline Markdown; with `linkCitations`, "[n]" becomes a small raised accent
-/// badge that links to mackb://cite/n.
+/// badge that links to holdfast://cite/n.
 func inlineMarkdown(_ s: String, linkCitations: Bool = false) -> AttributedString {
     var md = s
     if linkCitations {
-        md = md.replacingOccurrences(of: #"\[(\d+)\]"#, with: "[\u{2009}$1\u{2009}](mackb://cite/$1)", options: .regularExpression)
+        md = md.replacingOccurrences(of: #"\[(\d+)\]"#, with: "[\u{2009}$1\u{2009}](holdfast://cite/$1)", options: .regularExpression)
     }
     guard var out = try? AttributedString(markdown: md, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)) else {
         return AttributedString(s)
     }
     if linkCitations {
-        let ranges = out.runs.filter { $0.link?.scheme == "mackb" }.map(\.range)
+        let ranges = out.runs.filter { $0.link?.scheme == "holdfast" }.map(\.range)
         for r in ranges {
             out[r].font = .system(size: 11, weight: .bold, design: .rounded)
             out[r].foregroundColor = Theme.accent

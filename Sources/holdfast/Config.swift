@@ -3,21 +3,21 @@ import Foundation
 /// Everything tunable lives here, with the reason next to it.
 enum Config {
     /// The vault: plain Markdown, the source of truth. Opens in Obsidian.
-    /// Override with MACKB_VAULT.
+    /// Override with HOLDFAST_VAULT.
     /// Set by the app when the user picks a vault; wins over the environment.
     nonisolated(unsafe) static var vaultOverride: URL?
 
     static var vault: URL {
         if let v = vaultOverride { return v }
-        if let p = ProcessInfo.processInfo.environment["MACKB_VAULT"] {
+        if let p = ProcessInfo.processInfo.environment["HOLDFAST_VAULT"] {
             return URL(fileURLWithPath: (p as NSString).expandingTildeInPath)
         }
-        return FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("MacKB")
+        return Migrate.defaultVault()
     }
 
     /// Two kinds of vault:
     /// - managed: a folder the app owns. Imports are copied into `sources/`,
-    ///   approved memories go to `memory/`, and app state lives in `.mackb/`.
+    ///   approved memories go to `memory/`, and app state lives in `.holdfast/`.
     /// - in place: an existing folder of notes (e.g. a git repo of notes),
     ///   indexed where it is. The app writes nothing into it: index, history,
     ///   inbox, memories and imports live in Application Support instead.
@@ -37,14 +37,14 @@ enum Config {
         return !items.isEmpty
     }
 
-    /// Where app state lives: `.mackb/` in a managed vault, else a per-vault
+    /// Where app state lives: `.holdfast/` in a managed vault, else a per-vault
     /// folder in Application Support (named after the folder plus a path hash).
     static var stateDir: URL {
-        guard inPlace else { return vault.appendingPathComponent(".mackb") }
+        guard inPlace else { return vault.appendingPathComponent(".holdfast") }
         var h: UInt64 = 1469598103934665603  // FNV-1a, stable across launches
         for b in vault.standardizedFileURL.path.utf8 { h = (h ^ UInt64(b)) &* 1099511628211 }
         return FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/Application Support/MacKB/vaults")
+            .appendingPathComponent("Library/Application Support/Holdfast/vaults")
             .appendingPathComponent("\(vault.lastPathComponent)-\(String(h, radix: 16).prefix(8))")
     }
 
@@ -68,21 +68,21 @@ enum Config {
     /// Ollama, one of the two LLM backends (the other is MLX in-process; see
     /// `MLXBackend`). The app's Settings window picks between them.
     static var ollamaURL: URL {
-        URL(string: ProcessInfo.processInfo.environment["MACKB_OLLAMA"] ?? "http://localhost:11434")!
+        URL(string: ProcessInfo.processInfo.environment["HOLDFAST_OLLAMA"] ?? "http://localhost:11434")!
     }
     /// Qwen 3.8 27B as already installed in Ollama: 8-bit (a 29 GB blob), though
     /// Ollama's metadata labels it Q4_K_M.
-    static var llmModel: String { ProcessInfo.processInfo.environment["MACKB_LLM"] ?? "qwen38-27b-q8-32k" }
+    static var llmModel: String { ProcessInfo.processInfo.environment["HOLDFAST_LLM"] ?? "qwen38-27b-q8-32k" }
 
     /// The embedding model: Qwen3-Embedding-0.6B by default, or Google's
-    /// EmbeddingGemma-300m with MACKB_EMBED=embeddinggemma (each has its own index).
+    /// EmbeddingGemma-300m with HOLDFAST_EMBED=embeddinggemma (each has its own index).
     static var embedSpec: EmbedSpec {
-        EmbedSpec(rawValue: ProcessInfo.processInfo.environment["MACKB_EMBED"] ?? "") ?? .qwen3
+        EmbedSpec(rawValue: ProcessInfo.processInfo.environment["HOLDFAST_EMBED"] ?? "") ?? .qwen3
     }
 
     /// The embedding model's folder in the Hugging Face cache; run in-process by MLX Swift.
     static var embedModelDir: URL? {
-        if let p = ProcessInfo.processInfo.environment["MACKB_EMBED_DIR"] { return URL(fileURLWithPath: p) }
+        if let p = ProcessInfo.processInfo.environment["HOLDFAST_EMBED_DIR"] { return URL(fileURLWithPath: p) }
         let snaps = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent(".cache/huggingface/hub/models--\(embedSpec.repo.replacingOccurrences(of: "/", with: "--"))/snapshots")
         guard let first = try? FileManager.default.contentsOfDirectory(atPath: snaps.path).sorted().last else { return nil }
@@ -170,11 +170,12 @@ enum Prefs {
     /// Where the app downloads MLX models (directly, not via the HF cache, so
     /// nothing is stored twice).
     static var modelsDir: URL {
-        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/MacKB/models")
+        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/Holdfast/models")
     }
 }
 
 func ensureVault() throws {
+    Migrate.vaultState(Config.vault)
     // For an in-place vault these all live in Application Support, not the vault.
     for d in [Config.sourcesDir, Config.memoryDir, Config.inboxDir, Config.mediaDir] {
         try FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)

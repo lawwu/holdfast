@@ -119,7 +119,7 @@ enum Expand {
 enum Mailbox {
     /// Splits an mbox into .eml files, streaming: each message starts at a "From " line after a blank line.
     static func split(_ url: URL, into dir: URL) throws -> [URL] {
-        guard let fh = try? FileHandle(forReadingFrom: url) else { throw MacKBError("can't open \(url.lastPathComponent)") }
+        guard let fh = try? FileHandle(forReadingFrom: url) else { throw HoldfastError("can't open \(url.lastPathComponent)") }
         defer { try? fh.close() }
         var out: [URL] = []
         var current: FileHandle?
@@ -363,7 +363,7 @@ enum BulkImport {
                         try? fm.copyItem(at: item.file, to: Drop.unique(keep, ifExists: true))
                     }
                     let note = Note(path: Drop.unique(base.appendingPathExtension("md"), ifExists: true),
-                                    meta: ["title": title, "source": item.file.lastPathComponent, "imported": Drop.dayString(mackb.today())],
+                                    meta: ["title": title, "source": item.file.lastPathComponent, "imported": Drop.dayString(holdfast.today())],
                                     body: "\n# \(title)\n\n" + text + "\n")
                     try note.write()
                     report.notes += 1

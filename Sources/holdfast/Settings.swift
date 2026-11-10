@@ -237,7 +237,7 @@ struct VaultSettings: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             SettingsHeader(title: "Vault",
-                           subtitle: "A folder of plain Markdown notes. It can be an Obsidian vault; the search index and question history live in its hidden .mackb folder.")
+                           subtitle: "A folder of plain Markdown notes. It can be an Obsidian vault; the search index and question history live in its hidden .holdfast folder.")
             HStack(spacing: 12) {
                 Image(systemName: "folder.fill").font(Theme.title2).foregroundStyle(Theme.accent)
                 VStack(alignment: .leading, spacing: 2) {

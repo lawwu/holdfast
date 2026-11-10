@@ -146,8 +146,8 @@ enum MarkdownParser {
 
 // MARK: - Inline rendering
 
-/// Inline Markdown for the reader. Wikilinks become `mackb-note:` links and
-/// relative `.md` links become `mackb-rel:` links, both opened in the app.
+/// Inline Markdown for the reader. Wikilinks become `holdfast-note:` links and
+/// relative `.md` links become `holdfast-rel:` links, both opened in the app.
 func noteInline(_ s: String, size: CGFloat = 14.5) -> AttributedString {
     var md = s
     let ns = md as NSString
@@ -156,13 +156,13 @@ func noteInline(_ s: String, size: CGFloat = 14.5) -> AttributedString {
         let target = ns.substring(with: m.range(at: 1))
         let heading = m.range(at: 2).location != NSNotFound ? ns.substring(with: m.range(at: 2)) : ""
         let label = m.range(at: 3).location != NSNotFound ? ns.substring(with: m.range(at: 3)) : target
-        let url = "mackb-note:" + (target.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? target)
+        let url = "holdfast-note:" + (target.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? target)
             + (heading.isEmpty ? "" : "#" + (heading.addingPercentEncoding(withAllowedCharacters: .urlFragmentAllowed) ?? ""))
         replaced = (replaced as NSString).replacingCharacters(in: m.range, with: "[\(label)](\(url))")
     }
     md = replaced
     md = md.replacingOccurrences(of: #"\]\((?![a-zA-Z][a-zA-Z0-9+.-]*:)([^)\s]+\.md(?:#[^)\s]*)?)\)"#,
-                                 with: "](mackb-rel:$1)", options: .regularExpression)
+                                 with: "](holdfast-rel:$1)", options: .regularExpression)
     guard var out = try? AttributedString(markdown: md, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)) else {
         return AttributedString(s)
     }
@@ -174,7 +174,7 @@ func noteInline(_ s: String, size: CGFloat = 14.5) -> AttributedString {
         }
         if let l = link {
             out[r].foregroundColor = Theme.accent
-            if l.scheme == "mackb-note" || l.scheme == "mackb-rel" {
+            if l.scheme == "holdfast-note" || l.scheme == "holdfast-rel" {
                 out[r].underlineStyle = nil
             }
         }
