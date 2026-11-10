@@ -24,6 +24,14 @@
   blends into the page. Listen keeps the transcript on the page after Stop, with Copy and a Follow
   toggle for reading back. Checked on screen in light mode; dark mode not yet checked.
 
+- **Model recommendations.** `holdfast models`, the first-run card and Settings recommend the
+  answer model that scores best on the household eval and fits this Mac's memory, with a faster
+  alternative; Settings lists every measured model with its scores. Before a model is chosen, the
+  default is this Mac's pick. On 64 GB: Qwen 3.8 27B (Gemma 4 26B A4B as the 4× faster choice);
+  32 GB: Qwen 3.5 9B; 16 GB: Qwen 3.5 4B.
+- **Renamed to Holdfast everywhere** (command, bundle id, settings, data folder); the old name's
+  settings and data move over on first run.
+
 ### Fixed after a review of the above
 - Privacy: a follow-up in a conversation that used counseling notes stays on this Mac (earlier
   answers go along as context); remote Research keeps folder listings, tables and properties from

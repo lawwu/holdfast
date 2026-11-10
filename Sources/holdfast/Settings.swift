@@ -103,6 +103,7 @@ struct AnswerSettings: View {
         VStack(alignment: .leading, spacing: 16) {
             SettingsHeader(title: "Answer model",
                            subtitle: "Runs on this Mac with MLX and writes answers from the passages search finds. Takes effect on the next question.")
+            RecommendationRows().card(padding: 14)
             GroupBox2 {
                 ForEach(MLXModelSpec.shortList) { spec in mlxRow(spec) }
             }
@@ -138,10 +139,14 @@ struct AnswerSettings: View {
 
     @ViewBuilder func mlxRow(_ spec: MLXModelSpec) -> some View {
         let downloaded = store.isDownloaded(spec.repo)
-        let tooBig = spec.sizeGB > ramGB * 0.75
+        // Measured peak memory when the eval has it; otherwise the download size as a guide.
+        let measured = ModelCatalog.entries.first { $0.repo == spec.repo }
+        let fit = measured.map { Recommend.fit($0, ramGB: ramGB) } ?? (spec.sizeGB > ramGB * 0.75 ? .no : .unknown)
+        let tooBig = fit == .no
         ChoiceRow(selected: store.backend == .mlx && store.mlxRepo == spec.repo, enabled: downloaded,
                   title: spec.name, tag: "\(spec.detail) · \(String(format: "%.0f", spec.sizeGB)) GB",
-                  subtitle: tooBig ? "Too large for this Mac's memory." : (store.downloadErrors[spec.repo].map { "Download failed: \($0)" } ?? spec.blurb),
+                  subtitle: tooBig ? "Too large for this Mac's memory. " + spec.blurb
+                      : (store.downloadErrors[spec.repo].map { "Download failed: \($0)" } ?? (fit == .tight ? "Tight on this Mac's memory. " : "") + spec.blurb),
                   action: { store.selectMLX(spec.repo) }) {
             if let f = store.downloads[spec.repo] {
                 HStack(spacing: 6) {
