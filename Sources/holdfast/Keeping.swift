@@ -106,6 +106,8 @@ struct FilingRecord: Codable, Identifiable {
     var extraLines: [String]?
     /// The dropped file's hash, forgotten on undo so the file can be dropped again.
     var originalHash: String?
+    /// The original kept in the vault beside the note (originals-raw/…), moved to the Trash on undo.
+    var keptOriginal: String?
 }
 
 enum FilingLog {
@@ -164,6 +166,9 @@ enum FilingLog {
             throw HoldfastError("\(r.target) changed after it was filed; open its History to go back to an earlier copy")
         }
         if let h = r.originalHash { FiledHashes.remove(h) }
+        if let k = r.keptOriginal, let u = try? Drop.safeTarget(k), FileManager.default.fileExists(atPath: u.path) {
+            try? FileManager.default.trashItem(at: u, resultingItemURL: nil)
+        }
         var meta = r.proposal
         meta["undone"] = Drop.dayString(holdfast.today())
         let slug = slugify(r.title).isEmpty ? "filing" : slugify(r.title)

@@ -31,6 +31,9 @@ struct HoldfastApp: App {
                 Button("Rebuild Index") { store.rebuildIndex(force: true) }
                 Button("Open Drop Folder") { store.revealDrop() }.keyboardShortcut("d", modifiers: [.command, .shift])
                 Divider()
+                Button("Back Up Now") { store.backupNow() }.keyboardShortcut("b", modifiers: [.command, .option])
+                Button("Export Notes…") { store.showExport = true }.keyboardShortcut("e", modifiers: [.command, .shift])
+                Divider()
                 Button("Choose Vault…") { store.chooseVault() }
             }
             CommandMenu("Note") {
@@ -243,6 +246,11 @@ final class Store: ObservableObject {
     @Published var pendingJob: Route?
     /// Bumped when packs change, so the Library re-reads them.
     @Published var packsVersion = 0
+    /// Questions pinned to the Ask home page.
+    @Published var pins: [Pin] = []
+    /// The last backup, verify or test-restore result, for Settings.
+    @Published var backupStatus: String?
+    @Published var showExport = false
     /// An answer is being written; other jobs leave `busy` alone meanwhile.
     private var asking = false
     /// Research's streamed text before reasoning is taken out.
@@ -315,6 +323,7 @@ final class Store: ObservableObject {
         ruleSuggestions = Rules.suggestions()
         indexCounts = (try? Index().count()) ?? (0, 0, 0)
         history = History.load()
+        pins = Pins.load()
         if profile != Profile.vaultDefault { profile = Profile.vaultDefault }
     }
 
@@ -641,6 +650,8 @@ final class Store: ObservableObject {
             let path = URL(fileURLWithPath: target, relativeTo: base).standardizedFileURL.path
             if let n = notes.first(where: { $0.path.standardizedFileURL.path == path }) {
                 openNote(n, anchor: fragment, newTab: newTab)
+            } else if FileManager.default.fileExists(atPath: path), !path.hasSuffix(".md") {
+                NSWorkspace.shared.open(URL(fileURLWithPath: path))  // an original (PDF, scan, recording)
             } else {
                 error = "No note at \(target)"
             }
@@ -1059,6 +1070,74 @@ final class Store: ObservableObject {
     }
 
     func stopJob() { jobStop = true }
+
+    // MARK: pins, backup, export
+
+    func isPinned(_ q: String) -> Bool { pins.contains { $0.question == q } }
+
+    func togglePin(_ q: String) {
+        let q = q.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !q.isEmpty else { return }
+        if isPinned(q) { pins.removeAll { $0.question == q } } else { pins.append(Pin(question: q)) }
+        Pins.save(pins)
+    }
+
+    /// Asks for a backup folder once; later backups go to the same place.
+    func chooseBackupFolder() -> URL? {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.canCreateDirectories = true
+        panel.message = "Choose where Holdfast keeps backups: an external or encrypted drive is best."
+        guard panel.runModal() == .OK, let u = panel.url else { return nil }
+        Backup.folder = u
+        return u
+    }
+
+    func backupNow() {
+        guard importProgress == nil, let dest = Backup.folder ?? chooseBackupFolder() else { return }
+        jobTitle = "Backing up"
+        importProgress = (0, 0, "Listing files…")
+        backupStatus = "Backing up…"
+        Task.detached {
+            let result: String
+            do {
+                let r = try Backup.run(to: dest) { done, total, file in
+                    if done % 25 == 0 || done == total { Task { @MainActor in self.importProgress = (done, total, file) } }
+                }
+                let check = (try? Backup.verify(r.folder)) ?? "not verified"
+                result = "Backed up \(r.files) files (\(ByteCountFormatter.string(fromByteCount: r.bytes, countStyle: .file))) to \(r.folder.lastPathComponent). \(check)"
+            } catch {
+                result = "Backup failed: \(error)"
+            }
+            await MainActor.run {
+                self.importProgress = nil
+                self.jobTitle = "Importing"
+                self.backupStatus = result
+                self.notice = result
+            }
+        }
+    }
+
+    /// Verify (`restore` false) or test-restore the newest backup of this vault.
+    func checkLatestBackup(restore: Bool) {
+        guard let dest = Backup.folder, let latest = Backup.list(in: dest).first else {
+            backupStatus = "No backup of this vault yet."
+            return
+        }
+        backupStatus = restore ? "Restoring into a temporary folder…" : "Checking every file…"
+        Task.detached {
+            let r = (try? restore ? Backup.testRestore(latest) : Backup.verify(latest)) ?? "Couldn't read \(latest.lastPathComponent)"
+            await MainActor.run { self.backupStatus = "\(latest.lastPathComponent): \(r)" }
+        }
+    }
+
+    /// Notes for an export, picked by a question and/or a folder.
+    func exportCandidates(query: String, folder: String) async -> [Note] {
+        let emb = await getEmbedder()
+        if !asking { busy = nil }
+        return await Export.select(query: query, folder: folder, notes: notes, embedder: emb)
+    }
 
     /// Builds a knowledge pack's search index (minutes for a whole Bible).
     func indexPack(_ id: String) {

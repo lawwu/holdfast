@@ -542,6 +542,16 @@ enum Drop {
             }
             written = (try? String(contentsOf: dest, encoding: .utf8)) ?? body
         }
+        // The document it came from, kept in the vault beside the note and linked under "## Originals".
+        var kept: String?
+        if action != "link", let k = try? Originals.keep(original: item.meta["original"], for: relative(dest)),
+           let text = try? String(contentsOf: dest, encoding: .utf8) {
+            let line = Originals.link(k, from: relative(dest))
+            try appendUnder("## Originals", lines: [line], to: text).write(to: dest, atomically: true, encoding: .utf8)
+            extra.append(line)
+            kept = k
+            if !existed { written = (try? String(contentsOf: dest, encoding: .utf8)) ?? written }
+        }
         let after = (try? String(contentsOf: dest, encoding: .utf8)) ?? ""
         var proposal = item.meta
         proposal["target"] = relative(dest)
@@ -551,6 +561,7 @@ enum Drop {
                                   proposal: proposal, proposalBody: item.body, rule: item.meta["rule"])
         record.extraLines = extra.isEmpty ? nil : extra
         record.originalHash = item.meta["original_hash"]
+        record.keptOriginal = kept
         FilingLog.add(record)
         return dest
     }

@@ -272,6 +272,26 @@ struct VaultSettings: View {
                 Button("Rebuild Index") { store.rebuildIndex() }.disabled(store.busy != nil)
             }
             .font(Theme.callout).foregroundStyle(.secondary)
+
+            SettingsHeader(title: "Backups",
+                           subtitle: "A dated copy of this vault and Holdfast's records for it (versions, filings, history, originals), with a checksum for every file. Keep it on another drive.")
+            HStack(spacing: 12) {
+                Image(systemName: "externaldrive.fill").font(Theme.title2).foregroundStyle(Theme.accent)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(Backup.folder?.path ?? "No backup folder yet").font(Theme.callout).lineLimit(1).truncationMode(.middle)
+                    Text((UserDefaults.standard.object(forKey: "lastBackup:" + store.vault.path) as? Date)
+                            .map { "Last backup " + $0.formatted(.relative(presentation: .named)) } ?? "Never backed up")
+                        .font(Theme.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button("Choose…") { _ = store.chooseBackupFolder() }
+            }
+            HStack {
+                Button("Back Up Now") { store.backupNow() }.buttonStyle(.borderedProminent).disabled(store.importProgress != nil)
+                Button("Verify") { store.checkLatestBackup(restore: false) }.help("Re-read every file of the newest backup and compare it with its checksum")
+                Button("Test Restore") { store.checkLatestBackup(restore: true) }.help("Restore the newest backup into a temporary folder, check it and open every note, then remove it")
+            }
+            if let s = store.backupStatus { Text(s).font(Theme.caption).foregroundStyle(.secondary).textSelection(.enabled) }
         }
         .padding(24)
     }

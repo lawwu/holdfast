@@ -164,6 +164,28 @@ live, with the sidebar badge, Stop, and filing (the model skipped it as already 
 why in the Inbox). Not tested: `--mic` and the microphone mixed into a call (not run, to avoid
 recording the room), `--mute`, and a real Zoom or Teams call.
 
+## Keeping records safe
+
+- **Backup** (Settings → Vault → Backups, Vault › Back Up Now ⌥⌘B, `holdfast backup <folder>`):
+  a dated folder `Holdfast <vault> <date time>` with the vault (without `.git` and search
+  indexes), Holdfast's records for it (versions, filing log, history, kept originals,
+  transcripts, rules), the app's settings, a README on restoring, and `manifest.json` with every
+  file's SHA-256. Verify (`--verify <backup>`) re-reads every file; Test Restore
+  (`--test-restore <backup>`) restores into a temporary folder, checks every file, opens every
+  note and the history and filing log, then removes the copy. A folder inside the vault is
+  refused. Back up to another drive; an encrypted one if the vault holds counseling notes.
+- **Originals** beside their notes: approving a filing copies the document it came from into
+  `originals-raw/<the note's folder>/` (the folder ignores itself in git, and `-raw` folders are
+  never indexed) and links it under "## Originals"; the note's toolbar has Open Original, and
+  undo removes both. `holdfast originals [--apply]` keeps and links the originals of earlier
+  filings that are still in the drop-filed folder.
+- **Export** (Vault › Export Notes… ⇧⌘E, `holdfast export --query … --folder … --out x.zip`):
+  notes found by a question and/or a folder, ticked off in a list, with the originals they link to,
+  a README and a checksum manifest; the ZIP is unpacked and checked after it's built. Counseling
+  notes are left out unless included on purpose.
+- **Pins**: Pin on an answer keeps its question on the Ask home page, one click to ask again
+  (right-click to unpin).
+
 ## Which model (`holdfast models`)
 
 Holdfast recommends an answer model from its own household eval: answers, hard questions with
