@@ -2,6 +2,12 @@
 
 ## Next (after 0.1.0)
 
+- **Changes from Ask.** "Mark … done", "add … to …": the model reads the note and proposes the exact
+  change, which waits in the Inbox with removed and added lines until approved; undo restores the
+  copy kept first. A note changed since the proposal is refused, generated files are refused.
+- **Double-click a note to edit it**, and **answers can be selected** (citation links still open: the
+  app registers its link schemes so macOS hands those clicks back).
+
 - **`holdfast listen`: live transcription.** Audio from a stream URL (via ffmpeg), the microphone, or raw
   audio on stdin is transcribed as it arrives; finished lines print as they become final (JSON events
   with `--json`), and the transcript is kept and filed like a dropped document when it ends. CLI only

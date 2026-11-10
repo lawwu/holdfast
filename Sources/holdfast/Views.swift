@@ -1163,6 +1163,7 @@ struct InboxCard: View {
     var note: Note
 
     var isFiling: Bool { note.meta["kind"] == "filing" }
+    var isEdit: Bool { isFiling && note.meta["action"] == "edit" }
 
     var preview: String {
         note.body.split(separator: "\n").filter { !$0.hasPrefix("#") }.joined(separator: " ")
@@ -1182,10 +1183,10 @@ struct InboxCard: View {
             if isFiling, let target = note.meta["target"] {
                 VStack(alignment: .leading, spacing: 4) {
                     Label {
-                        Text(note.meta["action"] == "link" ? "Add a link in " : note.meta["action"] == "append" ? "Append to " : "New note ")
+                        Text(isEdit ? "Change " : note.meta["action"] == "link" ? "Add a link in " : note.meta["action"] == "append" ? "Append to " : "New note ")
                             + Text(target).font(Theme.callout.monospaced()).foregroundColor(Theme.accent)
                     } icon: {
-                        Image(systemName: note.meta["action"] == "link" ? "link" : note.meta["action"] == "append" ? "text.append" : "doc.badge.plus")
+                        Image(systemName: isEdit ? "pencil" : note.meta["action"] == "link" ? "link" : note.meta["action"] == "append" ? "text.append" : "doc.badge.plus")
                     }
                     .font(Theme.callout)
                     if let why = note.meta["why"] { Text(why).font(Theme.caption).foregroundStyle(.secondary) }
@@ -1213,7 +1214,9 @@ struct InboxCard: View {
             if let f = note.meta["privacy_flags"] {
                 ErrorBanner(text: f, color: .orange, icon: "exclamationmark.shield.fill")
             }
-            if isFiling {
+            if isEdit, let target = note.meta["target"] {
+                EditDiff(target: target, proposed: note.body)
+            } else if isFiling {
                 ScrollView {
                     Text(note.body.trimmingCharacters(in: .whitespacesAndNewlines))
                         .font(Theme.callout.monospaced()).textSelection(.enabled)
@@ -1226,7 +1229,7 @@ struct InboxCard: View {
                 Text(preview).font(Theme.callout).lineLimit(5).foregroundStyle(.primary.opacity(0.85))
             }
             HStack(spacing: 8) {
-                Button { store.approveItem(note) } label: { Label(isFiling ? "File It" : "Approve", systemImage: "checkmark") }
+                Button { store.approveItem(note) } label: { Label(isEdit ? "Apply Change" : isFiling ? "File It" : "Approve", systemImage: "checkmark") }
                     .buttonStyle(.borderedProminent).tint(.green)
                 Button(role: .destructive) { store.rejectItem(note) } label: { Label("Reject", systemImage: "xmark") }
                     .buttonStyle(.bordered)
@@ -1244,6 +1247,39 @@ struct InboxCard: View {
             .controlSize(.regular)
         }
         .card()
+    }
+}
+
+/// What a proposed change does to a note: removed lines in red, added in green, a little context.
+struct EditDiff: View {
+    var target: String
+    var proposed: String
+    var body: some View {
+        let current = (try? Drop.safeTarget(target)).flatMap { try? String(contentsOf: $0, encoding: .utf8) }
+        VStack(alignment: .leading, spacing: 6) {
+            if let current {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 1) {
+                        ForEach(Array(Edits.diff(current, proposed).enumerated()), id: \.offset) { _, l in
+                            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                                Text(l.kind == "…" ? "⋯" : String(l.kind)).foregroundStyle(.secondary).frame(width: 10)
+                                Text(l.text.isEmpty ? " " : l.text).frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .font(Theme.callout.monospaced())
+                            .foregroundStyle(l.kind == " " || l.kind == "…" ? AnyShapeStyle(.secondary) : AnyShapeStyle(.primary))
+                            .padding(.horizontal, 6).padding(.vertical, 1)
+                            .background(l.kind == "+" ? Color.green.opacity(0.14) : l.kind == "-" ? Color.red.opacity(0.13) : .clear)
+                        }
+                    }
+                    .textSelection(.enabled)
+                }
+                .frame(maxHeight: 260)
+            } else {
+                ErrorBanner(text: "\(target) isn't there any more; reject this change.", color: .orange, icon: "exclamationmark.triangle.fill")
+            }
+        }
+        .padding(8)
+        .background(RoundedRectangle(cornerRadius: 8).fill(.quaternary.opacity(0.5)))
     }
 }
 

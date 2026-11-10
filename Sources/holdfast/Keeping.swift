@@ -158,7 +158,7 @@ enum FilingLog {
         } else if hash(now) == r.after, let s = r.snapshot, let old = try? String(contentsOf: URL(fileURLWithPath: s), encoding: .utf8) {
             Versions.snapshot(dest, reason: "before-undo")
             try old.write(to: dest, atomically: true, encoding: .utf8)
-        } else if !wasNew, let out = removeLines(r.addition, extra: r.extraLines ?? [], from: now) {
+        } else if !wasNew, r.action != "edit", let out = removeLines(r.addition, extra: r.extraLines ?? [], from: now) {
             // Changed since (or older filings): take out exactly the lines this filing added.
             Versions.snapshot(dest, reason: "before-undo")
             try out.write(to: dest, atomically: true, encoding: .utf8)

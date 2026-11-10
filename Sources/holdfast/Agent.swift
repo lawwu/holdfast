@@ -34,6 +34,10 @@ enum Agent {
     answer. Do not cite anything you did not get from a tool.
     - Stop calling tools once you can answer; a few calls are usually enough. If the \
     knowledge base does not hold the answer, say so and say where it would belong.
+    - When the user asks you to change a note (tick an item done, add a row or a line, correct \
+    a fact), read_note it first, then call propose_edit with the exact text to replace, copied \
+    from the note, and the new text. The change waits in the Inbox for the user to approve; \
+    say so in your answer. Change only what was asked.
     """
 
     static var tools: [ToolSpec] {
@@ -53,6 +57,11 @@ enum Agent {
                ["folder": ["type": "string", "description": "Folder to look under, e.g. finance; \"\" for all"]], ["folder"]),
             fn("query_table", "Run one read-only SQLite SELECT over CSV tables named by list_tables. Returns up to 60 rows.",
                ["sql": ["type": "string", "description": "A single SELECT statement"]], ["sql"]),
+            fn("propose_edit", "Propose a change to a note, for the user to approve in the Inbox. Replaces old_text (copied exactly from the note, matching once) with new_text; an empty old_text adds new_text at the end of the note.",
+               ["path": ["type": "string", "description": "Vault-relative path of the note, e.g. finance/open-items.md"],
+                "old_text": ["type": "string", "description": "The exact text to replace, e.g. a whole checklist line; \"\" to add at the end"],
+                "new_text": ["type": "string", "description": "The text to put in its place"],
+                "why": ["type": "string", "description": "One short line saying what the change does"]], ["path", "old_text", "new_text"]),
         ]
     }
 
@@ -172,6 +181,11 @@ final class ToolContext: @unchecked Sendable {
         if relPaths.contains(where: Profile.isCounseling) { touchedCounseling = true }
     }
 
+    /// Notes this run proposed changes to (waiting in the Inbox).
+    private(set) var proposedEdits = Set<String>()
+    /// Who the Inbox says proposed a change.
+    var proposer = "Ask"
+
     init(embedder: Embedder?) { self.embedder = embedder }
 
     private func cite(_ c: Chunk) -> Int {
@@ -224,6 +238,13 @@ final class ToolContext: @unchecked Sendable {
                 let c = Chunk(noteId: used.joined(separator: ","), relPath: used.first ?? "data", title: "Query",
                               anchor: String(sql.prefix(120)), text: "SQL: \(sql)\n\(out)")
                 return "[\(cite(c))] Query over \(used.joined(separator: ", "))\n\(out)"
+            case "propose_edit":
+                let p = str(call, "path").trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
+                step("Proposed a change to \(p)"); log.append("edit: \(p)")
+                mark([p])
+                let out = try Edits.propose(path: p, old: str(call, "old_text"), new: str(call, "new_text"), why: str(call, "why"), by: proposer)
+                proposedEdits.insert(p)
+                return out
             default:
                 return "Unknown tool \(name)."
             }

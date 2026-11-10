@@ -103,8 +103,9 @@ do {
         }
     case "ask":
         let emb = flag("--no-embed") ? nil : try await Embedder.load()
-        let research = flag("--research")
         let q = args.joined(separator: " ")
+        // A change ("mark … done") needs the tools: it is proposed for the Inbox (Edits.swift).
+        let research = flag("--research") || Router.route(q) == .edit
         let a: Answer
         if research {
             // Tool loop (this Mac's model or another Mac's): steps go to stderr, the answer to stdout at the end.

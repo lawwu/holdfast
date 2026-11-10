@@ -478,6 +478,7 @@ enum Drop {
     private static func applyLocked(_ item: Note) throws -> URL {
         guard let target = item.meta["target"] else { throw HoldfastError("filing has no target") }
         var dest = try safeTarget(target)
+        if item.meta["action"] == "edit" { return try Edits.apply(item, at: dest, target: target) }  // a change asked for in Ask
         let entry = item.body.trimmingCharacters(in: .whitespacesAndNewlines)
         let existed = FileManager.default.fileExists(atPath: dest.path)
         let before = Versions.snapshot(dest, reason: "filing")

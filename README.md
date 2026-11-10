@@ -31,6 +31,7 @@ window: `holdfast app`, or `scripts/make_app.sh` → `build/Holdfast.app`.
 | `holdfast eval` | Scores Q&A against a question set; see `eval/README.md` |
 | `holdfast mcp` | MCP server: `search`, `get_note`, `ask`, `remember`, `list_inbox` |
 | `holdfast drop [file…]` | Files what is in the drop folder. In a vault indexed in place, the model reads each file (PDF, Word, Markdown, images by on-device OCR, recordings by transcription) and the folder READMEs, and proposes a new note or a row for an existing log; the proposal waits in the inbox. In a managed vault the file is imported as a source. Originals move to `drop-filed/` in the app's state folder, never into the vault. The app watches the same folder (Vault › Open Drop Folder, ⇧⌘D) and has a drop zone on the Inbox page |
+| `holdfast ask "mark … done"` | A request to change a note ("mark …", "tick off …", "add … to …", "update …") runs as Research with one more tool, `propose_edit`: the model reads the note and proposes replacing the exact text. Nothing changes until the proposal is approved in the Inbox (below) |
 | `holdfast inbox / approve / reject` | Memories that agents propose wait here for approval. Each one is checked for full names, emails and phone numbers first |
 
 **Retrieval** (`Sources/holdfast/Index.swift`, tuning constants in `enum Retrieval`), following
@@ -163,6 +164,18 @@ timestamps; a tap also catches audio sent to a non-default device. The Listen pa
 live, with the sidebar badge, Stop, and filing (the model skipped it as already recorded, and said
 why in the Inbox). Not tested: `--mic` and the microphone mixed into a call (not run, to avoid
 recording the room), `--mute`, and a real Zoom or Teams call.
+
+## Changing notes from Ask
+
+Ask a change instead of a question ("mark 'Protect pretax 401(k) basis' as done", "add the 11/3
+dentist visit to the dental log"). The model reads the note and calls `propose_edit` with the exact
+text to replace and its replacement; nothing in the vault changes then. The change waits in the
+Inbox showing the removed and added lines; **Apply Change** writes the note after keeping a copy,
+and undo (`holdfast undo`, the filing log) puts that copy back. A note changed after the proposal
+is refused rather than overwritten, a second change to the same note in a conversation joins the
+first proposal, files with a `> GENERATED` banner are refused (change the script instead), and only
+`.md` and `.txt` notes can be changed this way. Changes to counseling notes run on this Mac only,
+like any request that touches them.
 
 ## Keeping records safe
 
