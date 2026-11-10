@@ -149,6 +149,10 @@ enum TranscriptionModel: String, CaseIterable, Identifiable {
 /// Choices made in the app's Settings window (UserDefaults). The CLI runs
 /// under its own defaults domain, so it keeps the defaults unless told otherwise.
 enum Prefs {
+    static var searchByMeaning: Bool {
+        get { UserDefaults.standard.object(forKey: "searchByMeaning") == nil || UserDefaults.standard.bool(forKey: "searchByMeaning") }
+        set { UserDefaults.standard.set(newValue, forKey: "searchByMeaning") }
+    }
     static var mlxRepo: String {
         get { UserDefaults.standard.string(forKey: "mlxRepo") ?? MLXModelSpec.fallback.repo }
         set { UserDefaults.standard.set(newValue, forKey: "mlxRepo") }

@@ -26,36 +26,46 @@ struct ServerConnectionSettings: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(kind == .ollama ? "Connect to Ollama’s native API." : "Connect to an OpenAI-compatible chat-completions API.")
-                .font(Theme.callout)
-            TextField("API base address", text: $address).textFieldStyle(.roundedBorder)
-                .onChange(of: address) { _, _ in key = ""; models = []; status = nil }
-            Text(kind == .ollama ? "For example, http://localhost:11434" : "For example, http://localhost:1234/v1. Include any proxy prefix in the API base.")
-                .font(Theme.caption).foregroundStyle(.secondary)
-            SecureField("API key (optional, saved in Keychain)", text: $key).textFieldStyle(.roundedBorder)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Server address").font(Theme.callout)
+                TextField("API base address", text: $address).textFieldStyle(.roundedBorder)
+                    .onChange(of: address) { _, _ in key = ""; models = []; status = nil }
+                    .help(kind == .ollama ? "For example, http://localhost:11434" : "For example, http://localhost:1234/v1. Include any proxy prefix.")
+            }
             HStack {
                 TextField("Model ID", text: $model).textFieldStyle(.roundedBorder)
+                    .help("Choose a model with tool support for research and edits.")
                 if !models.isEmpty {
                     Menu("Choose model") { ForEach(models, id: \.self) { value in Button(value) { model = value } } }
                 }
-                Button(checking ? "Checking…" : "Discover Models") { Task { await discover() } }
+                Button(checking ? "Checking…" : "Find models") { Task { await discover() } }
                     .disabled(checking || address.isEmpty)
             }
-            HStack {
-                Text("Context window").font(Theme.callout)
-                TextField("Tokens", value: $contextWindow, format: .number.grouping(.never))
-                    .textFieldStyle(.roundedBorder).frame(width: 100)
-                Text("Match your loaded server model (at least 16384).").font(Theme.caption).foregroundStyle(.secondary)
+            DisclosureGroup("API key & context limit") {
+                VStack(alignment: .leading, spacing: 10) {
+                    SecureField("API key (optional, saved in Keychain)", text: $key).textFieldStyle(.roundedBorder)
+                    HStack {
+                        Text("Context window").font(Theme.callout)
+                        TextField("Tokens", value: $contextWindow, format: .number.grouping(.never))
+                            .textFieldStyle(.roundedBorder).frame(width: 100)
+                        Text("tokens").font(Theme.caption).foregroundStyle(.secondary)
+                    }
+                    Text("Match the server’s loaded model; at least 16384 tokens.")
+                        .font(Theme.caption).foregroundStyle(.secondary)
+                }.padding(.top, 8)
             }
-            Text("Choose a model with tool support for research and edits. Questions and note excerpts go to this server; its configuration controls where inference runs. Counseling content uses LocalMLX. Changes still wait in the Inbox.")
+            Text("Questions and note excerpts go to this server. Counseling uses LocalMLX on this Mac.")
                 .font(Theme.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            if let status { Text(status).font(Theme.callout).textSelection(.enabled) }
+            if let status {
+                Text(status).font(Theme.caption).textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             HStack {
                 Button("Save Connection") {
                     do {
                         try ProviderSettings.save(configuration, key: key)
                         store.objectWillChange.send()
-                        status = "Saved. This connection will be used for your next question."
+                        status = "Saved for your next question."
                     } catch { status = error.localizedDescription }
                 }.disabled(model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || checking)
             }
@@ -76,7 +86,7 @@ struct ServerConnectionSettings: View {
             models = try await provider.models()
             if model.isEmpty { model = models.first ?? "" }
             status = models.isEmpty ? "Connected; no models listed. Load one in your server, or enter a model ID manually."
-                : "Connected · \(models.count) models. Discovery does not verify tool support; you can also enter an ID manually."
+                : "Connected · \(models.count) models. Choose one with tool support."
         } catch { status = error.localizedDescription }
     }
 }

@@ -2,6 +2,11 @@
 
 ## Next (after 0.1.0)
 
+- **Optional meaning search.** Settings → Search has a “Search by meaning” toggle,
+  on by default. Off releases the embedding model and uses keyword retrieval; the
+  reranker stays independent. Re-enabling fills missing vectors without rebuilding
+  complete notes, and interrupted indexing preserves the last usable index.
+
 - **Regular Pi is now the default agent.** The normal app and CLI use Pi 1.5.1 with
   saved JSONL conversations and Holdfast-only tools. LocalMLX and server providers,
   Inbox approvals, byte-exact Undo and counseling restrictions are preserved.

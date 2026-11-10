@@ -24,7 +24,7 @@ window: `holdfast app`, or `scripts/make_app.sh` → `build/Holdfast.app`.
 | `holdfast ingest <audio/video>` | ffmpeg → 16 kHz → **Parakeet v3** (FluidAudio, CoreML) → a note with `[hh:mm:ss]` lines |
 | `holdfast ingest <YouTube URL>` | yt-dlp; uses the video's captions when there are any, otherwise transcribes the audio |
 | `holdfast listen -` · `--url <stream>` · `--mic` | Transcribes audio while it streams in (below). Finished `[hh:mm:ss]` lines go to stdout as they become final (`--json` for events); Ctrl-C stops, and the transcript is kept and filed like a dropped document |
-| `holdfast index` | Chunks each note on headings and timestamps; SQLite FTS5 + **Qwen3-Embedding-0.6B** vectors (in-process, MLX Swift). Only changed notes are re-indexed |
+| `holdfast index` | Chunks each note on headings and timestamps; SQLite FTS5 + optional **Qwen3-Embedding-0.6B** vectors (in-process, MLX Swift). Re-indexes changed notes and fills missing embeddings |
 | `holdfast search "…"` | Retrieval pipeline below |
 | `holdfast ask "…"` | Pi searches and reads through Holdfast's tools, using LocalMLX by default or a selected server. Answers cite `[n]`, and each source prints as `[[note#anchor]]`; proposed edits wait in the Inbox |
 | `holdfast app` | The window: Ask (cited answers; click a source to open it), Library (browse and search), Inbox (approve or reject agent memories), and a reader that jumps to the cited section |
@@ -52,6 +52,17 @@ the open-source survey in the kb repo (`projects/202611_holdfast/oss-best-practi
    send them in session order.
 5. **Answer.** 8 passages go to Qwen 3.8 27B. `[n]` markers that point at no passage
    are flagged.
+
+**Settings → Search → Search by meaning** is on by default. Turning it off releases
+the embedding model and keeps keyword search available; existing vectors and model
+downloads are retained. Re-enabling prepares missing vectors for the current vault
+and enabled reference collections, including notes indexed while it was off. The
+reranker has its own setting and works with either search mode. CLI overrides
+`HOLDFAST_EMBED=none` and `--no-embed` still work.
+
+Check the preference and indexing transitions with
+`python3 Tests/meaning_search_integration.py <holdfast-binary> --live` (uses the
+installed embedding model and synthetic notes; omit `--live` for model-free checks).
 
 The vault is plain Markdown with YAML frontmatter (`$HOLDFAST_VAULT`, default
 `~/Holdfast`): `sources/`, `memory/`, `inbox/`. It opens in Obsidian. The index in

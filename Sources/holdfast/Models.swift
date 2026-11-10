@@ -15,10 +15,17 @@ final class Embedder: @unchecked Sendable {
     let eosId: Int?
     let spec: EmbedSpec
 
+    static var isEnabled: Bool {
+        Prefs.searchByMeaning && ProcessInfo.processInfo.environment["HOLDFAST_EMBED"] != "none"
+    }
+
+    /// After the app drops its reference, return unused MLX buffers to the system.
+    static func clearUnusedMemory() { Memory.clearCache() }
+
     static func load() async throws -> Embedder? {
         let spec = Config.embedSpec
         // HOLDFAST_EMBED=none: keyword search only (to measure what embeddings add).
-        if ProcessInfo.processInfo.environment["HOLDFAST_EMBED"] == "none" { return nil }
+        guard isEnabled else { return nil }
         guard let dir = Config.embedModelDir else {
             log("no \(spec.label) in the HF cache; keyword search only")
             return nil

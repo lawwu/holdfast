@@ -229,6 +229,11 @@ final class Store: ObservableObject {
         didSet { UserDefaults.standard.set(backend.rawValue, forKey: "backend") }
     }
     @Published var mlxRepo = Prefs.mlxRepo { didSet { Prefs.mlxRepo = mlxRepo } }
+    @Published private(set) var searchByMeaning = Prefs.searchByMeaning
+    @Published private(set) var preparingMeaningSearch = false
+    @Published private(set) var meaningSearchError: String?
+    @Published private var indexingJobs = 0
+    @Published private var retrievalJobs = 0
     @Published var rerankerOn = Prefs.rerankerOn { didSet { Prefs.rerankerOn = rerankerOn } }
     @Published var transcription = Prefs.transcription { didSet { Prefs.transcription = transcription } }
     /// In-flight model downloads: repo → fraction done.
@@ -415,11 +420,66 @@ final class Store: ObservableObject {
     }
 
     private func getEmbedder() async -> Embedder? {
+        guard Embedder.isEnabled else { embedder = nil; return nil }
         if embedder == nil {
             busy = "Loading the embedding model…"
-            embedder = try? await Embedder.load()
+            let loaded = try? await Embedder.load()
+            guard Embedder.isEnabled else { return nil }
+            embedder = loaded
         }
         return embedder
+    }
+
+    var canChangeMeaningSearch: Bool {
+        busy == nil && !asking && !filing && importProgress == nil && indexingJobs == 0 && retrievalJobs == 0
+            && ProcessInfo.processInfo.environment["HOLDFAST_EMBED"] != "none"
+    }
+
+    func setSearchByMeaning(_ enabled: Bool) {
+        guard canChangeMeaningSearch, enabled != searchByMeaning else { return }
+        searchByMeaning = enabled
+        Prefs.searchByMeaning = enabled
+        meaningSearchError = nil
+        if enabled {
+            if Config.embedModelDir != nil { prepareMeaningSearch() }
+        } else {
+            embedder = nil
+            Embedder.clearUnusedMemory()
+        }
+    }
+
+    /// Catch up the current vault and enabled reference collections without deleting their indexes.
+    func prepareMeaningSearch() {
+        guard canChangeMeaningSearch, Embedder.isEnabled else { return }
+        preparingMeaningSearch = true
+        meaningSearchError = nil
+        busy = "Preparing meaning search…"
+        indexingJobs += 1
+        Task {
+            defer {
+                indexingJobs -= 1
+                preparingMeaningSearch = false
+                if !asking { busy = nil }
+                indexCounts = (try? Index().count()) ?? indexCounts
+                packsVersion += 1
+            }
+            do {
+                let model: Embedder
+                if let cached = embedder { model = cached }
+                else {
+                    guard let loaded = try await Embedder.load() else {
+                        throw HoldfastError("Download the meaning search model first.")
+                    }
+                    model = loaded
+                    embedder = loaded
+                }
+                try await reindex(embedder: model)
+                for id in Packs.enabled().sorted() where Packs.validID(id) {
+                    busy = "Preparing meaning search in \(Packs.manifest(id)?.name ?? id)…"
+                    try await Packs.reindex(id, embedder: model)
+                }
+            } catch { meaningSearchError = "Meaning search could not finish preparing: \(error.localizedDescription)" }
+        }
     }
 
     private func getLLM() async throws -> LLMBackend {
@@ -637,6 +697,8 @@ final class Store: ObservableObject {
         let q = searchText.trimmingCharacters(in: .whitespaces)
         guard !q.isEmpty else { results = []; return }
         Task {
+            retrievalJobs += 1
+            defer { retrievalJobs -= 1 }
             let emb = await getEmbedder()
             if !asking { busy = nil }
             results = (try? await search(q, embedder: emb, reranker: await Reranker.shared(), limit: 25)) ?? []
@@ -757,6 +819,8 @@ final class Store: ObservableObject {
         reindexTask = Task {
             try? await Task.sleep(for: .seconds(4))
             guard !Task.isCancelled, busy == nil else { return }
+            indexingJobs += 1
+            defer { indexingJobs -= 1 }
             let emb = await getEmbedder()
             if !asking { busy = nil }
             try? await reindex(embedder: emb)
@@ -911,6 +975,8 @@ final class Store: ObservableObject {
     }
 
     private func indexNow(force: Bool = false) async {
+        indexingJobs += 1
+        defer { indexingJobs -= 1 }
         let emb = await getEmbedder()
         if !asking { busy = "Indexing…" }
         do { try await reindex(embedder: emb, force: force) } catch { self.error = "\(error)" }
@@ -924,7 +990,7 @@ final class Store: ObservableObject {
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
         panel.message = "Choose a vault folder (Markdown notes; can be an Obsidian vault)"
-        guard busy == nil, !asking, !filing, importProgress == nil else {
+        guard busy == nil, !asking, !filing, importProgress == nil, indexingJobs == 0 else {
             error = "Wait for the current answer, filing or import to finish before switching vaults."
             return
         }
@@ -1190,6 +1256,8 @@ final class Store: ObservableObject {
 
     /// Notes for an export, picked by a question and/or a folder.
     func exportCandidates(query: String, folder: String) async -> [Note] {
+        retrievalJobs += 1
+        defer { retrievalJobs -= 1 }
         let emb = await getEmbedder()
         if !asking { busy = nil }
         return await Export.select(query: query, folder: folder, notes: notes, embedder: emb)
@@ -1198,6 +1266,8 @@ final class Store: ObservableObject {
     /// Builds a knowledge pack's search index (minutes for a whole Bible).
     func indexPack(_ id: String) {
         Task {
+            indexingJobs += 1
+            defer { indexingJobs -= 1 }
             let emb = await getEmbedder()
             if !asking { busy = "Indexing the \(Packs.manifest(id)?.name ?? id) pack…" }
             do { try await Packs.reindex(id, embedder: emb) } catch { self.error = "\(error)" }

@@ -7,12 +7,12 @@ import ModelProviders
 struct SettingsView: View {
     var body: some View {
         TabView {
-            AnswerSettings().tabItem { Label("Answer", systemImage: "sparkles") }
-            SearchSettings().tabItem { Label("Search", systemImage: "magnifyingglass") }
-            TranscriptionSettings().tabItem { Label("Transcription", systemImage: "waveform") }
-            VaultSettings().tabItem { Label("Vault", systemImage: "folder") }
+            ScrollView { AnswerSettings() }.tabItem { Label("Answer", systemImage: "sparkles") }
+            ScrollView { SearchSettings() }.tabItem { Label("Search", systemImage: "magnifyingglass") }
+            ScrollView { TranscriptionSettings() }.tabItem { Label("Transcription", systemImage: "waveform") }
+            ScrollView { VaultSettings() }.tabItem { Label("Vault", systemImage: "folder") }
         }
-        .frame(width: 580)
+        .frame(width: 600, height: 520)
         .tint(Theme.accent)
     }
 }
@@ -96,13 +96,12 @@ struct StatusBadge: View {
 struct AnswerSettings: View {
     @EnvironmentObject var store: Store
     @State private var tick = 0  // re-read load state after Unload
-
-    let ramGB = Double(ProcessInfo.processInfo.physicalMemory) / 1_073_741_824
+    @State private var choosingModel = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             SettingsHeader(title: "Answer model",
-                           subtitle: "LocalMLX runs inside Holdfast by default. You can also connect a model server. Changes take effect on the next question.")
+                           subtitle: "Choose where answers run. Applies to your next question.")
             Picker("Provider", selection: $store.backend) {
                 Text("LocalMLX · Built in").tag(Backend.mlx)
                 Text("Ollama").tag(Backend.ollama)
@@ -112,32 +111,23 @@ struct AnswerSettings: View {
             if let kind = store.backend.serverKind {
                 ServerConnectionSettings(kind: kind).id(kind)
             } else {
-                RecommendationRows().card(padding: 14)
+                localModel
             }
-            VStack(alignment: .leading, spacing: 8) {
-                Label("Agent · Pi", systemImage: "arrow.triangle.branch").font(Theme.callout)
-                Text("Pi uses your selected model and saves conversations for follow-ups. Tools and Inbox approvals stay in Holdfast. Interrupted work waits for your next request.")
-                    .font(Theme.caption).foregroundStyle(.secondary)
-                ForEach(PiAgent.pending) { pending in
-                    Button("Open interrupted conversation: \(pending.question.prefix(60))") {
-                        store.newQuestion()
-                        store.pane = .ask
-                        store.conversationId = pending.conversationID
-                        store.question = "What was completed before the interruption?"
-                        // Open a draft. Never resubmit the interrupted job automatically.
-                    }.disabled(store.busy != nil || store.asking)
+            let pending = PiAgent.pending
+            if !pending.isEmpty {
+                DisclosureGroup("Interrupted conversations (\(pending.count))") {
+                    ForEach(pending) { request in
+                        Button {
+                            store.newQuestion()
+                            store.pane = .ask
+                            store.conversationId = request.conversationID
+                            store.question = "What was completed before the interruption?"
+                            // Open a draft. Never resubmit the interrupted job automatically.
+                        } label: {
+                            Text(request.question).lineLimit(2).multilineTextAlignment(.leading)
+                        }.disabled(store.busy != nil || store.asking)
+                    }
                 }
-            }.card(padding: 14)
-            if store.backend == .mlx {
-            GroupBox2 {
-                ForEach(MLXModelSpec.shortList) { spec in mlxRow(spec) }
-            }
-            HStack(spacing: 6) {
-                Image(systemName: "memorychip")
-                Text(String(format: "This Mac has %.0f GB of memory. Models download from Hugging Face (mlx-community).", ramGB))
-            }
-            .font(Theme.caption).foregroundStyle(.secondary)
-
             }
             let _ = tick
             if MLXBackend.isLoaded && store.backend != .mlx {
@@ -145,27 +135,103 @@ struct AnswerSettings: View {
                     Image(systemName: "memorychip").foregroundStyle(.orange)
                     Text("\(MLXModelSpec.find(MLXBackend.loadedRepo ?? "")?.name ?? "The MLX model") is still in memory.").font(Theme.callout)
                     Spacer()
-                    Button("Unload") { MLXBackend.unload(); tick += 1 }.disabled(store.busy != nil)
+                    Button("Unload") { MLXBackend.unload(); tick += 1 }.disabled(store.busy != nil || store.asking)
                 }
                 .padding(10)
                 .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.orange.opacity(0.1)))
             }
+            Label("Changes to notes wait for your approval in the Inbox.", systemImage: "checkmark.shield")
+                .font(Theme.caption).foregroundStyle(.secondary)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(24)
+        .sheet(isPresented: $choosingModel) { LocalModelBrowser().environmentObject(store) }
+    }
 
+    private var localModel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            let spec = MLXModelSpec.find(store.mlxRepo)
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(spec?.name ?? store.mlxRepo.components(separatedBy: "/").last ?? store.mlxRepo)
+                        .font(Theme.headline).textSelection(.enabled)
+                    if let spec {
+                        Text("\(spec.detail) · \(String(format: "%.1f", spec.sizeGB)) GB download")
+                            .font(Theme.caption).foregroundStyle(.secondary)
+                    }
+                }
+                Spacer(minLength: 8)
+                Button("Change model…") { choosingModel = true }
+                    .disabled(store.busy != nil || store.asking)
+            }
+            HStack {
+                if store.isDownloaded(store.mlxRepo) {
+                    StatusBadge(status: .ready(MLXBackend.loadedRepo == store.mlxRepo ? "Loaded" : "Ready"))
+                } else {
+                    DownloadButton(repo: store.mlxRepo)
+                        .disabled(store.busy != nil || store.asking || spec.map { localModelFit($0) == .no } == true)
+                }
+                Spacer()
+                Label("Runs on this Mac", systemImage: "lock.fill")
+                    .font(Theme.caption).foregroundStyle(.secondary)
+            }
+        }.card(padding: 16)
+    }
+}
+
+/// The full catalogue stays in a bounded sheet, separate from the selected model.
+struct LocalModelBrowser: View {
+    @EnvironmentObject var store: Store
+    @Environment(\.dismiss) private var dismiss
+    @State private var query = ""
+
+    private var models: [MLXModelSpec] {
+        let search = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        return MLXModelSpec.shortList.filter {
+            search.isEmpty || "\($0.name) \($0.detail) \($0.repo)".localizedCaseInsensitiveContains(search)
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Choose a local model").font(Theme.title2)
+                Spacer()
+                Button("Done") { dismiss() }.keyboardShortcut(.cancelAction)
+            }
+            TextField("Search models", text: $query).textFieldStyle(.roundedBorder)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    if query.isEmpty {
+                        DisclosureGroup("Help me choose") {
+                            RecommendationRows().padding(.top, 8)
+                                .disabled(store.busy != nil || store.asking)
+                        }.font(Theme.callout)
+                    }
+                    if models.isEmpty {
+                        Text("No matching models.").foregroundStyle(.secondary).padding(.vertical)
+                    } else {
+                        GroupBox2 { ForEach(models) { spec in mlxRow(spec) } }
+                    }
+                }.frame(maxWidth: .infinity, alignment: .leading)
+            }
+            Text(String(format: "This Mac has %.0f GB of memory. Models download from Hugging Face.", Recommend.thisMacGB))
+                .font(Theme.caption).foregroundStyle(.secondary)
+        }
+        .padding(20)
+        .frame(width: 640, height: 540)
+        .background(Theme.canvas)
     }
 
     @ViewBuilder func mlxRow(_ spec: MLXModelSpec) -> some View {
         let downloaded = store.isDownloaded(spec.repo)
-        // Measured peak memory when the eval has it; otherwise the download size as a guide.
-        let measured = ModelCatalog.entries.first { $0.repo == spec.repo }
-        let fit = measured.map { Recommend.fit($0, ramGB: ramGB) } ?? (spec.sizeGB > ramGB * 0.75 ? .no : .unknown)
+        let fit = localModelFit(spec)
         let tooBig = fit == .no
         ChoiceRow(selected: store.backend == .mlx && store.mlxRepo == spec.repo, enabled: downloaded && store.busy == nil && !store.asking,
                   title: spec.name, tag: "\(spec.detail) · \(String(format: "%.0f", spec.sizeGB)) GB",
                   subtitle: tooBig ? "Too large for this Mac's memory. " + spec.blurb
                       : (store.downloadErrors[spec.repo].map { "Download failed: \($0)" } ?? (fit == .tight ? "Tight on this Mac's memory. " : "") + spec.blurb),
-                  action: { store.selectMLX(spec.repo) }) {
+                  action: { store.selectMLX(spec.repo); dismiss() }) {
             if let f = store.downloads[spec.repo] {
                 HStack(spacing: 6) {
                     ProgressView(value: f).frame(width: 70)
@@ -176,13 +242,17 @@ struct AnswerSettings: View {
             } else {
                 Button("Download") { store.download(spec) }
                     .controlSize(.small)
-                    .disabled(tooBig)
+                    .disabled(tooBig || store.busy != nil || store.asking)
                     .help("Download \(String(format: "%.1f", spec.sizeGB)) GB from huggingface.co/\(spec.repo)")
             }
         }
     }
+}
 
-
+private func localModelFit(_ spec: MLXModelSpec) -> Recommend.Fit {
+    let measured = ModelCatalog.entries.first { $0.repo == spec.repo }
+    return measured.map { Recommend.fit($0, ramGB: Recommend.thisMacGB) }
+        ?? (spec.sizeGB > Recommend.thisMacGB * 0.75 ? .no : .unknown)
 }
 
 // MARK: - Search
@@ -192,26 +262,59 @@ struct SearchSettings: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            SettingsHeader(title: "Embedding model",
-                           subtitle: "Finds passages by meaning, alongside keyword search. Changing it means re-indexing, so it's fixed for now.")
-            GroupBox2 {
-                ChoiceRow(selected: true, title: "Qwen3-Embedding 0.6B", tag: "MLX",
-                          subtitle: "Multilingual, 1024 dimensions.", action: {}) {
-                    if Config.embedModelDir != nil { StatusBadge(status: .ready("Ready")) }
-                    else { DownloadButton(repo: Config.embedSpec.repo) { store.rebuildIndex(force: true) } }
+            VStack(alignment: .leading, spacing: 10) {
+                Toggle("Search by meaning", isOn: Binding(
+                    get: { store.searchByMeaning && ProcessInfo.processInfo.environment["HOLDFAST_EMBED"] != "none" },
+                    set: { store.setSearchByMeaning($0) }))
+                    .toggleStyle(.switch).font(Theme.headline)
+                    .disabled(!store.canChangeMeaningSearch)
+                Text("Find related ideas even when the wording is different. Keyword search always stays on.")
+                    .font(Theme.callout).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if ProcessInfo.processInfo.environment["HOLDFAST_EMBED"] == "none" {
+                    Text("Meaning search is disabled for this launch by HOLDFAST_EMBED=none.")
+                        .font(Theme.caption).foregroundStyle(.secondary)
+                } else if store.searchByMeaning {
+                    HStack {
+                        Text("\(Config.embedSpec.label) · on this Mac").font(Theme.caption)
+                        Spacer()
+                        if Config.embedModelDir == nil {
+                            DownloadButton(repo: Config.embedSpec.repo) { store.prepareMeaningSearch() }
+                                .disabled(!store.canChangeMeaningSearch)
+                        } else if store.preparingMeaningSearch {
+                            ProgressView().controlSize(.small)
+                            Text("Preparing…").font(Theme.caption)
+                        } else if store.indexCounts.chunks > store.indexCounts.vectors
+                                    || (!store.notes.isEmpty && store.indexCounts.chunks == 0)
+                                    || store.meaningSearchError != nil {
+                            Button("Prepare missing passages") { store.prepareMeaningSearch() }
+                                .controlSize(.small).disabled(!store.canChangeMeaningSearch)
+                        } else {
+                            StatusBadge(status: .ready("Ready"))
+                        }
+                    }
+                    if let error = store.meaningSearchError {
+                        Text(error).font(Theme.caption).foregroundStyle(.red)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                } else {
+                    Text("Using keyword search. The saved index and model download are kept.")
+                        .font(Theme.caption).foregroundStyle(.secondary)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .card(padding: 14)
             SettingsHeader(title: "Reranker",
-                           subtitle: "Reads the 60 best candidates against the question and keeps only the relevant ones.")
+                           subtitle: "Improves search results, with or without meaning search.")
             GroupBox2 {
                 ChoiceRow(selected: store.rerankerOn, title: "Qwen3-Reranker 0.6B", tag: "4-bit · MLX",
-                          subtitle: "Recommended. Lifted the eval from 79% to 98%, and declines questions the notes can't answer.",
+                          subtitle: "Recommended. Reads candidate passages and keeps the most relevant ones.",
                           action: { store.rerankerOn = true }) {
                     if Reranker.modelDir != nil { StatusBadge(status: .ready("Ready")) }
                     else { DownloadButton(repo: Reranker.repo) }
                 }
                 ChoiceRow(selected: !store.rerankerOn, title: "Off", tag: nil,
-                          subtitle: "Keyword + meaning only. Faster, but weaker passages and no \"not in your notes\" answer.",
+                          subtitle: "Uses the initial search ranking. Faster, but less precise.",
                           action: { store.rerankerOn = false }) { EmptyView() }
             }
         }

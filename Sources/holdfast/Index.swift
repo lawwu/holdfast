@@ -126,6 +126,15 @@ final class Index {
         return out
     }
 
+    /// Notes indexed while meaning search was off still need vectors even if their mtime is unchanged.
+    func notesMissingVectors() throws -> Set<String> {
+        let st = try prepare("SELECT DISTINCT rel_path FROM chunks WHERE vec IS NULL")
+        defer { sqlite3_finalize(st) }
+        var paths = Set<String>()
+        while sqlite3_step(st) == SQLITE_ROW { paths.insert(String(cString: sqlite3_column_text(st, 0))) }
+        return paths
+    }
+
     func deleteNote(_ relPath: String) throws {
         // External-content FTS: remove rows from the index before deleting the content.
         let sel = try prepare("SELECT id, text, title FROM chunks WHERE rel_path = ?")
@@ -312,29 +321,37 @@ func reindex(embedder: Embedder?, force: Bool = false) async throws {
 
 /// Brings one index up to date with a set of notes (the vault's, or a knowledge pack's).
 func reindexNotes(_ idx: Index, notes: [Note], embedder: Embedder?, force: Bool = false) async throws {
+    try Task.checkCancellation()
+    try idx.exec("BEGIN")
+    var committed = false
+    defer { if !committed { try? idx.exec("ROLLBACK") } }
     if force { try idx.exec("DELETE FROM chunks; INSERT INTO chunks_fts(chunks_fts) VALUES('rebuild');") }
     let have = try idx.indexedMtimes()
+    let missing = embedder == nil ? Set<String>() : try idx.notesMissingVectors()
     let live = Set(notes.map { $0.relPath })
     for gone in have.keys where !live.contains(gone) { try idx.deleteNote(gone) }
     var todo: [(Note, Double)] = []
     for n in notes {
         let m = (try? FileManager.default.attributesOfItem(atPath: n.path.path)[.modificationDate] as? Date)??.timeIntervalSince1970 ?? 0
-        if let h = have[n.relPath], h >= m { continue }
+        if let h = have[n.relPath], h >= m, !missing.contains(n.relPath) { continue }
         todo.append((n, m))
     }
     log("indexing \(todo.count) changed notes (\(notes.count) in vault)…")
     let t0 = Date()
     var nChunks = 0
-    try idx.exec("BEGIN")
     for (i, (n, m)) in todo.enumerated() {
+        try Task.checkCancellation()
         try idx.deleteNote(n.relPath)
         let chunks = chunkNote(n)
         let vecs = try await embedder?.embed(chunks.map { $0.text }, query: false)
+        try Task.checkCancellation()
         for (j, c) in chunks.enumerated() { try idx.insert(c, mtime: m, vec: vecs?[j]) }
         nChunks += chunks.count
         if (i + 1) % 25 == 0 { log("  \(i + 1)/\(todo.count) notes, \(nChunks) chunks") }
     }
+    try Task.checkCancellation()
     try idx.exec("COMMIT")
+    committed = true
     let c = idx.count()
     log(String(format: "indexed %d chunks in %.1fs; index now %d notes, %d chunks, %d with vectors",
                nChunks, Date().timeIntervalSince(t0), c.notes, c.chunks, c.vectors))
