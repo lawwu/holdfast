@@ -30,6 +30,11 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>LSMinimumSystemVersion</key><string>15.0</string>
   <key>NSHighResolutionCapable</key><true/>
   <key>CFBundleIconFile</key><string>AppIcon</string>
+  <!-- Citation and note links: selectable text hands link clicks to macOS, which sends them back here. -->
+  <key>CFBundleURLTypes</key><array><dict>
+    <key>CFBundleURLName</key><string>net.lawrencewu.holdfast.links</string>
+    <key>CFBundleURLSchemes</key><array><string>holdfast</string><string>holdfast-note</string><string>holdfast-rel</string></array>
+  </dict></array>
   <key>NSAppTransportSecurity</key><dict>
     <!-- A model on another Mac: plain http on the home network and to Tailscale names (the tailnet encrypts). -->
     <key>NSAllowsLocalNetworking</key><true/>

@@ -117,7 +117,7 @@ struct FileRow: View {
 
     var body: some View {
         let selected = store.opened?.note.path == note.path
-        Button { store.openNote(note) } label: {
+        Button { store.openNote(note, doubleClicked: NSApp.currentEvent?.clickCount == 2) } label: {
             HStack(spacing: 6) {
                 Image(systemName: "doc.text").foregroundStyle(selected ? AnyShapeStyle(Theme.accent) : AnyShapeStyle(.secondary))
                 VStack(alignment: .leading, spacing: 1) {
