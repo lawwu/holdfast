@@ -36,7 +36,7 @@ jobs:
       - id: release
         name: Resolve source and validate the version tag
         env:
-          RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
+          RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_type == 'tag' && github.ref_name || inputs.tag }}
         run: python3 scripts/release_ref.py --tag "$RELEASE_TAG"
 
   build:
