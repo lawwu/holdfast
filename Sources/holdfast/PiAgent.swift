@@ -25,15 +25,21 @@ enum PiAgent {
 
     static func helper() throws -> (node: URL, runner: URL) {
         let env = ProcessInfo.processInfo.environment
-        let nodes = [env["HOLDFAST_NODE"], "/opt/homebrew/bin/node", "/usr/local/bin/node"]
-            .compactMap { $0 } + (env["PATH"] ?? "").split(separator: ":").map { "\($0)/node" }
+        let bundledNode = Bundle.main.executableURL?.deletingLastPathComponent().appendingPathComponent("node").path
+        var nodes = [env["HOLDFAST_NODE"], bundledNode].compactMap { $0 }
+        #if !HOLDFAST_DISTRIBUTION
+        nodes += ["/opt/homebrew/bin/node", "/usr/local/bin/node"]
+            + (env["PATH"] ?? "").split(separator: ":").map { "\($0)/node" }
+        #endif
         guard let node = nodes.first(where: { FileManager.default.isExecutableFile(atPath: $0) }) else {
-            throw HoldfastError("Pi needs Node 22.19 or newer. Set HOLDFAST_NODE to its full path.")
+            throw HoldfastError("Pi's Node runtime is missing. Reinstall Holdfast, or set HOLDFAST_NODE to Node 22.19 or newer.")
         }
+        var roots = [env["HOLDFAST_PI_DIR"].map { URL(fileURLWithPath: $0) },
+                     Bundle.main.resourceURL?.appendingPathComponent("pi")].compactMap { $0 }
+        #if !HOLDFAST_DISTRIBUTION
         let source = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-        let roots = [env["HOLDFAST_PI_DIR"].map { URL(fileURLWithPath: $0) },
-                     Bundle.main.resourceURL?.appendingPathComponent("pi"),
-                     source.appendingPathComponent("Runtime/pi")].compactMap { $0 }
+        roots.append(source.appendingPathComponent("Runtime/pi"))
+        #endif
         guard let root = roots.first(where: {
             FileManager.default.fileExists(atPath: $0.appendingPathComponent("runner.mjs").path)
                 && FileManager.default.fileExists(atPath: $0.appendingPathComponent("node_modules/@earendil-works/pi-coding-agent/package.json").path)

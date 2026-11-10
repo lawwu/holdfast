@@ -1,6 +1,15 @@
 # Changelog
 
-## Next (after 0.1.0)
+## 0.0.1 — first installer preview
+
+- Versioned macOS installer for Apple Silicon and macOS 15+, with a bundled,
+  checksum-pinned Node runtime and dependency license notices.
+- Repeatable Developer ID signing, notarization, checksum, and GitHub draft-release
+  tooling. Unsigned previews are explicitly labeled and require a separate publish choice.
+- Packaged commands work from the app binary, and distribution builds use bundled
+  dependencies instead of a developer checkout.
+
+## Development history (before the first installer)
 
 - **Three reusable packages.** ModelProviders is a dependency-free Swift package;
   LocalMLX owns the Swift engine and `local-mlx-host`; pi-swift-mlx owns the Pi adapter.

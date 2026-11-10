@@ -3,6 +3,13 @@
 A local-first knowledge base for macOS. Import documents and recordings, search your notes,
 and ask questions with citations. Changes proposed by the agent wait for your approval in the Inbox.
 
+Installer releases are distributed through [GitHub Releases](https://github.com/lawwu/holdfast/releases).
+The first version is **v0.0.1**, an Apple Silicon / macOS 15+ preview. Check each release's
+signing status before installing. Release installers include Node and install Holdfast in
+`/Applications`; model weights are downloaded separately. Recording-file and stream imports
+need optional `ffmpeg`, and video-link imports also need `yt-dlp`.
+See [release and packaging instructions](docs/releases.md).
+
 LocalMLX runs inside the Mac app by default. You can also choose Ollama, LM Studio, or a custom
 model server. Notes covered by the private profile stay with LocalMLX on this Mac.
 

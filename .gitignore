@@ -10,3 +10,4 @@ eval/household/run4.log
 eval/household/memory.log
 eval/household/.run-snapshot.sh
 .DS_Store
+__pycache__/

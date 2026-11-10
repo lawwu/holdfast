@@ -1,14 +1,24 @@
 #!/bin/bash
-# Build holdfast and wrap it as build/Holdfast.app (ad-hoc signed, for this Mac only).
+# Build Holdfast.app. Local builds are ad-hoc signed; release builds can use Developer ID.
 # The same binary is the CLI and the app: launched from a .app it opens the window.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 DERIVED="${HOLDFAST_DERIVED_DATA:-.build/xcode}"
+APP_VERSION="${HOLDFAST_VERSION:-$(cat VERSION)}"
+APP_BUILD_NUMBER="${HOLDFAST_BUILD_NUMBER:-$(git rev-list --count HEAD)}"
+BUILD_OPTIONS=()
+if [[ "${HOLDFAST_DISTRIBUTION:-0}" == "1" ]]; then
+  export HOLDFAST_BUNDLE_NODE=1
+  SWIFT_FLAGS='$(inherited) -D HOLDFAST_DISTRIBUTION'
+  SWIFT_FLAGS+=" -file-prefix-map \"$PWD=/src/holdfast\" -debug-prefix-map \"$PWD=/src/holdfast\""
+  BUILD_OPTIONS+=("OTHER_SWIFT_FLAGS=$SWIFT_FLAGS")
+fi
 if [[ "${1:-}" != "--package-only" ]]; then
   npm ci --prefix Runtime/pi --omit=dev --ignore-scripts --no-audit --no-fund
   xcodebuild -scheme holdfast -destination 'platform=macOS' -configuration Release \
     -derivedDataPath "$DERIVED" -clonedSourcePackagesDirPath .build/xcode/SourcePackages \
-    -skipMacroValidation -skipPackagePluginValidation DEBUG_INFORMATION_FORMAT=dwarf build -quiet
+    -skipMacroValidation -skipPackagePluginValidation DEBUG_INFORMATION_FORMAT=dwarf \
+    ${BUILD_OPTIONS[@]+"${BUILD_OPTIONS[@]}"} build -quiet
 fi
 P="$DERIVED/Build/Products/Release"
 APP="${HOLDFAST_APP:-build/Holdfast.app}"
@@ -25,6 +35,10 @@ for b in "$P"/*.bundle; do
   cp -R "$b" "$APP/Contents/MacOS/"
 done
 bash scripts/bundle_pi_runtime.sh "$APP"
+if [[ "${HOLDFAST_BUNDLE_NODE:-0}" == "1" ]]; then
+  python3 scripts/bundle_node_runtime.py "$APP"
+  python3 scripts/release_notices.py "$APP"
+fi
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -34,8 +48,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleIdentifier</key><string>$BUNDLE_ID</string>
   <key>CFBundleExecutable</key><string>holdfast</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>0.1.0</string>
-  <key>CFBundleVersion</key><string>1</string>
+  <key>CFBundleShortVersionString</key><string>$APP_VERSION</string>
+  <key>CFBundleVersion</key><string>$APP_BUILD_NUMBER</string>
   <key>LSMinimumSystemVersion</key><string>15.0</string>
   <key>NSHighResolutionCapable</key><true/>
   <key>CFBundleIconFile</key><string>AppIcon</string>
@@ -78,8 +92,8 @@ cat > "$EXT/Contents/Info.plist" <<PLIST
   <key>CFBundleIdentifier</key><string>$BUNDLE_ID.preview</string>
   <key>CFBundleExecutable</key><string>HoldfastPreview</string>
   <key>CFBundlePackageType</key><string>XPC!</string>
-  <key>CFBundleShortVersionString</key><string>0.1.0</string>
-  <key>CFBundleVersion</key><string>1</string>
+  <key>CFBundleShortVersionString</key><string>$APP_VERSION</string>
+  <key>CFBundleVersion</key><string>$APP_BUILD_NUMBER</string>
   <key>LSMinimumSystemVersion</key><string>15.0</string>
   <key>NSExtension</key><dict>
     <key>NSExtensionPointIdentifier</key><string>com.apple.quicklook.preview</string>
@@ -92,12 +106,6 @@ cat > "$EXT/Contents/Info.plist" <<PLIST
   </dict>
 </dict></plist>
 PLIST
-ENT=$(mktemp -t holdfast-ent)
-cat > "$ENT" <<PLIST
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict><key>com.apple.security.app-sandbox</key><true/></dict></plist>
-PLIST
 # App icon: drawn by scripts/make_icon.swift (the same mark the app shows) into AppIcon.icns.
 ICONSET=$(mktemp -d)/AppIcon.iconset
 mkdir -p "$ICONSET"
@@ -105,12 +113,14 @@ swiftc Sources/holdfast/AppIcon.swift scripts/make_icon.swift -o "$(dirname "$IC
 "$(dirname "$ICONSET")/make-icon" "$ICONSET"
 iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns"
 rm -rf "$(dirname "$ICONSET")"
-# Sign inside-out: the resource bundles, the extension (with its sandbox), then the app.
-for b in "$APP"/Contents/MacOS/*.bundle "$APP"/Contents/Resources/*.bundle; do codesign --force --sign - "$b" >/dev/null; done
-codesign --force --sign - --entitlements "$ENT" "$EXT" >/dev/null
-rm -f "$ENT"
-codesign --force --sign - "$APP" >/dev/null
+# Sign nested executables and native Node modules before signing their containers.
+python3 scripts/sign_app.py "$APP"
 # Register the preview with Quick Look (a built app outside /Applications isn't picked up on its own).
-pluginkit -a "$EXT" 2>/dev/null || true
-qlmanage -r >/dev/null 2>&1 || true
-echo "$PWD/$APP"
+if [[ "${HOLDFAST_DISTRIBUTION:-0}" != "1" ]]; then
+  pluginkit -a "$EXT" 2>/dev/null || true
+  qlmanage -r >/dev/null 2>&1 || true
+fi
+case "$APP" in
+  /*) echo "$APP" ;;
+  *) echo "$PWD/$APP" ;;
+esac

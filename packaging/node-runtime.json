@@ -1,0 +1,7 @@
+{
+  "version": "v24.22.2",
+  "architecture": "arm64",
+  "url": "https://nodejs.org/dist/v24.22.2/node-v24.22.2-darwin-arm64.tar.gz",
+  "sha256": "aa9549349e47dffaa42dcf95d6e06ade8c4bdafc980979883b88767670df385a",
+  "license": "https://github.com/nodejs/node/blob/v24.22.2/LICENSE"
+}

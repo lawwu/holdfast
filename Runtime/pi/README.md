@@ -28,8 +28,9 @@ remain part of Holdfast.
 
 ## Run and package
 
-Requires Node **22.19+** (external to the app), macOS 15+ and the existing Swift
-build dependencies. Versions are pinned in `package-lock.json`.
+Development builds require Node **22.19+**, macOS 15+ and the existing Swift
+build dependencies. Installer releases bundle a pinned Node runtime. JavaScript dependency
+versions are pinned in `package-lock.json`.
 
 ```sh
 npm ci --prefix Runtime/pi --ignore-scripts
