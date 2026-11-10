@@ -116,7 +116,7 @@ enum MarkdownStyler {
         return p
     }()
     static var baseAttributes: [NSAttributedString.Key: Any] {
-        [.font: base, .foregroundColor: NSColor.labelColor, .paragraphStyle: para]
+        [.font: base, .foregroundColor: NSColor(Theme.ink), .paragraphStyle: para]
     }
     static let accent = NSColor(Theme.accent)
     static let faint = NSColor.tertiaryLabelColor

@@ -196,7 +196,7 @@ struct MDTableView: View {
                     cell(h, bold: true)
                 }
             }
-            .background(Color.primary.opacity(0.06))
+            .background(Theme.canvas)
             ForEach(Array(rows.enumerated()), id: \.offset) { i, row in
                 Divider().gridCellUnsizedAxes(.horizontal)
                 GridRow {
@@ -207,7 +207,7 @@ struct MDTableView: View {
                 .background(i % 2 == 1 ? Color.primary.opacity(0.025) : .clear)
             }
         }
-        .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Color.primary.opacity(0.1)))
+        .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.cardStroke))
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
@@ -254,15 +254,17 @@ struct MDBlockView: View {
                 if let callout {
                     Image(systemName: calloutIcon(callout)).foregroundStyle(calloutColor(callout))
                 }
-                Text(noteInline(block.text)).font(.system(size: 16)).lineSpacing(3)
-                    .foregroundStyle(callout == nil ? AnyShapeStyle(.secondary) : AnyShapeStyle(.primary))
+                Text(noteInline(block.text))
+                    .font(callout == nil ? .system(size: 20, weight: .regular, design: .serif) : .system(size: 16))
+                    .lineSpacing(4)
+                    .foregroundStyle(callout == nil ? Theme.accent : Theme.ink)
                 Spacer(minLength: 0)
             }
             .padding(.vertical, 8).padding(.horizontal, 12)
             .background(alignment: .leading) {
                 ZStack(alignment: .leading) {
-                    Rectangle().fill((callout.map(calloutColor) ?? Color.primary).opacity(callout == nil ? 0.03 : 0.09))
-                    Rectangle().fill(callout.map(calloutColor) ?? Color.secondary.opacity(0.5)).frame(width: 3)
+                    Rectangle().fill(callout.map { calloutColor($0).opacity(0.09) } ?? .clear)
+                    Rectangle().fill(callout.map(calloutColor) ?? Theme.accent).frame(width: 2)
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 4))

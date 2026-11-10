@@ -13,6 +13,8 @@ struct SettingsView: View {
         }
         .frame(width: 580)
         .tint(Theme.accent)
+        .background(Theme.paper)
+        .foregroundStyle(Theme.ink)
     }
 }
 

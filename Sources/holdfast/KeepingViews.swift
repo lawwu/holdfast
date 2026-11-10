@@ -546,7 +546,6 @@ struct TurnView: View {
                 if !entry.sources.isEmpty {
                     Button(showSources ? "Hide sources" : "\(entry.sources.count) sources") { showSources.toggle() }.buttonStyle(.link).font(Theme.caption)
                 }
-                if let r = entry.route { Label(r, systemImage: "arrow.triangle.branch").font(Theme.caption).foregroundStyle(.tertiary) }
             }
             if showSources {
                 ForEach(Array(entry.sources.enumerated()), id: \.offset) { i, s in
@@ -555,6 +554,7 @@ struct TurnView: View {
                     }.buttonStyle(.link)
                 }
             }
+            AnswerDetails(stats: entry.stats, model: entry.model, route: entry.route)
         }
     }
 }

@@ -26,7 +26,7 @@ struct TabBar: View {
             .padding(.trailing, 6)
         }
         .frame(height: 34)
-        .background(.background.secondary)
+        .background(Theme.canvas)
         .overlay(alignment: .bottom) { Divider() }
     }
 }
@@ -55,7 +55,7 @@ struct TabChip: View {
         .padding(.leading, 10).padding(.trailing, 4).padding(.vertical, 5)
         .frame(maxWidth: 200)
         .background(RoundedRectangle(cornerRadius: 7, style: .continuous)
-            .fill(active ? AnyShapeStyle(.background) : AnyShapeStyle(Color.primary.opacity(hover ? 0.05 : 0))))
+            .fill(active ? Theme.paper : (hover ? Theme.selection : .clear)))
         .overlay(RoundedRectangle(cornerRadius: 7, style: .continuous)
             .strokeBorder(active ? Color.primary.opacity(0.08) : .clear))
         .contentShape(Rectangle())
@@ -141,7 +141,7 @@ struct RightPanel: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .background(.background.secondary)
+        .background(Theme.canvas)
     }
 }
 
@@ -467,8 +467,8 @@ struct PaletteRow: View {
     var command: PaletteCommand
     var selected: Bool
     var body: some View {
-        let fg: Color = selected ? .white : .primary
-        let sub: Color = selected ? Color.white.opacity(0.8) : Color.secondary
+        let fg = selected ? Theme.accent : Theme.ink
+        let sub = Theme.secondary
         HStack(spacing: 10) {
             Image(systemName: command.icon).foregroundStyle(sub).frame(width: 18)
             Text(command.title).font(Theme.callout.weight(.medium)).foregroundStyle(fg)
@@ -478,7 +478,7 @@ struct PaletteRow: View {
             }
         }
         .padding(.horizontal, 10).padding(.vertical, 7)
-        .background(RoundedRectangle(cornerRadius: 6).fill(selected ? AnyShapeStyle(Theme.gradient) : AnyShapeStyle(Color.clear)))
+        .background(RoundedRectangle(cornerRadius: 6).fill(selected ? Theme.selection : .clear))
         .contentShape(Rectangle())
     }
 }

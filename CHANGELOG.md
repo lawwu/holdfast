@@ -2,6 +2,12 @@
 
 ## Next (after 0.1.0)
 
+- **Paper & Pine.** Warm paper surfaces, evergreen accents, editorial headings, and a quieter
+  sidebar in light and dark mode. Library now contains Notes, Folders, Tables and Graph; recent
+  questions and all conversations sit under Ask. Narrower, resizable browsing panes leave more
+  room for notes, with a labeled Focus control. Sources offer inline passage previews; generation
+  statistics and retrieval scores are available on demand. The new bound-page H icon shares one
+  vector renderer across the sidebar, Dock and packaged app.
 - **Changes from Ask.** "Mark … done", "add … to …": the model reads the note and proposes the exact
   change, which waits in the Inbox with removed and added lines until approved; undo restores the
   copy kept first. A note changed since the proposal is refused, generated files are refused.
