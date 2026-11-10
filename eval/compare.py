@@ -1,6 +1,6 @@
-"""Compare `mackb eval` runs side by side.
+"""Compare `holdfast eval` runs side by side.
 
-Reads eval/results/*.json (one file per run, written by `mackb eval --label X`)
+Reads eval/results/*.json (one file per run, written by `holdfast eval --label X`)
 and prints a Markdown table: per-question fact coverage for each run, then
 totals for facts, citation rate, speed and time. Stdlib only.
 

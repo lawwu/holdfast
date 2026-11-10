@@ -2,7 +2,7 @@
 
 Read-only reference collections that Holdfast searches beside your own notes:
 a Bible, a wiki, a manual. Each pack lives in
-`~/Library/Application Support/MacKB/packs/<id>/`, shared by every vault:
+`~/Library/Application Support/Holdfast/packs/<id>/`, shared by every vault:
 
 ```
 packs/<id>/
@@ -12,8 +12,8 @@ packs/<id>/
 enabled.json           which packs Search and Ask use
 ```
 
-- Switch packs on and off in Library → Knowledge Packs, or `mackb pack on|off <id>`.
-  `MACKB_PACKS=bsb,…` (or `none`) overrides for one command (evals, scripts).
+- Switch packs on and off in Library → Knowledge Packs, or `holdfast pack on|off <id>`.
+  `HOLDFAST_PACKS=bsb,…` (or `none`) overrides for one command (evals, scripts).
 - Search ranks the vault and each pack on its own, then merges the lists; the
   reranker sorts the merged passages. Passages from a pack are cited as
   `pack:<id>/…`, and their titles carry the pack's label ("John 3 — BSB").
@@ -27,8 +27,8 @@ enabled.json           which packs Search and Ask use
 | --- | --- | --- |
 | `bsb` Berean Standard Bible | `python3 packs/bsb/build.py` (reads `~/github/lawrencewu-net/data/bsb.txt` and the reader's `headings.json`; nothing is downloaded) | BereanBible.com; public domain since 2023-04-30 |
 
-Then: `mackb pack install <folder>` (the BSB builder writes straight into place),
-`mackb pack index <id>`, `mackb pack on <id>`.
+Then: `holdfast pack install <folder>` (the BSB builder writes straight into place),
+`holdfast pack index <id>`, `holdfast pack on <id>`.
 
 ## A pack from files you have
 
@@ -36,9 +36,9 @@ Any folder of saved web pages (`.webarchive`, `.html`), PDFs, Word files or
 Markdown becomes a pack, converted the way Bulk Import's "Bring in as-is" works:
 
 ```
-mackb pack create <id> --name "…" --cite "…" --license "…" --attribution "…" --source <url> <files or folders…>
-mackb pack index <id>
-mackb pack on <id>
+holdfast pack create <id> --name "…" --cite "…" --license "…" --attribution "…" --source <url> <files or folders…>
+holdfast pack index <id>
+holdfast pack on <id>
 ```
 
 ### Bogleheads wiki
@@ -51,7 +51,7 @@ before sharing a pack with anyone. For a personal pack, save the pages you
 use from Safari (File → Save As → Web Archive) into a folder, then:
 
 ```
-mackb pack create bogleheads --name "Bogleheads wiki (saved pages)" --cite Bogleheads \
+holdfast pack create bogleheads --name "Bogleheads wiki (saved pages)" --cite Bogleheads \
   --license "as stated on bogleheads.org" --attribution "Bogleheads® wiki contributors" \
   --source https://www.bogleheads.org/wiki <folder>
 ```

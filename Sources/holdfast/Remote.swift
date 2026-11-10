@@ -22,11 +22,11 @@ enum Remote {
 
     /// "http://studio:1234" (LM Studio), "http://studio:8080" (mlx_lm.server), "http://studio:11434" (Ollama).
     static var url: URL? {
-        let s = ProcessInfo.processInfo.environment["MACKB_REMOTE_URL"] ?? UserDefaults.standard.string(forKey: "remoteURL") ?? ""
+        let s = ProcessInfo.processInfo.environment["HOLDFAST_REMOTE_URL"] ?? UserDefaults.standard.string(forKey: "remoteURL") ?? ""
         return URL(string: s.trimmingCharacters(in: .whitespaces)).flatMap { $0.host == nil ? nil : $0 }
     }
     static var model: String {
-        ProcessInfo.processInfo.environment["MACKB_REMOTE_MODEL"] ?? UserDefaults.standard.string(forKey: "remoteModel") ?? ""
+        ProcessInfo.processInfo.environment["HOLDFAST_REMOTE_MODEL"] ?? UserDefaults.standard.string(forKey: "remoteModel") ?? ""
     }
     /// Seconds to wait for the first byte (a big model loading on the other Mac can take a while).
     static let timeout: TimeInterval = 300
@@ -45,7 +45,7 @@ enum Remote {
         let (data, resp) = try await Remote.session.data(for: req)
         guard (resp as? HTTPURLResponse)?.statusCode == 200,
               let obj = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let list = obj["data"] as? [[String: Any]] else { throw MacKBError("no model list at \(u.absoluteString)") }
+              let list = obj["data"] as? [[String: Any]] else { throw HoldfastError("no model list at \(u.absoluteString)") }
         return list.compactMap { $0["id"] as? String }.sorted()
     }
 
@@ -57,7 +57,7 @@ enum Remote {
     }
 
     static func request(_ body: [String: Any]) throws -> URLRequest {
-        guard let u = endpoint("chat/completions") else { throw MacKBError("no address set for the model on another Mac") }
+        guard let u = endpoint("chat/completions") else { throw HoldfastError("no address set for the model on another Mac") }
         var req = URLRequest(url: u)
         req.httpMethod = "POST"
         req.timeoutInterval = timeout
@@ -93,7 +93,7 @@ struct RemoteBackend: LLMBackend {
         } catch let e as URLError where Remote.isUnreachable(e) && !Task.isCancelled && wrote.text.isEmpty {
             // The other Mac is asleep or off the network, and nothing was written yet: use this Mac's model.
             guard MLXBackend.modelDir(repo: MLXBackend.currentRepo) != nil else {
-                throw MacKBError("\(Remote.host) didn't answer, and no model is downloaded on this Mac to answer instead")
+                throw HoldfastError("\(Remote.host) didn't answer, and no model is downloaded on this Mac to answer instead")
             }
             log("\(Remote.host) unreachable (\(e.code.rawValue)); using this Mac's model")
             Remote.fellBack = true
@@ -101,7 +101,7 @@ struct RemoteBackend: LLMBackend {
         } catch let e as URLError where e.code == .cancelled || Task.isCancelled {
             return GenStats(promptTokens: 0, promptSeconds: 0, outputTokens: 0, outputSeconds: 0)  // Stop: keep what was written
         } catch let e as URLError {
-            throw MacKBError("lost the connection to \(Remote.host)" + (wrote.text.isEmpty ? "" : " partway through the answer") + " (\(e.localizedDescription))")
+            throw HoldfastError("lost the connection to \(Remote.host)" + (wrote.text.isEmpty ? "" : " partway through the answer") + " (\(e.localizedDescription))")
         }
     }
 
@@ -113,7 +113,7 @@ struct RemoteBackend: LLMBackend {
         if !Thinking.on { body["chat_template_kwargs"] = ["enable_thinking": false] }
         let (bytes, resp) = try await Remote.session.bytes(for: try Remote.request(body))
         guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else {
-            throw MacKBError("the model on \(Remote.host) returned \((resp as? HTTPURLResponse)?.statusCode ?? 0)")
+            throw HoldfastError("the model on \(Remote.host) returned \((resp as? HTTPURLResponse)?.statusCode ?? 0)")
         }
         var first: Date?
         var tokens = 0
@@ -152,7 +152,7 @@ enum RemoteAgent {
             return try await loop(question, embedder: embedder, prior: prior, onEvent: onEvent)
         } catch let e as URLError where Remote.isUnreachable(e) && !Task.isCancelled {
             guard MLXBackend.modelDir(repo: MLXBackend.currentRepo) != nil else {
-                throw MacKBError("\(Remote.host) didn't answer, and no model is downloaded on this Mac to research with instead")
+                throw HoldfastError("\(Remote.host) didn't answer, and no model is downloaded on this Mac to research with instead")
             }
             onEvent(.step("\(Remote.host) didn't answer: researching with this Mac's model"))
             onEvent(.resetText)
@@ -162,7 +162,7 @@ enum RemoteAgent {
             return Answer(text: "", sources: [], stats: GenStats(promptTokens: 0, promptSeconds: 0, outputTokens: 0, outputSeconds: 0), retrievalSeconds: 0)
         } catch is KeepLocal {
             guard MLXBackend.modelDir(repo: MLXBackend.currentRepo) != nil else {
-                throw MacKBError("this needs counseling notes, which stay on this Mac, and no model is downloaded here")
+                throw HoldfastError("this needs counseling notes, which stay on this Mac, and no model is downloaded here")
             }
             onEvent(.step("Counseling notes stay on this Mac: researching here instead"))
             onEvent(.resetText)
@@ -202,7 +202,7 @@ enum RemoteAgent {
             guard (resp as? HTTPURLResponse)?.statusCode == 200,
                   let obj = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let msg = (obj["choices"] as? [[String: Any]])?.first?["message"] as? [String: Any] else {
-                throw MacKBError("the model on \(Remote.host) sent an unexpected reply: \(String(decoding: data.prefix(200), as: UTF8.self))")
+                throw HoldfastError("the model on \(Remote.host) sent an unexpected reply: \(String(decoding: data.prefix(200), as: UTF8.self))")
             }
             outTokens += ((obj["usage"] as? [String: Any])?["completion_tokens"] as? Int) ?? 0
             let text = (msg["content"] as? String) ?? ""

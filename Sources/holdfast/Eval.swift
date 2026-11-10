@@ -1,6 +1,6 @@
 import Foundation
 
-/// `mackb eval <questions.json> --label <name>`: runs every question through
+/// `holdfast eval <questions.json> --label <name>`: runs every question through
 /// retrieval + the current backend and scores it.
 ///
 /// Scoring (deliberately simple and reproducible, no LLM judge):
@@ -55,9 +55,9 @@ struct EvalResult: Codable {
 /// Which model and embedder answered, from the environment the eval ran in.
 func evalModelName() -> String {
     let env = ProcessInfo.processInfo.environment
-    switch env["MACKB_BACKEND"] ?? "mlx" {
+    switch env["HOLDFAST_BACKEND"] ?? "mlx" {
     case "mlx": return MLXBackend.currentRepo.components(separatedBy: "/").last ?? MLXBackend.currentRepo
-    case "gemini": return env["MACKB_GEMINI_MODEL"] ?? "gemini-flash-latest"
+    case "gemini": return env["HOLDFAST_GEMINI_MODEL"] ?? "gemini-flash-latest"
     default: return Config.llmModel
     }
 }
@@ -136,7 +136,7 @@ func runEval(questionsPath: String, label: String, outDir: URL, only: Set<String
 
 // MARK: - Filing eval
 
-/// `mackb eval-filing <filing.json> --label <name>`: each case is a document
+/// `holdfast eval-filing <filing.json> --label <name>`: each case is a document
 /// dropped into the household fixture; the model decides where it goes and
 /// what to save. Scored without an LLM judge:
 /// - action: new / append / skip as expected

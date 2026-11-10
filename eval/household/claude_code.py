@@ -2,7 +2,7 @@
 
 Runs each question (and each document to file) through Claude Code in
 headless mode, in a scratch copy of the vault, and scores the replies the way
-`mackb eval` / `mackb eval-filing` score the local models. Results land in
+`holdfast eval` / `holdfast eval-filing` score the local models. Results land in
 results/qa/<label>.json and results/filing/<label>.json, so report.py and
 page.py pick them up. Stdlib only.
 
@@ -17,15 +17,15 @@ It runs under the Claude login (ANTHROPIC_API_KEY is unset for the child), so
 it counts against the plan's usage; total_cost_usd is recorded as the API price.
 
 Filing gets the same instructions as the app (FILING_INSTRUCTIONS mirrors
-Drop.instructions in Sources/mackb/Drop.swift: keep them in step) and the
+Drop.instructions in Sources/holdfast/Drop.swift: keep them in step) and the
 document's text (the .txt original; the app reads the PDF/PNG/DOCX copies).
 Claude reads the READMEs and notes itself instead of being handed them.
 """
 import argparse, concurrent.futures as cf, json, os, pathlib, re, shutil, subprocess, tempfile, time
 
 import os
-# The fixture: this folder, or another with the same layout (MACKB_FIXTURE=eval/household-hard).
-HERE = pathlib.Path(os.environ.get("MACKB_FIXTURE") or pathlib.Path(__file__).parent).resolve()
+# The fixture: this folder, or another with the same layout (HOLDFAST_FIXTURE=eval/household-hard).
+HERE = pathlib.Path(os.environ.get("HOLDFAST_FIXTURE") or pathlib.Path(__file__).parent).resolve()
 TODAY = "2026-11-05"
 MAX_TURNS = 30
 TIMEOUT_S = 600
@@ -178,7 +178,7 @@ def main():
     ap.add_argument("--only", nargs="*", default=[])
     ap.add_argument("--filing", action="store_true")
     args = ap.parse_args()
-    with tempfile.TemporaryDirectory(prefix="mackb-cc-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="holdfast-cc-") as tmp:
         vault = pathlib.Path(tmp) / "vault"
         shutil.copytree(HERE / "vault", vault)
         (run_filing if args.filing else run_qa)(args, vault)

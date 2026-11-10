@@ -20,7 +20,7 @@ func extractText(_ url: URL) throws -> String {
     case let e where Formats.readable.contains(e):
         return try Formats.text(url)
     case "pdf":
-        guard let doc = PDFDocument(url: url) else { throw MacKBError("can't open PDF \(url.lastPathComponent)") }
+        guard let doc = PDFDocument(url: url) else { throw HoldfastError("can't open PDF \(url.lastPathComponent)") }
         // Page by page: a page with no text layer (a scan, a photo of a form) is read
         // with on-device OCR, so a PDF that mixes typed and scanned pages reads in full.
         var pages: [String] = []
@@ -191,7 +191,7 @@ func transcribeAudio(_ url: URL) async throws -> (segments: [Segment], duration:
     let wav = Config.mediaDir.appendingPathComponent(UUID().uuidString + ".wav")
     // ffmpeg normalises any container (mp4, webm, m4a) to 16 kHz mono for Parakeet.
     guard let ffmpeg = findTool("ffmpeg") else {
-        throw MacKBError("Recordings need ffmpeg to read audio. Install it with Homebrew (brew install ffmpeg), then try again.")
+        throw HoldfastError("Recordings need ffmpeg to read audio. Install it with Homebrew (brew install ffmpeg), then try again.")
     }
     _ = try run(ffmpeg, ["-nostdin", "-loglevel", "error", "-y", "-i", url.path, "-ac", "1", "-ar", "16000", wav.path])
     defer { try? FileManager.default.removeItem(at: wav) }
@@ -273,7 +273,7 @@ func ytdlp() -> String {
 
 func ingestURL(_ url: String, tags: [String]) async throws -> Note {
     guard findTool("yt-dlp") != nil else {
-        throw MacKBError("Links need yt-dlp to fetch captions or audio. Install it with Homebrew (brew install yt-dlp), then try again.")
+        throw HoldfastError("Links need yt-dlp to fetch captions or audio. Install it with Homebrew (brew install yt-dlp), then try again.")
     }
     let work = Config.mediaDir.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
@@ -343,7 +343,7 @@ func parseVTT(_ s: String) -> [Segment] {
 
 // MARK: - helpers
 
-struct MacKBError: Error, CustomStringConvertible {
+struct HoldfastError: Error, CustomStringConvertible {
     let description: String
     init(_ s: String) { description = s }
 }
@@ -361,7 +361,7 @@ func run(_ exe: String, _ args: [String]) throws -> String {
     let edata = err.fileHandleForReading.readDataToEndOfFile()
     p.waitUntilExit()
     guard p.terminationStatus == 0 else {
-        throw MacKBError("\((exe as NSString).lastPathComponent) failed: \(String(data: edata, encoding: .utf8) ?? "")")
+        throw HoldfastError("\((exe as NSString).lastPathComponent) failed: \(String(data: edata, encoding: .utf8) ?? "")")
     }
     return String(decoding: data, as: UTF8.self)
 }

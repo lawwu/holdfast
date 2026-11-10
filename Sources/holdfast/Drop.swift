@@ -262,13 +262,13 @@ enum Drop {
         }
         if f.action.lowercased() != "new" { f.properties = [:] }
         if f.markdown.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            throw MacKBError("the model proposed \(f.action) \(f.path) but wrote nothing to save")
+            throw HoldfastError("the model proposed \(f.action) \(f.path) but wrote nothing to save")
         }
         f = try validate(f)
         if f.path.lowercased().hasSuffix(".csv"),
            let csvText = try? String(contentsOf: Config.vault.appendingPathComponent(f.path), encoding: .utf8),
            csvRows(f.markdown, for: csvText).isEmpty {
-            throw MacKBError("the model proposed a row for \(f.path) but didn't write one matching its columns")
+            throw HoldfastError("the model proposed a row for \(f.path) but didn't write one matching its columns")
         }
         if f.title.trimmingCharacters(in: .whitespaces).isEmpty {
             f.title = (f.action == "append" ? "Add to " : "") + (f.path as NSString).lastPathComponent
@@ -289,7 +289,7 @@ enum Drop {
         if f.action == "skip" {
             throw AlreadyFiled(why: f.why + (keptTranscript == nil ? "" : " The full transcript is in the Inbox if you want to keep it."))
         }
-        let today = dayString(mackb.today())
+        let today = dayString(holdfast.today())
         var meta = ["title": f.title, "kind": "filing", "proposed_by": "Drop folder · \(model)", "proposed": today,
                     "target": f.path, "action": f.action, "why": f.why, "original": url.lastPathComponent]
         if !flags.isEmpty { meta["privacy_flags"] = flags.joined(separator: "; ") }
@@ -309,7 +309,7 @@ enum Drop {
     static func transcriptProposal(_ url: URL, text: String, near target: String, model: String) throws -> Note {
         let recorded = try? Note.read(url)
         let name = recorded?.meta["title"] ?? url.deletingPathExtension().lastPathComponent
-        let today = dayString(mackb.today())
+        let today = dayString(holdfast.today())
         var folder = (target as NSString).deletingLastPathComponent
         if folder.isEmpty || (try? safeTarget(folder + "/x.md")) == nil { folder = "transcripts" }
         let slug = slugify(name).isEmpty ? "recording" : String(slugify(name).prefix(60))
@@ -359,10 +359,10 @@ enum Drop {
     static func parse(_ reply: String) throws -> Filing {
         guard let a = reply.firstIndex(of: "{"), let b = firstObjectEnd(reply, from: a) ?? reply.lastIndex(of: "}"), a < b,
               let data = String(reply[a...b]).data(using: .utf8) else {
-            throw MacKBError("the model's filing reply had no JSON: \(reply.prefix(200))")
+            throw HoldfastError("the model's filing reply had no JSON: \(reply.prefix(200))")
         }
         do { return try JSONDecoder().decode(Filing.self, from: data) }
-        catch { throw MacKBError("couldn't read the model's filing reply: \(error)") }
+        catch { throw HoldfastError("couldn't read the model's filing reply: \(error)") }
     }
 
     /// The entry's lines that are rows of this CSV: CSV lines or Markdown table rows
@@ -404,7 +404,7 @@ enum Drop {
         while p.hasPrefix("./") || p.hasPrefix("/") { p.removeFirst(p.hasPrefix("./") ? 2 : 1) }
         let parts = p.split(separator: "/")
         if p.isEmpty || parts.contains("..") || parts.contains(where: { $0.hasPrefix(".") }) {
-            throw MacKBError("the model proposed a path outside the vault: \(f.path)")
+            throw HoldfastError("the model proposed a path outside the vault: \(f.path)")
         }
         // A folder ("life/recipes/" or a folder rule with no name): name the note after its title.
         if p.hasSuffix("/") || (p as NSString).lastPathComponent.lowercased() == ".md" {
@@ -443,7 +443,7 @@ enum Drop {
         try FileManager.default.createDirectory(at: Config.stateDir, withIntermediateDirectories: true)
         let path = Config.stateDir.appendingPathComponent(".write.lock").path
         let fd = open(path, O_CREAT | O_RDWR, 0o600)
-        guard fd >= 0 else { throw MacKBError("can't open the vault's write lock") }
+        guard fd >= 0 else { throw HoldfastError("can't open the vault's write lock") }
         defer { close(fd) }
         flock(fd, LOCK_EX)
         defer { flock(fd, LOCK_UN) }
@@ -456,12 +456,12 @@ enum Drop {
         let parts = target.split(separator: "/", omittingEmptySubsequences: false)
         guard !target.isEmpty, !target.hasPrefix("/"), !Packs.isPack(target), !target.hasPrefix("@"),
               !parts.contains(where: { $0.isEmpty || $0 == ".." || $0 == "." || $0.hasPrefix(".") }) else {
-            throw MacKBError("refusing to write outside the vault: \(target)")
+            throw HoldfastError("refusing to write outside the vault: \(target)")
         }
         let root = Config.vault.resolvingSymlinksInPath().standardizedFileURL.path + "/"
         let url = Config.vault.appendingPathComponent(target)
         let resolved = url.deletingLastPathComponent().resolvingSymlinksInPath().standardizedFileURL.path + "/"
-        guard resolved.hasPrefix(root) || resolved == root else { throw MacKBError("refusing to write outside the vault: \(target)") }
+        guard resolved.hasPrefix(root) || resolved == root else { throw HoldfastError("refusing to write outside the vault: \(target)") }
         return url
     }
 
@@ -476,7 +476,7 @@ enum Drop {
     static func applyClaimed(_ item: Note) throws -> URL { try applyLocked(item) }
 
     private static func applyLocked(_ item: Note) throws -> URL {
-        guard let target = item.meta["target"] else { throw MacKBError("filing has no target") }
+        guard let target = item.meta["target"] else { throw HoldfastError("filing has no target") }
         var dest = try safeTarget(target)
         let entry = item.body.trimmingCharacters(in: .whitespacesAndNewlines)
         let existed = FileManager.default.fileExists(atPath: dest.path)
@@ -493,7 +493,7 @@ enum Drop {
             let bom = data.starts(with: [0xEF, 0xBB, 0xBF])
             var text = String(decoding: bom ? data.dropFirst(3) : data, as: UTF8.self)
             let rows = csvRows(entry, for: text)
-            guard !rows.isEmpty else { throw MacKBError("the proposal has no row matching \(target)'s columns; edit it into a CSV line first") }
+            guard !rows.isEmpty else { throw HoldfastError("the proposal has no row matching \(target)'s columns; edit it into a CSV line first") }
             // Keep the file's line endings (Excel writes \r\n, which Swift sees as one character) and its BOM.
             let eol = text.contains("\r\n") ? "\r\n" : "\n"
             if !(text.hasSuffix("\n") || text.hasSuffix("\r\n")) { text += eol }
@@ -594,9 +594,9 @@ enum Drop {
         }
         let text = try await self.text(of: url)
         guard text.trimmingCharacters(in: .whitespacesAndNewlines).count >= 20 else {
-            throw MacKBError("\(url.lastPathComponent): no readable text")
+            throw HoldfastError("\(url.lastPathComponent): no readable text")
         }
-        guard let llm else { throw MacKBError("no model loaded to file \(url.lastPathComponent)") }
+        guard let llm else { throw HoldfastError("no model loaded to file \(url.lastPathComponent)") }
         var (n, flags, rule) = try await propose(url, text: text, embedder: embedder, llm: llm, model: model)
         if let h = hash { n.meta["original_hash"] = h; try n.write() }
         // An automatic rule files without asking only when nothing in the entry looks personal
@@ -640,18 +640,18 @@ final class OutputBuffer: @unchecked Sendable {
 /// On-device OCR of an image (receipts, screenshots, photos of paper).
 func ocrImage(_ url: URL) throws -> String {
     guard let img = NSImage(contentsOf: url), let src = img.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-        throw MacKBError("can't open image \(url.lastPathComponent)")
+        throw HoldfastError("can't open image \(url.lastPathComponent)")
     }
     // Flatten onto white: Vision reads dark text on a transparent background as nothing.
     let w = src.width, h = src.height
     guard let ctx = CGContext(data: nil, width: w, height: h, bitsPerComponent: 8, bytesPerRow: 0,
                               space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue) else {
-        throw MacKBError("can't read image \(url.lastPathComponent)")
+        throw HoldfastError("can't read image \(url.lastPathComponent)")
     }
     ctx.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 1))
     ctx.fill(CGRect(x: 0, y: 0, width: w, height: h))
     ctx.draw(src, in: CGRect(x: 0, y: 0, width: w, height: h))
-    guard let cg = ctx.makeImage() else { throw MacKBError("can't read image \(url.lastPathComponent)") }
+    guard let cg = ctx.makeImage() else { throw HoldfastError("can't read image \(url.lastPathComponent)") }
     let req = VNRecognizeTextRequest()
     req.recognitionLevel = .accurate
     req.usesLanguageCorrection = true

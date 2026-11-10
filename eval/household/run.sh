@@ -19,14 +19,14 @@
 #   gemma31b     Gemma 4 31B 4-bit      ·   "                  ·   "
 #                (Qwen 3.6 27B was run once, label qwen36d27b; its scores stay in report.md,
 #                and its weights were removed from this Mac on 2026-11-07)
-#   gemini       Gemini API (MACKB_GEMINI_MODEL, default gemini-flash-latest) · Qwen retrieval;
+#   gemini       Gemini API (HOLDFAST_GEMINI_MODEL, default gemini-flash-latest) · Qwen retrieval;
 #                only if GEMINI_API_KEY is set. Synthetic data only: this sends the fixture to Google.
 
 cd "$(dirname "$0")/../.."
-B=.build/xcode/Build/Products/Release/mackb
+B=.build/xcode/Build/Products/Release/holdfast
 T=eval/household                    # the scripts
 H=eval/${FIXTURE:-household}        # the fixture: vault/, questions.json, filing.json, results/
-export MACKB_VAULT=$PWD/$H/vault MACKB_TODAY=2026-11-05 MACKB_FIXTURE=$PWD/$H MACKB_PACKS=none
+export HOLDFAST_VAULT=$PWD/$H/vault HOLDFAST_TODAY=2026-11-05 HOLDFAST_FIXTURE=$PWD/$H HOLDFAST_PACKS=none
 QWEN=mlx-community/Qwen3.8-27B-4bit
 G26=mlx-community/gemma-4-26b-a4b-it-4bit
 GE4=mlx-community/gemma-4-e4b-it-4bit
@@ -44,40 +44,40 @@ want() { [[ $STAGE == all || $STAGE == $1 ]]; }
 only() { local o=(); for q in $HARD; do o+=(--only $q); done; echo $o; }
 
 run $B index
-MACKB_EMBED=embeddinggemma run $B index
+HOLDFAST_EMBED=embeddinggemma run $B index
 
 if want retrieval; then
   run $B eval $H/questions.json --retrieval-only --label search-qwen3emb-rerank --out $H/results/qa
-  MACKB_RERANK=0 run $B eval $H/questions.json --retrieval-only --label search-qwen3emb-norerank --out $H/results/qa
-  MACKB_EMBED=embeddinggemma run $B eval $H/questions.json --retrieval-only --label search-embgemma-rerank --out $H/results/qa
-  MACKB_EMBED=embeddinggemma MACKB_RERANK=0 run $B eval $H/questions.json --retrieval-only --label search-embgemma-norerank --out $H/results/qa
+  HOLDFAST_RERANK=0 run $B eval $H/questions.json --retrieval-only --label search-qwen3emb-norerank --out $H/results/qa
+  HOLDFAST_EMBED=embeddinggemma run $B eval $H/questions.json --retrieval-only --label search-embgemma-rerank --out $H/results/qa
+  HOLDFAST_EMBED=embeddinggemma HOLDFAST_RERANK=0 run $B eval $H/questions.json --retrieval-only --label search-embgemma-norerank --out $H/results/qa
 fi
 
 if want filing; then
-  MACKB_BACKEND=mlx MACKB_MLX_REPO=$QWEN run $B eval-filing $H/filing.json --label qwen27b --out $H/results/filing
-  MACKB_BACKEND=mlx MACKB_MLX_REPO=$G26 run $B eval-filing $H/filing.json --label gemma26b --out $H/results/filing
-  MACKB_BACKEND=mlx MACKB_MLX_REPO=$GE4 run $B eval-filing $H/filing.json --label gemmae4b --out $H/results/filing
-  MACKB_BACKEND=mlx MACKB_MLX_REPO=$G26 MACKB_EMBED=embeddinggemma MACKB_RERANK=0 run $B eval-filing $H/filing.json --label google26b --out $H/results/filing
+  HOLDFAST_BACKEND=mlx HOLDFAST_MLX_REPO=$QWEN run $B eval-filing $H/filing.json --label qwen27b --out $H/results/filing
+  HOLDFAST_BACKEND=mlx HOLDFAST_MLX_REPO=$G26 run $B eval-filing $H/filing.json --label gemma26b --out $H/results/filing
+  HOLDFAST_BACKEND=mlx HOLDFAST_MLX_REPO=$GE4 run $B eval-filing $H/filing.json --label gemmae4b --out $H/results/filing
+  HOLDFAST_BACKEND=mlx HOLDFAST_MLX_REPO=$G26 HOLDFAST_EMBED=embeddinggemma HOLDFAST_RERANK=0 run $B eval-filing $H/filing.json --label google26b --out $H/results/filing
 fi
 
 if want qa; then
-  MACKB_BACKEND=mlx MACKB_MLX_REPO=$QWEN run $B eval $H/questions.json --label qwen27b --out $H/results/qa
-  MACKB_BACKEND=mlx MACKB_MLX_REPO=$G26 run $B eval $H/questions.json --label gemma26b --out $H/results/qa
-  MACKB_BACKEND=mlx MACKB_MLX_REPO=$GE4 run $B eval $H/questions.json --label gemmae4b --out $H/results/qa
-  MACKB_BACKEND=mlx MACKB_MLX_REPO=$G26 MACKB_EMBED=embeddinggemma MACKB_RERANK=0 run $B eval $H/questions.json --label google26b --out $H/results/qa
+  HOLDFAST_BACKEND=mlx HOLDFAST_MLX_REPO=$QWEN run $B eval $H/questions.json --label qwen27b --out $H/results/qa
+  HOLDFAST_BACKEND=mlx HOLDFAST_MLX_REPO=$G26 run $B eval $H/questions.json --label gemma26b --out $H/results/qa
+  HOLDFAST_BACKEND=mlx HOLDFAST_MLX_REPO=$GE4 run $B eval $H/questions.json --label gemmae4b --out $H/results/qa
+  HOLDFAST_BACKEND=mlx HOLDFAST_MLX_REPO=$G26 HOLDFAST_EMBED=embeddinggemma HOLDFAST_RERANK=0 run $B eval $H/questions.json --label google26b --out $H/results/qa
 fi
 
 if want research; then
-  MACKB_BACKEND=mlx MACKB_MLX_REPO=$G26 run $B eval $H/questions.json --research $(only) --label gemma26b-research --out $H/results/qa
-  MACKB_BACKEND=mlx MACKB_MLX_REPO=$QWEN run $B eval $H/questions.json --research $(only) --label qwen27b-research --out $H/results/qa
+  HOLDFAST_BACKEND=mlx HOLDFAST_MLX_REPO=$G26 run $B eval $H/questions.json --research $(only) --label gemma26b-research --out $H/results/qa
+  HOLDFAST_BACKEND=mlx HOLDFAST_MLX_REPO=$QWEN run $B eval $H/questions.json --research $(only) --label qwen27b-research --out $H/results/qa
 fi
 
 if want candidates; then
   for c in $CANDIDATES; do
     lab=${c%%=*} repo=${c#*=}
-    MACKB_BACKEND=mlx MACKB_MLX_REPO=$repo run $B eval-filing $H/filing.json --label $lab --out $H/results/filing
-    MACKB_BACKEND=mlx MACKB_MLX_REPO=$repo run $B eval $H/questions.json --label $lab --out $H/results/qa
-    MACKB_BACKEND=mlx MACKB_MLX_REPO=$repo run $B eval $H/questions.json --research $(only) --label $lab-research --out $H/results/qa
+    HOLDFAST_BACKEND=mlx HOLDFAST_MLX_REPO=$repo run $B eval-filing $H/filing.json --label $lab --out $H/results/filing
+    HOLDFAST_BACKEND=mlx HOLDFAST_MLX_REPO=$repo run $B eval $H/questions.json --label $lab --out $H/results/qa
+    HOLDFAST_BACKEND=mlx HOLDFAST_MLX_REPO=$repo run $B eval $H/questions.json --research $(only) --label $lab-research --out $H/results/qa
   done
 fi
 
@@ -88,8 +88,8 @@ SMALL=(qwen35-2b=mlx-community/Qwen3.5-2B-4bit gemmae2b=mlx-community/gemma-4-e2
 if want small; then
   for c in $SMALL; do
     lab=${c%%=*} repo=${c#*=}
-    MACKB_BACKEND=mlx MACKB_MLX_REPO=$repo run $B eval-filing $H/filing.json --label $lab --out $H/results/filing
-    MACKB_BACKEND=mlx MACKB_MLX_REPO=$repo run $B eval $H/questions.json --label $lab --out $H/results/qa
+    HOLDFAST_BACKEND=mlx HOLDFAST_MLX_REPO=$repo run $B eval-filing $H/filing.json --label $lab --out $H/results/filing
+    HOLDFAST_BACKEND=mlx HOLDFAST_MLX_REPO=$repo run $B eval $H/questions.json --label $lab --out $H/results/qa
   done
 fi
 
@@ -100,8 +100,8 @@ RERANKERS=(rr4b=mlx-community/Qwen3-Reranker-4B-mxfp8)
 if want rerankers; then
   for c in $RERANKERS; do
     lab=${c%%=*} repo=${c#*=}
-    MACKB_RERANK_REPO=$repo run $B eval $H/questions.json --retrieval-only --label search-qwen3emb-$lab --out $H/results/qa
-    MACKB_EMBED=embeddinggemma MACKB_RERANK_REPO=$repo run $B eval $H/questions.json --retrieval-only --label search-embgemma-$lab --out $H/results/qa
+    HOLDFAST_RERANK_REPO=$repo run $B eval $H/questions.json --retrieval-only --label search-qwen3emb-$lab --out $H/results/qa
+    HOLDFAST_EMBED=embeddinggemma HOLDFAST_RERANK_REPO=$repo run $B eval $H/questions.json --retrieval-only --label search-embgemma-$lab --out $H/results/qa
   done
 fi
 
@@ -118,8 +118,8 @@ if want claude; then
 fi
 
 if want gemini && [[ -n $GEMINI_API_KEY ]]; then
-  MACKB_BACKEND=gemini run $B eval-filing $H/filing.json --label gemini --out $H/results/filing
-  MACKB_BACKEND=gemini run $B eval $H/questions.json --label gemini --out $H/results/qa
+  HOLDFAST_BACKEND=gemini run $B eval-filing $H/filing.json --label gemini --out $H/results/filing
+  HOLDFAST_BACKEND=gemini run $B eval $H/questions.json --label gemini --out $H/results/qa
 fi
 
 python3 $T/report.py > /dev/null && echo "\nwrote $H/report.md" >&2

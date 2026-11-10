@@ -6,14 +6,14 @@ import Foundation
 
 // MARK: - Audio from other apps (Core Audio process taps, macOS 14.2+)
 //
-// For `mackb listen --system` / `--app <name>`: a tap on what the Mac plays (everything, or one
+// For `holdfast listen --system` / `--app <name>`: a tap on what the Mac plays (everything, or one
 // app's processes), put in a private aggregate device, optionally together with the default
 // microphone so both sides of a call land in one transcript. The aggregate's clock is the output
 // device's; the microphone gets drift compensation. Every input stream is mixed to mono and handed
 // on as Float32 buffers at the aggregate's sample rate (the recognizer resamples to 16 kHz).
 //
 // Permission: macOS asks once for "System Audio Recording" (System Settings → Privacy & Security →
-// Screen & System Audio Recording), for the app that runs mackb (from a terminal, the terminal).
+// Screen & System Audio Recording), for the app that runs holdfast (from a terminal, the terminal).
 // Without it the tap delivers silence rather than an error, so `Capture.peak` lets the caller warn.
 
 enum SystemAudio {
@@ -89,7 +89,7 @@ enum SystemAudio {
         }
     }
 
-    /// Shows macOS's prompt for the app running mackb; true when allowed.
+    /// Shows macOS's prompt for the app running holdfast; true when allowed.
     static func requestAudioCapture() async -> Bool {
         typealias Request = @convention(c) (CFString, CFDictionary?, @escaping @convention(block) (Bool) -> Void) -> Void
         guard let tcc, let sym = dlsym(tcc, "TCCAccessRequest") else { return false }
@@ -98,9 +98,9 @@ enum SystemAudio {
         }
     }
 
-    static let captureDenied = MacKBError(
-        "Recording system audio isn't allowed for the app running mackb. Allow it in System Settings → Privacy & Security → "
-        + "Screen & System Audio Recording, under System Audio Recording Only (add Terminal, or whichever app you run mackb from), then try again.")
+    static let captureDenied = HoldfastError(
+        "Recording system audio isn't allowed for the app running holdfast. Allow it in System Settings → Privacy & Security → "
+        + "Screen & System Audio Recording, under System Audio Recording Only (add Terminal, or whichever app you run holdfast from), then try again.")
 
     // MARK: which processes
 
@@ -143,7 +143,7 @@ enum SystemAudio {
         let partial = apps.filter { ($0.localizedName ?? "").lowercased().contains(q) }
         let names = Set(partial.compactMap(\.localizedName)).sorted()
         if names.count > 1 {
-            throw MacKBError("\"\(query)\" matches several apps: \(names.joined(separator: ", ")). Use the full name or the bundle ID (mackb listen --apps).")
+            throw HoldfastError("\"\(query)\" matches several apps: \(names.joined(separator: ", ")). Use the full name or the bundle ID (holdfast listen --apps).")
         }
         return partial.first
     }
@@ -180,7 +180,7 @@ enum SystemAudio {
     static func defaultDevice(_ which: AudioObjectPropertySelector) throws -> (id: AudioObjectID, uid: String) {
         guard let dev = value(system, which, AudioObjectID(kAudioObjectUnknown)), dev != kAudioObjectUnknown,
               let uid = string(dev, kAudioDevicePropertyDeviceUID) else {
-            throw MacKBError(which == kAudioHardwarePropertyDefaultInputDevice ? "no microphone found" : "no audio output device found")
+            throw HoldfastError(which == kAudioHardwarePropertyDefaultInputDevice ? "no microphone found" : "no audio output device found")
         }
         return (dev, uid)
     }
@@ -197,9 +197,9 @@ enum SystemAudio {
         private let desc: CATapDescription
         private var aggregateID = AudioObjectID(kAudioObjectUnknown)
         private var procID: AudioDeviceIOProcID?
-        private let io = DispatchQueue(label: "net.lawrencewu.mackb.listen.io", qos: .userInitiated)
+        private let io = DispatchQueue(label: "net.lawrencewu.holdfast.listen.io", qos: .userInitiated)
         /// Rebuilds and process updates run here, never on `io` (stopping a device waits for its IO).
-        private let control = DispatchQueue(label: "net.lawrencewu.mackb.listen.control")
+        private let control = DispatchQueue(label: "net.lawrencewu.holdfast.listen.control")
         private let lock = NSLock()
         private var loudest: Float = 0
         private var lastIO = Date()
@@ -224,7 +224,7 @@ enum SystemAudio {
         /// The loudest sample so far: exactly 0 after several seconds usually means no permission.
         var peak: Float { lock.lock(); defer { lock.unlock() }; return loudest }
 
-        /// `target` nil taps everything the Mac plays (except mackb itself). `mute` silences the
+        /// `target` nil taps everything the Mac plays (except holdfast itself). `mute` silences the
         /// tapped audio on the speakers while it is captured.
         init(target: Target?, mic: Bool, mute: Bool, onEvent: @escaping (String) -> Void, onAudio: @escaping (AVAudioPCMBuffer) -> Void) throws {
             self.target = target
@@ -245,7 +245,7 @@ enum SystemAudio {
             desc.muteBehavior = mute ? .mutedWhenTapped : .unmuted
             var tap = AudioObjectID(kAudioObjectUnknown)
             let err = AudioHardwareCreateProcessTap(desc, &tap)
-            guard err == noErr else { throw MacKBError("couldn't tap the Mac's audio (Core Audio error \(err))") }
+            guard err == noErr else { throw HoldfastError("couldn't tap the Mac's audio (Core Audio error \(err))") }
             tapID = tap
             do {
                 try control.sync { try build() }
@@ -272,7 +272,7 @@ enum SystemAudio {
             }
             let agg: [String: Any] = [
                 kAudioAggregateDeviceNameKey: "Holdfast listen",
-                kAudioAggregateDeviceUIDKey: "net.lawrencewu.mackb.listen." + UUID().uuidString,
+                kAudioAggregateDeviceUIDKey: "net.lawrencewu.holdfast.listen." + UUID().uuidString,
                 kAudioAggregateDeviceMainSubDeviceKey: output.uid,
                 kAudioAggregateDeviceIsPrivateKey: true,
                 kAudioAggregateDeviceIsStackedKey: false,
@@ -282,12 +282,12 @@ enum SystemAudio {
             ]
             var dev = AudioObjectID(kAudioObjectUnknown)
             var err = AudioHardwareCreateAggregateDevice(agg as CFDictionary, &dev)
-            guard err == noErr else { throw MacKBError("couldn't set up audio capture (Core Audio error \(err))") }
+            guard err == noErr else { throw HoldfastError("couldn't set up audio capture (Core Audio error \(err))") }
             aggregateID = dev
             let rate = SystemAudio.value(dev, kAudioDevicePropertyNominalSampleRate, Float64(0)).flatMap { $0 > 0 ? $0 : nil } ?? 48_000
             guard let fmt = AVAudioFormat(standardFormatWithSampleRate: rate, channels: 1) else {
                 teardown()
-                throw MacKBError("unsupported sample rate \(rate)")
+                throw HoldfastError("unsupported sample rate \(rate)")
             }
             lock.lock(); skip = leave; format = fmt; lastIO = Date(); lock.unlock()
 
@@ -297,13 +297,13 @@ enum SystemAudio {
             }
             guard err == noErr, let proc else {
                 teardown()
-                throw MacKBError("couldn't start audio capture (Core Audio error \(err))")
+                throw HoldfastError("couldn't start audio capture (Core Audio error \(err))")
             }
             procID = proc
             err = AudioDeviceStart(dev, proc)
             guard err == noErr else {
                 teardown()
-                throw MacKBError("couldn't start audio capture (Core Audio error \(err))")
+                throw HoldfastError("couldn't start audio capture (Core Audio error \(err))")
             }
         }
 

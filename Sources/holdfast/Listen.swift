@@ -3,7 +3,7 @@ import AVFoundation
 import FluidAudio
 import Foundation
 
-// MARK: - Live transcription (`mackb listen`)
+// MARK: - Live transcription (`holdfast listen`)
 //
 // Transcribes audio while it is still arriving: a livestream (or anything else ffmpeg can open),
 // the microphone, or raw audio piped in from another program. FluidAudio's sliding-window manager
@@ -213,7 +213,7 @@ enum Listen {
     /// ffmpeg turns a stream URL or file into raw audio on a pipe; its errors are kept (and shown on stderr).
     static func startFFmpeg(_ src: String, realtime: Bool, into feed: Feed) throws -> FFmpegRun {
         guard let ffmpeg = findTool("ffmpeg") else {
-            throw MacKBError("Listening to a stream needs ffmpeg. Install it with Homebrew (brew install ffmpeg), then try again.")
+            throw HoldfastError("Listening to a stream needs ffmpeg. Install it with Homebrew (brew install ffmpeg), then try again.")
         }
         let p = Process()
         p.executableURL = URL(fileURLWithPath: ffmpeg)
@@ -259,9 +259,9 @@ enum Listen {
             if t.processes.isEmpty {
                 guard t.app != nil else {
                     let playing = Set(SystemAudio.processes().filter(\.playing).map(\.name)).sorted()
-                    throw MacKBError("no app named \"\(app)\" is running."
+                    throw HoldfastError("no app named \"\(app)\" is running."
                         + (playing.isEmpty ? "" : " Playing now: \(playing.joined(separator: ", ")).")
-                        + " (mackb listen --apps lists them; --system takes everything the Mac plays.)")
+                        + " (holdfast listen --apps lists them; --system takes everything the Mac plays.)")
                 }
                 say("\(t.name) hasn't played any audio yet: listening for it to start")
             } else {
@@ -273,7 +273,7 @@ enum Listen {
         case .granted, .unknown: break
         case .denied: throw SystemAudio.captureDenied
         case .notAsked:
-            say("asking macOS for permission to record system audio (a dialog appears for the app running mackb)…")
+            say("asking macOS for permission to record system audio (a dialog appears for the app running holdfast)…")
             guard await SystemAudio.requestAudioCapture() else { throw SystemAudio.captureDenied }
         }
         if mic { try await requireMic() }
@@ -288,19 +288,19 @@ enum Listen {
     /// folder shared with this process; its output comes back through two FIFOs. Ctrl-C and kill
     /// are passed on to it, and this process waits until it has written and filed the transcript.
     static func relayThroughApp(_ listenArgs: [String]) throws -> Int32 {
-        guard let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "net.lawrencewu.mackb") else {
-            throw MacKBError("Recording another app's audio runs inside Holdfast.app, which asks macOS for permission. Build it with scripts/make_app.sh and open it once.")
+        guard let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "net.lawrencewu.holdfast") else {
+            throw HoldfastError("Recording another app's audio runs inside Holdfast.app, which asks macOS for permission. Build it with scripts/make_app.sh and open it once.")
         }
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("mackb-listen-" + UUID().uuidString)
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("holdfast-listen-" + UUID().uuidString)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
         let outPath = dir.appendingPathComponent("out").path, errPath = dir.appendingPathComponent("err").path
-        guard mkfifo(outPath, 0o600) == 0, mkfifo(errPath, 0o600) == 0 else { throw MacKBError("couldn't create pipes to Holdfast.app") }
+        guard mkfifo(outPath, 0o600) == 0, mkfifo(errPath, 0o600) == 0 else { throw HoldfastError("couldn't create pipes to Holdfast.app") }
 
         var pass = listenArgs
         if let i = pass.firstIndex(of: "--out"), i + 1 < pass.count { pass[i + 1] = URL(fileURLWithPath: pass[i + 1]).path }  // relative to here
         var env: [String] = []
-        for (k, v) in ProcessInfo.processInfo.environment where k.hasPrefix("MACKB_") { env += ["--env", "\(k)=\(v)"] }
+        for (k, v) in ProcessInfo.processInfo.environment where k.hasPrefix("HOLDFAST_") { env += ["--env", "\(k)=\(v)"] }
         let p = Process()
         p.executableURL = URL(fileURLWithPath: "/usr/bin/open")
         p.arguments = ["-n", "-g", "--stdout", outPath, "--stderr", errPath] + env
@@ -308,7 +308,7 @@ enum Listen {
         log("running the capture inside Holdfast.app, so macOS asks Holdfast for permission (\(app.path))")
         try p.run()
         p.waitUntilExit()  // returns once the app is launched
-        guard p.terminationStatus == 0 else { throw MacKBError("couldn't open \(app.path)") }
+        guard p.terminationStatus == 0 else { throw HoldfastError("couldn't open \(app.path)") }
 
         let copying = DispatchGroup()
         for (path, dest) in [(outPath, FileHandle.standardOutput), (errPath, FileHandle.standardError)] {
@@ -354,7 +354,7 @@ enum Listen {
         }
         guard let pid = relay.pid else {
             unblockReaders()
-            throw MacKBError("Holdfast.app opened but didn't start the capture within a minute")
+            throw HoldfastError("Holdfast.app opened but didn't start the capture within a minute")
         }
         // Wait for the capture to finish: it transcribes the last seconds and files the transcript first.
         while kill(pid, 0) == 0 { usleep(200_000) }
@@ -400,7 +400,7 @@ enum Listen {
         let engine = AVAudioEngine()
         let input = engine.inputNode
         let fmt = input.outputFormat(forBus: 0)
-        guard fmt.sampleRate > 0, fmt.channelCount > 0 else { throw MacKBError("no microphone found") }
+        guard fmt.sampleRate > 0, fmt.channelCount > 0 else { throw HoldfastError("no microphone found") }
         let tap: AVAudioNodeTapBlock = { buf, _ in
             // The tap can reuse its buffer: hand on a copy.
             guard let c = AVAudioPCMBuffer(pcmFormat: buf.format, frameCapacity: buf.frameLength), let src = buf.floatChannelData,
@@ -428,8 +428,8 @@ enum Listen {
         }
     }
 
-    static let micDenied = MacKBError(
-        "Microphone access is off. Allow it in System Settings → Privacy & Security → Microphone for the app running mackb, then try again.")
+    static let micDenied = HoldfastError(
+        "Microphone access is off. Allow it in System Settings → Privacy & Security → Microphone for the app running holdfast, then try again.")
 
     // MARK: run
 
@@ -557,7 +557,7 @@ enum Listen {
                 warnedSilence = true
                 // With permission granted, silence just means nothing is playing yet.
                 if SystemAudio.audioCapturePermission() != .granted {
-                    h.status("Only silence so far. If something is playing, allow System Audio Recording for \(launchedAsApp ? "Holdfast" : "the app running mackb") "
+                    h.status("Only silence so far. If something is playing, allow System Audio Recording for \(launchedAsApp ? "Holdfast" : "the app running holdfast") "
                         + "(System Settings → Privacy & Security → Screen & System Audio Recording), then start again.")
                 }
             }
@@ -572,7 +572,7 @@ enum Listen {
         if let e = streamError ?? finishError { h.status("transcription stopped early: \(e). Keeping what was heard.") }
         // A stream that failed to open (or broke) says why, instead of looking like silence.
         if let f = ffmpeg?.failure() {
-            if lines.isEmpty { try? FileManager.default.removeItem(at: journal); throw MacKBError(f) }
+            if lines.isEmpty { try? FileManager.default.removeItem(at: journal); throw HoldfastError(f) }
             h.status(f + ". Keeping what was heard.")
         }
 
@@ -600,7 +600,7 @@ enum Listen {
         return Outcome(lines: lines.count, seconds: seconds, transcript: out ?? journal, filed: filed)
     }
 
-    /// `mackb listen`: lines on stdout (or JSON events), progress on stderr, Ctrl-C stops.
+    /// `holdfast listen`: lines on stdout (or JSON events), progress on stderr, Ctrl-C stops.
     static func run(_ input: Input, title: String?, json: Bool, out: URL?, file: Bool, maxSeconds: Double?) async throws {
         setvbuf(stdout, nil, _IOLBF, 0)  // a line reaches a pipe as soon as it is printed
         let feed = Feed()

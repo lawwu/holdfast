@@ -4,7 +4,7 @@ import SwiftUI
 
 // MARK: - App
 
-struct MacKBApp: App {
+struct HoldfastApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var store = Store()
 
@@ -134,7 +134,7 @@ struct ThreadRef: Identifiable { var id: UUID }
 func runResearch(_ q: String, embedder: Embedder?, llm: LLMBackend, prior: [(q: String, a: String)],
                  onEvent: @escaping @Sendable (Agent.Event) -> Void) async throws -> Answer {
     if llm is RemoteBackend { return try await RemoteAgent.run(q, embedder: embedder, prior: prior, onEvent: onEvent) }
-    guard let mlx = llm as? MLXBackend else { throw MacKBError("Research needs an MLX model or a model on another Mac") }
+    guard let mlx = llm as? MLXBackend else { throw HoldfastError("Research needs an MLX model or a model on another Mac") }
     return try await Agent.run(q, embedder: embedder, backend: mlx, prior: prior, onEvent: onEvent)
 }
 
@@ -384,7 +384,7 @@ final class Store: ObservableObject {
         switch backend {
         case .ollama: return OllamaBackend()
         case .remote:
-            guard Remote.url != nil, !Remote.model.isEmpty else { throw MacKBError("Set up the model on another Mac first (model menu → Another Mac → Set Up…)") }
+            guard Remote.url != nil, !Remote.model.isEmpty else { throw HoldfastError("Set up the model on another Mac first (model menu → Another Mac → Set Up…)") }
             return RemoteBackend()
         case .mlx:
             if !(MLXBackend.isLoaded && MLXBackend.loadedRepo == mlxRepo) {
@@ -615,8 +615,8 @@ final class Store: ObservableObject {
         opened = Opened(note: n, anchor: anchor)
     }
 
-    /// Opens a link clicked in a note: `mackb-note:` (a wikilink, resolved like
-    /// Obsidian) or `mackb-rel:` (a Markdown link relative to the note). A
+    /// Opens a link clicked in a note: `holdfast-note:` (a wikilink, resolved like
+    /// Obsidian) or `holdfast-rel:` (a Markdown link relative to the note). A
     /// wikilink to a note that doesn't exist yet creates it, as Obsidian does.
     func openLink(_ url: URL, from: Note?, newTab: Bool = false) {
         let raw = url.absoluteString
@@ -630,13 +630,13 @@ final class Store: ObservableObject {
         }
         let target = rest.removingPercentEncoding ?? rest
         switch scheme {
-        case "mackb-note":
+        case "holdfast-note":
             if let n = links.resolve(wikiTarget: target, from: from) {
                 openNote(n, anchor: fragment, newTab: newTab)
             } else {
                 createNote(named: target, near: from)
             }
-        case "mackb-rel":
+        case "holdfast-rel":
             let base = (from?.path ?? Config.vault.appendingPathComponent("x")).deletingLastPathComponent()
             let path = URL(fileURLWithPath: target, relativeTo: base).standardizedFileURL.path
             if let n = notes.first(where: { $0.path.standardizedFileURL.path == path }) {
@@ -661,8 +661,8 @@ final class Store: ObservableObject {
             rest = String(rest[..<hash])
         }
         let target = rest.removingPercentEncoding ?? rest
-        if scheme == "mackb-note", let n = links.resolve(wikiTarget: target, from: from) { return Opened(note: n, anchor: fragment) }
-        if scheme == "mackb-rel" {
+        if scheme == "holdfast-note", let n = links.resolve(wikiTarget: target, from: from) { return Opened(note: n, anchor: fragment) }
+        if scheme == "holdfast-rel" {
             let base = (from?.path ?? Config.vault.appendingPathComponent("x")).deletingLastPathComponent()
             let path = URL(fileURLWithPath: target, relativeTo: base).standardizedFileURL.path
             if let n = notes.first(where: { $0.path.standardizedFileURL.path == path }) { return Opened(note: n, anchor: fragment) }
@@ -674,7 +674,7 @@ final class Store: ObservableObject {
     /// quietly a few seconds later (so search and Ask see the change).
     func saveNote(at path: URL, text: String) throws {
         if path.standardizedFileURL.path.hasPrefix(Packs.dir.standardizedFileURL.path) {
-            throw MacKBError("knowledge packs are read-only")
+            throw HoldfastError("knowledge packs are read-only")
         }
         Versions.snapshot(path, reason: "edit")
         try text.write(to: path, atomically: true, encoding: .utf8)

@@ -1,6 +1,6 @@
 # Eval fixture: the Halvorsen household
 
-A synthetic family knowledge base for testing `mackb` on two jobs: answering questions
+A synthetic family knowledge base for testing `holdfast` on two jobs: answering questions
 over a folder of Markdown notes, and filing dropped documents into the right place.
 **Everything here is invented.** The Halvorsens (Erik, Anna, Leif, Greta, Soren) of
 Alder Creek, Oregon, their church, employer, clinics, vendors and counselees are fictional.

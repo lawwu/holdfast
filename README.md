@@ -1,37 +1,40 @@
-# Holdfast (codename mac-kb, POC)
+# Holdfast
 
-*Your notes never leave home.* Holdfast is the name people see: the window, the
-menus, the About box (which carries 1 Thessalonians 5:21). `mackb` stays the
-codename for the binary, the CLI, the bundle id, `MACKB_*` settings and the data folders.
+*Your notes never leave home.* One name throughout: the app (Holdfast.app, bundle id
+`net.lawrencewu.holdfast`), the `holdfast` command line, `HOLDFAST_*` settings and the data folder
+(`~/Library/Application Support/Holdfast`). The About box carries 1 Thessalonians 5:21.
+It was called mackb (MacKB) as a proof of concept; on first run Holdfast moves that name's
+settings, data folder and a managed vault's `.mackb` folder over, still reads `MACKB_*` variables,
+and keeps using a default vault at `~/MacKB` if there is one.
 
 A local knowledge base for **biblical counselors**: import lessons, homework sheets,
 supervision recordings and past case reports, then search and ask questions of them
 with citations. Everything runs on the Mac, because case material is confidential.
 Nothing is sent to a cloud service.
 
-This is the Phase 0–3 proof of concept from the Mac KB plan (kept in a
+This is the Phase 0–3 proof of concept from the Holdfast plan (kept in a
 separate notes repo). One binary is the CLI, the MCP server and a SwiftUI
-window: `mackb app`, or `scripts/make_app.sh` → `build/Holdfast.app`.
+window: `holdfast app`, or `scripts/make_app.sh` → `build/Holdfast.app`.
 
 ## What it does
 
 | Command | What happens |
 | --- | --- |
-| `mackb ingest <folder>` | `.docx/.doc/.rtf` via `textutil`, `.pdf` via PDFKit, scanned PDFs via Apple Vision OCR, `.md/.txt` as-is. When a lesson exists as both docx and pdf, only one copy is kept |
-| `mackb ingest <audio/video>` | ffmpeg → 16 kHz → **Parakeet v3** (FluidAudio, CoreML) → a note with `[hh:mm:ss]` lines |
-| `mackb ingest <YouTube URL>` | yt-dlp; uses the video's captions when there are any, otherwise transcribes the audio |
-| `mackb listen -` · `--url <stream>` · `--mic` | Transcribes audio while it streams in (below). Finished `[hh:mm:ss]` lines go to stdout as they become final (`--json` for events); Ctrl-C stops, and the transcript is kept and filed like a dropped document |
-| `mackb index` | Chunks each note on headings and timestamps; SQLite FTS5 + **Qwen3-Embedding-0.6B** vectors (in-process, MLX Swift). Only changed notes are re-indexed |
-| `mackb search "…"` | Retrieval pipeline below |
-| `mackb ask "…"` | The top 8 passages go to the answer model (MLX in-process by default, a model on another Mac, or Ollama; thinking off unless Show Thinking is on). The answer cites `[n]`, and each source prints as `[[note#anchor]]` |
-| `mackb app` | The window: Ask (cited answers; click a source to open it), Library (browse and search), Inbox (approve or reject agent memories), and a reader that jumps to the cited section |
-| `mackb eval` | Scores Q&A against a question set; see `eval/README.md` |
-| `mackb mcp` | MCP server: `search`, `get_note`, `ask`, `remember`, `list_inbox` |
-| `mackb drop [file…]` | Files what is in the drop folder. In a vault indexed in place, the model reads each file (PDF, Word, Markdown, images by on-device OCR, recordings by transcription) and the folder READMEs, and proposes a new note or a row for an existing log; the proposal waits in the inbox. In a managed vault the file is imported as a source. Originals move to `drop-filed/` in the app's state folder, never into the vault. The app watches the same folder (Vault › Open Drop Folder, ⇧⌘D) and has a drop zone on the Inbox page |
-| `mackb inbox / approve / reject` | Memories that agents propose wait here for approval. Each one is checked for full names, emails and phone numbers first |
+| `holdfast ingest <folder>` | `.docx/.doc/.rtf` via `textutil`, `.pdf` via PDFKit, scanned PDFs via Apple Vision OCR, `.md/.txt` as-is. When a lesson exists as both docx and pdf, only one copy is kept |
+| `holdfast ingest <audio/video>` | ffmpeg → 16 kHz → **Parakeet v3** (FluidAudio, CoreML) → a note with `[hh:mm:ss]` lines |
+| `holdfast ingest <YouTube URL>` | yt-dlp; uses the video's captions when there are any, otherwise transcribes the audio |
+| `holdfast listen -` · `--url <stream>` · `--mic` | Transcribes audio while it streams in (below). Finished `[hh:mm:ss]` lines go to stdout as they become final (`--json` for events); Ctrl-C stops, and the transcript is kept and filed like a dropped document |
+| `holdfast index` | Chunks each note on headings and timestamps; SQLite FTS5 + **Qwen3-Embedding-0.6B** vectors (in-process, MLX Swift). Only changed notes are re-indexed |
+| `holdfast search "…"` | Retrieval pipeline below |
+| `holdfast ask "…"` | The top 8 passages go to the answer model (MLX in-process by default, a model on another Mac, or Ollama; thinking off unless Show Thinking is on). The answer cites `[n]`, and each source prints as `[[note#anchor]]` |
+| `holdfast app` | The window: Ask (cited answers; click a source to open it), Library (browse and search), Inbox (approve or reject agent memories), and a reader that jumps to the cited section |
+| `holdfast eval` | Scores Q&A against a question set; see `eval/README.md` |
+| `holdfast mcp` | MCP server: `search`, `get_note`, `ask`, `remember`, `list_inbox` |
+| `holdfast drop [file…]` | Files what is in the drop folder. In a vault indexed in place, the model reads each file (PDF, Word, Markdown, images by on-device OCR, recordings by transcription) and the folder READMEs, and proposes a new note or a row for an existing log; the proposal waits in the inbox. In a managed vault the file is imported as a source. Originals move to `drop-filed/` in the app's state folder, never into the vault. The app watches the same folder (Vault › Open Drop Folder, ⇧⌘D) and has a drop zone on the Inbox page |
+| `holdfast inbox / approve / reject` | Memories that agents propose wait here for approval. Each one is checked for full names, emails and phone numbers first |
 
-**Retrieval** (`Sources/mackb/Index.swift`, tuning constants in `enum Retrieval`), following
-the open-source survey in the kb repo (`projects/202611_mac-kb/oss-best-practices.md`):
+**Retrieval** (`Sources/holdfast/Index.swift`, tuning constants in `enum Retrieval`), following
+the open-source survey in the kb repo (`projects/202611_holdfast/oss-best-practices.md`):
 
 1. **Read the question.** "First session", "session 4", "final session", "graduation",
    or "second joint session" (from the form header) become session filters. "Across
@@ -49,9 +52,9 @@ the open-source survey in the kb repo (`projects/202611_mac-kb/oss-best-practice
 5. **Answer.** 8 passages go to Qwen 3.8 27B. `[n]` markers that point at no passage
    are flagged.
 
-The vault is plain Markdown with YAML frontmatter (`$MACKB_VAULT`, default
-`~/MacKB`): `sources/`, `memory/`, `inbox/`. It opens in Obsidian. The index in
-`.mackb/` is a cache; delete it and run `mackb index` again.
+The vault is plain Markdown with YAML frontmatter (`$HOLDFAST_VAULT`, default
+`~/Holdfast`): `sources/`, `memory/`, `inbox/`. It opens in Obsidian. The index in
+`.holdfast/` is a cache; delete it and run `holdfast index` again.
 
 ## Household eval (synthetic)
 
@@ -60,9 +63,9 @@ trips, career, and counseling case reports under `ministry/`) with 40 questions
 and 12 documents to file. `eval/household/run.sh` runs it across answer models
 (Qwen 3.8 27B, Gemma 4 26B A4B, Gemma 4 E4B), embedders (Qwen3-Embedding,
 EmbeddingGemma) and modes (plain, Research), plus Gemini when `GEMINI_API_KEY`
-is set; `report.py` writes `report.md`. Pick models with `MACKB_BACKEND`,
-`MACKB_MLX_REPO`, `MACKB_EMBED=embeddinggemma`, `MACKB_RERANK=0`, and fix the
-date with `MACKB_TODAY=2026-11-05`.
+is set; `report.py` writes `report.md`. Pick models with `HOLDFAST_BACKEND`,
+`HOLDFAST_MLX_REPO`, `HOLDFAST_EMBED=embeddinggemma`, `HOLDFAST_RERANK=0`, and fix the
+date with `HOLDFAST_TODAY=2026-11-05`.
 
 ## Build
 
@@ -70,18 +73,18 @@ MLX compiles Metal shaders, so build with `xcodebuild`, not `swift build`.
 It needs the Metal Toolchain once (`xcodebuild -downloadComponent MetalToolchain`).
 
 ```bash
-xcodebuild -scheme mac-kb -destination 'platform=macOS' -configuration Release \
+xcodebuild -scheme holdfast -destination 'platform=macOS' -configuration Release \
   -derivedDataPath .build/xcode -skipMacroValidation -skipPackagePluginValidation build
-ln -sf "$PWD/.build/xcode/Build/Products/Release/mackb" ~/.local/bin/mackb
+ln -sf "$PWD/.build/xcode/Build/Products/Release/holdfast" ~/.local/bin/holdfast
 ```
 
-The LLM is `MACKB_BACKEND=mlx` (Qwen 3.8 27B 4-bit loaded in-process from the
-Hugging Face cache, `MACKB_MLX_REPO`) or `ollama` (`MACKB_LLM`). Audio and URLs also need `ffmpeg` and `yt-dlp`.
+The LLM is `HOLDFAST_BACKEND=mlx` (Qwen 3.8 27B 4-bit loaded in-process from the
+Hugging Face cache, `HOLDFAST_MLX_REPO`) or `ollama` (`HOLDFAST_LLM`). Audio and URLs also need `ffmpeg` and `yt-dlp`.
 
 ## Use from Claude Code
 
 ```bash
-claude mcp add mackb -e MACKB_VAULT=$HOME/MacKB-ministry -- ~/.local/bin/mackb mcp
+claude mcp add holdfast -e HOLDFAST_VAULT=$HOME/Holdfast-ministry -- ~/.local/bin/holdfast mcp
 ```
 
 ## Measured on an M1 Max, 64 GB (2026-11-04)
@@ -109,17 +112,17 @@ Qwen would be faster still.
 - Case-report templates (ACBC structure: data gathering, problem, hope, plan, homework)
   so questions can filter by section
 
-## Live transcription (`mackb listen`)
+## Live transcription (`holdfast listen`)
 
 Transcribes audio as it arrives, on this Mac, with the same Parakeet model as recordings
 (FluidAudio's sliding-window manager: 15 s windows, 2 s before, an 11 s chunk, 2 s after).
 A line is printed once its words can no longer change, about 10–25 s after they were spoken.
 
 ```bash
-mackb listen --app zoom --mic --title "Elders meeting"     # both sides of a call
-mackb listen --system                                      # everything the Mac plays
-mackb listen --url https://example.org/live/stream.m3u8 --title "Sunday livestream"
-ffmpeg -i <anything> -f s16le -ar 16000 -ac 1 - | mackb listen - --json
+holdfast listen --app zoom --mic --title "Elders meeting"     # both sides of a call
+holdfast listen --system                                      # everything the Mac plays
+holdfast listen --url https://example.org/live/stream.m3u8 --title "Sunday livestream"
+ffmpeg -i <anything> -f s16le -ar 16000 -ac 1 - | holdfast listen - --json
 ```
 
 - **In:**
@@ -169,7 +172,7 @@ while the vault, the index and search stay on this one. On the other Mac run LM 
 model menu → Another Mac → Set Up…, enter its address (its Tailscale name keeps the
 traffic encrypted), Connect, pick the model. Research's tools still run here; only the
 model's decisions come over the network. If that Mac doesn't answer, this Mac's model
-answers instead and the steps say so. CLI: `MACKB_BACKEND=remote MACKB_REMOTE_URL=http://studio:1234 MACKB_REMOTE_MODEL=<id>`.
+answers instead and the steps say so. CLI: `HOLDFAST_BACKEND=remote HOLDFAST_REMOTE_URL=http://studio:1234 HOLDFAST_REMOTE_MODEL=<id>`.
 
 ## Privacy, in one place
 

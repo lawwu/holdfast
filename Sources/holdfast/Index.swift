@@ -75,7 +75,7 @@ final class Index {
 
     init(path: URL = Config.indexPath) throws {
         try FileManager.default.createDirectory(at: path.deletingLastPathComponent(), withIntermediateDirectories: true)
-        guard sqlite3_open(path.path, &db) == SQLITE_OK else { throw MacKBError("can't open index") }
+        guard sqlite3_open(path.path, &db) == SQLITE_OK else { throw HoldfastError("can't open index") }
         if userVersion() != Self.schemaVersion {
             try exec("DROP TABLE IF EXISTS chunks_fts; DROP TABLE IF EXISTS chunks;")
             try exec("PRAGMA user_version = \(Self.schemaVersion)")
@@ -101,14 +101,14 @@ final class Index {
         if sqlite3_exec(db, sql, nil, nil, &err) != SQLITE_OK {
             let m = err.map { String(cString: $0) } ?? "?"
             sqlite3_free(err)
-            throw MacKBError("sqlite: \(m)")
+            throw HoldfastError("sqlite: \(m)")
         }
     }
 
     private func prepare(_ sql: String) throws -> OpaquePointer? {
         var st: OpaquePointer?
         guard sqlite3_prepare_v2(db, sql, -1, &st, nil) == SQLITE_OK else {
-            throw MacKBError("sqlite: \(String(cString: sqlite3_errmsg(db)))")
+            throw HoldfastError("sqlite: \(String(cString: sqlite3_errmsg(db)))")
         }
         return st
     }
@@ -169,7 +169,7 @@ final class Index {
         sqlite3_bind_int(st, 8, Int32(c.ord))
         if let s = c.session { sqlite3_bind_int(st, 9, Int32(s)) } else { sqlite3_bind_null(st, 9) }
         if let k = c.caseId { sqlite3_bind_text(st, 10, k, -1, TRANSIENT) } else { sqlite3_bind_null(st, 10) }
-        guard sqlite3_step(st) == SQLITE_DONE else { throw MacKBError("insert failed") }
+        guard sqlite3_step(st) == SQLITE_DONE else { throw HoldfastError("insert failed") }
         let id = sqlite3_last_insert_rowid(db)
         let f = try prepare("INSERT INTO chunks_fts(rowid, text, title) VALUES(?, ?, ?)")
         sqlite3_bind_int64(f, 1, id)
@@ -465,7 +465,7 @@ func search(_ q: String, embedder: Embedder?, reranker: Reranker? = nil, limit: 
     let scores = try await reranker.score(query: q, documents: cands.map { $0.text })
     for i in cands.indices { cands[i].score = scores[i] }
     cands.sort { ($0.score ?? 0) > ($1.score ?? 0) }
-    if ProcessInfo.processInfo.environment["MACKB_DEBUG"] != nil {
+    if ProcessInfo.processInfo.environment["HOLDFAST_DEBUG"] != nil {
         for c in cands.prefix(20) { log(String(format: "  %.3f  %@ #%d %@", c.score ?? 0, c.noteId, c.ord, String(c.anchor.prefix(50)))) }
     }
     if (cands.first?.score ?? 0) < Retrieval.abstainBelow {

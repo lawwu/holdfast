@@ -13,8 +13,8 @@ HARDWARE is where the numbers were measured.
 import html, json, pathlib, re, statistics
 
 import os
-# The fixture: this folder, or another with the same layout (MACKB_FIXTURE=eval/household-hard).
-HERE = pathlib.Path(os.environ.get("MACKB_FIXTURE") or pathlib.Path(__file__).parent).resolve()
+# The fixture: this folder, or another with the same layout (HOLDFAST_FIXTURE=eval/household-hard).
+HERE = pathlib.Path(os.environ.get("HOLDFAST_FIXTURE") or pathlib.Path(__file__).parent).resolve()
 RES = HERE / "results"
 HARDWARE = "MacBook Pro, M1 Max, 64 GB"
 RUN_DATE = "2026-11-05"
@@ -402,7 +402,7 @@ table.docs td {{ min-width: 150px; }}
 <body>
 <main>
 <header>
-  <p class="meta">mac-kb household eval · run {RUN_DATE} · {esc(HARDWARE)}</p>
+  <p class="meta">holdfast household eval · run {RUN_DATE} · {esc(HARDWARE)}</p>
   <h1>Local models on a family knowledge base</h1>
   <p class="lede">How well do models that run entirely on a Mac answer questions from a family's notes, and file new
   documents into them? Every model here runs on-device with MLX; nothing leaves the laptop.</p>

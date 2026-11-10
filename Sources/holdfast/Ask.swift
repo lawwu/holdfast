@@ -37,7 +37,7 @@ enum Thinking {
     }
 
     static var on: Bool {
-        UserDefaults.standard.bool(forKey: "showThinking") || ProcessInfo.processInfo.environment["MACKB_THINK"] == "1"
+        UserDefaults.standard.bool(forKey: "showThinking") || ProcessInfo.processInfo.environment["HOLDFAST_THINK"] == "1"
     }
 
     /// Reasoning blocks (<think>…</think>; Gemma's <|channel>thought…<channel|>) and the text without them.
@@ -232,10 +232,10 @@ func propose(title: String, text: String, tags: [String], by agent: String) thro
 func inbox() -> [Note] { allNotes(in: [Config.inboxDir]) }
 
 func approve(_ id: String) throws -> Note {
-    guard let n = inbox().first(where: { $0.id == id }) else { throw MacKBError("no inbox item \(id)") }
+    guard let n = inbox().first(where: { $0.id == id }) else { throw HoldfastError("no inbox item \(id)") }
     if n.meta["kind"] == "filing" {  // a dropped file: write it where the model proposed
         let dest = try Drop.withWriteLock { () throws -> URL in
-            guard FileManager.default.fileExists(atPath: n.path.path) else { throw MacKBError("\(id) was already approved or rejected") }
+            guard FileManager.default.fileExists(atPath: n.path.path) else { throw HoldfastError("\(id) was already approved or rejected") }
             let d = try Drop.applyClaimed(n)
             try FileManager.default.removeItem(at: n.path)
             return d
@@ -256,7 +256,7 @@ func approve(_ id: String) throws -> Note {
 }
 
 func reject(_ id: String) throws {
-    guard let n = inbox().first(where: { $0.id == id }) else { throw MacKBError("no inbox item \(id)") }
+    guard let n = inbox().first(where: { $0.id == id }) else { throw HoldfastError("no inbox item \(id)") }
     // Rejected proposals go to the Trash, not oblivion.
     try FileManager.default.trashItem(at: n.path, resultingItemURL: nil)
 }

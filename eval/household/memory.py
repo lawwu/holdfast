@@ -1,7 +1,7 @@
 """Peak memory of each setup, and which Mac sizes it fits: results/memory.json.
 
-For each answer model, runs one real question through `mackb ask` (plain: 8
-passages) and `mackb ask --research` (tool loop: the longest prompts the app
+For each answer model, runs one real question through `holdfast ask` (plain: 8
+passages) and `holdfast ask --research` (tool loop: the longest prompts the app
 makes) under /usr/bin/time -l, and records macOS's "peak memory footprint" for
 the process. On Apple silicon that includes MLX's GPU buffers (unified memory),
 the embedder, the reranker and the KV cache, so it is the whole app's model
@@ -22,7 +22,7 @@ import argparse, json, os, pathlib, re, subprocess
 
 HERE = pathlib.Path(__file__).parent
 ROOT = HERE.parent.parent
-BIN = ROOT / ".build/xcode/Build/Products/Release/mackb"
+BIN = ROOT / ".build/xcode/Build/Products/Release/holdfast"
 VAULT = HERE / "vault"
 GPU_SHARE = 2 / 3
 OS_AND_APPS_GB = 4.0
@@ -68,7 +68,7 @@ def main():
     a = ap.parse_args()
     out_path = HERE / "results" / "memory.json"
     res = json.loads(out_path.read_text()) if out_path.exists() else {}
-    env = dict(os.environ, MACKB_VAULT=str(VAULT), MACKB_TODAY="2026-11-05", MACKB_BACKEND="mlx")
+    env = dict(os.environ, HOLDFAST_VAULT=str(VAULT), HOLDFAST_TODAY="2026-11-05", HOLDFAST_BACKEND="mlx")
     # Search alone: the floor every setup pays (embedder + reranker + index).
     if not a.only or "search" in a.only:
         res["search"] = {"repo": "Qwen3-Embedding-0.6B + Qwen3-Reranker-0.6B", "plain": peak(["search", QUESTION], env)}
@@ -76,7 +76,7 @@ def main():
     for lab, repo in MODELS.items():
         if a.only and lab not in a.only:
             continue
-        e = dict(env, MACKB_MLX_REPO=repo)
+        e = dict(env, HOLDFAST_MLX_REPO=repo)
         r = {"repo": repo, "plain": peak(["ask", QUESTION], e), "research": peak(["ask", "--research", QUESTION], e)}
         worst = max([x["peakGB"] for x in (r["plain"], r["research"]) if x["peakGB"]] or [0]) or None
         r["fit"] = {str(ram): verdict(worst, ram) for ram in MACS_GB}

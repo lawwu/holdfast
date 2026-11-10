@@ -1,7 +1,7 @@
 """Builds the Berean Standard Bible knowledge pack: one Markdown note per chapter.
 
   python3 packs/bsb/build.py [--bsb data/bsb.txt] [--headings headings.json] [--out DIR]
-  then: mackb pack install DIR && mackb pack index bsb && mackb pack on bsb
+  then: holdfast pack install DIR && holdfast pack index bsb && holdfast pack on bsb
 
 Reads (from Lawrence's website repo by default; nothing is downloaded):
 - BSB: bsb.txt, the official tab-separated text from BereanBible.com
@@ -21,7 +21,7 @@ import argparse, json, pathlib, re
 LWN = pathlib.Path.home() / "github/lawrencewu-net"
 BSB = LWN / "data/bsb.txt"
 HEADINGS = LWN / "apps/web/bible/data/headings.json"
-OUT = pathlib.Path.home() / "Library/Application Support/MacKB/packs/bsb"
+OUT = pathlib.Path.home() / "Library/Application Support/Holdfast/packs/bsb"
 
 MANIFEST = {
     "id": "bsb",

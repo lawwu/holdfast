@@ -208,7 +208,7 @@ struct OutgoingPanel: View {
                     PanelHeader(text: "Not created yet · \(missing.count)").padding(.top, 10)
                     ForEach(missing, id: \.self) { m in
                         PanelRow(icon: "doc.badge.plus", title: m, sub: "Click to create") {
-                            store.openLink(URL(string: "mackb-note:" + (m.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""))!, from: note)
+                            store.openLink(URL(string: "holdfast-note:" + (m.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""))!, from: note)
                         }
                         .opacity(0.7)
                     }

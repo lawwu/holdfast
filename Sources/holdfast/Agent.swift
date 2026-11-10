@@ -337,7 +337,7 @@ final class CSVTables {
         guard !loaded.contains(path) else { return }
         let text = try String(contentsOf: Config.vault.appendingPathComponent(path), encoding: .utf8)
         let rows = CSV.parse(text)
-        guard let head = rows.first, !head.isEmpty else { throw MacKBError("\(path) is empty") }
+        guard let head = rows.first, !head.isEmpty else { throw HoldfastError("\(path) is empty") }
         let name = Self.tableName(path)
         let cols = head.enumerated().map { i, c in c.isEmpty ? "col\(i + 1)" : c }
         // NUMERIC affinity: numbers compare and sum as numbers, text stays text.
@@ -365,7 +365,7 @@ final class CSVTables {
         if sqlite3_exec(db, sql, nil, nil, &err) != SQLITE_OK {
             let m = err.map { String(cString: $0) } ?? "?"
             sqlite3_free(err)
-            throw MacKBError(m)
+            throw HoldfastError(m)
         }
     }
 
@@ -374,16 +374,16 @@ final class CSVTables {
         let trimmed = sql.trimmingCharacters(in: .whitespacesAndNewlines).trimmingCharacters(in: CharacterSet(charactersIn: ";"))
         let lower = trimmed.lowercased()
         guard lower.hasPrefix("select") || lower.hasPrefix("with"), !trimmed.contains(";") else {
-            throw MacKBError("only a single SELECT is allowed")
+            throw HoldfastError("only a single SELECT is allowed")
         }
         let used = files.filter { lower.contains(Self.tableName($0)) }
         let wantsProps = lower.contains(Self.propsTable)
-        guard !used.isEmpty || wantsProps else { throw MacKBError("no known table in the query; call list_tables first") }
+        guard !used.isEmpty || wantsProps else { throw HoldfastError("no known table in the query; call list_tables first") }
         if wantsProps { try loadProperties() }
         for f in used { try load(f) }
         var st: OpaquePointer?
         guard sqlite3_prepare_v2(db, trimmed, -1, &st, nil) == SQLITE_OK else {
-            throw MacKBError(String(cString: sqlite3_errmsg(db)))
+            throw HoldfastError(String(cString: sqlite3_errmsg(db)))
         }
         defer { sqlite3_finalize(st) }
         let n = sqlite3_column_count(st)

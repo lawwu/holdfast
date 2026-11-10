@@ -1,6 +1,6 @@
 # Eval: synthetic case reports
 
-A repeatable test of `mackb ask` on the first use case: a counselor asking questions
+A repeatable test of `holdfast ask` on the first use case: a counselor asking questions
 of past case reports. **All data here is synthetic.** "D.M." and his family are
 fictional, and no real counselee material is used.
 
@@ -16,10 +16,10 @@ fictional, and no real counselee material is used.
 
 ```bash
 python3 eval/make_docx.py
-export MACKB_VAULT=~/MacKB-eval
-mackb ingest eval/docx --tag case-report && mackb index
-MACKB_BACKEND=mlx    mackb eval eval/questions.json --label qwen38-27b-4bit-mlx
-MACKB_BACKEND=ollama mackb eval eval/questions.json --label qwen38-27b-8bit-ollama
+export HOLDFAST_VAULT=~/Holdfast-eval
+holdfast ingest eval/docx --tag case-report && holdfast index
+HOLDFAST_BACKEND=mlx    holdfast eval eval/questions.json --label qwen38-27b-4bit-mlx
+HOLDFAST_BACKEND=ollama holdfast eval eval/questions.json --label qwen38-27b-8bit-ollama
 python3 eval/compare.py
 ```
 
