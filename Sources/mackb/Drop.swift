@@ -25,6 +25,30 @@ enum Drop {
 
     /// Characters of the dropped document the model sees when filing it.
     static let maxDocChars = 12_000
+    /// A transcript (a recording, a Listen session) gets more room: a meeting's decisions come late.
+    static let maxTranscriptChars = 40_000
+    /// Lines like "[00:12:03] …" that make a text a transcript.
+    static let transcriptMinLines = 20
+
+    /// A recording, a transcript note (a Listen session or an imported recording, by its `kind`),
+    /// or any text written as many timestamped transcript lines.
+    static func isTranscript(_ url: URL, _ text: String) -> Bool {
+        if audioExtensions.contains(url.pathExtension.lowercased()) { return true }
+        if url.pathExtension.lowercased() == "md", let k = (try? Note.read(url))?.meta["kind"], ["stream", "recording", "video"].contains(k) { return true }
+        var n = 0
+        for line in text.split(separator: "\n", omittingEmptySubsequences: true) where line.hasPrefix("[") {
+            if line.range(of: #"^\[\d{2}:\d{2}:\d{2}\] "#, options: .regularExpression) != nil { n += 1; if n >= transcriptMinLines { return true } }
+        }
+        return false
+    }
+
+    /// What the model sees of a long text: its beginning and its end, with the cut marked, so a
+    /// long meeting's last decisions aren't lost to a first-pages-only read.
+    static func excerpt(_ text: String, limit: Int) -> String {
+        guard text.count > limit else { return text }
+        let head = text.prefix(limit * 2 / 3), tail = text.suffix(limit - head.count)
+        return String(head) + "\n\n[… \(text.count - limit) characters left out …]\n\n" + String(tail)
+    }
     /// Related notes listed for the model, found by searching the document's opening.
     static let relatedNotes = 8
     /// Of those, how many are shown in full (so the model can see what is already recorded), and how much of each.
@@ -179,7 +203,8 @@ enum Drop {
 
     /// Asks the model where a dropped file belongs. Writes nothing.
     static func decide(_ url: URL, text: String, embedder: Embedder?, llm askedLLM: LLMBackend) async throws -> Decision {
-        let doc = String(text.prefix(maxDocChars))
+        let limit = isTranscript(url, text) ? maxTranscriptChars : maxDocChars
+        let doc = excerpt(text, limit: limit)
         let probe = url.deletingPathExtension().lastPathComponent + "\n" + String(doc.prefix(1500))
         let hits = (try? await search(probe, embedder: embedder, limit: 24, packs: false)) ?? []  // filing goes into your notes, never a pack
         // A document that looks like counseling material is filed with this Mac's model, never another Mac's.
@@ -219,7 +244,7 @@ enum Drop {
         \(manuals.isEmpty ? "(none)" : manuals)
 
         ---
-        Dropped file: \(url.lastPathComponent)\(text.count > maxDocChars ? " (first \(maxDocChars) characters)" : "")
+        Dropped file: \(url.lastPathComponent)\(text.count > limit ? " (its beginning and end; \(text.count) characters in all)" : "")
 
         \(doc)
         """
@@ -258,7 +283,12 @@ enum Drop {
     static func propose(_ url: URL, text: String, embedder: Embedder?, llm: LLMBackend, model: String) async throws -> (Note, [String], FilingRule?) {
         let d = try await decide(url, text: text, embedder: embedder, llm: llm)
         let f = d.filing, flags = d.flags
-        if f.action == "skip" { throw AlreadyFiled(why: f.why) }
+        // A transcript's filing is a summary or a log line; the whole transcript is offered too,
+        // as its own note beside it, so every word stays searchable. Even when the summary is skipped.
+        let keptTranscript = isTranscript(url, text) ? (try? transcriptProposal(url, text: text, near: f.path, model: model)) : nil
+        if f.action == "skip" {
+            throw AlreadyFiled(why: f.why + (keptTranscript == nil ? "" : " The full transcript is in the Inbox if you want to keep it."))
+        }
         let today = dayString(mackb.today())
         var meta = ["title": f.title, "kind": "filing", "proposed_by": "Drop folder · \(model)", "proposed": today,
                     "target": f.path, "action": f.action, "why": f.why, "original": url.lastPathComponent]
@@ -272,6 +302,38 @@ enum Drop {
         let note = Note(path: Drop.unique(path, ifExists: true), meta: meta, body: "\n" + f.markdown.trimmingCharacters(in: .whitespacesAndNewlines) + "\n")
         try note.write()
         return (note, flags, d.rule)
+    }
+
+    /// The whole transcript as a proposal of its own: a new note next to where the summary goes
+    /// (or in transcripts/ when there is no such place), named for the recording and dated.
+    static func transcriptProposal(_ url: URL, text: String, near target: String, model: String) throws -> Note {
+        let recorded = try? Note.read(url)
+        let name = recorded?.meta["title"] ?? url.deletingPathExtension().lastPathComponent
+        let today = dayString(mackb.today())
+        var folder = (target as NSString).deletingLastPathComponent
+        if folder.isEmpty || (try? safeTarget(folder + "/x.md")) == nil { folder = "transcripts" }
+        let slug = slugify(name).isEmpty ? "recording" : String(slugify(name).prefix(60))
+        var path = folder + "/" + (slug.hasPrefix(today) ? slug : today + "-" + slug) + "-transcript.md"
+        // Built from the folder and the free file name: `relative` can't be trusted on a file that
+        // doesn't exist yet (macOS drops /private from /private/tmp paths only for files that do).
+        path = folder + "/" + unique(try safeTarget(path), ifExists: true).lastPathComponent
+        let body: String
+        if let r = recorded, r.body.contains("## Transcript") {
+            body = r.body
+        } else {
+            body = "\n# \(name)\n\n## Transcript\n\n" + text.trimmingCharacters(in: .whitespacesAndNewlines) + "\n"
+        }
+        var meta = ["title": "Full transcript — \(name)", "kind": "filing", "proposed_by": "Drop folder · \(model)", "proposed": today,
+                    "target": path, "action": "new", "original": url.lastPathComponent,
+                    "why": "The whole transcript, kept beside its summary so every word can be found later.",
+                    "prop_type": "transcript", "prop_date": today]
+        if let dur = recorded?.meta["duration"] { meta["prop_duration"] = dur }
+        let flags = privacyFlags(body, names: Profile.isCounseling(path))
+        if !flags.isEmpty { meta["privacy_flags"] = flags.joined(separator: "; ") }
+        let note = Note(path: unique(Config.inboxDir.appendingPathComponent("\(today.replacingOccurrences(of: "-", with: ""))-\(slug)-transcript.md"), ifExists: true),
+                        meta: meta, body: body)
+        try note.write()
+        return note
     }
 
     /// A proposal's follow-ups, back from its "YYYY-MM-DD what; …" form.

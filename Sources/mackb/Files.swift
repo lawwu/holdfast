@@ -72,6 +72,7 @@ struct FilesView: View {
             } else if !filter.isEmpty {
                 List(matches, id: \.path) { n in FileRow(name: n.title, detail: n.relPath, note: n) }
                     .listStyle(.inset)
+                    .scrollContentBackground(.hidden)
             } else {
                 List {
                     OutlineGroup(FileNode.tree(store.notes), children: \.children) { node in
@@ -85,6 +86,7 @@ struct FilesView: View {
                     }
                 }
                 .listStyle(.sidebar)
+                .scrollContentBackground(.hidden)
             }
             HStack {
                 Text("\(store.notes.count) notes · \(store.links.edgeCount) links").font(Theme.caption).foregroundStyle(.secondary)

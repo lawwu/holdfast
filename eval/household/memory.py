@@ -38,7 +38,6 @@ MODELS = {  # label: repo
     "gptoss20b": "mlx-community/gpt-oss-20b-MXFP4-Q8",
     "gemma26b": "mlx-community/gemma-4-26b-a4b-it-4bit",
     "qwen27b": "mlx-community/Qwen3.8-27B-4bit",
-    "qwen36d27b": "mlx-community/Qwen3.6-27B-4bit",
     "gemma31b": "mlx-community/gemma-4-31b-it-4bit",
     "qwen36moe": "mlx-community/Qwen3.6-35B-A3B-4bit",
 }

@@ -217,31 +217,36 @@ func segmentsFromTokens(_ r: ASRResult) -> [Segment] {
 
 /// The grouping itself, shared with live transcription (Listen.swift). A line's boundary depends
 /// only on the tokens before it, so the lines of a prefix never change as more tokens arrive.
-func segments(fromTokens toks: [TokenTiming]) -> [Segment] {
-    guard !toks.isEmpty else { return [] }
-    var out: [Segment] = []
+func segments(fromTokens toks: [TokenTiming]) -> [Segment] { segmentRanges(toks[...]).map(\.segment) }
+
+/// The lines of a run of tokens, each with the index just past its last token, so a caller can
+/// start the next pass at a line boundary instead of from the beginning.
+func segmentRanges(_ toks: ArraySlice<TokenTiming>) -> [(segment: Segment, end: Int)] {
+    guard let first = toks.first else { return [] }
+    var out: [(segment: Segment, end: Int)] = []
     var cur = ""
-    var start = toks[0].startTime
-    var lastEnd = toks[0].startTime
-    func flush() {
+    var start = first.startTime
+    var lastEnd = first.startTime
+    func flush(at end: Int) {
         let t = cur.trimmingCharacters(in: .whitespaces)
-        if !t.isEmpty { out.append(Segment(start: start, text: t)) }
+        if !t.isEmpty { out.append((Segment(start: start, text: t), end)) }
         cur = ""
     }
-    for tk in toks {
+    for i in toks.indices {
+        let tk = toks[i]
         let piece = tk.token.replacingOccurrences(of: "▁", with: " ")
         let gap = tk.startTime - lastEnd
         let long = tk.startTime - start > Config.segmentMaxSeconds
         let sentenceEnd = cur.hasSuffix(".") || cur.hasSuffix("?") || cur.hasSuffix("!")
         if !cur.isEmpty, piece.hasPrefix(" "), gap > Config.segmentPause || long || (sentenceEnd && tk.startTime - start > 6) {
-            flush()
+            flush(at: i)
             start = tk.startTime
         }
         if cur.isEmpty { start = tk.startTime }
         cur += piece
         lastEnd = tk.endTime
     }
-    flush()
+    flush(at: toks.endIndex)
     return out
 }
 

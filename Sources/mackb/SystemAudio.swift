@@ -68,14 +68,6 @@ enum SystemAudio {
         return o
     }
 
-    static func deviceUID(_ which: AudioObjectPropertySelector) throws -> String {
-        guard let dev = value(system, which, AudioObjectID(kAudioObjectUnknown)), dev != kAudioObjectUnknown,
-              let uid = string(dev, kAudioDevicePropertyDeviceUID) else {
-            throw MacKBError(which == kAudioHardwarePropertyDefaultInputDevice ? "no microphone found" : "no audio output device found")
-        }
-        return uid
-    }
-
     // MARK: permission
     //
     // macOS has no public call to ask for "System Audio Recording": an app with
@@ -128,141 +120,313 @@ enum SystemAudio {
         return proc_name(pid, &buf, UInt32(buf.count)) > 0 ? String(cString: buf) : "pid \(pid)"
     }
 
-    /// The audio processes of an app, by name or bundle ID: "zoom", "teams", "chrome", "us.zoom.xos".
-    /// Helpers count (a browser plays from its renderer or media processes): any process whose bundle
-    /// ID starts with a matching app's bundle ID, or whose name or bundle ID contains the query.
-    static func find(_ query: String) -> [AudioProcess] {
+    /// What `--app` names: a running app (with the processes playing its audio) or, for tools that
+    /// aren't apps (ffmpeg, afplay), the processes with exactly that name.
+    struct Target {
+        var name: String
+        var app: NSRunningApplication?
+        var query: String
+        var processes: [AudioProcess]
+
+        /// The same target's audio processes now (a call app starts new helpers as a call begins).
+        func current() -> [AudioProcess] { SystemAudio.processes(for: app, query: query) }
+    }
+
+    /// The running app a query names: its bundle ID, its name, or a part of its name that only one
+    /// app has. Two apps matching is an error, not a guess: "Music" must not also catch YouTube Music.
+    static func app(_ query: String) throws -> NSRunningApplication? {
         let q = query.lowercased()
         let own = ProcessInfo.processInfo.processIdentifier
-        var apps: [String] = []
-        for a in NSWorkspace.shared.runningApplications {
-            let name = (a.localizedName ?? "").lowercased()
-            guard let bundle = a.bundleIdentifier?.lowercased(), name.contains(q) || bundle == q else { continue }
-            apps.append(bundle)
+        let apps = NSWorkspace.shared.runningApplications.filter { $0.activationPolicy == .regular && $0.processIdentifier != own }
+        if let a = apps.first(where: { $0.bundleIdentifier?.lowercased() == q }) { return a }
+        if let a = apps.first(where: { ($0.localizedName ?? "").lowercased() == q }) { return a }
+        let partial = apps.filter { ($0.localizedName ?? "").lowercased().contains(q) }
+        let names = Set(partial.compactMap(\.localizedName)).sorted()
+        if names.count > 1 {
+            throw MacKBError("\"\(query)\" matches several apps: \(names.joined(separator: ", ")). Use the full name or the bundle ID (mackb listen --apps).")
         }
-        return processes().filter { p in
-            guard p.pid != own else { return false }
+        return partial.first
+    }
+
+    /// An app's audio processes: the app itself and helpers whose bundle ID extends its own
+    /// (a browser's renderer); without an app, processes named exactly as asked.
+    static func processes(for app: NSRunningApplication?, query: String) -> [AudioProcess] {
+        let all = processes()
+        guard let app else { return all.filter { $0.name.lowercased() == query.lowercased() } }
+        let bundle = app.bundleIdentifier?.lowercased() ?? ""
+        return all.filter { p in
             let b = p.bundleID.lowercased()
-            if p.name.lowercased().contains(q) || b.contains(q) { return true }
-            return !b.isEmpty && apps.contains { b.hasPrefix($0) }
+            return p.pid == app.processIdentifier || (!bundle.isEmpty && (b == bundle || b.hasPrefix(bundle + ".")))
         }
+    }
+
+    static func resolve(_ query: String) throws -> Target {
+        let a = try app(query)
+        return Target(name: a?.localizedName ?? query, app: a, query: query, processes: processes(for: a, query: query))
+    }
+
+    /// A name to show for a query (a bundle ID from the Listen page reads as the app's name).
+    static func label(_ query: String) -> String {
+        NSWorkspace.shared.runningApplications.first { $0.bundleIdentifier?.lowercased() == query.lowercased() }?.localizedName ?? query
+    }
+
+    static func inputStreamCount(_ device: AudioObjectID) -> Int {
+        var a = address(kAudioDevicePropertyStreams, kAudioObjectPropertyScopeInput)
+        var size: UInt32 = 0
+        guard AudioObjectGetPropertyDataSize(device, &a, 0, nil, &size) == noErr else { return 0 }
+        return Int(size) / MemoryLayout<AudioStreamID>.size
+    }
+
+    static func defaultDevice(_ which: AudioObjectPropertySelector) throws -> (id: AudioObjectID, uid: String) {
+        guard let dev = value(system, which, AudioObjectID(kAudioObjectUnknown)), dev != kAudioObjectUnknown,
+              let uid = string(dev, kAudioDevicePropertyDeviceUID) else {
+            throw MacKBError(which == kAudioHardwarePropertyDefaultInputDevice ? "no microphone found" : "no audio output device found")
+        }
+        return (dev, uid)
     }
 
     // MARK: capture
 
+    /// A tap in a private aggregate device, rebuilt when the default output (or input) device
+    /// changes or audio stops arriving, and, for one app, updated as the app starts new audio
+    /// processes. Only the tap's stream and, when asked, the microphone's are mixed: an output
+    /// device with a microphone of its own (a USB headset, a display) adds input streams of its
+    /// own to the aggregate, and those are left out unless that device is the microphone.
     final class Capture {
         private var tapID = AudioObjectID(kAudioObjectUnknown)
+        private let desc: CATapDescription
         private var aggregateID = AudioObjectID(kAudioObjectUnknown)
         private var procID: AudioDeviceIOProcID?
-        private let queue = DispatchQueue(label: "net.lawrencewu.mackb.listen.tap", qos: .userInitiated)
+        private let io = DispatchQueue(label: "net.lawrencewu.mackb.listen.io", qos: .userInitiated)
+        /// Rebuilds and process updates run here, never on `io` (stopping a device waits for its IO).
+        private let control = DispatchQueue(label: "net.lawrencewu.mackb.listen.control")
         private let lock = NSLock()
         private var loudest: Float = 0
-        let sampleRate: Double
+        private var lastIO = Date()
+        /// Leading input streams of the aggregate to leave out (the output device's own inputs).
+        private var skip = 0
+        private var format: AVAudioFormat?
+        private var stopped = false
+        private var lastRebuild = Date.distantPast
+        private var watchdog: DispatchSourceTimer?
+        private var listeners: [(AudioObjectPropertyAddress, AudioObjectPropertyListenerBlock)] = []
+        private let target: Target?
+        private let mic: Bool
+        private let onEvent: (String) -> Void
+        private let onAudio: (AVAudioPCMBuffer) -> Void
+        private var tapped: Set<AudioObjectID>
+
+        /// Seconds without audio before the capture is rebuilt.
+        static let stallSeconds: TimeInterval = 4
+        /// How often an app's audio processes are looked up again.
+        static let refreshSeconds: TimeInterval = 1
 
         /// The loudest sample so far: exactly 0 after several seconds usually means no permission.
         var peak: Float { lock.lock(); defer { lock.unlock() }; return loudest }
 
-        /// `processes` nil taps everything the Mac plays (except mackb itself). `mute` silences the
+        /// `target` nil taps everything the Mac plays (except mackb itself). `mute` silences the
         /// tapped audio on the speakers while it is captured.
-        init(processes: [AudioObjectID]?, mic: Bool, mute: Bool, onAudio: @escaping (AVAudioPCMBuffer) -> Void) throws {
-            let own = SystemAudio.processObject(pid: ProcessInfo.processInfo.processIdentifier)
-            let desc = processes.map { CATapDescription(stereoMixdownOfProcesses: $0) }
-                ?? CATapDescription(stereoGlobalTapButExcludeProcesses: own.map { [$0] } ?? [])
+        init(target: Target?, mic: Bool, mute: Bool, onEvent: @escaping (String) -> Void, onAudio: @escaping (AVAudioPCMBuffer) -> Void) throws {
+            self.target = target
+            self.mic = mic
+            self.onEvent = onEvent
+            self.onAudio = onAudio
+            let ids = target?.processes.map(\.object) ?? []
+            tapped = Set(ids)
+            if target != nil {
+                desc = CATapDescription(stereoMixdownOfProcesses: ids)
+            } else {
+                let own = SystemAudio.processObject(pid: ProcessInfo.processInfo.processIdentifier)
+                desc = CATapDescription(stereoGlobalTapButExcludeProcesses: own.map { [$0] } ?? [])
+            }
             desc.uuid = UUID()
             desc.name = "Holdfast listen"
             desc.isPrivate = true
             desc.muteBehavior = mute ? .mutedWhenTapped : .unmuted
             var tap = AudioObjectID(kAudioObjectUnknown)
-            var err = AudioHardwareCreateProcessTap(desc, &tap)
+            let err = AudioHardwareCreateProcessTap(desc, &tap)
             guard err == noErr else { throw MacKBError("couldn't tap the Mac's audio (Core Audio error \(err))") }
             tapID = tap
-
             do {
-                let output = try SystemAudio.deviceUID(kAudioHardwarePropertyDefaultSystemOutputDevice)
-                var subs: [[String: Any]] = [[kAudioSubDeviceUIDKey: output]]
-                if mic {
-                    subs.append([kAudioSubDeviceUIDKey: try SystemAudio.deviceUID(kAudioHardwarePropertyDefaultInputDevice),
-                                 kAudioSubDeviceDriftCompensationKey: true])
-                }
-                let agg: [String: Any] = [
-                    kAudioAggregateDeviceNameKey: "Holdfast listen",
-                    kAudioAggregateDeviceUIDKey: "net.lawrencewu.mackb.listen." + UUID().uuidString,
-                    kAudioAggregateDeviceMainSubDeviceKey: output,
-                    kAudioAggregateDeviceIsPrivateKey: true,
-                    kAudioAggregateDeviceIsStackedKey: false,
-                    kAudioAggregateDeviceTapAutoStartKey: true,
-                    kAudioAggregateDeviceSubDeviceListKey: subs,
-                    kAudioAggregateDeviceTapListKey: [[kAudioSubTapDriftCompensationKey: true, kAudioSubTapUIDKey: desc.uuid.uuidString]],
-                ]
-                var dev = AudioObjectID(kAudioObjectUnknown)
-                err = AudioHardwareCreateAggregateDevice(agg as CFDictionary, &dev)
-                guard err == noErr else { throw MacKBError("couldn't set up audio capture (Core Audio error \(err))") }
-                aggregateID = dev
+                try control.sync { try build() }
             } catch {
                 AudioHardwareDestroyProcessTap(tapID)
+                tapID = AudioObjectID(kAudioObjectUnknown)
                 throw error
             }
-            sampleRate = SystemAudio.value(aggregateID, kAudioDevicePropertyNominalSampleRate, Float64(0)).flatMap { $0 > 0 ? $0 : nil } ?? 48_000
-            guard let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1) else {
-                stop()
-                throw MacKBError("unsupported sample rate \(sampleRate)")
+            watch()
+        }
+
+        /// Makes the aggregate on today's default devices and starts its IO. On `control`.
+        private func build() throws {
+            let output = try SystemAudio.defaultDevice(kAudioHardwarePropertyDefaultSystemOutputDevice)
+            var subs: [[String: Any]] = [[kAudioSubDeviceUIDKey: output.uid]]
+            var leave = SystemAudio.inputStreamCount(output.id)
+            if mic {
+                let input = try SystemAudio.defaultDevice(kAudioHardwarePropertyDefaultInputDevice)
+                if input.uid == output.uid {
+                    leave = 0  // a headset: its inputs are the microphone asked for
+                } else {
+                    subs.append([kAudioSubDeviceUIDKey: input.uid, kAudioSubDeviceDriftCompensationKey: true])
+                }
             }
+            let agg: [String: Any] = [
+                kAudioAggregateDeviceNameKey: "Holdfast listen",
+                kAudioAggregateDeviceUIDKey: "net.lawrencewu.mackb.listen." + UUID().uuidString,
+                kAudioAggregateDeviceMainSubDeviceKey: output.uid,
+                kAudioAggregateDeviceIsPrivateKey: true,
+                kAudioAggregateDeviceIsStackedKey: false,
+                kAudioAggregateDeviceTapAutoStartKey: true,
+                kAudioAggregateDeviceSubDeviceListKey: subs,
+                kAudioAggregateDeviceTapListKey: [[kAudioSubTapDriftCompensationKey: true, kAudioSubTapUIDKey: desc.uuid.uuidString]],
+            ]
+            var dev = AudioObjectID(kAudioObjectUnknown)
+            var err = AudioHardwareCreateAggregateDevice(agg as CFDictionary, &dev)
+            guard err == noErr else { throw MacKBError("couldn't set up audio capture (Core Audio error \(err))") }
+            aggregateID = dev
+            let rate = SystemAudio.value(dev, kAudioDevicePropertyNominalSampleRate, Float64(0)).flatMap { $0 > 0 ? $0 : nil } ?? 48_000
+            guard let fmt = AVAudioFormat(standardFormatWithSampleRate: rate, channels: 1) else {
+                teardown()
+                throw MacKBError("unsupported sample rate \(rate)")
+            }
+            lock.lock(); skip = leave; format = fmt; lastIO = Date(); lock.unlock()
 
             var proc: AudioDeviceIOProcID?
-            err = AudioDeviceCreateIOProcIDWithBlock(&proc, aggregateID, queue) { [weak self] _, input, _, _, _ in
-                // Each input stream (the tap, the microphone) is averaged to mono and the streams summed.
-                let list = UnsafeMutableAudioBufferListPointer(UnsafeMutablePointer(mutating: input))
-                var frames = 0
-                for b in list where b.mData != nil {
-                    frames = max(frames, Int(b.mDataByteSize) / (MemoryLayout<Float>.size * max(Int(b.mNumberChannels), 1)))
-                }
-                guard frames > 0, let out = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(frames)),
-                      let dst = out.floatChannelData?[0] else { return }
-                out.frameLength = AVAudioFrameCount(frames)
-                dst.initialize(repeating: 0, count: frames)
-                for b in list {
-                    guard let data = b.mData?.assumingMemoryBound(to: Float.self) else { continue }
-                    let ch = max(Int(b.mNumberChannels), 1)
-                    let n = min(frames, Int(b.mDataByteSize) / (MemoryLayout<Float>.size * ch))
-                    for i in 0..<n {
-                        var s: Float = 0
-                        for c in 0..<ch { s += data[i * ch + c] }
-                        dst[i] += s / Float(ch)
-                    }
-                }
-                var pk: Float = 0
-                for i in 0..<frames {
-                    dst[i] = min(max(dst[i], -1), 1)
-                    pk = max(pk, abs(dst[i]))
-                }
-                if let self { self.lock.lock(); self.loudest = max(self.loudest, pk); self.lock.unlock() }
-                onAudio(out)
+            err = AudioDeviceCreateIOProcIDWithBlock(&proc, dev, io) { [weak self] _, input, _, _, _ in
+                self?.receive(input)
             }
             guard err == noErr, let proc else {
-                stop()
+                teardown()
                 throw MacKBError("couldn't start audio capture (Core Audio error \(err))")
             }
             procID = proc
-            err = AudioDeviceStart(aggregateID, proc)
+            err = AudioDeviceStart(dev, proc)
             guard err == noErr else {
-                stop()
+                teardown()
                 throw MacKBError("couldn't start audio capture (Core Audio error \(err))")
             }
         }
 
-        func stop() {
-            if aggregateID != kAudioObjectUnknown {
-                if let procID {
-                    AudioDeviceStop(aggregateID, procID)
-                    AudioDeviceDestroyIOProcID(aggregateID, procID)
-                }
-                AudioHardwareDestroyAggregateDevice(aggregateID)
-                aggregateID = AudioObjectID(kAudioObjectUnknown)
+        /// One IO cycle: the streams after `skip` (the microphone, if any, then the tap), each
+        /// averaged to mono, summed.
+        private func receive(_ input: UnsafePointer<AudioBufferList>) {
+            lock.lock()
+            let leave = skip
+            let fmt = format
+            lastIO = Date()
+            lock.unlock()
+            guard let fmt else { return }
+            let list = UnsafeMutableAudioBufferListPointer(UnsafeMutablePointer(mutating: input))
+            var frames = 0
+            for (i, b) in list.enumerated() where i >= leave && b.mData != nil {
+                frames = max(frames, Int(b.mDataByteSize) / (MemoryLayout<Float>.size * max(Int(b.mNumberChannels), 1)))
             }
+            guard frames > 0, let out = AVAudioPCMBuffer(pcmFormat: fmt, frameCapacity: AVAudioFrameCount(frames)),
+                  let dst = out.floatChannelData?[0] else { return }
+            out.frameLength = AVAudioFrameCount(frames)
+            dst.initialize(repeating: 0, count: frames)
+            for (i, b) in list.enumerated() where i >= leave {
+                guard let data = b.mData?.assumingMemoryBound(to: Float.self) else { continue }
+                let ch = max(Int(b.mNumberChannels), 1)
+                let n = min(frames, Int(b.mDataByteSize) / (MemoryLayout<Float>.size * ch))
+                for k in 0..<n {
+                    var sum: Float = 0
+                    for c in 0..<ch { sum += data[k * ch + c] }
+                    dst[k] += sum / Float(ch)
+                }
+            }
+            var pk: Float = 0
+            for k in 0..<frames {
+                dst[k] = min(max(dst[k], -1), 1)
+                pk = max(pk, abs(dst[k]))
+            }
+            lock.lock(); loudest = max(loudest, pk); lock.unlock()
+            onAudio(out)
+        }
+
+        /// Default-device changes and stalls rebuild the aggregate; an app's new audio processes join the tap.
+        private func watch() {
+            var selectors = [kAudioHardwarePropertyDefaultSystemOutputDevice, kAudioHardwarePropertyDefaultOutputDevice]
+            if mic { selectors.append(kAudioHardwarePropertyDefaultInputDevice) }
+            for sel in selectors {
+                var a = SystemAudio.address(sel)
+                let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in self?.rebuild("the audio device changed") }
+                if AudioObjectAddPropertyListenerBlock(SystemAudio.system, &a, control, block) == noErr { listeners.append((a, block)) }
+            }
+            let t = DispatchSource.makeTimerSource(queue: control)
+            t.schedule(deadline: .now() + Self.refreshSeconds, repeating: Self.refreshSeconds)
+            t.setEventHandler { [weak self] in
+                guard let self else { return }
+                self.refreshProcesses()
+                self.lock.lock()
+                let quiet = Date().timeIntervalSince(self.lastIO)
+                self.lock.unlock()
+                if quiet > Self.stallSeconds { self.rebuild("audio stopped arriving") }
+            }
+            t.resume()
+            watchdog = t
+        }
+
+        /// On `control`: a fresh aggregate on the current default devices, the same tap.
+        private func rebuild(_ why: String) {
+            guard !stopped, Date().timeIntervalSince(lastRebuild) > 2 else { return }
+            lastRebuild = Date()
+            teardown()
+            do {
+                try build()
+                let name = (try? SystemAudio.defaultDevice(kAudioHardwarePropertyDefaultSystemOutputDevice)).flatMap { SystemAudio.string($0.id, kAudioObjectPropertyName) } ?? "the new device"
+                onEvent("\(why): listening again (\(name))")
+            } catch {
+                onEvent("\(why), and listening couldn't restart: \(error). Trying again shortly.")
+            }
+        }
+
+        /// On `control`: for one app, adds audio processes it started since (and drops ended ones).
+        private func refreshProcesses() {
+            guard let target, !stopped else { return }
+            let now = Set(target.current().map(\.object))
+            guard !now.isEmpty, now != tapped else { return }
+            let added = now.subtracting(tapped).count
+            desc.processes = Array(now)
+            var a = SystemAudio.address(kAudioTapPropertyDescription)
+            var ref = desc
+            let err = withUnsafeMutablePointer(to: &ref) {
+                AudioObjectSetPropertyData(tapID, &a, 0, nil, UInt32(MemoryLayout<CATapDescription>.size), $0)
+            }
+            if err == noErr {
+                tapped = now
+                if added > 0 { onEvent("\(target.name) started playing from another process: listening to it too") }
+            }
+        }
+
+        /// Stops IO and removes the aggregate (the tap stays). On `control`.
+        private func teardown() {
+            guard aggregateID != kAudioObjectUnknown else { return }
+            if let procID {
+                AudioDeviceStop(aggregateID, procID)
+                AudioDeviceDestroyIOProcID(aggregateID, procID)
+            }
+            AudioHardwareDestroyAggregateDevice(aggregateID)
+            aggregateID = AudioObjectID(kAudioObjectUnknown)
             procID = nil
-            if tapID != kAudioObjectUnknown {
-                AudioHardwareDestroyProcessTap(tapID)
-                tapID = AudioObjectID(kAudioObjectUnknown)
+        }
+
+        func stop() {
+            control.sync {
+                guard !stopped else { return }
+                stopped = true
+                watchdog?.cancel()
+                watchdog = nil
+                for (addr, block) in listeners {
+                    var a = addr
+                    AudioObjectRemovePropertyListenerBlock(SystemAudio.system, &a, control, block)
+                }
+                listeners = []
+                teardown()
+                if tapID != kAudioObjectUnknown {
+                    AudioHardwareDestroyProcessTap(tapID)
+                    tapID = AudioObjectID(kAudioObjectUnknown)
+                }
             }
         }
 

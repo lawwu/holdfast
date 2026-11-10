@@ -16,6 +16,8 @@ enum Theme {
         a.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? NSColor(white: 0.16, alpha: 1) : .white
     })
     static let radius: CGFloat = 14
+    /// Lists and pages sit in a column this wide when no note is open beside them.
+    static let pageWidth: CGFloat = 860
 
     // Type scale: macOS's defaults (12pt callout, 10pt caption) read small for a reading app.
     static let body = Font.system(size: 15)
@@ -86,11 +88,14 @@ extension View {
 struct KindTile: View {
     var kind: String
     var size: CGFloat = 30
+    /// A colour of its own (a note's folder colour), instead of the kind's.
+    var tint: Color? = nil
     var body: some View {
+        let c = tint ?? Theme.color(kind)
         RoundedRectangle(cornerRadius: size * 0.28, style: .continuous)
-            .fill(Theme.color(kind).opacity(0.15))
+            .fill(c.opacity(0.15))
             .frame(width: size, height: size)
-            .overlay(Image(systemName: Theme.icon(kind)).font(.system(size: size * 0.46, weight: .medium)).foregroundStyle(Theme.color(kind)))
+            .overlay(Image(systemName: Theme.icon(kind)).font(.system(size: size * 0.46, weight: .medium)).foregroundStyle(c))
     }
 }
 
@@ -153,6 +158,19 @@ struct RootView: View {
         }
     }
 
+    /// The page with its title header (Ask and Graph draw their own top).
+    @ViewBuilder var page: some View {
+        let p = store.pane ?? .ask
+        if p.fullBleed {
+            paneView
+        } else {
+            VStack(spacing: 0) {
+                PageHeader(pane: p)
+                paneView
+            }
+        }
+    }
+
     var body: some View {
         // Two columns: the sidebar, then the pane and the note side by side in a
         // split view, so the pane (the file list) can be hidden on its own.
@@ -162,10 +180,14 @@ struct RootView: View {
         } detail: {
             HStack(spacing: 0) {
                 if store.opened == nil {
-                    paneView.background(Theme.canvas)  // nothing open: the pane gets the room
+                    // Nothing open: lists sit in a readable column instead of stretching across the window.
+                    page
+                        .frame(maxWidth: (store.pane ?? .ask).wide ? .infinity : Theme.pageWidth)
+                        .frame(maxWidth: .infinity)
+                        .background(Theme.canvas)
                 } else {
                     if store.showList {
-                        paneView
+                        page
                             .background(Theme.canvas)
                             .frame(width: listWidth)
                         ResizeHandle(width: $listWidth)
@@ -253,32 +275,72 @@ struct EmptyState: View {
 
 struct Sidebar: View {
     @EnvironmentObject var store: Store
+    @ObservedObject private var listener = Listener.shared
 
     var body: some View {
         List(selection: $store.pane) {
-            Section {
-                ForEach(Pane.allCases) { p in
-                    Label(p.rawValue, systemImage: p.icon)
-                        .font(.system(size: 14, weight: .medium))
-                        .padding(.vertical, 3)
-                        .badge(p == .inbox ? store.inboxItems.count : 0)
-                        .tag(p)
+            ForEach(Array(Pane.groups.enumerated()), id: \.offset) { i, g in
+                Section {
+                    ForEach(g.panes) { p in row(p) }
+                } header: {
+                    if i == 0 { brand } else if let t = g.title { Text(t) }
                 }
-            } header: {
-                HStack(spacing: 10) {
-                    AppMark(size: 30)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("Holdfast").font(.system(size: 15.5, weight: .semibold)).foregroundStyle(.primary)
-                        Text("Your notes never leave home").font(.system(size: 11.5)).foregroundStyle(.secondary)
-                    }
-                }
-                .textCase(nil)
-                .padding(.bottom, 12)
-                .padding(.top, 4)
             }
         }
         .listStyle(.sidebar)
         .safeAreaInset(edge: .bottom) { VaultCard().padding(10) }
+    }
+
+    var brand: some View {
+        HStack(spacing: 10) {
+            AppMark(size: 30)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Holdfast").font(.system(size: 15.5, weight: .semibold)).foregroundStyle(.primary)
+                Text("Your notes never leave home").font(.system(size: 11.5)).foregroundStyle(.secondary)
+            }
+        }
+        .textCase(nil)
+        .padding(.bottom, 12)
+        .padding(.top, 4)
+    }
+
+    @ViewBuilder func row(_ p: Pane) -> some View {
+        HStack(spacing: 0) {
+            Label(p.rawValue, systemImage: p.icon)
+                .font(.system(size: 14, weight: .medium))
+            Spacer(minLength: 4)
+            if p == .listen, listener.active {
+                Circle().fill(Color.red).frame(width: 7, height: 7).help("Listening now")
+            }
+            if p == .ask, store.busy != nil, !store.askedQuestion.isEmpty, store.pane != .ask {
+                ProgressView().controlSize(.mini).help("Writing an answer")
+            }
+        }
+        .padding(.vertical, 3)
+        .badge(p == .inbox ? store.inboxItems.count : 0)
+        .tag(p)
+    }
+}
+
+/// The title at the top of a page: what it is, in one line.
+struct PageHeader: View {
+    var pane: Pane
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Theme.accent.opacity(0.12))
+                .frame(width: 38, height: 38)
+                .overlay(Image(systemName: pane.icon).font(.system(size: 17, weight: .medium)).foregroundStyle(Theme.accent))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(pane.rawValue).font(.system(size: 24, weight: .semibold, design: .rounded))
+                if !pane.subtitle.isEmpty {
+                    Text(pane.subtitle).font(Theme.callout).foregroundStyle(.secondary).lineLimit(2)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 22).padding(.top, 20).padding(.bottom, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -343,38 +405,34 @@ struct AskView: View {
     var body: some View {
         VStack(spacing: 0) {
             if hasConversation {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 18) {
-                        ForEach(store.turns) { t in
-                            TurnView(entry: t)
-                            Divider()
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 18) {
+                            ForEach(store.turns) { t in
+                                TurnView(entry: t)
+                                Divider()
+                            }
+                            QuestionHeader(text: store.askedQuestion)
+                            if let b = store.busy { StatusPill(text: b, since: store.turnStarted) }
+                            if let e = store.error { ErrorBanner(text: e) }
+                            if !store.answer.isEmpty || !store.steps.isEmpty { AnswerCard() }
+                            if !store.sources.isEmpty { SourcesSection() }
+                            Color.clear.frame(height: 1).id("turn-end")
                         }
-                        QuestionHeader(text: store.askedQuestion)
-                        if let b = store.busy { StatusPill(text: b, since: store.turnStarted) }
-                        if let e = store.error { ErrorBanner(text: e) }
-                        if !store.answer.isEmpty || !store.steps.isEmpty { AnswerCard() }
-                        if !store.sources.isEmpty { SourcesSection() }
+                        .padding(.horizontal, 28).padding(.vertical, 26)
+                        .frame(maxWidth: 820, alignment: .leading)
+                        .frame(maxWidth: .infinity)
                     }
-                    .padding(.horizontal, 28).padding(.vertical, 26)
-                    .frame(maxWidth: 820, alignment: .leading)
-                    .frame(maxWidth: .infinity)
+                    // A new question starts at the bottom of the conversation, where it is asked.
+                    .onChange(of: store.askedQuestion) { proxy.scrollTo("turn-end", anchor: .bottom) }
                 }
+                AskNotices().frame(maxWidth: 772).padding(.horizontal, 24)
+                Composer()
+                    .padding(.horizontal, 24).padding(.bottom, 18).padding(.top, 8)
+                    .frame(maxWidth: 820)
             } else {
                 AskHero()
             }
-            if store.pendingJob == .crossLink {
-                JobConfirmCard(title: "Suggest links between notes?",
-                               detail: "Holdfast finds pairs of closely related notes that don't link yet and asks the model about each pair (a few minutes). Suggestions wait in the Inbox for your approval; counseling notes are left out.",
-                               start: { store.pendingJob = nil; store.runCrossLink() },
-                               cancel: { store.pendingJob = nil })
-                    .frame(maxWidth: 772).padding(.horizontal, 24)
-            }
-            if store.backend == .mlx, !store.isDownloaded(store.mlxRepo) {
-                FirstRunCard().frame(maxWidth: 772).padding(.horizontal, 24)
-            }
-            Composer()
-                .padding(.horizontal, 24).padding(.bottom, 18).padding(.top, 8)
-                .frame(maxWidth: 820)
         }
         .navigationTitle("Ask")
         .toolbar {
@@ -390,59 +448,112 @@ struct AskView: View {
     }
 }
 
+/// Cards that sit above the question box: a job waiting for a go-ahead, and first-run guidance.
+struct AskNotices: View {
+    @EnvironmentObject var store: Store
+    var body: some View {
+        VStack(spacing: 10) {
+            if store.pendingJob == .crossLink {
+                JobConfirmCard(title: "Suggest links between notes?",
+                               detail: "Holdfast finds pairs of closely related notes that don't link yet and asks the model about each pair (a few minutes). Suggestions wait in the Inbox for your approval; counseling notes are left out.",
+                               start: { store.pendingJob = nil; store.runCrossLink() },
+                               cancel: { store.pendingJob = nil })
+            }
+            if store.backend == .mlx, !store.isDownloaded(store.mlxRepo) {
+                FirstRunCard()
+            }
+        }
+    }
+}
+
+/// The Ask page before a question: the question box in the middle, then what needs attention
+/// (proposals to approve, follow-ups coming due) and where you left off.
 struct AskHero: View {
     @EnvironmentObject var store: Store
     var suggestions: [(String, String)] { store.profile.suggestions.map { ($0.icon, $0.text) } }
+    var waiting: Int { store.inboxItems.count }
+
+    var greeting: String {
+        let h = Calendar.current.component(.hour, from: Date())
+        return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 22) {
-                Spacer(minLength: 40)
-                AppMark(size: 56)
-                VStack(spacing: 6) {
-                    Text(store.profile == .counseling ? "Ask your case notes" : "Ask your knowledge base")
-                        .font(.system(size: 26, weight: .semibold, design: .rounded))
-                    Text(store.profile == .counseling
-                         ? "Answers come only from the notes in this vault, and every claim cites its source."
-                         : store.backend == .remote
-                            ? "Drop in receipts, records and letters. Ask anything. Your notes stay on this Mac; answers come from \(Remote.host)."
-                            : "Drop in receipts, records and letters. Ask anything. Everything stays on your Mac.")
-                        .font(Theme.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                Spacer(minLength: 30)
+                VStack(spacing: 8) {
+                    AppMark(size: 46)
+                    Text(greeting).font(.system(size: 30, weight: .semibold, design: .rounded)).padding(.top, 6)
+                    HStack(spacing: 6) {
+                        Text(Date(), format: .dateTime.weekday(.wide).month(.wide).day())
+                        Text("·")
+                        Text("\(store.notes.count) notes in \(store.vault.lastPathComponent)")
+                    }
+                    .font(Theme.callout).foregroundStyle(.secondary)
                 }
-                AddFilesCard().frame(maxWidth: 640)
-                ImportProgressBar().frame(maxWidth: 640)
-                UpcomingCard()
-                    .frame(maxWidth: 640)
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 210), spacing: 10)], spacing: 10) {
+                AskNotices()
+                Composer()
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
                     ForEach(suggestions, id: \.1) { icon, q in SuggestionCard(icon: icon, text: q) { store.askSuggested(q) } }
                 }
-                .frame(maxWidth: 640)
-                if !store.history.isEmpty {
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack {
-                            Text("RECENT").font(Theme.caption.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
+                if waiting > 0 {
+                    Button { store.pane = .inbox } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "tray.full.fill").foregroundStyle(Theme.accent)
+                            Text("\(waiting) proposal\(waiting == 1 ? "" : "s") waiting for your approval").font(Theme.callout.weight(.medium))
                             Spacer()
-                            Button("See all") { store.pane = .history }.buttonStyle(.link).font(Theme.caption)
+                            Text("Review").font(Theme.callout.weight(.semibold)).foregroundStyle(Theme.accent)
+                            Image(systemName: "chevron.right").font(Theme.caption).foregroundStyle(Theme.accent)
                         }
-                        ForEach(store.conversations.prefix(3), id: \.latest.id) { c in
-                            Button { store.openHistory(c.latest) } label: {
-                                HStack(spacing: 8) {
-                                    Image(systemName: c.count > 1 ? "bubble.left.and.bubble.right" : "clock.arrow.circlepath").foregroundStyle(.secondary).font(Theme.caption)
-                                    Text(c.first.question).font(Theme.callout).lineLimit(1).foregroundStyle(.primary)
-                                    Spacer()
-                                    Text(c.latest.date, format: .relative(presentation: .named)).font(Theme.caption).foregroundStyle(.tertiary)
-                                }
-                                .padding(.vertical, 4).contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                        }
+                        .card(padding: 14)
+                        .contentShape(Rectangle())
                     }
-                    .frame(maxWidth: 640)
-                    .padding(.top, 6)
+                    .buttonStyle(.plain)
                 }
+                ImportProgressBar()
+                HStack(alignment: .top, spacing: 14) {
+                    UpcomingCard()
+                    RecentCard()
+                }
+                AddFilesCard()
                 Spacer(minLength: 20)
             }
-            .padding(24)
+            .frame(maxWidth: 700)
+            .padding(.horizontal, 24).padding(.bottom, 24)
             .frame(maxWidth: .infinity)
+        }
+    }
+}
+
+/// The last few conversations, to pick up where you left off.
+struct RecentCard: View {
+    @EnvironmentObject var store: Store
+    var body: some View {
+        if !store.history.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("RECENT").font(Theme.caption.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
+                    Spacer()
+                    Button("See all") { store.pane = .history }.buttonStyle(.link).font(Theme.caption)
+                }
+                ForEach(store.conversations.prefix(5), id: \.latest.id) { c in
+                    Button { store.openHistory(c.latest) } label: {
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            Image(systemName: c.count > 1 ? "bubble.left.and.bubble.right" : "bubble.left").foregroundStyle(.secondary).font(Theme.caption)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(c.first.question).font(Theme.callout).lineLimit(1).foregroundStyle(.primary)
+                                Text(c.latest.date, format: .relative(presentation: .named)).font(Theme.caption).foregroundStyle(.tertiary)
+                            }
+                            Spacer(minLength: 0)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .card(padding: 14)
         }
     }
 }
@@ -513,11 +624,13 @@ struct QuestionHeader: View {
     var text: String
     var body: some View {
         Text(text)
-            .font(.system(size: 17, weight: .semibold))
+            .font(.system(size: 16, weight: .medium))
+            .foregroundStyle(.white)
             .textSelection(.enabled)
             .padding(.horizontal, 16).padding(.vertical, 11)
-            .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Theme.accent.opacity(0.09)))
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.gradient))
+            .frame(maxWidth: 600, alignment: .trailing)
+            .frame(maxWidth: .infinity, alignment: .trailing)
     }
 }
 
@@ -558,22 +671,8 @@ struct AnswerCard: View {
     @EnvironmentObject var store: Store
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            // The "Answer" header appears once there is answer text; while it works, only the steps show.
-            if !store.answer.isEmpty {
-            HStack(spacing: 8) {
-                Image(systemName: "sparkles").foregroundStyle(Theme.gradient)
-                Text("Answer").font(Theme.headline)
-                Spacer()
-                Button {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(store.answer, forType: .string)
-                } label: { Image(systemName: "doc.on.doc") }
-                .buttonStyle(.borderless).help("Copy the answer")
-                .disabled(store.busy != nil)
-            }
-            }
             // No .textSelection here: on macOS it routes link clicks around
-            // the openURL handler, so citations wouldn't open. Copy is above.
+            // the openURL handler, so citations wouldn't open. Copy is in the footer.
             if !store.steps.isEmpty { StepsList(steps: store.steps, running: store.busy != nil) }
             MarkdownBlocks(text: store.answer, linkCitations: true)
             if let w = store.warning {
@@ -591,6 +690,11 @@ struct AnswerCard: View {
                     Label(String(format: "%.0f s", s.seconds), systemImage: "clock")
                     Spacer()
                     Label(store.history.first { $0.id == store.currentHistoryId }?.model ?? store.modelLabel, systemImage: "cpu")
+                    Button {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(store.answer, forType: .string)
+                    } label: { Label("Copy", systemImage: "doc.on.doc") }
+                    .buttonStyle(.borderless).help("Copy the answer")
                 }
                 .labelStyle(TightLabel())
                 .font(Theme.caption).foregroundStyle(.secondary)
@@ -611,8 +715,10 @@ struct SourcesSection: View {
             }
             // Most relevant first; each card keeps the number the answer cites it by.
             let ranked = store.sources.enumerated().sorted { ($0.element.score ?? 0) > ($1.element.score ?? 0) }
-            ForEach(ranked, id: \.offset) { i, c in
-                SourceCard(n: i + 1, chunk: c)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 330), spacing: 10, alignment: .top)], spacing: 10) {
+                ForEach(ranked, id: \.offset) { i, c in
+                    SourceCard(n: i + 1, chunk: c)
+                }
             }
         }
     }
@@ -920,8 +1026,21 @@ struct NoteRow: View {
     var note: Note
     @State private var hover = false
 
+    /// The note's folder in a vault indexed in place ("finance/taxes"); nil at the top level or in a managed vault.
+    var folder: String? {
+        guard Config.inPlace, !note.relPath.hasPrefix("@"), !Packs.isPack(note.relPath) else { return nil }
+        let dir = (note.relPath as NSString).deletingLastPathComponent
+        return dir.isEmpty ? nil : dir
+    }
+    /// Plain documents take their top folder's colour, so the Library reads by area at a glance.
+    var tint: Color? {
+        guard Theme.kind(of: note) == "document", let top = folder?.split(separator: "/").first else { return nil }
+        return domainColor(String(top))
+    }
+
     var subtitle: String {
         var parts: [String] = []
+        if let f = folder { parts.append(f) }
         if let c = note.meta["case"] { parts.append(c) }
         if let s = note.meta["session"] { parts.append("Session \(s)") }
         if let k = note.meta["session_kind"] { parts.append(k) }
@@ -934,7 +1053,7 @@ struct NoteRow: View {
         let selected = store.opened?.note.path == note.path
         Button { store.opened = Opened(note: note, anchor: nil) } label: {
             HStack(spacing: 12) {
-                KindTile(kind: Theme.kind(of: note), size: 32)
+                KindTile(kind: Theme.kind(of: note), size: 32, tint: tint)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(note.title).font(Theme.callout.weight(.medium)).lineLimit(1)
                     if !subtitle.isEmpty {
