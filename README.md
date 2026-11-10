@@ -16,6 +16,14 @@ This is the Phase 0–3 proof of concept from the Holdfast plan (kept in a
 separate notes repo). One binary is the CLI, the MCP server and a SwiftUI
 window: `holdfast app`, or `scripts/make_app.sh` → `build/Holdfast.app`.
 
+The **Paper & Pine** interface uses warm reading surfaces and evergreen accents in light and
+dark mode. Its sidebar has Ask, Library, Inbox and Listen. Library's view picker switches between
+Notes, Folders, Tables and Graph; Ask's recent questions and **All conversations** open saved
+conversations. **Focus** hides the browser while reading; **Note Details** opens the outline and
+linked notes. Source rows can preview the full passage, and **Answer details** reveals model and
+generation statistics. The bound-page H icon is drawn from `Sources/holdfast/AppIcon.swift` for
+both the app and its packaged icon.
+
 ## What it does
 
 | Command | What happens |
@@ -159,6 +167,36 @@ ln -sf "$PWD/.build/xcode/Build/Products/Release/holdfast" ~/.local/bin/holdfast
 The default is LocalMLX. `HOLDFAST_BACKEND=mlx|ollama|lmstudio|custom` overrides the saved
 provider; `HOLDFAST_MLX_REPO` selects the embedded model. Server configuration is below.
 Audio and URLs also need `ffmpeg` and `yt-dlp`.
+
+### Model downloads through a mirror
+
+In **Settings → Downloads**, enter a Hugging Face-compatible **Endpoint URL**, add an
+access token if required, and click **Save**. Then download models from the Answer or
+Search tab as usual. Repository IDs such as `mlx-community/Qwen3.8-27B-4bit` stay the same.
+Tokens are stored in macOS Keychain separately for each endpoint and sent as
+`Authorization: Bearer <token>` on metadata and file requests. Paste the token itself,
+without the `Bearer` prefix.
+
+For JFrog Artifactory, use the `HF_ENDPOINT` value from **Set Me Up**, for example
+`https://company.jfrog.io/artifactory/api/huggingfaceml/huggingface-remote`, and your
+Artifactory identity token. Use the API endpoint, including its repository path, rather
+than the Artifactory web UI URL or an individual model file URL. See
+[JFrog's Hugging Face setup](https://docs.jfrog.com/artifactory/docs/hugging-face-repositories).
+
+`HF_ENDPOINT` and `HF_TOKEN`, when set in the app process's environment, override saved
+settings. Blank variables are ignored. A custom mirror without an explicit or saved
+token uses anonymous access; it does not inherit a cached Hugging Face login.
+The default `https://huggingface.co` endpoint retains the usual Hugging Face token discovery.
+
+This setting applies to answer, embedding and reranker downloads. Existing downloads
+remain usable, and new downloads are saved under
+`~/Library/Application Support/Holdfast/models`. Parakeet transcription downloads are
+managed separately by FluidAudio and do not use this setting.
+
+Run the model-free configuration and cache checks with `scripts/test_model_downloads.sh`.
+After building, run `scripts/test_model_downloads.sh --integration` to also test downloads
+against a loopback mirror, including Artifactory-style paths, bearer authentication,
+anonymous access, rejected tokens, missing files and empty repositories.
 
 ## Use from Claude Code
 

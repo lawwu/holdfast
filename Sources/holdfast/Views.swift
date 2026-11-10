@@ -3,19 +3,29 @@ import SwiftUI
 
 // MARK: - Design system
 
-/// One accent (an obsidian-violet), cards on a soft canvas, and a colour per
-/// kind of note. Light and dark mode both come from system colours.
+/// Paper & Pine: quiet navigation, warm paper, and a single evergreen accent.
 enum Theme {
-    static let accent = Color(red: 0.40, green: 0.33, blue: 0.88)
-    static let accent2 = Color(red: 0.62, green: 0.36, blue: 0.93)
+    static func adaptive(_ light: UInt32, _ dark: UInt32) -> Color {
+        Color(nsColor: NSColor(name: nil) { appearance in
+            let hex = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? dark : light
+            return NSColor(srgbRed: Double((hex >> 16) & 255) / 255,
+                           green: Double((hex >> 8) & 255) / 255,
+                           blue: Double(hex & 255) / 255, alpha: 1)
+        })
+    }
+    static let accent = adaptive(0x35624E, 0xA4C6A9)
+    static let accent2 = accent
     static let gradient = LinearGradient(colors: [accent, accent2], startPoint: .topLeading, endPoint: .bottomTrailing)
-    static let canvas = Color(nsColor: NSColor(name: nil) { a in
-        a.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? NSColor(white: 0.115, alpha: 1) : NSColor(red: 0.965, green: 0.965, blue: 0.975, alpha: 1)
-    })
-    static let card = Color(nsColor: NSColor(name: nil) { a in
-        a.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? NSColor(white: 0.16, alpha: 1) : .white
-    })
-    static let radius: CGFloat = 14
+    static let canvas = adaptive(0xF5F4EF, 0x1C211F)
+    static let paper = adaptive(0xFDFCF9, 0x222624)
+    static let sidebar = adaptive(0xEAECE5, 0x181E1B)
+    static let ink = adaptive(0x25362D, 0xE4E7DE)
+    static let secondary = adaptive(0x687166, 0xA7B1A7)
+    static let selection = adaptive(0xDCE6D9, 0x344637)
+    static let button = adaptive(0x315843, 0xB1CEB2)
+    static let onButton = adaptive(0xFFFEF8, 0x1A2C20)
+    static let card = paper
+    static let radius: CGFloat = 10
     /// Lists and pages sit in a column this wide when no note is open beside them.
     static let pageWidth: CGFloat = 860
 
@@ -27,9 +37,9 @@ enum Theme {
     static let headline = Font.system(size: 15.5, weight: .semibold)
     static let title3 = Font.system(size: 19, weight: .semibold)
     static let title2 = Font.system(size: 22, weight: .semibold)
+    static let editorial = Font.system(size: 32, weight: .regular, design: .serif)
 
-    /// Card surfaces: a soft fill with a hairline and a faint shadow.
-    static let cardStroke = Color.primary.opacity(0.07)
+    static let cardStroke = adaptive(0xDEDFD6, 0x343D36)
 
     static func kind(of n: Note) -> String {
         n.meta["doc_type"] == "case-report" ? "case-report" : (n.meta["kind"] ?? "document")
@@ -41,15 +51,6 @@ enum Theme {
         case "video": return "play.rectangle"
         case "memory": return "sparkles"
         default: return "doc.text"
-        }
-    }
-    static func color(_ kind: String) -> Color {
-        switch kind {
-        case "case-report": return .teal
-        case "recording": return .orange
-        case "video": return .pink
-        case "memory": return accent
-        default: return .blue
         }
     }
     static func label(_ kind: String) -> String {
@@ -72,9 +73,8 @@ struct CardStyle: ViewModifier {
             .background(RoundedRectangle(cornerRadius: Theme.radius, style: .continuous).fill(Theme.card))
             .overlay(
                 RoundedRectangle(cornerRadius: Theme.radius, style: .continuous)
-                    .strokeBorder(highlighted ? Theme.accent.opacity(0.6) : Color.primary.opacity(0.08), lineWidth: highlighted ? 1.5 : 1)
+                    .strokeBorder(highlighted ? Theme.accent.opacity(0.6) : Theme.cardStroke, lineWidth: highlighted ? 1.5 : 1)
             )
-            .shadow(color: .black.opacity(0.045), radius: 14, y: 4)
     }
 }
 
@@ -84,18 +84,15 @@ extension View {
     }
 }
 
-/// Rounded square with the kind's colour and icon.
+/// A quiet, monochrome glyph; note kind is communicated by its shape.
 struct KindTile: View {
     var kind: String
     var size: CGFloat = 30
-    /// A colour of its own (a note's folder colour), instead of the kind's.
-    var tint: Color? = nil
     var body: some View {
-        let c = tint ?? Theme.color(kind)
-        RoundedRectangle(cornerRadius: size * 0.28, style: .continuous)
-            .fill(c.opacity(0.15))
+        Image(systemName: Theme.icon(kind))
+            .font(.system(size: size * 0.48, weight: .regular))
+            .foregroundStyle(Theme.secondary)
             .frame(width: size, height: size)
-            .overlay(Image(systemName: Theme.icon(kind)).font(.system(size: size * 0.46, weight: .medium)).foregroundStyle(c))
     }
 }
 
@@ -118,24 +115,17 @@ struct Pill: View {
 struct AppMark: View {
     var size: CGFloat = 30
     var body: some View {
-        RoundedRectangle(cornerRadius: size * 0.27, style: .continuous)
-            .fill(Theme.gradient)
+        Image(nsImage: HoldfastIcon.mark)
+            .resizable()
+            .interpolation(.high)
             .frame(width: size, height: size)
-            .overlay(Image(systemName: "diamond.fill").font(.system(size: size * 0.42, weight: .semibold)).foregroundStyle(.white.opacity(0.95)))
-            .shadow(color: Theme.accent.opacity(0.35), radius: size * 0.12, y: size * 0.05)
+            .accessibilityHidden(true)
     }
 }
 
 /// Dock icon, drawn at launch (the bundle has no asset catalog).
 @MainActor func renderAppIcon() -> NSImage? {
-    let view = ZStack {
-        RoundedRectangle(cornerRadius: 230, style: .continuous).fill(Theme.gradient).frame(width: 824, height: 824)
-        Image(systemName: "diamond.fill").font(.system(size: 360, weight: .semibold)).foregroundStyle(.white.opacity(0.95))
-    }
-    .frame(width: 1024, height: 1024)
-    let r = ImageRenderer(content: view)
-    r.scale = 1
-    return r.nsImage
+    HoldfastIcon.image()
 }
 
 // MARK: - Root
@@ -143,7 +133,12 @@ struct AppMark: View {
 struct RootView: View {
     @EnvironmentObject var store: Store
     /// Width of the pane beside a note; drag the divider to change it.
-    @AppStorage("listWidth") private var listWidth: Double = 540
+    @AppStorage("paperPineBrowserWidth") private var browserWidth: Double = 300
+    @AppStorage("paperPineDetailWidth") private var detailWidth: Double = 520
+
+    private var pane: Pane { store.pane ?? .ask }
+    private var width: Binding<Double> { pane.compactBrowser ? $browserWidth : $detailWidth }
+    private var minimumWidth: Double { pane.compactBrowser ? 260 : 420 }
 
     @ViewBuilder var paneView: some View {
         switch store.pane ?? .ask {
@@ -161,7 +156,12 @@ struct RootView: View {
     /// The page with its title header (Ask and Graph draw their own top).
     @ViewBuilder var page: some View {
         let p = store.pane ?? .ask
-        if p.fullBleed {
+        if p.isLibrary {
+            VStack(spacing: 0) {
+                LibraryNavigation()
+                paneView
+            }
+        } else if p.fullBleed {
             paneView
         } else {
             VStack(spacing: 0) {
@@ -176,21 +176,23 @@ struct RootView: View {
         // split view, so the pane (the file list) can be hidden on its own.
         NavigationSplitView {
             Sidebar()
-                .navigationSplitViewColumnWidth(min: 200, ideal: 220)
+                .navigationSplitViewColumnWidth(min: 190, ideal: 210, max: 250)
         } detail: {
+          GeometryReader { geometry in
             HStack(spacing: 0) {
                 if store.opened == nil {
                     // Nothing open: lists sit in a readable column instead of stretching across the window.
                     page
                         .frame(maxWidth: (store.pane ?? .ask).wide ? .infinity : Theme.pageWidth)
                         .frame(maxWidth: .infinity)
-                        .background(Theme.canvas)
+                        .background(pane == .ask ? Theme.paper : Theme.canvas)
                 } else {
                     if store.showList {
                         page
-                            .background(Theme.canvas)
-                            .frame(width: listWidth)
-                        ResizeHandle(width: $listWidth)
+                            .background(pane == .ask ? Theme.paper : Theme.canvas)
+                            .frame(width: min(max(minimumWidth, width.wrappedValue), max(minimumWidth, geometry.size.width - 468)))
+                        ResizeHandle(width: width, minimum: minimumWidth,
+                                     maximum: max(minimumWidth, geometry.size.width - 468))
                     }
                     if let o = store.opened {
                         VStack(spacing: 0) {
@@ -198,6 +200,7 @@ struct RootView: View {
                             NoteView(opened: o)
                         }
                         .frame(minWidth: 420, maxWidth: .infinity)
+                        .background(Theme.paper)
                     } else {
                         EmptyState(icon: "doc.text.magnifyingglass", title: "Nothing open",
                                    message: "Click a citation, a source or a note to read it here.")
@@ -205,15 +208,23 @@ struct RootView: View {
                     }
                 }
             }
+            .background(Theme.canvas)
             .animation(.easeOut(duration: 0.18), value: store.showList)
+          }
         }
+        .foregroundStyle(Theme.ink)
         .tint(Theme.accent)
+        .onChange(of: store.pane) { _, _ in store.showList = true }
         .toolbar {
-            ToolbarItemGroup {
-                Button { store.importFiles() } label: { Label("Import", systemImage: "square.and.arrow.down") }
-                    .help("Import documents, recordings, or a folder (⌘I)")
-                Button { store.showLinkSheet = true } label: { Label("Add Link", systemImage: "link.badge.plus") }
-                    .help("Import a YouTube or podcast link (⌘L)")
+            ToolbarItem {
+                Menu {
+                    Button("Files or Folder…", systemImage: "square.and.arrow.down") { store.importFiles() }
+                    Button("Link…", systemImage: "link") { store.showLinkSheet = true }
+                    Button("New Note", systemImage: "square.and.pencil") { store.createNote(near: store.opened?.note) }
+                    Divider()
+                    Button("Bulk Import…") { store.showBulkImport = true }
+                } label: { Label("Add", systemImage: "plus").labelStyle(.titleAndIcon) }
+                .help("Add documents, recordings, links or a new note")
             }
         }
         .sheet(isPresented: $store.showLinkSheet) { LinkSheet() }
@@ -262,77 +273,6 @@ struct EmptyState: View {
 
 // MARK: - Sidebar
 
-struct Sidebar: View {
-    @EnvironmentObject var store: Store
-    @ObservedObject private var listener = Listener.shared
-
-    var body: some View {
-        List(selection: $store.pane) {
-            ForEach(Array(Pane.groups.enumerated()), id: \.offset) { i, g in
-                Section {
-                    ForEach(g.panes) { p in row(p) }
-                } header: {
-                    if i == 0 { brand } else if let t = g.title { Text(t) }
-                }
-            }
-        }
-        .listStyle(.sidebar)
-        .safeAreaInset(edge: .bottom) { VaultCard().padding(10) }
-    }
-
-    var brand: some View {
-        HStack(spacing: 10) {
-            AppMark(size: 30)
-            VStack(alignment: .leading, spacing: 1) {
-                Text("Holdfast").font(.system(size: 15.5, weight: .semibold)).foregroundStyle(.primary)
-                Text("Your notes never leave home").font(.system(size: 11.5)).foregroundStyle(.secondary)
-            }
-        }
-        .textCase(nil)
-        .padding(.bottom, 12)
-        .padding(.top, 4)
-    }
-
-    @ViewBuilder func row(_ p: Pane) -> some View {
-        HStack(spacing: 0) {
-            Label(p.rawValue, systemImage: p.icon)
-                .font(.system(size: 14, weight: .medium))
-            Spacer(minLength: 4)
-            if p == .listen, listener.active {
-                Circle().fill(Color.red).frame(width: 7, height: 7).help("Listening now")
-            }
-            if p == .ask, store.busy != nil, !store.askedQuestion.isEmpty, store.pane != .ask {
-                ProgressView().controlSize(.mini).help("Writing an answer")
-            }
-        }
-        .padding(.vertical, 3)
-        .badge(p == .inbox ? store.inboxItems.count : 0)
-        .tag(p)
-    }
-}
-
-/// The title at the top of a page: what it is, in one line.
-struct PageHeader: View {
-    var pane: Pane
-    var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Theme.accent.opacity(0.12))
-                .frame(width: 38, height: 38)
-                .overlay(Image(systemName: pane.icon).font(.system(size: 17, weight: .medium)).foregroundStyle(Theme.accent))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(pane.rawValue).font(.system(size: 24, weight: .semibold, design: .rounded))
-                if !pane.subtitle.isEmpty {
-                    Text(pane.subtitle).font(Theme.callout).foregroundStyle(.secondary).lineLimit(2)
-                }
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, 22).padding(.top, 20).padding(.bottom, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
 struct VaultCard: View {
     @EnvironmentObject var store: Store
     @ObservedObject private var listener = Listener.shared
@@ -360,11 +300,8 @@ struct VaultCard: View {
             }
             .buttonStyle(.plain)
             .help("\(store.vault.path) — click to choose another vault")
-            HStack(spacing: 12) {
-                Label("\(store.notes.count)", systemImage: "doc.on.doc").help("Notes")
-                Label("\(store.indexCounts.chunks)", systemImage: "text.alignleft").help("Indexed passages")
-            }
-            .font(Theme.caption).foregroundStyle(.secondary).labelStyle(TightLabel())
+            Text("\(store.notes.count) notes").font(Theme.caption).foregroundStyle(Theme.secondary)
+                .help("\(store.indexCounts.chunks) indexed passages")
             HStack(spacing: 5) {
                 Image(systemName: store.backend != .mlx ? "network" : "lock.fill")
                 Text(store.backend.locationLabel)
@@ -373,9 +310,9 @@ struct VaultCard: View {
             .font(Theme.caption2.weight(.medium)).foregroundStyle(store.backend != .mlx ? Color.orange : Theme.accent)
             .help(store.backend.privacyHelp)
         }
-        .padding(12)
+        .padding(.horizontal, 6).padding(.top, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.primary.opacity(0.05)))
+        .overlay(alignment: .top) { Rectangle().fill(Theme.cardStroke).frame(height: 1) }
     }
 }
 
@@ -472,9 +409,9 @@ struct AskHero: View {
         ScrollView {
             VStack(spacing: 22) {
                 Spacer(minLength: 30)
-                VStack(spacing: 8) {
-                    AppMark(size: 46)
-                    Text(greeting).font(.system(size: 30, weight: .semibold, design: .rounded)).padding(.top, 6)
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("ASK YOUR NOTES").font(Theme.caption2.weight(.medium)).tracking(1.4).foregroundStyle(Theme.accent)
+                    Text(greeting).font(.system(size: 38, weight: .regular, design: .serif))
                     HStack(spacing: 6) {
                         Text(Date(), format: .dateTime.weekday(.wide).month(.wide).day())
                         Text("·")
@@ -482,6 +419,7 @@ struct AskHero: View {
                     }
                     .font(Theme.callout).foregroundStyle(.secondary)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 AskNotices()
                 Composer()
                 if !store.pins.isEmpty {
@@ -612,7 +550,9 @@ struct SuggestionCard: View {
                 Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity, minHeight: 40, alignment: .topLeading)
-            .card(padding: 12, highlighted: hover)
+            .padding(12)
+            .background(hover ? Theme.selection : .clear, in: RoundedRectangle(cornerRadius: 7))
+            .overlay(alignment: .bottom) { Rectangle().fill(Theme.cardStroke).frame(height: 1) }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -625,13 +565,12 @@ struct QuestionHeader: View {
     var text: String
     var body: some View {
         Text(text)
-            .font(.system(size: 16, weight: .medium))
-            .foregroundStyle(.white)
+            .font(.system(size: 28, weight: .regular, design: .serif))
+            .foregroundStyle(Theme.ink)
             .textSelection(.enabled)
-            .padding(.horizontal, 16).padding(.vertical, 11)
-            .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.gradient))
-            .frame(maxWidth: 600, alignment: .trailing)
-            .frame(maxWidth: .infinity, alignment: .trailing)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -671,39 +610,53 @@ struct ErrorBanner: View {
 struct AnswerCard: View {
     @EnvironmentObject var store: Store
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 18) {
             if !store.steps.isEmpty { StepsList(steps: store.steps, running: store.busy != nil) }
             MarkdownBlocks(text: store.answer, linkCitations: true)
             if let w = store.warning {
                 ErrorBanner(text: w, color: .orange, icon: "exclamationmark.triangle.fill")
             }
-            if let s = store.answerStats {
-                Divider()
-                if let r = store.routeNote {
-                    Label(r, systemImage: "arrow.triangle.branch").font(Theme.caption).foregroundStyle(.secondary)
-                }
-                HStack(spacing: 14) {
-                    Label("\(s.passages) passages", systemImage: "text.quote")
-                    Label("\(s.tokens) tokens", systemImage: "number")
-                    Label(String(format: "%.1f tok/s", s.tokPerSec), systemImage: "gauge.with.dots.needle.67percent")
-                    Label(String(format: "%.0f s", s.seconds), systemImage: "clock")
-                    Spacer()
-                    Label(store.history.first { $0.id == store.currentHistoryId }?.model ?? store.modelLabel, systemImage: "cpu")
+            if let stats = store.answerStats {
+                HStack(spacing: 16) {
                     Button {
                         NSPasteboard.general.clearContents()
                         NSPasteboard.general.setString(store.answer, forType: .string)
                     } label: { Label("Copy", systemImage: "doc.on.doc") }
-                    .buttonStyle(.borderless).help("Copy the answer")
+                    .help("Copy the answer")
                     Button { store.togglePin(store.askedQuestion) } label: {
                         Label(store.isPinned(store.askedQuestion) ? "Pinned" : "Pin", systemImage: store.isPinned(store.askedQuestion) ? "pin.fill" : "pin")
                     }
-                    .buttonStyle(.borderless).help("Keep this question on the Ask home page, to ask again with one click")
+                    .help("Keep this question on the Ask home page")
+                    Spacer(minLength: 0)
                 }
-                .labelStyle(TightLabel())
-                .font(Theme.caption).foregroundStyle(.secondary)
+                .buttonStyle(.borderless).font(Theme.caption).foregroundStyle(Theme.secondary)
+                AnswerDetails(stats: stats,
+                              model: store.history.first { $0.id == store.currentHistoryId }?.model ?? store.modelLabel,
+                              route: store.routeNote)
             }
         }
-        .card(padding: 20)
+        .padding(.vertical, 4)
+    }
+}
+
+struct AnswerDetails: View {
+    var stats: AnswerStats
+    var model: String
+    var route: String?
+    var body: some View {
+        DisclosureGroup("Answer details") {
+            VStack(alignment: .leading, spacing: 8) {
+                if let route { Text(route) }
+                Text(model)
+                Text("\(stats.passages) passages · \(stats.tokens) tokens · "
+                     + String(format: "%.1f tok/s · %.0f s", stats.tokPerSec, stats.seconds))
+                    .monospacedDigit()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 6)
+            .textSelection(.enabled)
+        }
+        .font(Theme.caption).foregroundStyle(Theme.secondary)
     }
 }
 
@@ -718,7 +671,7 @@ struct SourcesSection: View {
             }
             // Most relevant first; each card keeps the number the answer cites it by.
             let ranked = store.sources.enumerated().sorted { ($0.element.score ?? 0) > ($1.element.score ?? 0) }
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 330), spacing: 10, alignment: .top)], spacing: 10) {
+            LazyVStack(alignment: .leading, spacing: 4) {
                 ForEach(ranked, id: \.offset) { i, c in
                     SourceCard(n: i + 1, chunk: c)
                 }
@@ -732,9 +685,9 @@ struct SourceCard: View {
     var n: Int?
     var chunk: Chunk
     @State private var hover = false
+    @State private var expanded = false
 
     var isOpen: Bool { store.opened?.note.relPath == chunk.relPath && store.opened?.anchor == chunk.anchor }
-    var kind: String { store.notes.first { $0.id == chunk.noteId }.map(Theme.kind(of:)) ?? "document" }
     var snippet: String {
         chunk.text.split(separator: "\n").dropFirst().joined(separator: " ")
             .replacingOccurrences(of: #"#{1,6}\s*"#, with: "", options: .regularExpression)
@@ -743,38 +696,54 @@ struct SourceCard: View {
     }
 
     var body: some View {
-        Button { store.open(chunk) } label: {
-            HStack(alignment: .top, spacing: 12) {
-                if let n {
-                    Text("\(n)")
-                        .font(.system(size: 12, weight: .bold, design: .rounded)).monospacedDigit()
-                        .foregroundStyle(Theme.accent)
-                        .frame(width: 22, height: 22)
-                        .background(Circle().fill(Theme.accent.opacity(0.12)))
-                } else {
-                    KindTile(kind: kind, size: 26)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 10) {
+                Button { store.open(chunk) } label: {
+                    HStack(alignment: .top, spacing: 10) {
+                        if let n {
+                            Text("\(n)").font(Theme.caption.weight(.medium)).monospacedDigit()
+                                .foregroundStyle(Theme.accent).frame(width: 22, height: 22)
+                                .background(Theme.selection, in: RoundedRectangle(cornerRadius: 5))
+                        } else {
+                            Image(systemName: "doc.text").foregroundStyle(Theme.secondary)
+                        }
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(chunk.title).font(Theme.callout.weight(.medium)).foregroundStyle(Theme.ink).lineLimit(2)
+                            if chunk.anchor != chunk.title {
+                                Text(chunk.anchor).font(Theme.caption).foregroundStyle(Theme.accent).lineLimit(1)
+                            }
+                            if !snippet.isEmpty, !expanded {
+                                Text(snippet).font(Theme.caption).foregroundStyle(Theme.secondary).lineLimit(2)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .contentShape(Rectangle())
                 }
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(alignment: .firstTextBaseline) {
-                        Text(chunk.title).font(Theme.callout.weight(.semibold)).lineLimit(1)
-                        Spacer(minLength: 8)
-                        if let s = chunk.score { RelevanceMeter(score: s) }
-                    }
-                    if chunk.anchor != chunk.title {
-                        Text(chunk.anchor).font(Theme.caption.weight(.medium)).foregroundStyle(Theme.accent).lineLimit(1)
-                    }
-                    if !snippet.isEmpty {
-                        Text(snippet).font(Theme.caption).foregroundStyle(.secondary).lineLimit(2)
-                    }
+                .buttonStyle(.plain).help("Open this passage in its note")
+                Button { expanded.toggle() } label: {
+                    Image(systemName: expanded ? "chevron.up" : "chevron.down")
+                        .font(Theme.caption).frame(width: 24, height: 24)
+                }
+                .buttonStyle(.plain)
+                .help(expanded ? "Hide passage preview" : "Preview passage")
+                .accessibilityLabel(expanded ? "Hide passage preview" : "Preview passage")
+            }
+            if expanded {
+                MarkdownBlocks(text: chunk.text)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.leading, 12)
+                    .overlay(alignment: .leading) { Rectangle().fill(Theme.accent).frame(width: 2) }
+                if let score = chunk.score {
+                    DisclosureGroup("Retrieval details") { RelevanceMeter(score: score).padding(.top, 6) }
+                        .font(Theme.caption).foregroundStyle(Theme.secondary)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .card(padding: 12, highlighted: hover || isOpen)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .padding(12)
+        .background(hover || isOpen ? Theme.selection.opacity(0.45) : .clear, in: RoundedRectangle(cornerRadius: 8))
+        .overlay(alignment: .bottom) { Rectangle().fill(Theme.cardStroke).frame(height: 1) }
         .onHover { hover = $0 }
-        .animation(.easeOut(duration: 0.12), value: hover)
     }
 }
 
@@ -816,9 +785,9 @@ struct Composer: View {
                     Button { store.stopAsk() } label: {
                         Image(systemName: "stop.fill")
                             .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Theme.onButton)
                             .frame(width: 28, height: 28)
-                            .background(Circle().fill(Theme.gradient))
+                            .background(Circle().fill(Theme.button))
                     }
                     .buttonStyle(.plain)
                     .keyboardShortcut(".", modifiers: .command)
@@ -828,9 +797,9 @@ struct Composer: View {
                 Button { store.runAsk() } label: {
                     Image(systemName: "arrow.up")
                         .font(.system(size: 14.5, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Theme.onButton)
                         .frame(width: 28, height: 28)
-                        .background(Circle().fill(canSend ? AnyShapeStyle(Theme.gradient) : AnyShapeStyle(Color.secondary.opacity(0.35))))
+                        .background(Circle().fill(canSend ? AnyShapeStyle(Theme.button) : AnyShapeStyle(Color.secondary.opacity(0.35))))
                 }
                 .buttonStyle(.plain)
                 .keyboardShortcut(.return, modifiers: .command)
@@ -840,10 +809,9 @@ struct Composer: View {
                 }
             }
             .padding(.leading, 18).padding(.trailing, 10).padding(.vertical, 12)
-            .background(RoundedRectangle(cornerRadius: 22, style: .continuous).fill(Theme.card))
-            .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .strokeBorder(focused ? Theme.accent.opacity(0.55) : Color.primary.opacity(0.1), lineWidth: focused ? 1.5 : 1))
-            .shadow(color: .black.opacity(focused ? 0.1 : 0.06), radius: 12, y: 3)
+            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.canvas))
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(focused ? Theme.accent.opacity(0.6) : Theme.cardStroke, lineWidth: focused ? 1.5 : 1))
             .animation(.easeOut(duration: 0.15), value: focused)
 
             HStack {
@@ -867,7 +835,7 @@ struct Composer: View {
                         set: { UserDefaults.standard.set($0, forKey: "showThinking") }))
                     SettingsLink { Text("More Models…") }
                 } label: {
-                    Label(store.modelLabel, systemImage: "cpu")
+                    Label("Model", systemImage: "cpu").help(store.modelLabel)
                 }
                 .menuStyle(.borderlessButton)
                 .disabled(store.busy != nil || store.asking)
@@ -885,7 +853,7 @@ struct Composer: View {
                 Label(store.backend.locationLabel,
                       systemImage: store.backend != .mlx ? "network" : "lock.fill")
                     .labelStyle(TightLabel())
-                    .font(Theme.caption).foregroundStyle(store.backend != .mlx ? Color.orange : .secondary)
+                    .font(Theme.caption).foregroundStyle(store.backend != .mlx ? Color.orange : Theme.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .help(store.backend.privacyHelp)
             }
@@ -944,7 +912,11 @@ struct LibraryView: View {
                             SectionTitle(title: "Results", count: store.results.count)
                             ForEach(Array(store.results.enumerated()), id: \.offset) { _, c in SourceCard(chunk: c) }
                         } else {
-                            PacksSection().padding(.bottom, 8)
+                            DisclosureGroup("Reference collections") {
+                                PacksSection().padding(.top, 8)
+                            }
+                            .font(Theme.caption).foregroundStyle(Theme.secondary)
+                            .padding(.bottom, 8)
                             ForEach(grouped, id: \.0) { kind, notes in
                                 SectionTitle(title: Theme.label(kind), count: notes.count)
                                 ForEach(notes, id: \.path) { n in NoteRow(note: n) }
@@ -1006,12 +978,12 @@ struct FilterChip: View {
             HStack(spacing: 5) {
                 if let icon { Image(systemName: icon) }
                 Text(title)
-                Text("\(count)").foregroundStyle(selected ? .white.opacity(0.75) : .secondary)
+                Text("\(count)").foregroundStyle(Theme.secondary)
             }
             .font(Theme.caption.weight(.medium))
-            .foregroundStyle(selected ? .white : .primary)
+            .foregroundStyle(selected ? Theme.accent : Theme.secondary)
             .padding(.horizontal, 10).padding(.vertical, 5)
-            .background(Capsule().fill(selected ? AnyShapeStyle(Theme.gradient) : AnyShapeStyle(Color.primary.opacity(0.06))))
+            .background(RoundedRectangle(cornerRadius: 6).fill(selected ? Theme.selection : .clear))
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -1029,12 +1001,6 @@ struct NoteRow: View {
         let dir = (note.relPath as NSString).deletingLastPathComponent
         return dir.isEmpty ? nil : dir
     }
-    /// Plain documents take their top folder's colour, so the Library reads by area at a glance.
-    var tint: Color? {
-        guard Theme.kind(of: note) == "document", let top = folder?.split(separator: "/").first else { return nil }
-        return domainColor(String(top))
-    }
-
     var subtitle: String {
         var parts: [String] = []
         if let f = folder { parts.append(f) }
@@ -1050,9 +1016,10 @@ struct NoteRow: View {
         let selected = store.opened?.note.path == note.path
         Button { store.openNote(note, doubleClicked: NSApp.currentEvent?.clickCount == 2) } label: {
             HStack(spacing: 12) {
-                KindTile(kind: Theme.kind(of: note), size: 32, tint: tint)
+                KindTile(kind: Theme.kind(of: note), size: 26)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(note.title).font(Theme.callout.weight(.medium)).lineLimit(1)
+                    Text(note.title).font(Theme.callout.weight(.medium)).lineLimit(2)
+                        .foregroundStyle(selected ? Theme.accent : Theme.ink)
                     if !subtitle.isEmpty {
                         Text(subtitle).font(Theme.caption).foregroundStyle(.secondary).lineLimit(1)
                     }
@@ -1063,9 +1030,9 @@ struct NoteRow: View {
             }
             .padding(.horizontal, 12).padding(.vertical, 9)
             .background(RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(selected ? Theme.accent.opacity(0.12) : (hover ? Color.primary.opacity(0.05) : Theme.card)))
+                .fill(selected ? Theme.paper : (hover ? Theme.selection.opacity(0.5) : .clear)))
             .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .strokeBorder(selected ? Theme.accent.opacity(0.45) : Color.primary.opacity(0.06)))
+                .strokeBorder(selected ? Theme.cardStroke : .clear))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -1225,7 +1192,7 @@ struct InboxCard: View {
             }
             HStack(spacing: 8) {
                 Button { store.approveItem(note) } label: { Label(isEdit ? "Apply Change" : isFiling ? "File It" : "Approve", systemImage: "checkmark") }
-                    .buttonStyle(.borderedProminent).tint(.green)
+                    .buttonStyle(.borderedProminent).tint(Theme.button)
                 Button(role: .destructive) { store.rejectItem(note) } label: { Label("Reject", systemImage: "xmark") }
                     .buttonStyle(.bordered)
                 Spacer()
@@ -1493,7 +1460,7 @@ struct HistoryRow: View {
 struct StepsList: View {
     var steps: [String]
     var running: Bool
-    @State private var open = true
+    @State private var open = false
     @State private var expanded: Set<Int> = []
     var body: some View {
         DisclosureGroup(isExpanded: $open) {
@@ -1554,9 +1521,11 @@ struct StepsList: View {
     }
 }
 
-/// The divider between the pane and the note: drag to resize (360–900 pt).
+/// Resizes the browser while reserving enough room for the note.
 struct ResizeHandle: View {
     @Binding var width: Double
+    var minimum: Double = 260
+    var maximum: Double = 900
     @State private var start: Double?
     @State private var hover = false
 
@@ -1573,7 +1542,7 @@ struct ResizeHandle: View {
             .gesture(DragGesture(minimumDistance: 1)
                 .onChanged { g in
                     if start == nil { start = width }
-                    width = min(900, max(360, (start ?? width) + g.translation.width))
+                    width = min(maximum, max(minimum, (start ?? width) + g.translation.width))
                 }
                 .onEnded { _ in start = nil })
     }

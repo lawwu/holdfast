@@ -13,7 +13,7 @@ struct HoldfastApp: App {
         WindowGroup("Holdfast") {
             RootView()
                 .environmentObject(store)
-                .frame(minWidth: 1120, minHeight: 700)
+                .frame(minWidth: 1120, minHeight: 680)
         }
         .windowToolbarStyle(.unified)
 
@@ -116,12 +116,12 @@ enum Pane: String, CaseIterable, Identifiable {
     var fullBleed: Bool { self == .ask || self == .graph }
     /// Pages whose content needs the full width even with nothing open.
     var wide: Bool { fullBleed || self == .tables }
-    /// The sidebar's sections.
-    static let groups: [(title: String?, panes: [Pane])] = [
-        (nil, [.ask, .listen]),
-        ("Notes", [.files, .library, .tables, .graph]),
-        ("Activity", [.inbox, .history]),
-    ]
+    static let libraryViews: [Pane] = [.library, .files, .tables, .graph]
+    static let primaryPanes: [Pane] = [.ask, .library, .inbox, .listen]
+    var isLibrary: Bool { Self.libraryViews.contains(self) }
+    var primary: Pane { isLibrary ? .library : self == .history ? .ask : self }
+    var libraryLabel: String { self == .library ? "Notes" : self == .files ? "Folders" : rawValue }
+    var compactBrowser: Bool { self == .library || self == .files }
 }
 
 /// Where answers are generated: an MLX model inside the app (which one is
@@ -399,7 +399,7 @@ final class Store: ObservableObject {
 
     func download(_ spec: MLXModelSpec) { downloadRepo(spec.repo) }
 
-    /// Downloads a model into the Hugging Face cache (where search models are looked for too).
+    /// Downloads a model into the app's model folder using the configured source.
     /// When it is the embedder, the index is rebuilt so notes get meaning-search vectors.
     func downloadRepo(_ repo: String, then: (@MainActor () -> Void)? = nil) {
         guard downloads[repo] == nil else { return }

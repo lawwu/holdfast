@@ -79,9 +79,9 @@ struct FilesView: View {
                         if let n = node.note {
                             FileRow(name: n.name, detail: nil, note: n)
                         } else {
-                            Label(node.name, systemImage: "folder.fill")
+                            Label(node.name, systemImage: "folder")
                                 .foregroundStyle(.primary)
-                                .labelStyle(FolderLabel(color: node.id.split(separator: "/").first.map { domainColor(String($0)) } ?? Theme.accent))
+                                .labelStyle(FolderLabel(color: Theme.secondary))
                         }
                     }
                 }
@@ -89,13 +89,14 @@ struct FilesView: View {
                 .scrollContentBackground(.hidden)
             }
             HStack {
-                Text("\(store.notes.count) notes · \(store.links.edgeCount) links").font(Theme.caption).foregroundStyle(.secondary)
+                Text("\(store.notes.count) notes").font(Theme.caption).foregroundStyle(.secondary)
+                    .help("\(store.links.edgeCount) links between notes")
                 Spacer()
                 Button("Quick Open ⌘O") { store.showQuickOpen = true }.buttonStyle(.link).font(Theme.caption)
             }
             .padding(.horizontal, 14).padding(.vertical, 8)
         }
-        .navigationTitle("Files")
+        .navigationTitle("Library")
     }
 }
 
@@ -241,9 +242,9 @@ struct QuickOpenRow: View {
     var note: Note
     var selected: Bool
     var body: some View {
-        let fg: Color = selected ? .white : .primary
-        let sub: Color = selected ? Color.white.opacity(0.8) : Color.secondary
-        let bg: AnyShapeStyle = selected ? AnyShapeStyle(Theme.gradient) : AnyShapeStyle(Color.clear)
+        let fg = selected ? Theme.accent : Theme.ink
+        let sub = Theme.secondary
+        let bg = selected ? Theme.selection : Color.clear
         HStack(spacing: 10) {
             Image(systemName: "doc.text").foregroundStyle(sub)
             VStack(alignment: .leading, spacing: 1) {

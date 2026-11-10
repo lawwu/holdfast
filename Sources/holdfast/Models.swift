@@ -1,4 +1,3 @@
-import Hub
 import Foundation
 import MLX
 import MLXEmbedders
@@ -27,7 +26,7 @@ final class Embedder: @unchecked Sendable {
         // HOLDFAST_EMBED=none: keyword search only (to measure what embeddings add).
         guard isEnabled else { return nil }
         guard let dir = Config.embedModelDir else {
-            log("no \(spec.label) in the HF cache; keyword search only")
+            log("no downloaded \(spec.label); keyword search only")
             return nil
         }
         let c = try await EmbedderModelFactory.shared.loadContainer(from: dir, using: #huggingFaceTokenizerLoader())
@@ -92,18 +91,15 @@ final class Reranker: @unchecked Sendable {
 
     static var modelDir: URL? {
         if let p = ProcessInfo.processInfo.environment["HOLDFAST_RERANK_DIR"] { return URL(fileURLWithPath: p) }
-        let snaps = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".cache/huggingface/hub/models--\(repo.replacingOccurrences(of: "/", with: "--"))/snapshots")
-        guard let s = try? FileManager.default.contentsOfDirectory(atPath: snaps.path).sorted().last else { return nil }
-        return snaps.appendingPathComponent(s)
+        return ModelFiles.directory(repo: repo, modelsDirectory: Prefs.modelsDir)
     }
 
     /// Loaded once; nil (keyword + vector only) if missing or HOLDFAST_RERANK=0.
     static func shared() async -> Reranker? {
         guard Prefs.rerankerOn else { return nil }
         if tried { return cached }
-        tried = true
         guard ProcessInfo.processInfo.environment["HOLDFAST_RERANK"] != "0", let dir = modelDir else { return nil }
+        tried = true
         do {
             let c = try await RerankerModelFactory.shared.loadContainer(
                 from: dir, using: #huggingFaceTokenizerLoader(), allowUnverifiedModel: true)
@@ -215,15 +211,7 @@ final class MLXBackend: LLMBackend, @unchecked Sendable {
     /// HOLDFAST_MLX_DIR wins; then the Hugging Face cache; then the app's own downloads.
     static func modelDir(repo: String = currentRepo) -> URL? {
         if let p = ProcessInfo.processInfo.environment["HOLDFAST_MLX_DIR"] { return URL(fileURLWithPath: p) }
-        let snaps = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".cache/huggingface/hub/models--\(repo.replacingOccurrences(of: "/", with: "--"))/snapshots")
-        if let s = try? FileManager.default.contentsOfDirectory(atPath: snaps.path).sorted().last {
-            let d = snaps.appendingPathComponent(s)
-            if FileManager.default.fileExists(atPath: d.appendingPathComponent("config.json").path) { return d }
-        }
-        let own = Prefs.modelsDir.appendingPathComponent("models/\(repo)")
-        let done = own.appendingPathComponent(".complete")
-        return FileManager.default.fileExists(atPath: done.path) ? own : nil
+        return ModelFiles.directory(repo: repo, modelsDirectory: Prefs.modelsDir)
     }
 
     static var isLoaded: Bool { cached != nil }
@@ -237,11 +225,8 @@ final class MLXBackend: LLMBackend, @unchecked Sendable {
 
     /// Download an MLX repo into the app's models folder. `progress` gets 0…1.
     static func download(repo: String, progress: @escaping @Sendable (Double) -> Void) async throws {
-        let hub = HubApi(downloadBase: Prefs.modelsDir, cache: nil)
-        let dir = try await hub.snapshot(from: repo, matching: ["*.json", "*.safetensors", "*.jinja", "*.txt", "*.model"]) { p in
-            progress(p.fractionCompleted)
-        }
-        FileManager.default.createFile(atPath: dir.appendingPathComponent(".complete").path, contents: Data())
+        let source = try ModelDownloadSource.current()
+        try await ModelDownloader.download(repo: repo, source: source, to: Prefs.modelsDir, progress: progress)
     }
 
     static func shared() async throws -> MLXBackend {

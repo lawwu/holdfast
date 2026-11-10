@@ -546,7 +546,6 @@ struct TurnView: View {
                 if !entry.sources.isEmpty {
                     Button(showSources ? "Hide sources" : "\(entry.sources.count) sources") { showSources.toggle() }.buttonStyle(.link).font(Theme.caption)
                 }
-                if let r = entry.route { Label(r, systemImage: "arrow.triangle.branch").font(Theme.caption).foregroundStyle(.tertiary) }
             }
             if showSources {
                 ForEach(Array(entry.sources.enumerated()), id: \.offset) { i, s in
@@ -555,6 +554,7 @@ struct TurnView: View {
                     }.buttonStyle(.link)
                 }
             }
+            AnswerDetails(stats: entry.stats, model: entry.model, route: entry.route)
         }
     }
 }
@@ -721,7 +721,7 @@ struct RecommendationRows: View {
         } else {
             Button(String(format: "Download %.0f GB", m.sizeGB)) { store.downloadRepo(m.repo) { store.selectMLX(m.repo) } }
                 .controlSize(.small)
-                .help("From huggingface.co/\(m.repo)")
+                .help("Download \(m.repo) using the source in Settings → Downloads.")
         }
     }
 }

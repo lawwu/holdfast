@@ -30,11 +30,21 @@
   separate regular-Pi app. The reusable adapter continues to support both harnesses.
 - **Undo for successive approvals.** Each approved edit now keeps an unthrottled,
   byte-exact snapshot; UTF-8 BOMs survive Apply Change and Undo.
+- **Custom model download sources.** Settings → Downloads accepts Hugging Face-compatible
+  mirror URLs, including JFrog Artifactory, with per-endpoint tokens in Keychain and
+  `HF_ENDPOINT` / `HF_TOKEN` environment overrides. Answer, embedding and reranker downloads
+  share the source; search models now also load from the app's completed downloads.
 - **Native agent harness.** Local MLX and network Research now share one runtime with a
   tool registry, validated arguments, conversation transcripts, lifecycle events, cancellation
   and bounded execution. Local model handoff continues from tool results instead of replaying
   earlier proposals. Private local journals record tool intent before execution and the outcome
   afterward. The structure is informed by Pi and Pennant; no new runtime dependencies.
+- **Paper & Pine.** Warm paper surfaces, evergreen accents, editorial headings, and a quieter
+  sidebar in light and dark mode. Library now contains Notes, Folders, Tables and Graph; recent
+  questions and all conversations sit under Ask. Narrower, resizable browsing panes leave more
+  room for notes, with a labeled Focus control. Sources offer inline passage previews; generation
+  statistics and retrieval scores are available on demand. The new bound-page H icon shares one
+  vector renderer across the sidebar, Dock and packaged app.
 - **Changes from Ask.** "Mark … done", "add … to …": the model reads the note and proposes the exact
   change, which waits in the Inbox with removed and added lines until approved; undo restores the
   copy kept first. A note changed since the proposal is refused, generated files are refused.
