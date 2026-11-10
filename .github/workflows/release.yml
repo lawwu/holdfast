@@ -15,6 +15,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 # A manual retry and a tag push share the same group. Never interrupt an upload.
 concurrency:
   group: macos-${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.ref }}
@@ -42,10 +46,11 @@ jobs:
   build:
     name: Build and test Apple Silicon installer
     needs: resolve
-    runs-on: macos-15
+    # MLX's pinned dependencies require Swift 6.3, newer than macos-15's Xcode.
+    runs-on: xcode-27
     timeout-minutes: 60
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
       HOLDFAST_BUILD_JOBS: '2'
       RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
     steps:
@@ -78,9 +83,9 @@ jobs:
           path: |
             .build/xcode/SourcePackages
             .build/distribution-xcode
-          key: macos-arm64-xcode26.3-${{ hashFiles('**/Package.resolved', '**/Package.swift') }}-${{ github.sha }}
+          key: macos27-arm64-xcode27.2-${{ hashFiles('**/Package.resolved', '**/Package.swift') }}-${{ github.sha }}
           restore-keys: |
-            macos-arm64-xcode26.3-${{ hashFiles('**/Package.resolved', '**/Package.swift') }}-
+            macos27-arm64-xcode27.2-${{ hashFiles('**/Package.resolved', '**/Package.swift') }}-
       - name: Test release guards, reusable packages, and Pi
         run: |
           python3 -m unittest discover -s Tests -p 'test_release.py' -v

@@ -13,7 +13,8 @@ the app bundle as a unit; the installer does not relocate itself to a developmen
 ## Automated unsigned prereleases
 
 [macOS build and release](../.github/workflows/release.yml) builds on an Apple Silicon
-macOS 15 runner with Xcode 26.3. Pull requests and pushes to `main` run the package,
+`xcode-27` runner with Xcode 27.2. The pinned MLX dependencies require Swift 6.3;
+the installer still targets macOS 15 or later. Pull requests and pushes to `main` run the package,
 Pi, release-guard, and installer checks and save the resulting installer as an Actions
 artifact. They do not publish a GitHub release.
 
