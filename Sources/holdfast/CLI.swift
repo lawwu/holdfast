@@ -30,6 +30,7 @@ holdfast — Holdfast's command line: a private knowledge base over a folder of 
                 [--research] [--retrieval-only]   answer with the tool loop, or score search alone
   holdfast eval-filing [filing.json] --label <name>  score where dropped documents get filed (eval/household/)
   holdfast status                                 vault and index counts
+  holdfast models [--ram GB] [--json]             which answer model suits this Mac (scores from the household eval)
 
 Vault: $HOLDFAST_VAULT (default ~/Holdfast). Model: $HOLDFAST_BACKEND=mlx (default) | remote | ollama.
   mlx: $HOLDFAST_MLX_REPO (default mlx-community/Qwen3.8-27B-4bit), run in this process.
@@ -335,6 +336,53 @@ do {
         try await runFilingEval(casesPath: args.first ?? "eval/household/filing.json", label: label,
                                 outDir: URL(fileURLWithPath: option("--out").first ?? "eval/household/results/filing"),
                                 only: Set(option("--only")))
+    case "models":
+        // Which answer model suits a Mac, from the household eval's measurements (Recommend.swift).
+        let ram = option("--ram").first.flatMap(Double.init) ?? Recommend.thisMacGB
+        let json = flag("--json")
+        let pick = Recommend.pick(ramGB: ram)
+        func role(_ m: ModelScore) -> String? { m == pick?.best ? "best" : m == pick?.faster ? "faster" : nil }
+        if json {
+            let rows: [[String: Any]] = Recommend.ranked.map { m in
+                var d: [String: Any] = ["repo": m.repo, "name": m.name, "detail": m.detail, "sizeGB": m.sizeGB,
+                                        "fit": Recommend.fit(m, ramGB: ram).rawValue,
+                                        "downloaded": MLXBackend.modelDir(repo: m.repo) != nil]
+                for (k, v) in [("answers", m.answers), ("research", m.research), ("filingPlace", m.filingPlace),
+                               ("filingFacts", m.filingFacts), ("peakGB", m.peakGB), ("tokPerSec", m.tokPerSec),
+                               ("medianSeconds", m.medianSeconds), ("overall", Recommend.overall(m))] {
+                    if let v { d[k] = (v * 10).rounded() / 10 }
+                }
+                if let l = m.leaks { d["leaks"] = l }
+                if let r = role(m) { d["recommended"] = r }
+                return d
+            }
+            let data = try JSONSerialization.data(withJSONObject: ["ramGB": ram, "measuredOn": ModelCatalog.measuredOn, "models": rows],
+                                                  options: [.prettyPrinted, .sortedKeys])
+            print(String(decoding: data, as: UTF8.self))
+            return
+        }
+        func p(_ v: Double?, _ f: String = "%.0f%%") -> String { v.map { String(format: f, $0) } ?? "—" }
+        print(String(format: "Answer models for a Mac with %.0f GB, from the household eval (measured on an %@):\n", ram, ModelCatalog.measuredOn))
+        let head = ["", "Model", "Download", "Needs", "Fits", "Answers", "Hard", "Filing", "Per answer", "Overall", ""]
+        var rows = [head]
+        for m in Recommend.ranked {
+            rows.append([role(m) == "best" ? "★" : role(m) == "faster" ? "»" : "", "\(m.name) \(m.detail)",
+                         String(format: "%.1f GB", m.sizeGB), p(m.peakGB, "%.0f GB"), Recommend.fit(m, ramGB: ram).rawValue,
+                         p(m.answers), p(m.research), p(m.filingPlace), p(m.medianSeconds, "%.0f s"), p(Recommend.overall(m), "%.0f"),
+                         MLXBackend.modelDir(repo: m.repo) != nil ? "downloaded" : ""])
+        }
+        let widths = head.indices.map { i in rows.map { $0[i].count }.max() ?? 0 }
+        for r in rows { print(r.indices.map { r[$0].padding(toLength: widths[$0], withPad: " ", startingAt: 0) }.joined(separator: "  ")) }
+        print()
+        if let pick {
+            print("★ \(pick.best.name): \(pick.why)")
+            if let f = pick.faster, let w = pick.fasterWhy { print("» \(f.name): \(w)") }
+        } else {
+            print("None of the measured models fits this much memory; use a model on another Mac (README).")
+        }
+        for (what, why) in Recommend.others { print("\(what): \(why)") }
+        print("Hard: the hard questions answered with Research. Overall weighs Research and filing most and takes points off for privacy slips.")
+        print("Choose one in Settings → Answer model (the app downloads it), or HOLDFAST_MLX_REPO=<repo> for the command line.")
     case "status":
         let idx = try Index()
         let c = idx.count()

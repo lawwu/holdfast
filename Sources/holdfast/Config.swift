@@ -120,19 +120,13 @@ struct MLXModelSpec: Identifiable, Hashable {
     let blurb: String
     var id: String { repo }
 
-    static let shortList = [
-        MLXModelSpec(repo: "mlx-community/Qwen3.8-27B-4bit", name: "Qwen 3.8 27B", detail: "4-bit", sizeGB: 16.1,
-                     blurb: "Recommended. 98% on the case-report eval at ~11 tok/s."),
-        MLXModelSpec(repo: "mlx-community/Qwen3.8-27B-8bit", name: "Qwen 3.8 27B", detail: "8-bit", sizeGB: 29.5,
-                     blurb: "Same model at higher precision; about half the speed."),
-        MLXModelSpec(repo: "mlx-community/gemma-4-26b-a4b-it-4bit", name: "Gemma 4 26B A4B", detail: "4-bit · MoE", sizeGB: 15.4,
-                     blurb: "Google's mixture-of-experts: ~4B active, so much faster. Not yet evaluated."),
-        MLXModelSpec(repo: "mlx-community/gemma-4-e4b-it-4bit", name: "Gemma 4 E4B", detail: "4-bit", sizeGB: 4.8,
-                     blurb: "Google's small model: ~60 tok/s here. Not yet evaluated."),
-        MLXModelSpec(repo: "mlx-community/Qwen3.5-9B-4bit", name: "Qwen 3.5 9B", detail: "4-bit", sizeGB: 6.0,
-                     blurb: "Small and quick; for Macs with 16 GB. Not yet evaluated."),
-    ]
-    static let fallback = shortList[0]
+    /// The measured models, best first (Recommend.swift, from the household eval), then one that isn't measured.
+    static let shortList: [MLXModelSpec] = Recommend.ranked.map { m in
+        MLXModelSpec(repo: m.repo, name: m.name, detail: m.detail, sizeGB: m.sizeGB, blurb: Recommend.summary(m))
+    } + [MLXModelSpec(repo: "mlx-community/Qwen3.8-27B-8bit", name: "Qwen 3.8 27B", detail: "8-bit", sizeGB: 29.5,
+                      blurb: "The 4-bit model at higher precision; about half the speed. Not measured by the eval.")]
+    /// Before a model is chosen: the one recommended for this Mac's memory.
+    static let fallback = find(Recommend.pick()?.best.repo ?? "") ?? find("mlx-community/Qwen3.8-27B-4bit") ?? shortList[0]
     static func find(_ repo: String) -> MLXModelSpec? { shortList.first { $0.repo == repo } }
 }
 

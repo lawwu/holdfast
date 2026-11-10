@@ -720,16 +720,65 @@ struct JobConfirmCard: View {
 struct FirstRunCard: View {
     @EnvironmentObject var store: Store
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "arrow.down.circle").font(.title3).foregroundStyle(Theme.accent)
-            VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                Image(systemName: "arrow.down.circle").font(.title3).foregroundStyle(Theme.accent)
                 Text("Download a model to start").font(Theme.headline)
-                Text("Holdfast answers with a model that runs on this Mac. Download one in Settings → Models (the default is about 16 GB; smaller ones work on 16 GB Macs), and the search models in Settings → Search.")
-                    .font(Theme.callout).foregroundStyle(.secondary)
-                SettingsLink { Text("Open Settings…") }.padding(.top, 2)
             }
-            Spacer(minLength: 0)
+            Text("Holdfast answers with a model that runs on this Mac. This is the one that suits it best; others, and the search models, are in Settings.")
+                .font(Theme.callout).foregroundStyle(.secondary)
+            RecommendationRows()
+            SettingsLink { Text("Open Settings…") }
         }
         .card(padding: 14)
+    }
+}
+
+/// "Recommended for this Mac" with a faster alternative when there is one, each with Download, Use or In use.
+struct RecommendationRows: View {
+    @EnvironmentObject var store: Store
+    var body: some View {
+        if let p = Recommend.pick() {
+            VStack(alignment: .leading, spacing: 10) {
+                row(p.best, label: String(format: "Recommended for this Mac (%.0f GB)", p.ramGB), why: p.why)
+                if let f = p.faster, let w = p.fasterWhy { row(f, label: "Faster", why: w) }
+                Text("Scores from Holdfast's household eval, measured on an \(ModelCatalog.measuredOn).")
+                    .font(Theme.caption2).foregroundStyle(.tertiary)
+            }
+        } else {
+            Text("None of the measured models fits this Mac's memory well; a model on another Mac can answer instead.")
+                .font(Theme.callout).foregroundStyle(.secondary)
+        }
+    }
+
+    func row(_ m: ModelScore, label: String, why: String) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label.uppercased()).font(Theme.caption2.weight(.semibold)).tracking(0.5).foregroundStyle(Theme.accent)
+                Text("\(m.name) · \(m.detail)").font(Theme.callout.weight(.semibold))
+                Text(why).font(Theme.caption).foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 8)
+            action(m)
+        }
+    }
+
+    @ViewBuilder func action(_ m: ModelScore) -> some View {
+        if let f = store.downloads[m.repo] {
+            HStack(spacing: 6) {
+                ProgressView(value: f).frame(width: 70)
+                Text(String(format: "%.0f%%", f * 100)).font(Theme.caption).monospacedDigit().foregroundStyle(.secondary)
+            }
+        } else if store.isDownloaded(m.repo) {
+            if store.backend == .mlx && store.mlxRepo == m.repo {
+                Pill(text: "In use", icon: "checkmark", color: .green)
+            } else {
+                Button("Use") { store.selectMLX(m.repo) }.controlSize(.small)
+            }
+        } else {
+            Button(String(format: "Download %.0f GB", m.sizeGB)) { store.downloadRepo(m.repo) { store.selectMLX(m.repo) } }
+                .controlSize(.small)
+                .help("From huggingface.co/\(m.repo)")
+        }
     }
 }
