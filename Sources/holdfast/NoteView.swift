@@ -85,6 +85,16 @@ struct NoteView: View {
                 }
                 .pickerStyle(.segmented)
                 .help("Switch between reading and editing (⌘E)")
+                let originals = Originals.linked(from: note)
+                if originals.count == 1, let o = originals.first {
+                    Button { NSWorkspace.shared.open(o) } label: { Label("Open Original", systemImage: "doc.richtext") }
+                        .help("Open \(o.lastPathComponent), the document this note was filed from")
+                } else if originals.count > 1 {
+                    Menu {
+                        ForEach(originals, id: \.self) { o in Button(o.lastPathComponent) { NSWorkspace.shared.open(o) } }
+                    } label: { Label("Open Original", systemImage: "doc.richtext") }
+                    .help("The documents this note was filed from")
+                }
                 Button { NSWorkspace.shared.activateFileViewerSelecting([note.path]) } label: {
                     Label("Show in Finder", systemImage: "folder")
                 }

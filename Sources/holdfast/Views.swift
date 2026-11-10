@@ -219,6 +219,7 @@ struct RootView: View {
         .sheet(isPresented: $store.showLinkSheet) { LinkSheet() }
         .sheet(isPresented: $store.showBulkImport) { BulkImportSheet().environmentObject(store) }
         .sheet(isPresented: $store.showRemoteSetup) { RemoteSetupSheet().environmentObject(store) }
+        .sheet(isPresented: $store.showExport) { ExportSheet().environmentObject(store) }
         .sheet(item: $store.reading) { t in ConversationReader(thread: t.id).environmentObject(store) }
         .overlay {
             // Quick Open and the command palette float like Spotlight: a click outside closes them.
@@ -494,6 +495,17 @@ struct AskHero: View {
                 }
                 AskNotices()
                 Composer()
+                if !store.pins.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("PINNED").font(Theme.caption.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
+                        LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                            ForEach(store.pins) { p in
+                                SuggestionCard(icon: "pin.fill", text: p.question) { store.askSuggested(p.question) }
+                                    .contextMenu { Button("Unpin") { store.togglePin(p.question) } }
+                            }
+                        }
+                    }
+                }
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
                     ForEach(suggestions, id: \.1) { icon, q in SuggestionCard(icon: icon, text: q) { store.askSuggested(q) } }
                 }
@@ -695,6 +707,10 @@ struct AnswerCard: View {
                         NSPasteboard.general.setString(store.answer, forType: .string)
                     } label: { Label("Copy", systemImage: "doc.on.doc") }
                     .buttonStyle(.borderless).help("Copy the answer")
+                    Button { store.togglePin(store.askedQuestion) } label: {
+                        Label(store.isPinned(store.askedQuestion) ? "Pinned" : "Pin", systemImage: store.isPinned(store.askedQuestion) ? "pin.fill" : "pin")
+                    }
+                    .buttonStyle(.borderless).help("Keep this question on the Ask home page, to ask again with one click")
                 }
                 .labelStyle(TightLabel())
                 .font(Theme.caption).foregroundStyle(.secondary)

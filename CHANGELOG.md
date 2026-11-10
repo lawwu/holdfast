@@ -29,6 +29,10 @@
   alternative; Settings lists every measured model with its scores. Before a model is chosen, the
   default is this Mac's pick. On 64 GB: Qwen 3.8 27B (Gemma 4 26B A4B as the 4× faster choice);
   32 GB: Qwen 3.5 9B; 16 GB: Qwen 3.5 4B.
+- **Backup, originals, export, pins.** Checked backups with Verify and Test Restore; the document a
+  filing came from kept beside its note with Open Original; checked ZIP exports with counseling
+  left out by default; questions pinned to the Ask home page. Tested on the scratch vault: a
+  tampered file is caught, undo removes a kept original, a backup inside the vault is refused.
 - **Renamed to Holdfast everywhere** (command, bundle id, settings, data folder); the old name's
   settings and data move over on first run.
 
