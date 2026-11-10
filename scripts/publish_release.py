@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 import subprocess
 
+from release_ref import resolve
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -19,11 +21,14 @@ def run(*args):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--tag', required=True, help='Existing version tag to publish; never creates or pushes tags')
     parser.add_argument('--publish', action='store_true')
     parser.add_argument('--allow-unsigned-preview', action='store_true')
     args = parser.parse_args()
-    version = (ROOT / 'VERSION').read_text().strip()
-    tag = 'v' + version
+    release = resolve(args.tag, root=ROOT)
+    version, tag = release['version'], release['tag']
+    if release['revision'] != output('git', 'rev-parse', 'HEAD'):
+        raise RuntimeError('Check out the release tag before uploading its artifacts')
     folder = ROOT / 'build/releases' / version
     manifest = json.loads((folder / 'release-manifest.json').read_text())
     installer = folder / manifest['installer']
@@ -31,12 +36,18 @@ def main():
         raise RuntimeError('Build the release from the current committed source before uploading')
     if output('git', 'status', '--porcelain', '--untracked-files=no'):
         raise RuntimeError('Commit tracked changes before publishing')
-    if output('git', 'branch', '--show-current') != 'main':
-        raise RuntimeError('Publish releases from main')
+    if manifest['version'] != version:
+        raise RuntimeError('Manifest version does not match the release tag')
     if hashlib.sha256(installer.read_bytes()).hexdigest() != manifest['sha256']:
         raise RuntimeError('Installer checksum mismatch')
+    if (folder / 'SHA256SUMS').read_text() != f"{manifest['sha256']}  {manifest['installer']}\n":
+        raise RuntimeError('SHA256SUMS does not match the verified installer')
     test_result = json.loads((folder / 'verification.json').read_text())
-    if test_result.get('installerSHA256') != manifest['sha256'] or not test_result.get('passed'):
+    required_checks = ['passed', 'payloadAndBundleValidated', 'bundledRuntimeValidated',
+                       'approvalUndoStaleEditValidated', 'developerFallbacksDisabled']
+    if (test_result.get('installerSHA256') != manifest['sha256']
+            or test_result.get('version') != version
+            or not all(test_result.get(key) is True for key in required_checks)):
         raise RuntimeError('Run Tests/installer_integration.py against this exact installer first')
     trusted = manifest['developerIDSigned'] and manifest['notarized']
     if args.publish and not trusted and not args.allow_unsigned_preview:
@@ -49,29 +60,29 @@ def main():
     notes = notes_path.read_text() if notes_path.is_file() else ''
     if not notes:
         raise RuntimeError('Add release notes for this version before uploading')
-    status = ('**Signed and notarized by Apple.**\n\n' if trusted else
+    status = ('**Developer ID signed and notarized by Apple.**\n\n' if trusted else
               '**Unsigned preview — not notarized by Apple.** macOS may block this installer or require '
               'an explicit security exception. For a routine installation, use a future signed release.\n\n')
     body = folder / 'release-notes.md'
-    body.write_text(status + notes)
+    testing = ('\n\nAutomated checks cover the installer, bundled Pi runtime, Inbox approvals, Undo, '
+               'and stale-edit refusal. Real MLX inference was not run for this artifact; '
+               'hardware inference tests remain a separate local check.\n'
+               if not test_result.get('realEmbeddedMLXTested') else '')
+    body.write_text(status + notes + testing)
     repository = 'lawwu/holdfast'
-    existing_tag = subprocess.run(['git', 'rev-parse', '--verify', 'refs/tags/' + tag], cwd=ROOT, capture_output=True)
-    if existing_tag.returncode:
-        run('git', 'tag', '-a', tag, '-m', 'Holdfast ' + tag, manifest['sourceRevision'])
-    if output('git', 'rev-list', '-n', '1', tag) != manifest['sourceRevision']:
-        raise RuntimeError('The version tag already points to another commit; choose a new version')
-    run('git', 'push', 'origin', 'HEAD:main', 'refs/tags/' + tag)
-    current = subprocess.run(['gh', 'release', 'view', tag, '--repo', repository, '--json', 'isDraft'],
+    current = subprocess.run(['gh', 'api', f'repos/{repository}/releases/tags/{tag}'],
                              cwd=ROOT, capture_output=True, text=True)
     if current.returncode == 0:
-        if not json.loads(current.stdout)['isDraft']:
+        if not json.loads(current.stdout)['draft']:
             raise RuntimeError('This release is already published; published assets are never replaced')
         run('gh', 'release', 'edit', tag, '--repo', repository, '--notes-file', body, '--prerelease')
-    else:
+    elif 'HTTP 404' in current.stderr:
         run('gh', 'release', 'create', tag, '--repo', repository, '--verify-tag', '--draft', '--prerelease',
             '--title', 'Holdfast ' + tag, '--notes-file', body)
+    else:
+        raise RuntimeError('Could not check the existing release: ' + current.stderr.strip())
     run('gh', 'release', 'upload', tag, '--repo', repository, '--clobber',
-        installer, folder / 'SHA256SUMS', folder / 'release-manifest.json')
+        installer, folder / 'SHA256SUMS', folder / 'release-manifest.json', folder / 'verification.json')
     if args.publish:
         run('gh', 'release', 'edit', tag, '--repo', repository, '--draft=false', '--prerelease', '--latest=false')
     print(output('gh', 'release', 'view', tag, '--repo', repository, '--json', 'url', '--jq', '.url'))

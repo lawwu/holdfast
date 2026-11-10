@@ -1,4 +1,5 @@
 import Foundation
+import Metal
 import MLX
 import MLXEmbedders
 import MLXLLM
@@ -125,6 +126,9 @@ final class Reranker: @unchecked Sendable {
 /// Several models share unified memory (27B LLM, embedder, reranker, Parakeet):
 /// cap MLX's buffer cache so freed memory goes back to the system.
 func configureMLXMemory() {
+    // HTTP providers and scripted tool tests can run on Macs without a Metal device.
+    // Setting MLX's cache limit would otherwise initialize the unavailable GPU.
+    guard MTLCreateSystemDefaultDevice() != nil else { return }
     Memory.cacheLimit = 2 << 30  // 2 GB
 }
 

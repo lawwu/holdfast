@@ -8,6 +8,8 @@ The first version is **v0.0.1**, an Apple Silicon / macOS 15+ preview. Check eac
 signing status before installing. Release installers include Node and install Holdfast in
 `/Applications`; model weights are downloaded separately. Recording-file and stream imports
 need optional `ffmpeg`, and video-link imports also need `yt-dlp`.
+GitHub Actions builds and checks the installer; new version tags publish unsigned
+prereleases. Real MLX inference tests remain local.
 See [release and packaging instructions](docs/releases.md).
 
 LocalMLX runs inside the Mac app by default. You can also choose Ollama, LM Studio, or a custom

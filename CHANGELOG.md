@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- GitHub Actions checks reusable packages, Pi, and the macOS installer on pull requests
+  and pushes to main. Version tags publish verified artifacts as unsigned prereleases.
+- Publication checks the tag, source revision, checksums, and test results, and refuses
+  to replace a published release. Real MLX inference tests remain local.
+- Skip MLX memory setup when no Metal device is available, allowing HTTP providers and
+  synthetic approval tests to start on Macs without a GPU.
+
 ## 0.0.1 — first installer preview
 
 - Versioned macOS installer for Apple Silicon and macOS 15+, with a bundled,

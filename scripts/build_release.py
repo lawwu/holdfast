@@ -32,7 +32,7 @@ def main():
     revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
     dirty = bool(subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=no'], cwd=ROOT).strip())
     dirty = dirty or bool(subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard',
-        'Sources', 'Packages', 'Runtime', 'QuickLook', 'scripts', 'packaging', 'Tests', 'docs',
+        'Sources', 'Packages', 'Runtime', 'QuickLook', 'scripts', 'packaging', 'Tests', 'docs', '.github',
         'VERSION', 'Package.swift', 'Package.resolved'], cwd=ROOT).strip())
     if dirty and not args.unsigned_preview:
         raise RuntimeError('Commit the release inputs before building a signed release')

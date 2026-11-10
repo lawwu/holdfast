@@ -7,6 +7,9 @@ DERIVED="${HOLDFAST_DERIVED_DATA:-.build/xcode}"
 APP_VERSION="${HOLDFAST_VERSION:-$(cat VERSION)}"
 APP_BUILD_NUMBER="${HOLDFAST_BUILD_NUMBER:-$(git rev-list --count HEAD)}"
 BUILD_OPTIONS=()
+if [[ -n "${HOLDFAST_BUILD_JOBS:-}" ]]; then
+  BUILD_OPTIONS+=(-jobs "$HOLDFAST_BUILD_JOBS")
+fi
 if [[ "${HOLDFAST_DISTRIBUTION:-0}" == "1" ]]; then
   export HOLDFAST_BUNDLE_NODE=1
   SWIFT_FLAGS='$(inherited) -D HOLDFAST_DISTRIBUTION'
@@ -15,7 +18,7 @@ if [[ "${HOLDFAST_DISTRIBUTION:-0}" == "1" ]]; then
 fi
 if [[ "${1:-}" != "--package-only" ]]; then
   npm ci --prefix Runtime/pi --omit=dev --ignore-scripts --no-audit --no-fund
-  xcodebuild -scheme holdfast -destination 'platform=macOS' -configuration Release \
+  xcodebuild -scheme holdfast -destination "platform=macOS,arch=$(uname -m)" -configuration Release \
     -derivedDataPath "$DERIVED" -clonedSourcePackagesDirPath .build/xcode/SourcePackages \
     -skipMacroValidation -skipPackagePluginValidation DEBUG_INFORMATION_FORMAT=dwarf \
     ${BUILD_OPTIONS[@]+"${BUILD_OPTIONS[@]}"} build -quiet
