@@ -2,6 +2,10 @@
 
 ## Next (after 0.1.0)
 
+- **Custom model download sources.** Settings → Downloads accepts Hugging Face-compatible
+  mirror URLs, including JFrog Artifactory, with per-endpoint tokens in Keychain and
+  `HF_ENDPOINT` / `HF_TOKEN` environment overrides. Answer, embedding and reranker downloads
+  share the source; search models now also load from the app's completed downloads.
 - **Paper & Pine.** Warm paper surfaces, evergreen accents, editorial headings, and a quieter
   sidebar in light and dark mode. Library now contains Notes, Folders, Tables and Graph; recent
   questions and all conversations sit under Ask. Narrower, resizable browsing panes leave more

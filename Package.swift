@@ -9,6 +9,7 @@ let package = Package(
         .package(url: "https://github.com/FluidInference/FluidAudio.git", from: "0.18.0"),
         .package(url: "https://github.com/ml-explore/mlx-swift-lm.git", from: "3.32.3"),  // pinned to releases, not main
         .package(url: "https://github.com/huggingface/swift-transformers.git", from: "1.0.0"),
+        .package(url: "https://github.com/huggingface/swift-huggingface.git", from: "1.0.0"),
     ],
     targets: [
         .executableTarget(
@@ -21,6 +22,7 @@ let package = Package(
                 .product(name: "MLXHuggingFace", package: "mlx-swift-lm"),
                 .product(name: "Tokenizers", package: "swift-transformers"),
                 .product(name: "Hub", package: "swift-transformers"),
+                .product(name: "HuggingFace", package: "swift-huggingface"),
             ],
             swiftSettings: [.swiftLanguageMode(.v5)],
             linkerSettings: [.linkedLibrary("sqlite3")]
