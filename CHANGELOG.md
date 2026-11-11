@@ -2,6 +2,8 @@
 
 ## 0.0.3 — bring your own LocalMLX model
 
+- Additional DMG download containing the exact app from the tested installer,
+  for Finder installation and compatible privilege-management workflows.
 - Add custom LocalMLX models from a Hugging Face repository or an existing local
   folder, alongside the recommended list. Check files and architecture before
   adding, preserve choices across launches, and keep Inbox approvals for edits.

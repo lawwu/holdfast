@@ -105,6 +105,8 @@ jobs:
         run: |
           python3 Tests/installer_integration.py "build/releases/$RELEASE_VERSION" 2>&1 | tee build/logs/installer-test.log
           python3 -c 'import json, os; v=json.load(open("build/releases/"+os.environ["RELEASE_VERSION"]+"/verification.json")); assert v["passed"] and not v["realEmbeddedMLXTested"]'
+      - name: Package and verify the same app in a disk image
+        run: python3 scripts/package_release_dmg.py "build/releases/$RELEASE_VERSION" 2>&1 | tee build/logs/dmg-test.log
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: macos-installer
@@ -113,6 +115,9 @@ jobs:
           compression-level: 0
           path: |
             build/releases/${{ needs.resolve.outputs.version }}/*.pkg
+            build/releases/${{ needs.resolve.outputs.version }}/*.dmg
+            build/releases/${{ needs.resolve.outputs.version }}/*.dmg.sha256
+            build/releases/${{ needs.resolve.outputs.version }}/dmg-verification.json
             build/releases/${{ needs.resolve.outputs.version }}/SHA256SUMS
             build/releases/${{ needs.resolve.outputs.version }}/release-manifest.json
             build/releases/${{ needs.resolve.outputs.version }}/verification.json
@@ -147,7 +152,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ needs.resolve.outputs.tag }}
-        run: python3 scripts/publish_release.py --tag "$RELEASE_TAG" --publish --allow-unsigned-preview
+        run: python3 scripts/publish_release.py --tag "$RELEASE_TAG" --publish --allow-unsigned-preview --include-dmg
 
   documentation:
     name: Deploy release documentation

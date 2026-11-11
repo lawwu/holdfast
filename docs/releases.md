@@ -10,6 +10,21 @@ The installer places `Holdfast.app` in `/Applications`. It has no installer scri
 background services, bundled model weights, or user-vault payload. Upgrades replace
 the app bundle as a unit; the installer does not relocate itself to a development copy.
 
+The unsigned release also offers a read-only DMG containing the same app. Open the
+disk image, then right-click **Holdfast.app → Install with Privilege Management**
+when your organization's Finder integration permits it. The DMG does not change
+Gatekeeper or management policy. BeyondTrust documents this flow for application
+bundles in [mounted disk images](https://docs.beyondtrust.com/epm-wm/v25.6/docs/gpo-macos-policies).
+The PKG remains available for standard or centrally managed installation.
+
+`python3 scripts/package_release_dmg.py build/releases/<version>` extracts the
+already tested installer, creates the DMG, mounts it read-only, and verifies every
+app file, symlink, executable bit, signature, and bundled runtime version. Its
+separate `.dmg.sha256` and `dmg-verification.json` identify both the DMG and its
+source installer. It does not claim to test an organization's privilege policy.
+The helper currently supports unsigned previews; a future signed DMG needs its
+own signing and notarization step.
+
 ## Automated unsigned prereleases
 
 [macOS build and release](../.github/workflows/release.yml) builds on an Apple Silicon
@@ -29,7 +44,8 @@ To publish a new version:
    git push origin v0.0.2
    ```
 
-3. The workflow builds and tests the tagged source, uploads the exact tested `.pkg`,
+3. The workflow builds and tests the tagged source, packages the same app in a DMG,
+   uploads the verified `.pkg`, `.dmg`, DMG checksum and verification report,
    `SHA256SUMS`, `release-manifest.json`, and `verification.json` to a draft, then publishes
    it as an **unsigned prerelease**, never as the latest stable release.
 4. After publication, it builds and tests the documentation from the same tag and

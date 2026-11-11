@@ -85,9 +85,9 @@ if sys.argv[1:3] == ['release', 'view']: print('https://example.invalid/release'
         self.assertEqual(result.returncode == 0, success, result.stdout + result.stderr)
         return result.stdout + result.stderr
 
-    def publish(self, success=True):
+    def publish(self, success=True, include_dmg=False):
         return self.command('publish_release.py', '--tag', 'v0.0.2', '--publish',
-                            '--allow-unsigned-preview', success=success)
+                            '--allow-unsigned-preview', *(['--include-dmg'] if include_dmg else []), success=success)
 
     def calls(self):
         return [json.loads(line) for line in self.log.read_text().splitlines()] if self.log.exists() else []
@@ -163,6 +163,40 @@ if sys.argv[1:3] == ['release', 'view']: print('https://example.invalid/release'
             self.log.unlink(missing_ok=True)
             self.publish(success=False)
             self.assertTrue(all(c[0] == 'api' for c in self.calls()))
+
+    def add_dmg(self):
+        name = 'Holdfast-0.0.2-macos-arm64-unsigned.dmg'
+        payload = b'synthetic disk image for publication guard tests'
+        digest = hashlib.sha256(payload).hexdigest()
+        (self.folder / name).write_bytes(payload)
+        (self.folder / (name + '.sha256')).write_text(f'{digest}  {name}\n')
+        report = dict(version='0.0.2', sourceRevision=self.revision, installerSHA256=self.digest,
+                      diskImage=name, diskImageSHA256=digest, passed=True, mountedReadOnly=True,
+                      appMatchesInstaller=True, signatureIntegrityValidated=True, bundledRuntimeValidated=True)
+        self.save('dmg-verification.json', report)
+        return name, report
+
+    def test_verified_dmg_uploaded_with_its_checksum_and_report(self):
+        name, _ = self.add_dmg()
+        self.publish(include_dmg=True)
+        upload = next(c for c in self.calls() if c[:2] == ['release', 'upload'])
+        self.assertEqual([Path(p).name for p in upload[-3:]], [name, name + '.sha256', 'dmg-verification.json'])
+
+    def test_missing_or_changed_dmg_never_reaches_github(self):
+        self.publish(success=False, include_dmg=True)
+        self.assertEqual(self.calls(), [])
+        name, _ = self.add_dmg()
+        (self.folder / name).write_bytes(b'changed image')
+        self.assertIn('DMG checksum mismatch', self.publish(success=False, include_dmg=True))
+        self.assertEqual(self.calls(), [])
+
+    def test_dmg_from_wrong_installer_or_failed_mount_never_reaches_github(self):
+        _, report = self.add_dmg()
+        for field, value in [('sourceRevision', 'old'), ('installerSHA256', 'old'),
+                             ('appMatchesInstaller', False), ('mountedReadOnly', False)]:
+            self.save('dmg-verification.json', {**report, field: value})
+            self.publish(success=False, include_dmg=True)
+            self.assertEqual(self.calls(), [])
 
     def add_demo_assets(self, *, invalid_checksum=False, missing=False):
         names = ['holdfast-tour.mp4', 'holdfast-tour.vtt', 'holdfast-sample-notes.zip']

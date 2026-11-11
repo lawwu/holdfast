@@ -11,6 +11,29 @@ from release_ref import resolve
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def dmg_assets(folder, manifest):
+    """Only upload a disk image verified against this exact installer."""
+    if manifest.get('developerIDSigned') or manifest.get('notarized'):
+        raise RuntimeError('Signed releases need a separately signed and notarized disk image')
+    report_path = folder / 'dmg-verification.json'
+    report = json.loads(report_path.read_text())
+    image = folder / f"Holdfast-{manifest['version']}-macos-arm64-unsigned.dmg"
+    checksum = image.with_suffix('.dmg.sha256')
+    checks = ['passed', 'mountedReadOnly', 'appMatchesInstaller',
+              'signatureIntegrityValidated', 'bundledRuntimeValidated']
+    if (report.get('version') != manifest['version']
+            or report.get('sourceRevision') != manifest['sourceRevision']
+            or report.get('installerSHA256') != manifest['sha256']
+            or report.get('diskImage') != image.name
+            or not all(report.get(key) is True for key in checks)):
+        raise RuntimeError('Verify the DMG against this exact tested installer before uploading')
+    digest = hashlib.sha256(image.read_bytes()).hexdigest()
+    if (digest != report.get('diskImageSHA256')
+            or checksum.read_text() != f'{digest}  {image.name}\n'):
+        raise RuntimeError('DMG checksum mismatch')
+    return [image, checksum, report_path]
+
+
 def demo_assets():
     """Attach only the reviewed, committed walkthrough files for this tag."""
     manifest_path = ROOT / 'Demo/release-assets.json'
@@ -43,6 +66,7 @@ def main():
     parser.add_argument('--tag', required=True, help='Existing version tag to publish; never creates or pushes tags')
     parser.add_argument('--publish', action='store_true')
     parser.add_argument('--allow-unsigned-preview', action='store_true')
+    parser.add_argument('--include-dmg', action='store_true', help='Require and upload a verified unsigned disk image')
     args = parser.parse_args()
     release = resolve(args.tag, root=ROOT)
     version, tag = release['version'], release['tag']
@@ -88,6 +112,7 @@ def main():
                'hardware inference tests remain a separate local check.\n'
                if not test_result.get('realEmbeddedMLXTested') else '')
     body.write_text(status + notes + testing)
+    disk_image = dmg_assets(folder, manifest) if args.include_dmg else []
     walkthrough = demo_assets()
     repository = 'lawwu/holdfast'
     current = subprocess.run(['gh', 'api', f'repos/{repository}/releases/tags/{tag}'],
@@ -102,7 +127,7 @@ def main():
     else:
         raise RuntimeError('Could not check the existing release: ' + current.stderr.strip())
     run('gh', 'release', 'upload', tag, '--repo', repository, '--clobber',
-        installer, folder / 'SHA256SUMS', folder / 'release-manifest.json', folder / 'verification.json', *walkthrough)
+        installer, folder / 'SHA256SUMS', folder / 'release-manifest.json', folder / 'verification.json', *disk_image, *walkthrough)
     if args.publish:
         run('gh', 'release', 'edit', tag, '--repo', repository, '--draft=false', '--prerelease', '--latest=false')
     print(output('gh', 'release', 'view', tag, '--repo', repository, '--json', 'url', '--jq', '.url'))

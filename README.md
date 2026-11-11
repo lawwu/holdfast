@@ -11,7 +11,8 @@ saved. AI runs on your Mac by default, keeping your notes local.
 [Changelog](CHANGELOG.md)
 
 **Current preview: [v0.0.3](https://github.com/lawwu/holdfast/releases/tag/v0.0.3)** —
-[Download the macOS installer](https://github.com/lawwu/holdfast/releases/download/v0.0.3/Holdfast-0.0.3-macos-arm64-unsigned.pkg)
+[Download DMG](https://github.com/lawwu/holdfast/releases/download/v0.0.3/Holdfast-0.0.3-macos-arm64-unsigned.dmg) ·
+[PKG installer](https://github.com/lawwu/holdfast/releases/download/v0.0.3/Holdfast-0.0.3-macos-arm64-unsigned.pkg)
 (Apple Silicon, macOS 15+, unsigned).
 
 ## What you can do
@@ -26,9 +27,11 @@ saved. AI runs on your Mac by default, keeping your notes local.
 
 Requires an **Apple Silicon Mac running macOS 15 or later**.
 
-1. Download the `.pkg` from [Releases](https://github.com/lawwu/holdfast/releases).
-2. Install Holdfast, open it from Applications, and choose your notes folder.
-3. Download a model in the app, or connect an existing model server.
+1. Download the `.dmg` or `.pkg` from [Releases](https://github.com/lawwu/holdfast/releases).
+2. Open the DMG and copy Holdfast to Applications, or run the PKG installer.
+   On a managed Mac, right-click `Holdfast.app` inside the DMG and use **Install with Privilege Management** if your organization permits it.
+3. Open Holdfast from Applications and choose your notes folder.
+4. Download a model in the app, or connect an existing model server.
 
 Try asking “What did I decide about the kitchen repair?” or
 “Mark ‘Book the inspection’ as done.” Proposed edits wait in your Inbox.
