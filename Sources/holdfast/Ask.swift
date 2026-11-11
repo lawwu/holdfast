@@ -34,13 +34,13 @@ enum Thinking {
     static var hidesUntilClose: Bool {
         guard on else { return false }
         // HTTP providers return reasoning separately from visible content.
-        guard ProviderSettings.selected == .mlx else { return false }
+        guard ProviderSettings.selected == .mlx || ModelPrivacy.keptLocal else { return false }
         let name = MLXBackend.currentRepo
         return name.lowercased().contains("qwen")
     }
 
     static var on: Bool {
-        UserDefaults.standard.bool(forKey: "showThinking") || ProcessInfo.processInfo.environment["HOLDFAST_THINK"] == "1"
+        (ModelPrivacy.keptLocal ? ModelPreferences.load(MLXBackend.currentRepo).thinking : ModelPreferences.selected.thinking) || ProcessInfo.processInfo.environment["HOLDFAST_THINK"] == "1"
     }
 
     /// Reasoning blocks (<think>…</think>; Gemma's <|channel>thought…<channel|>) and the text without them.
@@ -80,7 +80,7 @@ final class TextBox: @unchecked Sendable {
 
 func citation(_ c: Chunk) -> String { "[[\(c.noteId)#\(c.anchor)]]" }
 
-func ask(_ question: String, embedder: Embedder?, llm askedLLM: LLMBackend, prior: [(q: String, a: String)] = [],
+func ask(_ question: String, embedder: Embedder?, llm askedLLM: LLMBackend, prior: [(q: String, a: String)] = [], temporaryContext: String = "",
          onSources: (@Sendable ([Chunk]) -> Void)? = nil,
          stream: (@Sendable (String) -> Void)? = nil) async throws -> Answer {
     let t0 = Date()
@@ -95,7 +95,7 @@ func ask(_ question: String, embedder: Embedder?, llm askedLLM: LLMBackend, prio
         ModelPrivacy.keptLocal = true
     }
     let rt = Date().timeIntervalSince(t0)
-    guard !hits.isEmpty else {
+    guard !hits.isEmpty || !temporaryContext.isEmpty else {
         // Abstain before generating: nothing relevant enough, so don't ask the 27B to guess.
         let msg = Profile.vaultDefault.notCovered
         stream?(msg)
@@ -112,7 +112,7 @@ func ask(_ question: String, embedder: Embedder?, llm askedLLM: LLMBackend, prio
         manuals += "Folder manual — \(m.path):\n\(m.text)\n\n"
     }
     let profile = Profile.forPassages(hits)
-    let user = Conversation.context(prior) + (manuals.isEmpty ? "" : manuals + "---\n\n") + "Passages:\n\n\(ctx)Question: \(question)"
+    let user = Conversation.context(prior) + (manuals.isEmpty ? "" : manuals + "---\n\n") + "Passages:\n\n\(ctx)Question: \(question)\n\n" + temporaryContext
     let system = profile.systemPrompt + "\n\n" + todayLine()
     let box = TextBox()
     let stats = try await llm.chat(system: system, user: user) { tok in

@@ -99,7 +99,7 @@ struct StatusBadge: View {
 struct AnswerSettings: View {
     @EnvironmentObject var store: Store
     @State private var tick = 0  // re-read load state after Unload
-    @State private var choosingModel = false
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -148,7 +148,6 @@ struct AnswerSettings: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(24)
-        .sheet(isPresented: $choosingModel) { LocalModelBrowser().environmentObject(store) }
     }
 
     private var localModel: some View {
@@ -169,7 +168,7 @@ struct AnswerSettings: View {
                     }
                 }
                 Spacer(minLength: 8)
-                Button("Change model…") { choosingModel = true }
+                Button("Change model…") { openWindow(id: "models") }
                     .disabled(store.busy != nil || store.asking)
             }
             HStack {
@@ -191,90 +190,7 @@ struct AnswerSettings: View {
 
 /// The full catalogue stays in a bounded sheet, separate from the selected model.
 struct LocalModelBrowser: View {
-    @EnvironmentObject var store: Store
-    @Environment(\.dismiss) private var dismiss
-    @State private var query = ""
-    @State private var addingModel = false
-
-    private var models: [MLXModelSpec] {
-        let search = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        return MLXModelSpec.shortList.filter {
-            search.isEmpty || "\($0.name) \($0.detail) \($0.repo)".localizedCaseInsensitiveContains(search)
-        }
-    }
-
-    private var customModels: [CustomLocalModel] {
-        let search = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        return store.customLocalModels.filter {
-            search.isEmpty || "\($0.name) \($0.location)".localizedCaseInsensitiveContains(search)
-        }
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Choose a local model").font(Theme.title2)
-                Spacer()
-                Button("Add model…") { addingModel = true }.disabled(!store.canChangeLocalModel)
-                Button("Done") { dismiss() }.keyboardShortcut(.cancelAction)
-            }
-            TextField("Search models", text: $query).textFieldStyle(.roundedBorder)
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    if query.isEmpty {
-                        DisclosureGroup("Help me choose") {
-                            RecommendationRows().padding(.top, 8)
-                                .disabled(store.busy != nil || store.asking)
-                        }.font(Theme.callout)
-                    }
-                    if !customModels.isEmpty {
-                        Text("Your models").font(Theme.headline).frame(maxWidth: .infinity, alignment: .leading)
-                        GroupBox2 {
-                            ForEach(customModels) { model in
-                                CustomLocalModelRow(model: model) { dismiss() }
-                            }
-                        }
-                    }
-                    if models.isEmpty && customModels.isEmpty {
-                        Text("No matching models.").foregroundStyle(.secondary).padding(.vertical)
-                    }
-                    if !models.isEmpty {
-                        Text("Recommended models").font(Theme.headline).frame(maxWidth: .infinity, alignment: .leading)
-                        GroupBox2 { ForEach(models) { spec in mlxRow(spec) } }
-                    }
-                }.frame(maxWidth: .infinity, alignment: .leading)
-            }
-            Text(String(format: "This Mac has %.0f GB of memory. Model sources are in Settings → Downloads.", Recommend.thisMacGB))
-                .font(Theme.caption).foregroundStyle(.secondary)
-        }
-        .padding(20)
-        .frame(width: 640, height: 540)
-        .background(Theme.canvas)
-        .onAppear { store.refreshLocalModels() }
-        .sheet(isPresented: $addingModel) { AddLocalModelView().environmentObject(store) }
-    }
-
-    @ViewBuilder func mlxRow(_ spec: MLXModelSpec) -> some View {
-        let downloaded = store.isDownloaded(spec.repo)
-        let fit = localModelFit(spec)
-        let tooBig = fit == .no
-        ChoiceRow(selected: store.backend == .mlx && store.mlxRepo == spec.repo, enabled: downloaded && store.canChangeLocalModel,
-                  title: spec.name, tag: "\(spec.detail) · \(String(format: "%.0f", spec.sizeGB)) GB",
-                  subtitle: tooBig ? "Too large for this Mac's memory. " + spec.blurb
-                      : (store.downloadErrors[spec.repo].map { "Download failed: \($0)" } ?? (fit == .tight ? "Tight on this Mac's memory. " : "") + spec.blurb),
-                  action: { store.selectMLX(spec.repo); dismiss() }) {
-            if let f = store.downloads[spec.repo] {
-                ModelDownloadProgressView(progress: f)
-            } else if downloaded {
-                StatusBadge(status: .ready(MLXBackend.loadedRepo == spec.repo ? "Loaded" : "Downloaded"))
-            } else {
-                Button("Download") { store.download(spec) }
-                    .controlSize(.small)
-                    .disabled(tooBig || store.busy != nil || store.asking)
-                    .help("Download \(String(format: "%.1f", spec.sizeGB)) GB for \(spec.repo) using the source in Settings → Downloads.")
-            }
-        }
-    }
+    var body: some View { ModelsView().frame(width: 800, height: 680) }
 }
 
 private func localModelFit(_ spec: MLXModelSpec) -> Recommend.Fit {
@@ -334,17 +250,7 @@ struct SearchSettings: View {
             .card(padding: 14)
             SettingsHeader(title: "Reranker",
                            subtitle: "Improves search results, with or without meaning search.")
-            GroupBox2 {
-                ChoiceRow(selected: store.rerankerOn, title: "Qwen3-Reranker 0.6B", tag: "4-bit · MLX",
-                          subtitle: "Recommended. Reads candidate passages and keeps the most relevant ones.",
-                          action: { store.rerankerOn = true }) {
-                    if Reranker.modelDir != nil { StatusBadge(status: .ready("Ready")) }
-                    else { DownloadButton(repo: Reranker.repo) }
-                }
-                ChoiceRow(selected: !store.rerankerOn, title: "Off", tag: nil,
-                          subtitle: "Uses the initial search ranking. Faster, but less precise.",
-                          action: { store.rerankerOn = false }) { EmptyView() }
-            }
+            RerankerSettingsView()
         }
         .padding(24)
     }

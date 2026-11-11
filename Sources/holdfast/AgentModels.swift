@@ -1,6 +1,7 @@
 import Foundation
 import MLXLMCommon
 import LocalMLX
+import ModelProviders
 
 /// Holdfast adapter: policy and runtime types stay here; inference lives in LocalMLX.
 final class MLXAgentModel: AgentRuntime.Model, @unchecked Sendable {
@@ -8,11 +9,13 @@ final class MLXAgentModel: AgentRuntime.Model, @unchecked Sendable {
     let isLocal = true
     private let engine: MLXSession
     private let allowsRebase: Bool
+    let profile: ModelProviders.ModelProfile
     private var prefix: [AgentRuntime.Message] = []
 
     init(backend: MLXBackend, allowsRebase: Bool = false) {
-        name = MLXBackend.currentRepo; self.allowsRebase = allowsRebase
-        engine = MLXSession(container: backend.container, additionalContext: Config.templateContext)
+        name = backend.repo; self.allowsRebase = allowsRebase
+        profile = backend.profile
+        engine = MLXSession(container: backend.container, additionalContext: profile.templateContext, contextLimit: profile.contextTokens)
     }
 
     static func tool(_ spec: AgentRuntime.ToolSpec) -> MLXProtocol.Tool {
@@ -24,6 +27,7 @@ final class MLXAgentModel: AgentRuntime.Model, @unchecked Sendable {
     }
 
     func respondNative(_ request: MLXProtocol.Request, onText: @escaping @Sendable (String) -> Void) async throws -> AgentRuntime.Reply {
+        var request = request; request.generation = profile.generation
         let reply = try await engine.respond(to: request, onText: onText)
         return try JSONDecoder().decode(AgentRuntime.Reply.self, from: JSONEncoder().encode(reply))
     }
@@ -49,8 +53,7 @@ final class MLXAgentModel: AgentRuntime.Model, @unchecked Sendable {
             }
         }
         let reply = try await respondNative(.init(model: name, system: request.system, messages: messages,
-            tools: request.tools.map(Self.tool), generation: .init(maxTokens: 2000, temperature: Float(Config.temperature),
-                topP: Float(Config.topP), topK: Config.topK, presencePenalty: Float(Config.presencePenalty))), onText: onText)
+            tools: request.tools.map(Self.tool), generation: profile.generation), onText: onText)
         prefix = request.messages + [.assistant(reply)]
         return reply
     }

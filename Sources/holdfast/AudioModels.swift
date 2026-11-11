@@ -55,6 +55,7 @@ final class AudioModels: ObservableObject {
     @Published private(set) var progress: [String: ModelDownloadProgress] = [:]
     @Published private(set) var errors: [String: String] = [:]
     @Published private(set) var available: Set<String> = []
+    @Published var preparing: Set<String> = []
     private var tasks: [String: Task<Void, Error>] = [:]
     init() { refresh() }
     func refresh() { available = Set(TranscriptionModel.allCases.filter(\.isDownloaded).map(\.id)) }
@@ -66,20 +67,23 @@ final class AudioModels: ObservableObject {
         progress[model.id] = ModelDownloadProgress()
         errors[model.id] = nil
         let task = Task {
-            let source = try ModelDownloadSource.current()
-            let patterns = model.required.map { $0.hasSuffix(".mlmodelc") ? $0 + "/*" : $0 }
-            try await ModelDownloader.files(repo: model.repository.rawValue, source: source, to: model.folder,
-                                            matching: patterns, required: model.required) { value in
-                await MainActor.run { self.progress[model.id] = value }
-            }
-            guard model.isDownloaded else {
-                throw ModelDownloadSource.Failure("The speech model download is incomplete. Try downloading again.")
+            try await ModelDownloads.shared.run(id: "audio:" + model.id, name: model.name) { update in
+                self.errors[model.id] = nil
+                defer { self.progress[model.id] = nil; self.refresh() }
+                let source = try ModelDownloadSource.current()
+                let patterns = model.required.map { $0.hasSuffix(".mlmodelc") ? $0 + "/*" : $0 }
+                try await ModelDownloader.files(repo: model.repository.rawValue, source: source, to: model.folder,
+                                                matching: patterns, required: model.required) { value in
+                    await update(value)
+                    await MainActor.run { self.progress[model.id] = value }
+                }
+                guard model.isDownloaded else { throw ModelDownloadSource.Failure("The speech model download is incomplete. Try downloading again.") }
             }
         }
         tasks[model.id] = task
         defer { tasks[model.id] = nil; progress[model.id] = nil; refresh() }
         do { try await task.value }
-        catch { errors[model.id] = error.localizedDescription; throw error }
+        catch { if !(error is CancellationError) { errors[model.id] = error.localizedDescription }; throw error }
     }
 
     nonisolated static func load(_ model: TranscriptionModel,
@@ -99,6 +103,12 @@ final class AudioModels: ObservableObject {
         guard model.isDownloaded else {
             throw ModelDownloadSource.Failure("Speech model files are missing. Download the model again in Settings → Transcription.")
         }
-        return try await Task.detached { try AsrModels.loadLocal(from: model.folder, version: model.version) }.value
+        _ = await MainActor.run { shared.preparing.insert(model.id) }
+        do {
+            let result = try await Task.detached { try AsrModels.loadLocal(from: model.folder, version: model.version) }.value
+            _ = await MainActor.run { shared.preparing.remove(model.id) }
+            try Task.checkCancellation()
+            return result
+        } catch { _ = await MainActor.run { shared.preparing.remove(model.id) }; throw error }
     }
 }

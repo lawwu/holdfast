@@ -22,6 +22,9 @@ struct HoldfastApp: App {
         }
         .windowToolbarStyle(.unified)
 
+        Window("Models", id: "models") { ModelsView().environmentObject(store) }
+        Window("Compare models", id: "compare-models") { ModelComparisonView().environmentObject(store) }
+
         Settings {
             SettingsView().environmentObject(store)
         }
@@ -164,7 +167,7 @@ struct ThreadRef: Identifiable { var id: UUID }
 
 /// Research with whichever model answers: in-process MLX, or a model on another Mac.
 func runResearch(_ q: String, embedder: Embedder?, llm: LLMBackend, prior: [(q: String, a: String)],
-                 pi: Bool = PiAgent.enabled, conversationID: UUID = UUID(), requestID: UUID? = nil,
+                 pi: Bool = PiAgent.enabled, conversationID: UUID = UUID(), requestID: UUID? = nil, temporaryContext: String = "",
                  onEvent: @escaping @Sendable (Agent.Event) -> Void) async throws -> Answer {
     let model: any AgentRuntime.Model
     if let backend = llm as? ServerBackend { model = ServerAgentModel(backend: backend) }
@@ -172,9 +175,9 @@ func runResearch(_ q: String, embedder: Embedder?, llm: LLMBackend, prior: [(q: 
     else { throw HoldfastError("This provider does not support Holdfast's tools.") }
     if pi {
         return try await PiAgent.run(q, embedder: embedder, model: model, conversationID: conversationID,
-                                     requestID: requestID, prior: prior, onEvent: onEvent)
+                                     requestID: requestID, prior: prior, temporaryContext: temporaryContext, onEvent: onEvent)
     }
-    return try await Agent.run(q, embedder: embedder, model: model, prior: prior, onEvent: onEvent)
+    return try await Agent.run(temporaryContext.isEmpty ? q : q + "\n\n" + temporaryContext, embedder: embedder, model: model, prior: prior, onEvent: onEvent)
 }
 
 struct NoteTab: Identifiable {
@@ -200,6 +203,9 @@ final class Store: ObservableObject {
     @Published var notes: [Note] = []
     @Published var inboxItems: [Note] = []
     @Published var question = ""
+    @Published var chatAttachments: [ChatAttachment] = []
+    @Published var comparing = false
+    let comparison = ModelComparison()
     @Published var answer = ""
     @Published var sources: [Chunk] = []
     @Published var askedQuestion = ""
@@ -240,7 +246,8 @@ final class Store: ObservableObject {
     @Published private(set) var meaningSearchError: String?
     @Published private var indexingJobs = 0
     @Published private var retrievalJobs = 0
-    @Published var rerankerOn = Prefs.rerankerOn { didSet { Prefs.rerankerOn = rerankerOn } }
+    @Published private(set) var rerankerOn = Prefs.rerankerOn
+    @Published private(set) var rerankerModel = RerankerPreferences.saved()
     @Published var transcription = Prefs.transcription { didSet { Prefs.transcription = transcription } }
     /// In-flight model downloads: repo → byte progress, speed and time remaining.
     @Published var downloads: [String: ModelDownloadProgress] = [:]
@@ -301,7 +308,7 @@ final class Store: ObservableObject {
     private var askTask: Task<Void, Never>?
 
     /// Stops the answer mid-way; what was written so far is kept (and saved, marked as stopped).
-    func stopAsk() { askTask?.cancel() }
+    func stopAsk() { if comparing { comparison.cancel() } else { askTask?.cancel() } }
 
     /// Past conversations, newest first: each with its first question, latest turn and length.
     var conversations: [(first: HistoryEntry, latest: HistoryEntry, count: Int)] {
@@ -402,15 +409,57 @@ final class Store: ObservableObject {
         if Config.inPlace { fileDropped() } else { rebuildIndex() }
     }
 
+    var canChangeReranker: Bool {
+        busy == nil && !asking && !comparing && !filing && !copyingFiles && importProgress == nil && indexingJobs == 0 && retrievalJobs == 0
+    }
+
+    func selectReranker(_ model: RerankerModel) {
+        guard canChangeReranker, !RerankerPreferences.hasModelOverride else { return }
+        RerankerPreferences.save(model)
+        rerankerModel = model
+        Reranker.unload()
+    }
+
+    func setRerankerEnabled(_ enabled: Bool) {
+        guard canChangeReranker, !RerankerPreferences.disabledForLaunch else { return }
+        Prefs.rerankerOn = enabled
+        rerankerOn = enabled
+        Reranker.unload()
+    }
+
+    func retryReranker() {
+        guard canChangeReranker else { return }
+        Reranker.unload(); objectWillChange.send()
+    }
+
     func selectMLX(_ repo: String) {
         guard canChangeLocalModel, isDownloaded(repo) else { return }
         mlxRepo = repo
         backend = .mlx
     }
 
+    func deleteModelDownload(_ id: String) throws {
+        guard canChangeLocalModel, ![.queued, .downloading].contains(ModelDownloads.shared.item(id)?.state ?? .ready) else {
+            throw HoldfastError("Wait for active work to finish, or pause this download first.")
+        }
+        if let audio = TranscriptionModel.allCases.first(where: { "audio:" + $0.id == id }) {
+            guard AudioModels.shared.preparing.isEmpty else { throw HoldfastError("Wait for speech model preparation to finish.") }
+            let folder = audio.folder.standardizedFileURL
+            guard folder.resolvingSymlinksInPath().path == folder.path else { throw HoldfastError("Manage this shared model folder in Finder.") }
+            if FileManager.default.fileExists(atPath: folder.path) { try FileManager.default.removeItem(at: folder) }
+            AudioModels.shared.refresh()
+        } else {
+            if MLXBackend.loadedRepo == id { MLXBackend.unload() }
+            if id == Config.embedSpec.repo { embedder = nil }
+            if id == Reranker.loadedRepo || id == Reranker.repo { Reranker.unload() }
+            try ModelStorage.delete(id)
+        }
+        ModelDownloads.shared.forget(id); refreshLocalModels()
+    }
+
     func download(_ spec: MLXModelSpec) { downloadRepo(spec.repo) }
 
-    var canChangeLocalModel: Bool { busy == nil && !asking && !filing && !copyingFiles && importProgress == nil }
+    var canChangeLocalModel: Bool { busy == nil && !asking && !comparing && !filing && !copyingFiles && importProgress == nil && indexingJobs == 0 && retrievalJobs == 0 && !Listener.shared.active && AudioModels.shared.preparing.isEmpty }
 
     func refreshLocalModels() {
         customLocalModels = CustomLocalModels.load()
@@ -453,33 +502,38 @@ final class Store: ObservableObject {
     /// Downloads a model into the app's model folder using the configured source.
     /// When it is the embedder, the index is rebuilt so notes get meaning-search vectors.
     func downloadRepo(_ repo: String, then: (@MainActor () -> Void)? = nil) {
-        guard downloads[repo] == nil else { return }
-        downloads[repo] = ModelDownloadProgress()
-        downloadErrors[repo] = nil
+        guard ModelDownloads.shared.item(repo)?.state != .queued,
+              ModelDownloads.shared.item(repo)?.state != .downloading else { return }
         Task {
-            defer { if downloadErrors[repo] == nil { then?() } }
-            do {
-                let custom = CustomLocalModels.find(repo)
-                if let custom {
-                    guard custom.source == .huggingFace else { throw HoldfastError("Local folders are used in place. Add the folder's new location if it moved.") }
-                    _ = try await CustomModelImport.inspectRepository(custom.location)
+            try? await ModelDownloads.shared.run(id: repo, name: MLXModelSpec.find(repo)?.name ?? RerankerModel(rawValue: repo)?.name ?? repo) { update in
+                self.downloads[repo] = ModelDownloadProgress(); self.downloadErrors[repo] = nil
+                defer { self.downloads[repo] = nil; self.downloaded = [:] }
+                do {
+                    let custom = CustomLocalModels.find(repo)
+                    if let custom {
+                        guard custom.source == .huggingFace else { throw HoldfastError("Local folders are used in place.") }
+                        _ = try await CustomModelImport.inspectRepository(custom.location)
+                    }
+                    try await MLXBackend.download(repo: repo) { progress in
+                        await update(progress)
+                        await MainActor.run { self.downloads[repo] = progress }
+                    }
+                    if let custom {
+                        guard let directory = MLXBackend.modelDir(repo: custom.id) else { throw HoldfastError("The downloaded model is incomplete.") }
+                        _ = try await CustomModelImport.inspectFolder(directory)
+                    }
+                    self.downloaded = [:]
+                    if repo == Reranker.repo { Reranker.unload() }
+                    then?()
+                } catch {
+                    if !(error is CancellationError) && !Task.isCancelled { self.downloadErrors[repo] = error.localizedDescription }
+                    throw error
                 }
-                try await MLXBackend.download(repo: repo) { f in
-                    await MainActor.run { self.downloads[repo] = f }
-                }
-                if let custom {
-                    guard let dir = MLXBackend.modelDir(repo: custom.id) else { throw HoldfastError("The downloaded model is incomplete. Check the repository and try again.") }
-                    _ = try await CustomModelImport.inspectFolder(dir)
-                }
-            } catch {
-                downloadErrors[repo] = error.localizedDescription
             }
-            downloads[repo] = nil
-            downloaded = [:]
         }
     }
 
-    private func getEmbedder() async -> Embedder? {
+    func getEmbedder() async -> Embedder? {
         guard Embedder.isEnabled else { embedder = nil; return nil }
         if embedder == nil {
             busy = "Loading the embedding model…"
@@ -555,7 +609,8 @@ final class Store: ObservableObject {
 
     func runAsk() {
         let q = question.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !q.isEmpty, busy == nil, !asking else { return }
+        guard !q.isEmpty, busy == nil, !asking, !comparing, !chatAttachments.contains(where: { $0.loading || $0.error != nil }) else { return }
+        let attachmentContext = AttachmentContext.render(chatAttachments)
         // One box: the router decides how to handle the request (see Router.swift). Jobs are
         // confirmed first and never touch the conversation on screen.
         let route = Router.route(q)
@@ -601,12 +656,12 @@ final class Store: ObservableObject {
         askTask = Task {
             do {
                 let emb = await getEmbedder()
-                var llm: LLMBackend = try await getLLM()
-                if usesModelServer(llm), priorPrivateNotes {
-                    busy = "Loading \(MLXBackend.currentRepo.split(separator: "/").last.map(String.init) ?? "this Mac's model")…"
+                let llm: LLMBackend
+                if priorPrivateNotes || !attachmentContext.isEmpty || Profile.vaultDefault.id == Profile.privateNotes.id {
+                    busy = "Loading this Mac's answer model…"
                     llm = try await MLXBackend.shared()
-                    ModelPrivacy.keptLocal = true
-                }
+                    ModelPrivacy.keptLocal = backend != .mlx
+                } else { llm = try await getLLM() }
                 busy = "Searching and writing the answer…"
                 let t0 = Date()
                 var a: Answer
@@ -614,7 +669,7 @@ final class Store: ObservableObject {
                 if useAgent {
                     busy = "Researching…"
                     steps.append("Planning: this needs several notes or the tables")
-                    a = try await runResearch(q, embedder: emb, llm: llm, prior: prior, pi: usePi, conversationID: convo) { ev in
+                    a = try await runResearch(q, embedder: emb, llm: llm, prior: prior, pi: usePi, conversationID: convo, temporaryContext: attachmentContext) { ev in
                         Task { @MainActor in
                             switch ev {
                             case .step(let s): self.steps.append(s); self.busy = Steps.split(s).title + "…"
@@ -630,7 +685,7 @@ final class Store: ObservableObject {
                                  + Steps.sep + "search(\"\(q)\")" + (prior.isEmpty ? "" : "\nwith earlier turns: \(prior.count)"))
                     busy = "Searching your notes…"
                     let raw = TextBox()
-                    a = try await ask(q, embedder: emb, llm: llm, prior: prior,
+                    a = try await ask(q, embedder: emb, llm: llm, prior: prior, temporaryContext: attachmentContext,
                                       onSources: { hits in Task { @MainActor in self.sources = hits } }) { tok in
                         raw.append(tok)
                         let shown = Thinking.visible(raw.text)
@@ -645,7 +700,7 @@ final class Store: ObservableObject {
                                   : "Read \(a.sources.count) passages from \(noteCount) note\(noteCount == 1 ? "" : "s")")
                                  + (a.sources.isEmpty ? "" : Steps.sep + a.sources.enumerated().map { "[\($0.offset + 1)] \($0.element.relPath) › \($0.element.anchor)" }.joined(separator: "\n")))
                     // Found nothing? Look deeper before giving up.
-                    if !Task.isCancelled, Router.shouldEscalate(a), llm is MLXBackend || usesModelServer(llm) {
+                    if attachmentContext.isEmpty, !Task.isCancelled, Router.shouldEscalate(a), llm is MLXBackend || usesModelServer(llm) {
                         escalated = true
                         answer = ""
                         sources = []
@@ -678,6 +733,7 @@ final class Store: ObservableObject {
                     ? MLXModelSpec.find(MLXBackend.currentRepo).map { "\($0.name) · \($0.detail)" } ?? (MLXBackend.currentRepo.split(separator: "/").last.map(String.init) ?? model)
                     : model
                 let answeredBy = (usePi ? "Pi · " : "") + actualModel
+                a.localOnly = a.localOnly || !attachmentContext.isEmpty
                 var entry = HistoryEntry(question: q, answer: a.text, model: answeredBy, stats: answerStats!, sources: a.sources)
                 if ModelPrivacy.keptLocal {
                     steps.append("Private notes were involved, so this Mac's model answered")
@@ -712,6 +768,7 @@ final class Store: ObservableObject {
         // instead of replacing the one in progress.
         guard busy == nil else { reading = ThreadRef(id: e.thread); return }
         // The whole conversation: earlier turns above, its latest turn live, ready for a follow-up.
+        chatAttachments = []
         let thread = history.filter { $0.thread == e.thread }.sorted { $0.date < $1.date }
         let last = thread.last ?? e
         turns = Array(thread.dropLast())
@@ -740,6 +797,7 @@ final class Store: ObservableObject {
 
     func newQuestion() {
         guard busy == nil else { return }
+        chatAttachments = []
         turns = []
         conversationId = nil
         routeNote = nil
@@ -754,6 +812,7 @@ final class Store: ObservableObject {
     }
 
     func runSearch() {
+        guard !comparing else { return }
         let q = searchText.trimmingCharacters(in: .whitespaces)
         guard !q.isEmpty else { results = []; return }
         Task {
@@ -1044,7 +1103,7 @@ final class Store: ObservableObject {
     /// Files whatever is waiting in the drop folder, one at a time, when the
     /// model is free (an answer in progress goes first).
     func fileDropped() {
-        guard !filing, !copyingFiles, busy == nil, !dropPaused else { return }
+        guard !comparing, !filing, !copyingFiles, busy == nil, !dropPaused else { return }
         let files = Drop.pending()
         guard !files.isEmpty else { queueDone = 0; queueLeft = 0; return }
         filing = true
@@ -1098,6 +1157,7 @@ final class Store: ObservableObject {
     }
 
     private func indexNow(force: Bool = false) async {
+        guard !comparing else { return }
         indexingJobs += 1
         defer { indexingJobs -= 1 }
         let emb = await getEmbedder()
@@ -1113,7 +1173,7 @@ final class Store: ObservableObject {
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
         panel.message = "Choose a vault folder (Markdown notes; can be an Obsidian vault)"
-        guard busy == nil, !asking, !filing, !copyingFiles, importProgress == nil, indexingJobs == 0 else {
+        guard busy == nil, !asking, !comparing, !filing, !copyingFiles, importProgress == nil, indexingJobs == 0 else {
             error = "Wait for the current answer, filing or import to finish before switching vaults."
             return
         }
@@ -1122,6 +1182,7 @@ final class Store: ObservableObject {
             return
         }
         guard panel.runModal() == .OK, let u = panel.url else { return }
+        chatAttachments = []
         vault = u
         UserDefaults.standard.set(u.path, forKey: "vault")
         // Nothing from the old vault carries over: tabs, the conversation, its context and state.

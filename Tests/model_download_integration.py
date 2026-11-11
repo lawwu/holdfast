@@ -47,8 +47,8 @@ class Mirror(http.server.BaseHTTPRequestHandler):
         if path == f"{PREFIX}/api/models/{REPO}/revision/main":
             names = [] if self.server.empty else list(FILES)
             data = json.dumps({"siblings": [{"rfilename": name} for name in names]}).encode()
-        elif path.startswith(f"{PREFIX}/{REPO}/resolve/main/"):
-            name = path.removeprefix(f"{PREFIX}/{REPO}/resolve/main/")
+        elif path.startswith(f"{PREFIX}/{REPO}/resolve/"):
+            name = path.removeprefix(f"{PREFIX}/{REPO}/resolve/").split("/", 1)[1]
             if name not in FILES or (self.server.fail_file and name == "model.safetensors"):
                 self.send_error(404)
                 return
@@ -56,7 +56,17 @@ class Mirror(http.server.BaseHTTPRequestHandler):
         else:
             self.send_error(404)
             return
-        self.send_response(200)
+        full_size = len(data)
+        offset = 0
+        requested = self.headers.get("Range") if not head else None
+        if requested:
+            self.server.ranges.append(requested)
+            if not self.server.ignore_range:
+                offset = int(requested.removeprefix("bytes=").removesuffix("-"))
+                data = data[offset:]
+        self.send_response(206 if offset else 200)
+        if offset:
+            self.send_header("Content-Range", f"bytes {offset}-{full_size - 1}/{full_size}")
         if not self.server.unknown:
             self.send_header("Content-Length", str(len(data)))
         self.send_header("ETag", f'"{hashlib.sha256(data).hexdigest()}"')
@@ -65,8 +75,10 @@ class Mirror(http.server.BaseHTTPRequestHandler):
         if not head:
             if path.endswith("model.safetensors"):
                 for offset in range(0, len(data), 65536):
-                    self.wfile.write(data[offset:offset + 65536])
-                    self.wfile.flush()
+                    try:
+                        self.wfile.write(data[offset:offset + 65536]); self.wfile.flush()
+                    except (BrokenPipeError, ConnectionResetError):
+                        return
                     time.sleep(0.08)
             else:
                 self.wfile.write(data)
@@ -74,6 +86,7 @@ class Mirror(http.server.BaseHTTPRequestHandler):
 
 def main():
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Mirror)
+    server.ranges = []; server.ignore_range = False
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
@@ -120,7 +133,7 @@ def main():
                     assert snapshots[-1]["phase"] == "checking"
                     expected_auth = f"Bearer {TOKEN}" if server.auth else None
                     assert all(auth == expected_auth for _, _, auth in server.requests), case
-                    assert any(method == "GET" and "/resolve/main/" in path
+                    assert any(method == "GET" and "/resolve/" in path
                                for method, path, _ in server.requests), case
                 else:
                     assert result.returncode != 0, (case, "expected failure")
@@ -132,11 +145,33 @@ def main():
                     server.requests = []
                     retry = subprocess.run([sys.argv[1], str(output)], env=env, text=True, capture_output=True, timeout=45)
                     assert retry.returncode == 0, retry.stderr
-                    assert not any(method == "GET" and "/resolve/main/" in path for method, path, _ in server.requests), "cached files were downloaded again"
+                    assert not any(method == "GET" and "/resolve/" in path for method, path, _ in server.requests), "cached files were downloaded again"
                     server.fail_file = True
                     failure = subprocess.run([sys.argv[1], str(output)], env=env, text=True, capture_output=True, timeout=45)
                     assert failure.returncode != 0 and not (model / ".complete").exists(), "failed retry kept a stale completion marker"
                 print(f"PASS: mirror {case}")
+            for case in ["resume", "ignored-range", "changed-revision"]:
+                server.requests = []; server.ranges = []
+                server.auth = True; server.fail_file = False; server.empty = False; server.unknown = False
+                server.ignore_range = case == "ignored-range"
+                env["HF_TOKEN"] = TOKEN; env["TEST_CANCEL_MS"] = "650"
+                output = Path(temp) / case
+                result = subprocess.run([sys.argv[1], str(output)], env=env, capture_output=True, timeout=15)
+                assert result.returncode != 0, "Expected cancellation"
+                model = output / "models" / REPO
+                partial = model / "model.safetensors.partial"
+                assert partial.is_file() and 0 < partial.stat().st_size < len(FILES["model.safetensors"]), case
+                assert not (model / ".complete").exists()
+                old = FILES["model.safetensors"]
+                if case == "changed-revision": FILES["model.safetensors"] = b"X" + old[1:]
+                env.pop("TEST_CANCEL_MS")
+                result = subprocess.run([sys.argv[1], str(output)], env=env, capture_output=True, timeout=15)
+                assert result.returncode == 0, (case, result.stderr)
+                assert (model / "model.safetensors").read_bytes() == FILES["model.safetensors"], case
+                assert not partial.exists() and (model / ".complete").exists()
+                assert bool(server.ranges) == (case != "changed-revision"), (case, server.ranges)
+                FILES["model.safetensors"] = old
+                print(f"PASS {case}")
     finally:
         server.shutdown()
         server.server_close()

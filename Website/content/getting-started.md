@@ -40,7 +40,7 @@ Open **Settings → Answer**. Start with **LocalMLX**, the default, and download
 
 Want a different local model? Choose **Change model… → Add model…**:
 
-- **Hugging Face:** paste `owner/model` or the model's main Hugging Face URL. Holdfast checks its metadata first, then adds it under **Your models**. Choose **Download**, wait for it to finish, and select the model.
+- **Hugging Face:** paste `owner/model` or the model's main Hugging Face URL. Holdfast checks its metadata first, then adds it under **Your added models**. Choose **Download**, wait for it to finish, and select the model.
 - **Local folder:** choose a complete MLX checkpoint folder. Holdfast uses its files where they are and selects it when available. Keep that folder accessible; **Remove from list** only forgets the choice.
 
 The recommended list stays available. Custom models are labeled **Custom** and appear in Ask's model menu once their files are available. File and architecture checks do not test answer quality or tool support. A compatible chat template and a model that follows tool requests are needed for Ask's search and edit tools. Proposed edits still wait in Inbox.
@@ -92,3 +92,25 @@ In **Inbox → Recently filed**, choose **Undo** for that change. Holdfast resto
 Choose your notes folder in **Settings → Vault**, then try a specific question about something you've written. Browse in Library, check citations, and review every proposed edit in Inbox.
 
 For more tasks, see the [full app guide](../../docs/guide.md). Recording and stream imports need the optional `ffmpeg` tool; video-link imports also need `yt-dlp`.
+
+## Choose and compare models
+
+From Ask's **Model** menu, open **Models…** to browse recommendations, manage downloaded
+models, or search for another MLX model. The **Downloads** tab shows the queue and lets you
+pause, resume or retry. Freeing model memory keeps its download; deleting a download
+removes its files. Each model can remember its own context, answer length and thinking
+settings.
+
+**Compare models…** runs the same question and reference passages through two models,
+one after the other. You can compare answers, citations, timing and edit previews.
+A preview only reaches the Inbox when you choose **Send this change to Inbox**.
+See the [model guide](../../docs/guide.md#manage-models) for details.
+
+## Ask about a file without importing it
+
+Choose **Add Files → Use for this chat…** to attach documents or images temporarily.
+Wait for the reading indicator to finish, then ask about them. An excerpt label tells
+you if the whole file did not fit. Attachments use LocalMLX on this Mac and are not
+added to the vault or search index. Answers stay in chat history; attachments clear
+when you leave the chat. You can save an answer through the Inbox or use the attachment's
+menu to add its original file to your vault.

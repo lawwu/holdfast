@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Reranker choices in Search settings: Qwen3 0.6B (default), 4B and 8B, with
+  independent downloads, remembered selection and safe model switching.
+
+- Models window with Recommended, Downloaded, Browse and Downloads; grouped precision
+  choices, memory guidance, disk use, reusable per-model settings, and memory release.
+- Shared model download queue with pause, resume, retry and restart recovery.
+- Temporary chat attachments that stay local and do not import or index source files.
+- Sequential model comparisons with shared references, citations, timing and edit
+  previews. Only chosen previews enter the Inbox; approval and Undo remain unchanged.
+
+
 ## 0.0.3 — bring your own LocalMLX model
 
 - Additional DMG download containing the exact app from the tested installer,

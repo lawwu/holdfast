@@ -53,14 +53,14 @@ enum PiAgent {
     }
 
     static func run(_ question: String, embedder: Embedder?, backend: MLXBackend, conversationID: UUID = UUID(),
-                    requestID: UUID? = nil, prior: [(q: String, a: String)] = [],
+                    requestID: UUID? = nil, prior: [(q: String, a: String)] = [], temporaryContext: String = "",
                     onEvent: @escaping @Sendable (Agent.Event) -> Void) async throws -> Answer {
         try await run(question, embedder: embedder, model: MLXAgentModel(backend: backend, allowsRebase: true),
-                      conversationID: conversationID, requestID: requestID, prior: prior, onEvent: onEvent)
+                      conversationID: conversationID, requestID: requestID, prior: prior, temporaryContext: temporaryContext, onEvent: onEvent)
     }
 
     static func run(_ question: String, embedder: Embedder?, model: any AgentRuntime.Model, conversationID: UUID,
-                    requestID: UUID? = nil, prior: [(q: String, a: String)] = [],
+                    requestID: UUID? = nil, prior: [(q: String, a: String)] = [], temporaryContext: String = "",
                     onEvent: @escaping @Sendable (Agent.Event) -> Void) async throws -> Answer {
         let paths = try helper()
         let dir = directory.appendingPathComponent(conversationID.uuidString)
@@ -72,16 +72,17 @@ enum PiAgent {
         let pendingURL = dir.appendingPathComponent("pending.json")
         let request = Pending(conversationID: conversationID, requestID: requestID ?? UUID(), question: question)
         try save(request, to: pendingURL)
-        let service = try PiNativeService(directory: dir, embedder: embedder, model: model, onEvent: onEvent)
+        let service = try PiNativeService(directory: dir, embedder: embedder, model: model, temporaryContext: temporaryContext, onEvent: onEvent)
         let pipe = PiPipe()
         let lines = try pipe.start(node: paths.node, runner: paths.runner)
         defer { pipe.close() }
         let sessions = dir.appendingPathComponent("sessions")
         let fresh = !((try? FileManager.default.contentsOfDirectory(atPath: sessions.path)) ?? []).contains { $0.hasSuffix(".jsonl") }
+        let profile = (model as? MLXAgentModel)?.profile ?? (model as? ServerAgentModel)?.backend.profile ?? ModelPreferences.selected
         var config: [String: Any] = ["type": "start", "protocol": 1, "sessionDirectory": sessions.path,
-                                    "model": model.name, "contextWindow": (model as? ServerAgentModel)?.backend.configuration.contextWindow ?? 32768,
-                                    "generation": ["maxTokens": 2000, "temperature": Config.temperature, "topP": Config.topP,
-                                                   "topK": Config.topK, "presencePenalty": Config.presencePenalty],
+                                    "model": model.name, "contextWindow": profile.contextTokens,
+                                    "generation": ["maxTokens": profile.maxOutputTokens, "temperature": profile.temperature, "topP": profile.topP,
+                                                   "topK": profile.topK, "presencePenalty": profile.presencePenalty],
                                     "system": [Profile.vaultDefault.systemPrompt, Agent.instructions, todayLine(), Agent.vaultOverview()].joined(separator: "\n\n"),
                                     "tools": try JSONSerialization.jsonObject(with: JSONEncoder().encode(Agent.tools)),
                                     "question": question, "requestID": request.requestID.uuidString]
@@ -142,6 +143,7 @@ private actor PiNativeService {
     struct State: Codable { var sources: [Chunk] = []; var receipts: [String: Receipt] = [:]; var localOnly: Bool? = nil }
     private var state: State
     private let stateURL: URL
+    private let temporaryContext: String
     private let ctx: ToolContext
     private let model: any AgentRuntime.Model
     private var localModel: MLXAgentModel?
@@ -155,8 +157,8 @@ private actor PiNativeService {
             || state.receipts.values.contains { $0.result.localOnly } || Profile.vaultDefault.id == Profile.privateNotes.id
     }
 
-    init(directory: URL, embedder: Embedder?, model: any AgentRuntime.Model, onEvent: @escaping @Sendable (Agent.Event) -> Void) throws {
-        self.model = model; self.onEvent = onEvent
+    init(directory: URL, embedder: Embedder?, model: any AgentRuntime.Model, temporaryContext: String, onEvent: @escaping @Sendable (Agent.Event) -> Void) throws {
+        self.model = model; self.onEvent = onEvent; self.temporaryContext = temporaryContext
         stateURL = directory.appendingPathComponent("native.json")
         if FileManager.default.fileExists(atPath: stateURL.path) { state = try JSONDecoder().decode(State.self, from: Data(contentsOf: stateURL)) }
         else {
@@ -168,6 +170,7 @@ private actor PiNativeService {
                 try PiAgent.save(state, to: stateURL)
             } else { state = State() }
         }
+        if !temporaryContext.isEmpty { state.localOnly = true; try PiAgent.save(state, to: stateURL) }
         ctx = ToolContext(embedder: embedder); ctx.proposer = "Ask · Pi"; ctx.sources = state.sources
     }
 
@@ -184,6 +187,10 @@ private actor PiNativeService {
             }
             var input = try JSONDecoder().decode(MLXProtocol.Request.self, from: data)
             guard input.version == 1, input.model == model.name else { throw HoldfastError("Unsupported inference model or protocol") }
+            // Inject into inference only. Raw attachments are never written to Pi's transcript.
+            if !temporaryContext.isEmpty, let index = input.messages.lastIndex(where: { $0.role == "user" }) {
+                input.messages[index].text += "\n\n" + temporaryContext
+            }
             let messages: [AgentRuntime.Message] = try input.messages.map { m in
                 switch m.role {
                 case "user": return .user(m.text)

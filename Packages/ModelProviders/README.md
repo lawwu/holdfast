@@ -44,3 +44,13 @@ From the repository root:
 swift build --package-path Packages/ModelProviders
 python3 Tests/model_provider_transport.py
 ```
+
+`ModelProfile` provides portable per-model generation settings, conservative family defaults,
+validation, and template options. Applications persist profiles under their own model and
+endpoint identities. `ModelIdentity` groups precision variants without merging model sizes.
+
+`ResumableDownload` is a Foundation-only streaming downloader. The caller supplies a stable
+revision identity and expected byte count. It retains partial bytes across cancellation and
+relaunch, uses HTTP ranges when supported, restarts when a revision changes or the server
+ignores ranges, and strips credentials on redirects to another origin. Callers serialize
+writes per destination and decide where files can be stored or deleted.

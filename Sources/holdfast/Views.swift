@@ -851,12 +851,15 @@ struct RelevanceMeter: View {
 
 struct Composer: View {
     @EnvironmentObject var store: Store
+    @Environment(\.openWindow) private var openWindow
     @FocusState private var focused: Bool
 
-    var canSend: Bool { store.busy == nil && !store.question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    private var shownBackend: Backend { store.chatAttachments.isEmpty ? store.backend : .mlx }
+    var canSend: Bool { store.busy == nil && !store.chatAttachments.contains(where: { $0.loading || $0.error != nil }) && !store.question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
     var body: some View {
         VStack(spacing: 8) {
+            if !store.chatAttachments.isEmpty { ChatAttachmentsView() }
             HStack(alignment: .bottom, spacing: 10) {
                 TextField(store.conversationId != nil && !store.askedQuestion.isEmpty ? "Ask a follow-up…"
                           : store.profile == .privateNotes ? "Ask about your materials and case reports…" : "Ask, or tell Holdfast what to do…",
@@ -918,9 +921,10 @@ struct Composer: View {
                     }
                     Divider()
                     Toggle("Show Thinking (slower)", isOn: Binding(
-                        get: { UserDefaults.standard.bool(forKey: "showThinking") },
-                        set: { UserDefaults.standard.set($0, forKey: "showThinking") }))
-                    SettingsLink { Text("More Models…") }
+                        get: { ModelPreferences.selected.thinking },
+                        set: { ModelPreferences.setThinking($0) }))
+                    Button("Models…") { openWindow(id: "models") }
+                    Button("Compare models…") { openWindow(id: "compare-models") }
                 } label: {
                     Label("Model", systemImage: "cpu").help(store.modelLabel)
                 }
@@ -928,21 +932,19 @@ struct Composer: View {
                 .disabled(store.busy != nil || store.asking)
                 .fixedSize()
                 .font(Theme.caption)
-                Button { store.chooseFilesToAdd() } label: {
-                    Label("Add Files", systemImage: "tray.and.arrow.down")
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                .help(Config.inPlace
-                      ? "Add documents, photos or recordings. The model proposes where each belongs; you approve it in the Inbox."
-                      : "Add documents or recordings to the vault as sources.")
+                Menu {
+                    Button("Use for this chat…") { store.chooseChatAttachments() }
+                    Button("Add to my vault…") { store.chooseFilesToAdd() }
+                } label: { Label("Add Files", systemImage: "paperclip") }
+                .menuStyle(.borderlessButton).fixedSize().font(Theme.caption)
+                .disabled(!store.canChangeLocalModel)
                 Spacer()
-                Label(store.backend.locationLabel,
-                      systemImage: store.backend != .mlx ? "network" : "lock.fill")
+                Label(shownBackend.locationLabel,
+                      systemImage: shownBackend != .mlx ? "network" : "lock.fill")
                     .labelStyle(TightLabel())
-                    .font(Theme.caption).foregroundStyle(store.backend != .mlx ? Color.orange : Theme.secondary)
+                    .font(Theme.caption).foregroundStyle(shownBackend != .mlx ? Color.orange : Theme.secondary)
                     .fixedSize(horizontal: false, vertical: true)
-                    .help(store.backend.privacyHelp)
+                    .help(shownBackend.privacyHelp)
             }
             .padding(.horizontal, 6)
         }

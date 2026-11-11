@@ -54,11 +54,17 @@ enum ProviderSettings {
 final class ServerBackend: LLMBackend, @unchecked Sendable {
     let configuration: ServerConfiguration
     let provider: HTTPModelProvider
+    let profile: ModelProfile
     init(kind: ServerKind) throws {
-        configuration = ProviderSettings.current(kind)
+        var config = ProviderSettings.current(kind)
+        var preferences = ModelPreferences.load(config.model, endpoint: config.baseURL)
+        preferences.contextTokens = min(preferences.contextTokens, config.contextWindow)
+        profile = preferences
+        config.contextWindow = preferences.contextTokens
+        configuration = config
         guard !configuration.model.isEmpty else { throw HoldfastError("Choose a model in Settings → Answer for this provider.") }
         guard configuration.contextWindow >= 16384 else { throw HoldfastError("Holdfast needs at least 16384 context tokens.") }
-        provider = try HTTPModelProvider(configuration: configuration, apiKey: ProviderSettings.credential(configuration), thinking: Thinking.on)
+        provider = try HTTPModelProvider(configuration: configuration, apiKey: ProviderSettings.credential(configuration), thinking: profile.thinking)
     }
     func chat(system: String, user: String, temperature: Double?, onToken: @escaping @Sendable (String) -> Void) async throws -> GenStats {
         // The caller routes mixed-vault private context before this point. A private
@@ -67,9 +73,11 @@ final class ServerBackend: LLMBackend, @unchecked Sendable {
             ModelPrivacy.keptLocal = true
             return try await MLXBackend.shared().chat(system: system, user: user, temperature: temperature, onToken: onToken)
         }
+        var generation = profile.generation
+        if let temperature { generation.temperature = Float(temperature) }
         let reply = try await provider.respond(to: .init(model: configuration.model, system: system,
             messages: [.init(role: "user", text: user)], tools: [],
-            generation: .init(maxTokens: 2000, temperature: Float(temperature ?? Config.temperature), topP: Float(Config.topP))), onText: onToken)
+            generation: generation), onText: onToken)
         return .init(promptTokens: reply.usage.promptTokens, promptSeconds: reply.usage.promptSeconds,
                      outputTokens: reply.usage.outputTokens, outputSeconds: reply.usage.outputSeconds)
     }
@@ -81,6 +89,7 @@ struct ServerAgentModel: AgentRuntime.Model {
     // Even loopback servers may proxy cloud models. Only embedded LocalMLX qualifies for local-only content.
     let isLocal = false
     func respondNative(_ input: Inference.Request, onText: @escaping @Sendable (String) -> Void) async throws -> AgentRuntime.Reply {
+        var input = input; input.generation = backend.profile.generation
         let reply = try await backend.provider.respond(to: input, onText: onText)
         return try JSONDecoder().decode(AgentRuntime.Reply.self, from: JSONEncoder().encode(reply))
     }

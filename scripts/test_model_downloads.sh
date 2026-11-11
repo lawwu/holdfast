@@ -25,7 +25,7 @@ if [[ "${1:-}" == "--integration" ]]; then
     "$repo_dir/Sources/holdfast/ModelDownloadProgress.swift" \
     "$repo_dir/Sources/holdfast/ModelDownloader.swift" \
     "$repo_dir/Tests/ModelDownloadIntegration.swift" \
-    "$products/Hub.o" "$products/HuggingFace.o" "$products/Jinja.o" \
+    "$products/ModelProviders.o" "$products/Hub.o" "$products/HuggingFace.o" "$products/Jinja.o" \
     "$products/OrderedCollections.o" "$products/InternalCollectionsUtilities.o" \
     "$products/Crypto.o" "$products/EventSource.o" "$products/yyjson.o" \
     -o "$test_dir/download-integration"

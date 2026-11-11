@@ -66,7 +66,7 @@ final class DownloadTransfer: @unchecked Sendable {
         lock.withLock {
             sizes[file] = bytes
             done += bytes
-            if !cached { transferred += bytes }
+            if !cached { transferred += max(0, bytes - ((active?.1.userInfo[ProgressUserInfoKey("ModelProviders.resumedBytes")] as? Int64) ?? 0)) }
             active = nil
         }
     }
@@ -79,7 +79,7 @@ final class DownloadTransfer: @unchecked Sendable {
             }
             let known = sizes.values.compactMap { $0 }
             let total: Int64? = known.count == sizes.count ? known.reduce(0, +) : nil
-            return meter.snapshot(completed: done + current, total: total, transferred: transferred + current)
+            return meter.snapshot(completed: done + current, total: total, transferred: transferred + max(0, current - ((active?.1.userInfo[ProgressUserInfoKey("ModelProviders.resumedBytes")] as? Int64) ?? 0)))
         }
     }
 }

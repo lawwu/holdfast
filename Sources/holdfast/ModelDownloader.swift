@@ -1,6 +1,7 @@
 import Foundation
 import Hub
 import HuggingFace
+import ModelProviders
 
 enum ModelDownloader {
     private static let patterns = ["*.json", "*.safetensors", "*.jinja", "*.txt", "*.model"]
@@ -21,13 +22,13 @@ enum ModelDownloader {
     static func files(repo: String, source: ModelDownloadSource, to directory: URL,
                       matching patterns: [String], required: [String],
                       progress: @escaping @Sendable (ModelDownloadProgress) async -> Void) async throws {
-        guard let id = HuggingFace.Repo.ID(rawValue: repo), let host = URL(string: source.endpoint) else {
+        guard HuggingFace.Repo.ID(rawValue: repo) != nil, let host = URL(string: source.endpoint) else {
             throw ModelDownloadSource.Failure("The model repository or endpoint is invalid.")
         }
         await progress(ModelDownloadProgress())
         let hub = HubApi(downloadBase: directory, cache: nil, hfToken: source.token, endpoint: source.endpoint)
         let token: TokenProvider = source.token.map { $0.isEmpty ? .none : .fixed(token: $0) } ?? .environment
-        let client = HubClient(host: host, tokenProvider: token, cache: nil)
+        let credential = try await token.getToken()
         let files = try await hub.getFilenames(from: Hub.Repo(id: repo), matching: patterns).sorted()
         guard !files.isEmpty, required.allSatisfy({ item in files.contains { $0 == item || $0.hasPrefix(item + "/") } }) else {
             throw ModelDownloadSource.Failure("The repository is missing required model files. Check Settings → Downloads and try again.")
@@ -64,7 +65,11 @@ enum ModelDownloader {
                 }
                 let counter = Progress(totalUnitCount: 0)
                 transfer.start(file, progress: counter)
-                _ = try await client.downloadFile(at: file, from: id, to: target, progress: counter, transport: .lfs)
+                let revision = remote.commitHash.flatMap { $0.range(of: "^[0-9a-fA-F]{40}$", options: .regularExpression) != nil ? $0 : nil } ?? "main"
+                var request = URLRequest(url: host.appendingPathComponent(repo).appendingPathComponent("resolve/" + revision).appendingPathComponent(file))
+                if let credential, !credential.isEmpty { request.setValue("Bearer " + credential, forHTTPHeaderField: "Authorization") }
+                try await ResumableDownload.download(request, to: target, identity: remote.etag,
+                    expectedBytes: remote.size.map(Int64.init), progress: counter)
                 let actual = try target.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
                 if let expected = remote.size, actual != expected {
                     throw ModelDownloadSource.Failure("The download of \(file) is incomplete. Try downloading again.")

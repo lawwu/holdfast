@@ -64,8 +64,28 @@ the open-source survey in the kb repo (`projects/202611_holdfast/oss-best-practi
 the embedding model and keeps keyword search available; existing vectors and model
 downloads are retained. Re-enabling prepares missing vectors for the current vault
 and enabled reference collections, including notes indexed while it was off. The
-reranker has its own setting and works with either search mode. CLI overrides
-`HOLDFAST_EMBED=none` and `--no-embed` still work.
+reranker has its own setting and works with either search mode.
+
+**Rerank search results** has a separate on/off switch and model picker:
+
+| Model | Download | Trade-off |
+| --- | --- | --- |
+| Qwen3 Reranker 0.6B, 4-bit | About 350 MB | Recommended default; fastest and smallest of these options. |
+| [Qwen3 Reranker 4B, MXFP8](https://huggingface.co/mlx-community/Qwen3-Reranker-4B-mxfp8) | About 4.2 GB | Try for harder searches; more memory and noticeably slower. |
+| [Qwen3 Reranker 8B, 4-bit](https://huggingface.co/galaxycore/Qwen3-Reranker-8B-MLX-4bit) | About 4.6 GB | Largest option; full Holdfast search quality has not been benchmarked. |
+
+Download a model before using it, through the same source and queue as other models.
+A missing or failed reranker leaves the original search order available. The picker
+explains this fallback. Model choices persist across restarts. Switching models or
+turning reranking off releases the old reranker from memory; downloaded files stay.
+Changing rerankers does not rebuild the index or change the meaning-search toggle.
+**Models → Downloaded → Search and speech** also manages these downloads.
+
+`HOLDFAST_RERANK_REPO` and `HOLDFAST_RERANK_DIR` still override the saved choice for
+CLI/evaluation use; `HOLDFAST_RERANK=0` disables reranking for a launch. The app labels
+these overrides. Run preference checks with `bash scripts/test_reranker_preferences.sh`.
+
+CLI overrides `HOLDFAST_EMBED=none` and `--no-embed` still work.
 
 Check the preference and indexing transitions with
 `python3 Tests/meaning_search_integration.py <holdfast-binary> --live` (uses the
@@ -440,3 +460,68 @@ Holdfast's tools, privacy rules, Inbox approvals, and Undo apply to custom model
   The app labels the selected server host; server inference may run here or elsewhere.
 - Link import (YouTube, podcasts) fetches from the web by design. The Gemini backend exists for
   evals on synthetic data only and isn't offered in the app.
+
+## Manage models
+
+Open **Models…** from Ask's Model menu, or **Change model…** in Settings → Answer.
+
+- **Recommended** groups precision variants and shows download size, memory guidance,
+  and which exact variants were tested. Memory figures vary with context length.
+- **Downloaded** shows models ready to use, their disk use, and speech/search models.
+  **Use for Ask** selects an answer model; it loads into memory on the next request.
+- **Browse** searches Hugging Face or your configured mirror for MLX repositories.
+  **Add** checks architecture and required files before adding a choice. Models found
+  here are not automatically recommended or tested. **Add model…** also accepts a
+  repository URL or an existing local folder.
+- **Downloads** lists the shared queue for answer, search and speech models. Transfers
+  run one at a time. Pause keeps partial files; Resume continues when the server
+  supports byte ranges. Retry handles failures. Interrupted jobs remain available
+  after app restart. Dismiss keeps files; Delete files removes the owned download.
+
+**Free answer model memory** releases RAM while keeping the download. **Delete download…**
+removes files managed by Holdfast. User-added folders and shared Hugging Face caches are
+managed in Finder. Speech models may still need a first-use Core ML preparation step.
+
+Choose **Settings…** on a model card to save its context limit, maximum answer length,
+thinking preference and advanced sampling values. Defaults favor ordinary note work;
+they are not a claim about the maximum context a model supports. These settings apply to
+Ask and Pi's inference requests. Context that exceeds the configured limit is refused,
+not silently trimmed. Server models have endpoint-specific profiles, and server limits
+still apply. Some servers do not support every sampling control.
+
+## Use files for one chat
+
+In Ask, choose **Add Files → Use for this chat…**. Documents and images are read on this Mac
+and shown above the question box. Each file gets an attachment citation such as `[A1]`.
+Up to six files, 25 MB each, can be attached. The app includes up to 12,000 characters per
+file and 24,000 characters in total; a label tells you when only an excerpt is included.
+Remove a file with its menu, or choose **Add to my vault** there to keep it through the
+normal import flow.
+
+Attachments use LocalMLX even if a server is selected. Files are not copied into the vault
+or indexed. Their raw text is injected only into inference, not Pi's saved transcript.
+Answers can quote attachments and remain in chat history. Leaving the chat or restarting
+the app clears attachments; reopening saved history does not reopen their original files.
+Use **Save answer to Inbox** when you want to keep an answer as a note for approval.
+
+## Compare models
+
+Choose **Model → Compare models…** in Ask. Pick two downloaded LocalMLX models or configured
+servers, enter a question or edit request, then choose **Compare**.
+
+Holdfast searches once and freezes the same references for both models. Models run
+sequentially, and local answer-model memory is released between runs. The comparison shows
+answers, citations, answer time, loading time, and validated edit previews side by side.
+This is a controlled comparison of answer/edit quality, not the full Pi research loop.
+It cannot browse additional notes or run arbitrary tools. Model profiles still apply.
+
+Private references and current temporary attachments require two LocalMLX choices;
+Holdfast refuses to send them to a server. Ordinary server comparisons send the question
+and references to the configured addresses. Timing is an observation on this Mac, not a
+benchmark: cache state, profiles and server load can differ.
+
+Comparing does not create Inbox items or change notes. Choose **Send this change to Inbox**
+on a particular preview, then review and apply it through the normal Inbox. A note that
+changed after the snapshot, or already has a pending edit, must be compared again after
+review. Approval still saves an undo copy. Results remain in the comparison window until
+the next comparison or app restart.

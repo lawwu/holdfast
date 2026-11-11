@@ -1,3 +1,4 @@
+import ModelProviders
 import Foundation
 import Metal
 import MLX
@@ -72,44 +73,74 @@ final class Embedder: @unchecked Sendable {
     }
 }
 
-// MARK: - Reranker: Qwen3-Reranker-0.6B 4-bit in-process (oss-best-practices.md #1)
+// MARK: - Local reranking
 
 final class Reranker: @unchecked Sendable {
     let container: RerankerContainer
-    nonisolated(unsafe) private static var cached: Reranker?
-    nonisolated(unsafe) private static var tried = false
+    @MainActor private static var cached: Reranker?
+    @MainActor private static var cacheKey: String?
+    @MainActor private static var loading: (id: UUID, task: Task<Reranker?, Never>)?
+    @MainActor private(set) static var loadedRepo: String?
+    @MainActor private(set) static var loadError: String?
 
-    // Instruction-aware reranking adds a few points for Qwen3-Reranker; the
-    // instruction comes from the vault's profile (Profile.swift).
-
-    /// Which reranker: HOLDFAST_RERANK_REPO (e.g. mlx-community/Qwen3-Reranker-4B-mxfp8), else 0.6B 4-bit.
-    static var repo: String {
-        ProcessInfo.processInfo.environment["HOLDFAST_RERANK_REPO"] ?? "mlx-community/Qwen3-Reranker-0.6B-4bit"
-    }
-    /// Short name for reports, e.g. "Qwen3-Reranker-4B".
+    /// The CLI override wins; app users choose in Settings → Search.
+    static var repo: String { RerankerPreferences.repo() }
     static var label: String {
         (repo.components(separatedBy: "/").last ?? repo).replacingOccurrences(of: #"-(4bit|8bit|mxfp8|bf16)$"#, with: "", options: .regularExpression)
     }
+    static func directory(for repository: String) -> URL? {
+        if repository == repo, let path = RerankerPreferences.override(ProcessInfo.processInfo.environment["HOLDFAST_RERANK_DIR"]) {
+            return URL(fileURLWithPath: path)
+        }
+        return ModelFiles.directory(repo: repository, modelsDirectory: Prefs.modelsDir)
+    }
+    static var modelDir: URL? { directory(for: repo) }
 
-    static var modelDir: URL? {
-        if let p = ProcessInfo.processInfo.environment["HOLDFAST_RERANK_DIR"] { return URL(fileURLWithPath: p) }
-        return ModelFiles.directory(repo: repo, modelsDirectory: Prefs.modelsDir)
+    @MainActor static func unload() {
+        loading?.task.cancel(); loading = nil
+        cached = nil; cacheKey = nil; loadedRepo = nil; loadError = nil
+        Memory.clearCache()
     }
 
-    /// Loaded once; nil (keyword + vector only) if missing or HOLDFAST_RERANK=0.
-    static func shared() async -> Reranker? {
-        guard Prefs.rerankerOn else { return nil }
-        if tried { return cached }
-        guard ProcessInfo.processInfo.environment["HOLDFAST_RERANK"] != "0", let dir = modelDir else { return nil }
-        tried = true
-        do {
-            let c = try await RerankerModelFactory.shared.loadContainer(
-                from: dir, using: #huggingFaceTokenizerLoader(), allowUnverifiedModel: true)
-            cached = Reranker(container: c)
-        } catch {
-            log("reranker unavailable: \(error)")
+    /// Coalesce concurrent searches. A changed selection can never reuse the old model.
+    @MainActor static func shared() async -> Reranker? {
+        guard Prefs.rerankerOn, !RerankerPreferences.disabledForLaunch else {
+            if cacheKey != nil { unload() }
+            return nil
         }
-        return cached
+        guard let directory = modelDir else {
+            if cacheKey != nil { unload() }
+            return nil
+        }
+        let repository = repo
+        let key = repository + "|" + directory.standardizedFileURL.path
+        if cacheKey == key {
+            if let cached { return cached }
+            if let loading { return await loading.task.value }
+            if loadError != nil { return nil } // Retried explicitly, on selection, or after downloading again.
+        }
+        unload(); cacheKey = key
+        let id = UUID()
+        let task = Task { @MainActor () -> Reranker? in
+            defer { if loading?.id == id { loading = nil } }
+            do {
+                let container = try await RerankerModelFactory.shared.loadContainer(
+                    from: directory, using: #huggingFaceTokenizerLoader(), allowUnverifiedModel: true)
+                try Task.checkCancellation()
+                guard loading?.id == id, cacheKey == key else { return nil }
+                let model = Reranker(container: container)
+                cached = model; loadedRepo = repository
+                return model
+            } catch {
+                if !Task.isCancelled, loading?.id == id {
+                    loadError = error.localizedDescription
+                    log("reranker unavailable: \(error)")
+                }
+                return nil
+            }
+        }
+        loading = (id, task)
+        return await task.value
     }
 
     private init(container: RerankerContainer) { self.container = container }
@@ -241,8 +272,7 @@ final class MLXBackend: LLMBackend, @unchecked Sendable {
         try await ModelDownloader.download(repo: repo, source: source, to: Prefs.modelsDir, progress: progress)
     }
 
-    static func shared() async throws -> MLXBackend {
-        let repo = currentRepo
+    static func shared(repo: String = currentRepo) async throws -> MLXBackend {
         if let c = cached, loadedRepo == repo { return c }
         if cached != nil { unload() }  // switching models: free the old one first
         let custom = CustomLocalModels.find(repo)
@@ -257,24 +287,32 @@ final class MLXBackend: LLMBackend, @unchecked Sendable {
         let t0 = Date()
         log("loading \(repo) with MLX…")
         let c = try await LLMModelFactory.shared.loadContainer(from: dir, using: #huggingFaceTokenizerLoader())
-        let b = MLXBackend(container: c, loadSeconds: Date().timeIntervalSince(t0))
+        let b = MLXBackend(repo: repo, container: c, loadSeconds: Date().timeIntervalSince(t0))
         log(String(format: "loaded in %.1fs", b.loadSeconds))
         cached = b
         loadedRepo = repo
         return b
     }
 
-    private init(container: ModelContainer, loadSeconds: Double) {
+    let repo: String
+    var profile: ModelProviders.ModelProfile { ModelPreferences.load(repo) }
+
+    private init(repo: String, container: ModelContainer, loadSeconds: Double) {
+        self.repo = repo
         self.container = container
         self.loadSeconds = loadSeconds
     }
 
     func chat(system: String, user: String, temperature: Double?, onToken: @escaping @Sendable (String) -> Void) async throws -> GenStats {
-        let params = GenerateParameters(maxTokens: 2000, temperature: Float(temperature ?? Config.temperature), topP: Float(Config.topP),
-                                        topK: Config.topK, presencePenalty: Float(Config.presencePenalty))
-        let (text, info) = try await container.perform { (context: ModelContext) -> (String, GenerateCompletionInfo?) in
+        let profile = self.profile
+        let params = GenerateParameters(maxTokens: profile.maxOutputTokens, temperature: temperature.map(Float.init) ?? profile.temperature,
+                                        topP: profile.topP, topK: profile.topK, presencePenalty: profile.presencePenalty)
+        let (_, info) = try await container.perform { (context: ModelContext) -> (String, GenerateCompletionInfo?) in
             let input = try await context.processor.prepare(
-                input: UserInput(chat: [.system(system), .user(user)], additionalContext: Config.templateContext))
+                input: UserInput(chat: [.system(system), .user(user)], additionalContext: profile.templateContext))
+            guard input.text.tokens.size + profile.maxOutputTokens <= profile.contextTokens else {
+                throw HoldfastError("This request exceeds the model's context limit. Shorten it, start a new chat, or raise the limit in Models → Settings.")
+            }
             var text = ""
             var info: GenerateCompletionInfo?
             for await g in try generate(input: input, parameters: params, context: context) {

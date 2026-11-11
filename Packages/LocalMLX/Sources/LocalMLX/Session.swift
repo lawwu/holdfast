@@ -8,14 +8,15 @@ import MLXLLM
 public actor MLXSession: ModelProvider {
     private let container: ModelContainer
     private let additionalContext: [String: any Sendable]
+    private let contextLimit: Int?
     private var session: ChatSession?
     private var previous: MLXProtocol.Request?
     private var prefix: [MLXProtocol.Message] = []
     private var busy = false
     private var prepared = false
 
-    public init(container: ModelContainer, additionalContext: [String: any Sendable] = ["enable_thinking": false]) {
-        self.container = container; self.additionalContext = additionalContext
+    public init(container: ModelContainer, additionalContext: [String: any Sendable] = ["enable_thinking": false], contextLimit: Int? = nil) {
+        self.container = container; self.additionalContext = additionalContext; self.contextLimit = contextLimit
     }
 
     public func respond(to request: MLXProtocol.Request, onText: @escaping @Sendable (String) -> Void) async throws -> MLXProtocol.Reply {
@@ -37,6 +38,18 @@ public actor MLXSession: ModelProvider {
             }
             let parameters = try request.generation.parameters()
             let messages = request.messages.map(\.normalized)
+            if let contextLimit {
+                let additionalContext = self.additionalContext
+                let count = try await container.perform { context in
+                    let chat = try messages.map(Self.chatMessage)
+                    let input = try await context.processor.prepare(input: UserInput(chat: [.system(request.system)] + chat,
+                        tools: request.tools.map(\.wire), additionalContext: additionalContext))
+                    return input.text.tokens.size
+                }
+                guard count + (request.generation.maxTokens ?? 2000) <= contextLimit else {
+                    throw MLXProtocol.Failure("This conversation exceeds the model's context limit. Start a new chat, shorten the attachments, or raise the limit in Models → Settings.")
+                }
+            }
             if previous?.sessionID != request.sessionID || previous?.model != request.model
                 || previous?.system != request.system || previous?.tools != request.tools
                 || previous?.generation != request.generation || Array(messages.prefix(prefix.count)) != prefix {

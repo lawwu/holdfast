@@ -12,6 +12,10 @@ enum DemoCapture {
     private static var modelWindow: NSWindow?
     private static var importingModel = false
     private static var modelImportError = ""
+    private static var featureChecks: [String] = []
+    private static var featureCheckError = ""
+    private static var rerankerChecks: [String] = []
+    private static var rerankerCheckError = ""
 
     static func install(_ store: Store) {
         guard timer == nil,
@@ -34,6 +38,49 @@ enum DemoCapture {
                    let id = command["id"], id != lastID {
                     lastID = id
                     switch command["action"] {
+                    case "reranker-checks":
+                        Task {
+                            do { rerankerChecks = try await RerankerFeatureChecks.run(store: store) }
+                            catch { rerankerCheckError = error.localizedDescription }
+                        }
+                    case "select-reranker":
+                        if let choice = RerankerModel(rawValue: command["value"] ?? "") { store.selectReranker(choice) }
+                    case "reranker-enabled": store.setRerankerEnabled(command["value"] == "true")
+                    case "search-settings":
+                        settings?.close()
+                        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 600, height: 520), styleMask: [.titled, .closable], backing: .buffered, defer: false)
+                        window.title = "Search settings"; window.isReleasedWhenClosed = false
+                        window.contentView = NSHostingView(rootView: ScrollView { SearchSettings().environmentObject(store) }.frame(width: 600, height: 520))
+                        settings = window; window.center(); window.makeKeyAndOrderFront(nil)
+                    case "feature-checks":
+                        Task {
+                            do { featureChecks = try await ModelFeatureChecks.run(store: store) }
+                            catch { featureCheckError = error.localizedDescription }
+                        }
+                    case "set-backend": if let backend = Backend.allCases.first(where: { $0.title == command["value"] }) { store.backend = backend }
+                    case "new-chat": store.newQuestion()
+                    case "attach": store.attachForChat((command["value"] ?? "").split(separator: "\n").map { URL(fileURLWithPath: String($0)) })
+                    case "remove-attachments": store.chatAttachments = []
+                    case "ask-attached": store.question = command["value"] ?? ""; store.runAsk()
+                    case "compare":
+                        let choices = ComparisonChoice.available(store)
+                        let chosen = [command["left"], command["right"]].compactMap { id in choices.first { $0.id == id } }
+                        store.comparison.start(question: command["value"] ?? "", choices: chosen, store: store)
+                    case "compare-stop": store.comparison.cancel()
+                    case "compare-send":
+                        if let result = store.comparison.results.first, let edit = result.edits.first { store.comparison.send(resultID: result.id, editID: edit.id, store: store) }
+                    case "comparison-window":
+                        modelWindow?.close()
+                        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1080, height: 760), styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
+                        window.title = "Compare models"; window.isReleasedWhenClosed = false
+                        window.contentView = NSHostingView(rootView: ModelComparisonView().environmentObject(store))
+                        modelWindow = window; window.center(); window.makeKeyAndOrderFront(nil)
+                    case "model-profile":
+                        modelWindow?.close()
+                        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 550, height: 450), styleMask: [.titled, .closable], backing: .buffered, defer: false)
+                        window.title = "Model settings"; window.isReleasedWhenClosed = false
+                        window.contentView = NSHostingView(rootView: ModelProfileEditor(selection: .init(model: command["value"] ?? store.mlxRepo)).environmentObject(store))
+                        modelWindow = window; window.center(); window.makeKeyAndOrderFront(nil)
                     case "add-repo", "add-folder":
                         importingModel = true; modelImportError = ""
                         Task { @MainActor in
@@ -65,12 +112,12 @@ enum DemoCapture {
                     case "models", "add-model-form":
                         modelWindow?.close()
                         let adding = command["action"] == "add-model-form"
-                        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 640, height: 540),
+                        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 800, height: 680),
                             styleMask: [.titled, .closable], backing: .buffered, defer: false)
                         window.title = "Models"; window.isReleasedWhenClosed = false
                         window.contentView = NSHostingView(rootView: Group {
                             if adding { AddLocalModelView().environmentObject(store) }
-                            else { LocalModelBrowser().environmentObject(store) }
+                            else { ModelsView(tab: command["value"] ?? "Recommended").environmentObject(store) }
                         })
                         modelWindow = window; window.center(); window.makeKeyAndOrderFront(nil)
                     case "pane":
@@ -122,6 +169,15 @@ enum DemoCapture {
                     "audioAvailable": Array(AudioModels.shared.available),
                     "fileActivity": store.fileActivity.map { ["name": $0.name, "detail": $0.detail, "finished": $0.finished] as [String: Any] },
                     "selectedModel": store.mlxRepo,
+                    "featureChecks": featureChecks, "featureCheckError": featureCheckError,
+                    "rerankerChecks": rerankerChecks, "rerankerCheckError": rerankerCheckError,
+                    "reranker": store.rerankerModel.id, "rerankerEnabled": store.rerankerOn,
+                    "rerankerLoaded": Reranker.loadedRepo ?? "", "meaningSearch": store.searchByMeaning,
+                    "attachments": store.chatAttachments.map { ["name": $0.name, "characters": $0.text.count, "loading": $0.loading, "error": $0.error ?? ""] as [String: Any] },
+                    "comparisonChoices": ComparisonChoice.available(store).map { ["id": $0.id, "title": $0.title] },
+                    "comparing": store.comparison.running, "comparisonStatus": store.comparison.status,
+                    "comparisonError": store.comparison.error ?? "",
+                    "comparisonResults": store.comparison.results.map { ["model": $0.choice.id, "status": $0.status, "text": $0.text, "error": $0.error ?? "", "seconds": $0.seconds, "edits": $0.edits.map { ["path": $0.path, "sent": $0.sent] as [String: Any] }] as [String: Any] },
                     "customModels": store.customLocalModels.map { ["id": $0.id, "name": $0.name, "source": $0.source.rawValue] },
                 ]
                 if let data = try? JSONSerialization.data(withJSONObject: state, options: [.prettyPrinted, .sortedKeys]) {
