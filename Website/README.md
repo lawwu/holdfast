@@ -1,6 +1,6 @@
 # Holdfast documentation site
 
-Configured for **https://lawwu.github.io/holdfast/** using Astro and Starlight.
+Published at **https://lawwu.github.io/holdfast/** using Astro and Starlight.
 Documentation sources and workflows live in this Holdfast repository. Published
 releases, including prereleases, deploy their tagged documentation to GitHub Pages.
 Pull requests and pushes to `main` build and check the site without publishing.
@@ -14,7 +14,7 @@ architecture, and home pages live in `content/`. Versioned release notes under
 
 `npm run prepare-docs` creates `src/content/docs/` from these sources. Do not edit
 that generated directory. Relative links to included documentation become site
-links; other repository links still require access to the private source repo.
+links; other repository links point to the public source on GitHub.
 The interactive architecture guide is copied from `docs/local-mlx-architecture.html`.
 
 From this directory, using Node 24.22.2 or a compatible newer version:
@@ -50,16 +50,10 @@ The deploy job uses `actions/deploy-pages` with GitHub's built-in token and
 workflow grants these permissions to its reusable documentation job as well.
 Pull requests and ordinary main-branch pushes never run the deployment job.
 
-**Hosting is currently blocked:** GitHub's current plan does not support Pages
-for this private repository. Keeping it private requires a supported paid GitHub
-plan. Making the repository public is a separate owner decision; the workflow
-does not change repository visibility or billing.
-
-Once the repository is eligible, choose **Settings → Pages → Build and deployment
-→ Source: GitHub Actions**. In the `github-pages` environment, allow deployments
-from `main` and `v*` tags so both release events and manual retries can deploy.
-Then publish a release containing this setup, or retry an eligible published tag
-as described below. [GitHub Pages requirements and setup](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
+The repository is public. **Settings → Pages → Build and deployment → Source**
+is set to **GitHub Actions**. The `github-pages` environment allows `main` and
+`v*` tags so both release events and manual retries can deploy.
+[GitHub Pages configuration](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 
 The macOS release workflow calls the reusable docs workflow after successfully
 publishing the installer. This explicit call is needed because releases created
@@ -72,8 +66,10 @@ To retry documentation only, run **Actions → Documentation → Run workflow** 
 `main` and enter the published tag as `release_tag`. Leave it empty to check the
 selected branch without deploying. The original `v0.0.1` predates the site and
 cannot build documentation; automatic release deployment starts with a future
-release containing `Website/`. No new app release is created by a docs deployment.
+release containing `Website/`. The initial site migration was published from
+`main`; subsequent updates follow releases. No new app release is created by
+a docs deployment.
 
 `site.mjs` defines the public origin and path prefix. Keep it in sync with the
-deployment destination if the site moves. Public documentation does not make
-the app's GitHub Releases publicly downloadable; those still require repository access.
+deployment destination if the site moves. Source code and installer releases
+are publicly accessible from the Holdfast repository.

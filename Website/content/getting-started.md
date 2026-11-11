@@ -10,7 +10,7 @@ Holdfast brings search, answers, and proposed edits to a folder of notes. Your f
 
 You need an **Apple Silicon Mac running macOS 15 or later**.
 
-1. Download the `.pkg` from [Holdfast Releases](https://github.com/lawwu/holdfast/releases). Preview downloads currently require repository access.
+1. Download the `.pkg` from [Holdfast Releases](https://github.com/lawwu/holdfast/releases).
 2. Open the installer and follow its instructions. It places **Holdfast** in **Applications**.
 3. Open Holdfast and choose your notes folder.
 

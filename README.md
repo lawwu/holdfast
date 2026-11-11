@@ -3,15 +3,13 @@
 A local-first knowledge base for macOS. Import documents and recordings, search your notes,
 and ask questions with citations. Changes proposed by the agent wait for your approval in the Inbox.
 
-**[Documentation](Website/README.md)** ·
-[Getting started](Website/content/getting-started.md) ·
-[Architecture](Website/content/architecture.md)
+**[Documentation](https://lawwu.github.io/holdfast/)** ·
+[Getting started](https://lawwu.github.io/holdfast/getting-started/) ·
+[Architecture](https://lawwu.github.io/holdfast/architecture/)
 
 The documentation site updates when a release is published, using that release's
 source. Pull requests and pushes to `main` check the docs without deploying them.
-Sources and Pages deployment live in this repository. Hosting at
-`https://lawwu.github.io/holdfast/` is pending GitHub Pages support for this private
-repository; the current plan does not support it.
+Sources and Pages deployment live in this public repository.
 See [site maintenance](Website/README.md) for local preview and publishing instructions.
 
 Installer releases are distributed through [GitHub Releases](https://github.com/lawwu/holdfast/releases).
