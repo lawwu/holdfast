@@ -1,5 +1,5 @@
 {
-  "name": "holdfast-docs",
+  "name": "holdfast-website",
   "private": true,
   "type": "module",
   "engines": { "node": ">=22.23.4" },

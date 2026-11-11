@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Documentation sources and release deployment stay in the Holdfast repository,
+  using GitHub's Pages artifact workflow without a separate hosting repository.
 - Searchable documentation on GitHub Pages, with getting-started and architecture
   guides, package references, and release notes. Published releases deploy their
   tagged docs after link checks and desktop/mobile browser tests. Main-branch

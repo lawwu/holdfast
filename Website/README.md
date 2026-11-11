@@ -1,6 +1,6 @@
 # Holdfast documentation site
 
-Published at **https://lawwu.github.io/holdfast-docs/** using Astro and Starlight.
+Configured for **https://lawwu.github.io/holdfast/** using Astro and Starlight.
 Documentation sources and workflows live in this Holdfast repository. Published
 releases, including prereleases, deploy their tagged documentation to GitHub Pages.
 Pull requests and pushes to `main` build and check the site without publishing.
@@ -39,21 +39,27 @@ selection, and horizontal overflow. No models or macOS build are needed.
 
 ## Publishing
 
-`.github/workflows/pages.yml` publishes only `Website/dist/`. GitHub Pages isn't
-available for the private app repository on its current plan, so the compiled
-site lives in the separate public `lawwu/holdfast-docs` repository. Pages serves
-that repository's `main` branch from `/`, with `.nojekyll`. The app's source code,
-private commit history, model data, and evaluation results are not copied there.
+`.github/workflows/pages.yml` publishes only `Website/dist/` directly through
+Holdfast's GitHub Pages configuration. The app, documentation, and deployment
+workflow all live in `lawwu/holdfast`. No second repository, deploy key, personal
+access token, or publishing branch is needed.
 
-The app repository's `DOCS_DEPLOY_KEY` Actions secret is a dedicated SSH private
-key. Its public key is a write-enabled deploy key on `holdfast-docs` only. To rotate
-it, replace both the repository secret and the matching public deploy key. No
-personal access token is needed. Pull-request builds have no deployment step.
+The build job uploads the tested site with `actions/upload-pages-artifact`.
+The deploy job uses `actions/deploy-pages` with GitHub's built-in token and
+`pages: write` / `id-token: write` permissions, scoped to that job. The release
+workflow grants these permissions to its reusable documentation job as well.
+Pull requests and ordinary main-branch pushes never run the deployment job.
 
-The deploy job uses the exact site artifact that passed checks, built from the
-published release's commit. Public commits use a generic message rather than
-exposing private commit messages. The Pages repository is generated output;
-make edits in Holdfast.
+**Hosting is currently blocked:** GitHub's current plan does not support Pages
+for this private repository. Keeping it private requires a supported paid GitHub
+plan. Making the repository public is a separate owner decision; the workflow
+does not change repository visibility or billing.
+
+Once the repository is eligible, choose **Settings → Pages → Build and deployment
+→ Source: GitHub Actions**. In the `github-pages` environment, allow deployments
+from `main` and `v*` tags so both release events and manual retries can deploy.
+Then publish a release containing this setup, or retry an eligible published tag
+as described below. [GitHub Pages requirements and setup](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 
 The macOS release workflow calls the reusable docs workflow after successfully
 publishing the installer. This explicit call is needed because releases created

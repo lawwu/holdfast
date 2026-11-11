@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { base } from '../site.mjs';
 
 test('read the docs and navigate without horizontal overflow', async ({ page }, info) => {
   const failures = [];
@@ -27,7 +28,7 @@ test('search finds the approval documentation', async ({ page }) => {
   const result = dialog.locator('.pagefind-ui__result-link').first();
   await expect(result).toBeVisible();
   await result.click();
-  await expect(page).toHaveURL(/\/holdfast-docs\/.+/);
+  await expect(page).toHaveURL(url => url.pathname.startsWith(base + '/') && url.pathname !== base + '/');
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 });
 

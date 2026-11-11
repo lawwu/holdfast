@@ -153,8 +153,10 @@ jobs:
     if: needs.resolve.outputs.publish == 'true' && github.repository == 'lawwu/holdfast'
     # Publishing with GITHUB_TOKEN doesn't emit a new release-triggered workflow.
     # Call the same docs workflow explicitly after the release is published.
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     uses: ./.github/workflows/pages.yml
     with:
       release_tag: ${{ needs.resolve.outputs.tag }}
-    secrets:
-      DOCS_DEPLOY_KEY: ${{ secrets.DOCS_DEPLOY_KEY }}

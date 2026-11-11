@@ -16,7 +16,7 @@ Holdfast separates the interface and file approvals from the agent loop and the 
 
 An edit proposal travels back to Holdfast’s Inbox. Pi does not receive unrestricted file or shell tools in the app, and a model reply cannot approve its own proposal.
 
-[Open the interactive architecture explorer →](/holdfast-docs/explore/)
+[Open the interactive architecture explorer →](/holdfast/explore/)
 
 The explorer compares embedded inference, a standalone helper, and model servers, and walks through the approval path.
 
