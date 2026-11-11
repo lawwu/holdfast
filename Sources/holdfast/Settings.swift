@@ -158,7 +158,12 @@ struct AnswerSettings: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(spec?.name ?? store.mlxRepo.components(separatedBy: "/").last ?? store.mlxRepo)
                         .font(Theme.headline).textSelection(.enabled)
-                    if let spec {
+                    if let custom = CustomLocalModels.find(store.mlxRepo) {
+                        Text("Custom · \(custom.sizeDescription)")
+                            .font(Theme.caption).foregroundStyle(.secondary)
+                        Text(custom.source == .folder ? "Uses your local folder in place" : custom.location)
+                            .font(Theme.caption).foregroundStyle(.secondary).lineLimit(2)
+                    } else if let spec {
                         Text("\(spec.detail) · \(String(format: "%.1f", spec.sizeGB)) GB download")
                             .font(Theme.caption).foregroundStyle(.secondary)
                     }
@@ -170,6 +175,8 @@ struct AnswerSettings: View {
             HStack {
                 if store.isDownloaded(store.mlxRepo) {
                     StatusBadge(status: .ready(MLXBackend.loadedRepo == store.mlxRepo ? "Loaded" : "Ready"))
+                } else if CustomLocalModels.find(store.mlxRepo)?.source == .folder {
+                    StatusBadge(status: .missing("Folder unavailable or incomplete"))
                 } else {
                     DownloadButton(repo: store.mlxRepo)
                         .disabled(store.busy != nil || store.asking || spec.map { localModelFit($0) == .no } == true)
@@ -187,6 +194,7 @@ struct LocalModelBrowser: View {
     @EnvironmentObject var store: Store
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
+    @State private var addingModel = false
 
     private var models: [MLXModelSpec] {
         let search = query.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -195,11 +203,19 @@ struct LocalModelBrowser: View {
         }
     }
 
+    private var customModels: [CustomLocalModel] {
+        let search = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        return store.customLocalModels.filter {
+            search.isEmpty || "\($0.name) \($0.location)".localizedCaseInsensitiveContains(search)
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("Choose a local model").font(Theme.title2)
                 Spacer()
+                Button("Add model…") { addingModel = true }.disabled(!store.canChangeLocalModel)
                 Button("Done") { dismiss() }.keyboardShortcut(.cancelAction)
             }
             TextField("Search models", text: $query).textFieldStyle(.roundedBorder)
@@ -211,9 +227,19 @@ struct LocalModelBrowser: View {
                                 .disabled(store.busy != nil || store.asking)
                         }.font(Theme.callout)
                     }
-                    if models.isEmpty {
+                    if !customModels.isEmpty {
+                        Text("Your models").font(Theme.headline).frame(maxWidth: .infinity, alignment: .leading)
+                        GroupBox2 {
+                            ForEach(customModels) { model in
+                                CustomLocalModelRow(model: model) { dismiss() }
+                            }
+                        }
+                    }
+                    if models.isEmpty && customModels.isEmpty {
                         Text("No matching models.").foregroundStyle(.secondary).padding(.vertical)
-                    } else {
+                    }
+                    if !models.isEmpty {
+                        Text("Recommended models").font(Theme.headline).frame(maxWidth: .infinity, alignment: .leading)
                         GroupBox2 { ForEach(models) { spec in mlxRow(spec) } }
                     }
                 }.frame(maxWidth: .infinity, alignment: .leading)
@@ -224,13 +250,15 @@ struct LocalModelBrowser: View {
         .padding(20)
         .frame(width: 640, height: 540)
         .background(Theme.canvas)
+        .onAppear { store.refreshLocalModels() }
+        .sheet(isPresented: $addingModel) { AddLocalModelView().environmentObject(store) }
     }
 
     @ViewBuilder func mlxRow(_ spec: MLXModelSpec) -> some View {
         let downloaded = store.isDownloaded(spec.repo)
         let fit = localModelFit(spec)
         let tooBig = fit == .no
-        ChoiceRow(selected: store.backend == .mlx && store.mlxRepo == spec.repo, enabled: downloaded && store.busy == nil && !store.asking,
+        ChoiceRow(selected: store.backend == .mlx && store.mlxRepo == spec.repo, enabled: downloaded && store.canChangeLocalModel,
                   title: spec.name, tag: "\(spec.detail) · \(String(format: "%.0f", spec.sizeGB)) GB",
                   subtitle: tooBig ? "Too large for this Mac's memory. " + spec.blurb
                       : (store.downloadErrors[spec.repo].map { "Download failed: \($0)" } ?? (fit == .tight ? "Tight on this Mac's memory. " : "") + spec.blurb),

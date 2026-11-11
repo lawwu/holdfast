@@ -35,6 +35,14 @@ and conversation caching. The app loads its model and owns scheduling, prompts,
 data, tools, credentials, and approvals. No Pi, Node, or host process is needed
 for direct use. Sharing this library across apps does not share loaded model memory.
 
+`LocalModelFiles.repositoryID(_:)` accepts a model repository ID or a root Hugging
+Face model URL. `LocalModelFiles.inspect(directory:)` checks checkpoint metadata,
+tokenizer presence, weight files, and shard completeness without loading GPU weights.
+Its result includes `modelType` and weight bytes (not peak memory). Apps can check
+the type against `LLMModelFactory.shared.typeRegistry.contains(_:)` before loading.
+These checks do not certify inference quality or tool support. App preferences,
+downloads, folder choices, and approvals stay with the calling app.
+
 ## Build the standalone host
 
 ```sh

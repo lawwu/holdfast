@@ -817,7 +817,7 @@ struct Composer: View {
             HStack {
                 Menu {
                     Section("On this Mac (MLX)") {
-                        ForEach(MLXModelSpec.shortList.filter { store.isDownloaded($0.repo) }) { spec in
+                        ForEach(MLXModelSpec.available.filter { store.isDownloaded($0.repo) }) { spec in
                             Toggle("\(spec.name) · \(spec.detail)", isOn: Binding(
                                 get: { store.backend == .mlx && store.mlxRepo == spec.repo },
                                 set: { if $0 { store.selectMLX(spec.repo) } }))

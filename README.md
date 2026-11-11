@@ -8,6 +8,10 @@ and review proposed edits before they’re saved.
 [Watch the tour](https://lawwu.github.io/holdfast/tour/) ·
 [Changelog](CHANGELOG.md)
 
+**Current preview: [v0.0.3](https://github.com/lawwu/holdfast/releases/tag/v0.0.3)** —
+[Download the macOS installer](https://github.com/lawwu/holdfast/releases/download/v0.0.3/Holdfast-0.0.3-macos-arm64-unsigned.pkg)
+(Apple Silicon, macOS 15+, unsigned).
+
 ## What you can do
 
 - **Find what you need.** Search documents and notes by keyword or meaning.
@@ -35,6 +39,8 @@ macOS blocks them. The installer includes the core runtime; models download sepa
 
 **LocalMLX** runs the answer model inside the app by default. You can also use
 **Ollama**, **LM Studio**, or a compatible custom server.
+Choose a recommended model, or use **Add model…** to bring an MLX-compatible
+Hugging Face repository or local folder.
 
 With a server provider, the server receives the question and relevant context.
 Notes covered by the **Private notes** profile or protected-folder rules stay

@@ -232,6 +232,7 @@ final class Store: ObservableObject {
         didSet { UserDefaults.standard.set(backend.rawValue, forKey: "backend") }
     }
     @Published var mlxRepo = Prefs.mlxRepo { didSet { Prefs.mlxRepo = mlxRepo } }
+    @Published private(set) var customLocalModels = CustomLocalModels.load()
     @Published private(set) var searchByMeaning = Prefs.searchByMeaning
     @Published private(set) var preparingMeaningSearch = false
     @Published private(set) var meaningSearchError: String?
@@ -395,12 +396,52 @@ final class Store: ObservableObject {
     }
 
     func selectMLX(_ repo: String) {
-        guard isDownloaded(repo) else { return }
+        guard canChangeLocalModel, isDownloaded(repo) else { return }
         mlxRepo = repo
         backend = .mlx
     }
 
     func download(_ spec: MLXModelSpec) { downloadRepo(spec.repo) }
+
+    var canChangeLocalModel: Bool { busy == nil && !asking && !filing && importProgress == nil }
+
+    func refreshLocalModels() {
+        customLocalModels = CustomLocalModels.load()
+        downloaded = [:]
+    }
+
+    func addLocalModel(repository: String?, folder: URL?) async throws {
+        let model: CustomLocalModel
+        if let folder {
+            let directory = folder.standardizedFileURL.resolvingSymlinksInPath()
+            let info = try await CustomModelImport.inspectFolder(directory)
+            model = CustomLocalModel(id: "local:" + UUID().uuidString.lowercased(), source: .folder,
+                location: directory.path, name: CustomLocalModels.folderName(folder), modelType: info.modelType, weightBytes: info.weightBytes)
+        } else {
+            let (repo, info) = try await CustomModelImport.inspectRepository(repository ?? "")
+            // A recommended model already has a place in the picker.
+            if MLXModelSpec.shortList.contains(where: { $0.repo == repo }) {
+                if isDownloaded(repo) { selectMLX(repo) }
+                return
+            }
+            model = CustomLocalModel(id: repo, source: .huggingFace, location: repo,
+                name: repo.split(separator: "/").last.map(String.init) ?? repo, modelType: info.modelType, weightBytes: info.weightBytes)
+        }
+        try Task.checkCancellation()
+        let saved = try CustomLocalModels.add(model)
+        refreshLocalModels()
+        if isDownloaded(saved.id) { selectMLX(saved.id) }
+    }
+
+    func removeLocalModel(_ model: CustomLocalModel) {
+        guard canChangeLocalModel, downloads[model.id] == nil else { return }
+        do {
+            try CustomLocalModels.remove(model.id)
+            if MLXBackend.loadedRepo == model.id { MLXBackend.unload() }
+            if mlxRepo == model.id { mlxRepo = MLXModelSpec.fallback.repo }
+            refreshLocalModels()
+        } catch { self.error = error.localizedDescription }
+    }
 
     /// Downloads a model into the app's model folder using the configured source.
     /// When it is the embedder, the index is rebuilt so notes get meaning-search vectors.
@@ -411,11 +452,20 @@ final class Store: ObservableObject {
         Task {
             defer { if downloadErrors[repo] == nil { then?() } }
             do {
+                let custom = CustomLocalModels.find(repo)
+                if let custom {
+                    guard custom.source == .huggingFace else { throw HoldfastError("Local folders are used in place. Add the folder's new location if it moved.") }
+                    _ = try await CustomModelImport.inspectRepository(custom.location)
+                }
                 try await MLXBackend.download(repo: repo) { f in
                     Task { @MainActor in if self.downloads[repo] != nil { self.downloads[repo] = f } }
                 }
+                if let custom {
+                    guard let dir = MLXBackend.modelDir(repo: custom.id) else { throw HoldfastError("The downloaded model is incomplete. Check the repository and try again.") }
+                    _ = try await CustomModelImport.inspectFolder(dir)
+                }
             } catch {
-                downloadErrors[repo] = "\(error)"
+                downloadErrors[repo] = error.localizedDescription
             }
             downloads[repo] = nil
             downloaded = [:]

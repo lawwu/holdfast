@@ -67,6 +67,9 @@ import Foundation
         try FileManager.default.createDirectory(at: snapshots.appendingPathComponent("z-incomplete"), withIntermediateDirectories: true)
         try Data("{}".utf8).write(to: cached.appendingPathComponent("config.json"))
         try expect(lookup()?.path == cached.path, "existing Hugging Face cache takes precedence, skipping empty snapshots")
+        try expect(ModelFiles.directory(repo: repo, modelsDirectory: models, home: root,
+                                        validate: { $0.path == own.path })?.path == own.path,
+                   "custom validation skips incomplete cache snapshots and finds a complete download")
         try FileManager.default.removeItem(at: cached)
         try expect(lookup()?.path == own.path, "incomplete cache does not hide a completed app download")
         try FileManager.default.removeItem(at: own.appendingPathComponent("config.json"))

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.0.3 — bring your own LocalMLX model
+
+- Add custom LocalMLX models from a Hugging Face repository or an existing local
+  folder, alongside the recommended list. Check files and architecture before
+  adding, preserve choices across launches, and keep Inbox approvals for edits.
+- Custom models appear in Ask's model menu once available. Local folders are used
+  in place, and removing a model from the list keeps its files on disk.
+- Validate incomplete checkpoints and unsupported architectures, and show custom
+  models as unbenchmarked rather than implying answer quality or tool support.
+
 ## 0.0.2 — guided tour and documentation
 
 - Narrated, captioned app walkthrough with downloadable fictional sample notes.

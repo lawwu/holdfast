@@ -7,6 +7,7 @@ import MLXRerankers
 import MLXHuggingFace
 import MLXLMCommon
 import Tokenizers
+import LocalMLX
 
 // MARK: - Embeddings: Qwen3-Embedding-0.6B in-process via MLX Swift
 
@@ -215,6 +216,13 @@ final class MLXBackend: LLMBackend, @unchecked Sendable {
     /// HOLDFAST_MLX_DIR wins; then the Hugging Face cache; then the app's own downloads.
     static func modelDir(repo: String = currentRepo) -> URL? {
         if let p = ProcessInfo.processInfo.environment["HOLDFAST_MLX_DIR"] { return URL(fileURLWithPath: p) }
+        if let custom = CustomLocalModels.find(repo) {
+            let validate: (URL) -> Bool = { directory in
+                (try? LocalModelFiles.inspect(directory: directory).modelType) == custom.modelType
+            }
+            if let folder = custom.folder { return validate(folder) ? folder : nil }
+            return ModelFiles.directory(repo: custom.location, modelsDirectory: Prefs.modelsDir, validate: validate)
+        }
         return ModelFiles.directory(repo: repo, modelsDirectory: Prefs.modelsDir)
     }
 
@@ -237,7 +245,15 @@ final class MLXBackend: LLMBackend, @unchecked Sendable {
         let repo = currentRepo
         if let c = cached, loadedRepo == repo { return c }
         if cached != nil { unload() }  // switching models: free the old one first
-        guard let dir = modelDir(repo: repo) else { throw HoldfastError("\(repo) is not downloaded; download it in Settings") }
+        let custom = CustomLocalModels.find(repo)
+        let override = ProcessInfo.processInfo.environment["HOLDFAST_MLX_DIR"].map { URL(fileURLWithPath: $0) }
+        guard let dir = override ?? custom?.folder ?? modelDir(repo: repo) else { throw HoldfastError("\(repo) is not downloaded; download it in Settings") }
+        if custom != nil {
+            let inspection = try await CustomModelImport.inspectFolder(dir)
+            if let size = inspection.weightBytes, Double(size) > Double(ProcessInfo.processInfo.physicalMemory) * 0.75 {
+                throw HoldfastError("This model's weights alone need more than three quarters of this Mac's memory. Choose a smaller model or quantization.")
+            }
+        }
         let t0 = Date()
         log("loading \(repo) with MLX…")
         let c = try await LLMModelFactory.shared.loadContainer(from: dir, using: #huggingFaceTokenizerLoader())

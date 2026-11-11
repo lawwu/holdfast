@@ -126,18 +126,19 @@ enum ModelFiles {
     /// Shared lookup for answer, embedding and reranker models. Incomplete app
     /// downloads must never be offered as ready to load.
     static func directory(repo: String, modelsDirectory: URL,
-                          home: URL = FileManager.default.homeDirectoryForCurrentUser) -> URL? {
+                          home: URL = FileManager.default.homeDirectoryForCurrentUser,
+                          validate: (URL) -> Bool = { _ in true }) -> URL? {
         let fm = FileManager.default
         let snapshots = home.appendingPathComponent(
             ".cache/huggingface/hub/models--\(repo.replacingOccurrences(of: "/", with: "--"))/snapshots")
         if let names = try? fm.contentsOfDirectory(atPath: snapshots.path) {
             for name in names.sorted().reversed() {
                 let dir = snapshots.appendingPathComponent(name)
-                if fm.fileExists(atPath: dir.appendingPathComponent("config.json").path) { return dir }
+                if fm.fileExists(atPath: dir.appendingPathComponent("config.json").path), validate(dir) { return dir }
             }
         }
         let own = modelsDirectory.appendingPathComponent("models/\(repo)")
         return fm.fileExists(atPath: own.appendingPathComponent(".complete").path)
-            && fm.fileExists(atPath: own.appendingPathComponent("config.json").path) ? own : nil
+            && fm.fileExists(atPath: own.appendingPathComponent("config.json").path) && validate(own) ? own : nil
     }
 }

@@ -386,6 +386,26 @@ python3 Tests/provider_integration.py .build/harness-xcode/Build/Products/Releas
 python3 Tests/provider_integration.py .build/harness-xcode/Build/Products/Release/holdfast --live-ollama
 ```
 
+### Add your own LocalMLX model
+
+In **Settings → Answer → Change model… → Add model…**, choose a Hugging Face
+repository (`owner/model` or its root URL) or an existing local model folder.
+Repository metadata is checked before downloading weights. The download uses
+**Settings → Downloads**, including its endpoint and access token. Private or
+gated repositories require an access token and any required access approval on
+Hugging Face.
+
+Custom models are saved under **Your models**, beside the unchanged recommended
+list. Once available, they also appear in Ask's model menu. Local folders are used
+in place; removing a choice keeps every model file. If a folder moves, add its new
+location and remove the old choice.
+
+The checkpoint needs a supported model architecture, tokenizer files, and complete
+safetensors weights. A GGUF model belongs with an Ollama or LM Studio connection.
+File checks do not benchmark a model or prove tool support, and memory use is higher
+than the weight size shown. Load or chat-template errors can still occur on first use.
+Holdfast's tools, privacy rules, Inbox approvals, and Undo apply to custom models.
+
 ## Privacy, in one place
 
 - Everything runs on this Mac by default: the vault, its index, search, and the answer model.

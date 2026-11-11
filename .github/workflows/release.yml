@@ -94,6 +94,8 @@ jobs:
           npm ci --prefix Runtime/pi --ignore-scripts --no-audit --no-fund
           npm test --prefix Runtime/pi
           bash scripts/test_agent_runtime.sh
+          bash scripts/test_custom_models.sh
+          bash scripts/test_model_downloads.sh
           python3 Tests/model_provider_transport.py
       - name: Build the unsigned installer
         run: |

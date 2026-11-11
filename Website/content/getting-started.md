@@ -38,6 +38,13 @@ Open **Settings → Answer**. Start with **LocalMLX**, the default, and download
 
 [![Answer settings with LocalMLX selected and tabs for Ollama, LM Studio, and a custom server.](/holdfast/screenshots/settings.webp)](/holdfast/screenshots/settings.webp)
 
+Want a different local model? Choose **Change model… → Add model…**:
+
+- **Hugging Face:** paste `owner/model` or the model's main Hugging Face URL. Holdfast checks its metadata first, then adds it under **Your models**. Choose **Download**, wait for it to finish, and select the model.
+- **Local folder:** choose a complete MLX checkpoint folder. Holdfast uses its files where they are and selects it when available. Keep that folder accessible; **Remove from list** only forgets the choice.
+
+The recommended list stays available. Custom models are labeled **Custom** and appear in Ask's model menu once their files are available. File and architecture checks do not test answer quality or tool support. A compatible chat template and a model that follows tool requests are needed for Ask's search and edit tools. Proposed edits still wait in Inbox.
+
 Already use **Ollama** or **LM Studio**? Start its server, load a model, and choose that provider in Holdfast. **Custom** supports compatible chat-completions servers. Use a model with tool support for edits and other agent actions. A successful connection test only confirms that the server is reachable.
 
 A server receives your question and the relevant note context. Notes covered by the **Private notes** profile or protected-folder rules must use LocalMLX on this Mac; Holdfast refuses the private request if a suitable local model is unavailable. See [model and privacy settings](../../docs/guide.md#choose-an-inference-provider).

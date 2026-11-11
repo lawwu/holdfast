@@ -10,6 +10,9 @@ enum DemoCapture {
     private static var lastID = ""
     private static var settings: NSWindow?
     private static var mainWindow: NSWindow?
+    private static var modelWindow: NSWindow?
+    private static var importingModel = false
+    private static var modelImportError = ""
 
     static func openWindow() {
         guard ProcessInfo.processInfo.environment["HOLDFAST_DEMO_CONTROL"] != nil else { return }
@@ -46,8 +49,34 @@ enum DemoCapture {
                    let id = command["id"], id != lastID {
                     lastID = id
                     switch command["action"] {
+                    case "add-repo", "add-folder":
+                        importingModel = true; modelImportError = ""
+                        Task { @MainActor in
+                            defer { importingModel = false }
+                            do {
+                                try await store.addLocalModel(
+                                    repository: command["action"] == "add-repo" ? command["value"] : nil,
+                                    folder: command["action"] == "add-folder" ? URL(fileURLWithPath: command["value"] ?? "") : nil)
+                            } catch { modelImportError = error.localizedDescription }
+                        }
+                    case "select-model": store.selectMLX(command["value"] ?? "")
+                    case "download-model": store.downloadRepo(command["value"] ?? "")
+                    case "remove-model":
+                        if let model = store.customLocalModels.first(where: { $0.id == command["value"] }) { store.removeLocalModel(model) }
+                    case "models", "add-model-form":
+                        modelWindow?.close()
+                        let adding = command["action"] == "add-model-form"
+                        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 640, height: 540),
+                            styleMask: [.titled, .closable], backing: .buffered, defer: false)
+                        window.title = "Models"; window.isReleasedWhenClosed = false
+                        window.contentView = NSHostingView(rootView: Group {
+                            if adding { AddLocalModelView().environmentObject(store) }
+                            else { LocalModelBrowser().environmentObject(store) }
+                        })
+                        modelWindow = window; window.center(); window.makeKeyAndOrderFront(nil)
                     case "pane":
                         settings?.orderOut(nil)
+                        modelWindow?.orderOut(nil)
                         store.tabs = []; store.activeTab = nil
                         store.pane = Pane(rawValue: command["value"] ?? "Library")
                     case "open":
@@ -86,6 +115,10 @@ enum DemoCapture {
                     "question": store.askedQuestion, "sources": store.sources.map { $0.title },
                     "inboxCount": store.inboxItems.count, "filingCount": store.filings.count,
                     "noteTitles": store.notes.map { $0.title }, "windows": windows,
+                    "importingModel": importingModel, "modelImportError": modelImportError,
+                    "modelDownloads": store.downloads, "modelDownloadErrors": store.downloadErrors,
+                    "selectedModel": store.mlxRepo,
+                    "customModels": store.customLocalModels.map { ["id": $0.id, "name": $0.name, "source": $0.source.rawValue] },
                 ]
                 if let data = try? JSONSerialization.data(withJSONObject: state, options: [.prettyPrinted, .sortedKeys]) {
                     try? data.write(to: directory.appendingPathComponent("status.json"), options: .atomic)

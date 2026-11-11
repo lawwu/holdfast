@@ -123,8 +123,19 @@ struct MLXModelSpec: Identifiable, Hashable {
     } + [MLXModelSpec(repo: "mlx-community/Qwen3.8-27B-8bit", name: "Qwen 3.8 27B", detail: "8-bit", sizeGB: 29.5,
                       blurb: "The 4-bit model at higher precision; about half the speed. Not measured by the eval.")]
     /// Before a model is chosen: the one recommended for this Mac's memory.
-    static let fallback = find(Recommend.pick()?.best.repo ?? "") ?? find("mlx-community/Qwen3.8-27B-4bit") ?? shortList[0]
-    static func find(_ repo: String) -> MLXModelSpec? { shortList.first { $0.repo == repo } }
+    static let fallback = shortList.first { $0.repo == Recommend.pick()?.best.repo }
+        ?? shortList.first { $0.repo == "mlx-community/Qwen3.8-27B-4bit" } ?? shortList[0]
+    static var available: [MLXModelSpec] {
+        shortList + CustomLocalModels.load().filter { custom in !shortList.contains { $0.repo == custom.id } }.map { $0.spec }
+    }
+    static func find(_ repo: String) -> MLXModelSpec? { available.first { $0.repo == repo } }
+}
+
+extension CustomLocalModel {
+    var spec: MLXModelSpec {
+        MLXModelSpec(repo: id, name: name, detail: "Custom", sizeGB: Double(weightBytes ?? 0) / 1_000_000_000,
+                     blurb: "\(sizeDescription). Memory use will be higher. Not benchmarked with Holdfast.")
+    }
 }
 
 enum TranscriptionModel: String, CaseIterable, Identifiable {
