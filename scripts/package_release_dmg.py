@@ -9,10 +9,46 @@ import plistlib
 import re
 import subprocess
 import tempfile
+import time
+
+# hdiutil on hosted macOS runners: its own size estimate from -srcfolder can come up short as the
+# app grows, and it sometimes fails with "Resource busy" while the system scans new files.
+# Give it an explicit size with this much room over the staged files, and retry a failure.
+DMG_HEADROOM = 1.25
+DMG_EXTRA_MB = 64
+DMG_ATTEMPTS = 3
+DMG_RETRY_SECONDS = 15
 
 
 def run(*args):
-    return subprocess.run(list(map(str, args)), check=True, capture_output=True)
+    """Run a tool; on failure, raise with its own error output (otherwise CI shows only the exit status)."""
+    result = subprocess.run(list(map(str, args)), capture_output=True)
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout).decode(errors='replace').strip()
+        raise RuntimeError(f'{Path(str(args[0])).name} {args[1] if len(args) > 1 else ""} failed '
+                           f'(exit {result.returncode}): {detail or "no output"}')
+    return result
+
+
+def folder_megabytes(folder):
+    """Bytes the staged files take, rounded up to whole megabytes (symlinks count as nothing)."""
+    total = sum(path.lstat().st_size for path in folder.rglob('*') if path.is_file() and not path.is_symlink())
+    return -(-total // (1024 * 1024))
+
+
+def create_image(staging, volume, image):
+    size = int(folder_megabytes(staging) * DMG_HEADROOM) + DMG_EXTRA_MB
+    for attempt in range(1, DMG_ATTEMPTS + 1):
+        try:
+            run('hdiutil', 'create', '-srcfolder', staging, '-volname', volume, '-size', f'{size}m',
+                '-format', 'UDZO', '-fs', 'HFS+', image)
+            return
+        except RuntimeError as error:
+            image.unlink(missing_ok=True)
+            if attempt == DMG_ATTEMPTS:
+                raise
+            print(f'hdiutil create failed (attempt {attempt} of {DMG_ATTEMPTS}), retrying: {error}', flush=True)
+            time.sleep(DMG_RETRY_SECONDS * attempt)
 
 
 def sha256(path):
@@ -88,8 +124,7 @@ def main():
             'Gatekeeper and your organization\'s approval requirements still apply.\n\n'
             'Requires Apple Silicon and macOS 15 or later.\n'
             'https://lawwu.github.io/holdfast/getting-started/\n')
-        run('hdiutil', 'create', '-srcfolder', staging, '-volname', f'Holdfast {version}',
-            '-format', 'UDZO', '-fs', 'HFS+', image)
+        create_image(staging, f'Holdfast {version}', image)
         run('hdiutil', 'verify', image)
         mount = work / 'mounted'
         mount.mkdir()
