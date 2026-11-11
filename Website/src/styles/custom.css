@@ -59,4 +59,5 @@ h1, h2, .hero h1 {
 .tour-chapters { display: flex; flex-wrap: wrap; gap: .6rem; margin-block: 1rem 2rem; }
 .tour-chapters button { font: inherit; font-size: .9rem; padding: .45rem .75rem; cursor: pointer; border: 1px solid var(--sl-color-gray-4); border-radius: .5rem; background: var(--sl-color-bg-sidebar); color: var(--sl-color-text); }
 .tour-chapters button:hover, .tour-chapters button:focus-visible { border-color: var(--sl-color-accent); outline-offset: 3px; }
+.sl-markdown-content .tour-chapters button { margin: 0; }
 .demo-downloads { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; margin-block: 1rem; }
