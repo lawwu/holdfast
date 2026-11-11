@@ -32,6 +32,13 @@ To publish a new version:
 3. The workflow builds and tests the tagged source, uploads the exact tested `.pkg`,
    `SHA256SUMS`, `release-manifest.json`, and `verification.json` to a draft, then publishes
    it as an **unsigned prerelease**, never as the latest stable release.
+4. After publication, it builds and tests the documentation from the same tag and
+   deploys it to GitHub Pages. A failed docs deployment leaves the existing site up;
+   retry it through **Actions → Documentation** with that published `release_tag`.
+
+Documentation sources live in this repository. Main-branch pushes and pull requests
+check the site without deploying; releases published manually also trigger deployment.
+See [site maintenance](../Website/README.md) for the hosting setup and local checks.
 
 The tag must match `VERSION`, belong to `main`, and contain its release notes. The workflow
 never creates or moves tags, pushes commits, or replaces a published release. Use a new

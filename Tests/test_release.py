@@ -29,8 +29,11 @@ class ReleaseTests(unittest.TestCase):
         (notes / 'v0.0.2.md').write_text('Preview release notes.\n')
         scripts = self.repo / 'scripts'
         scripts.mkdir()
-        for name in ['release_ref.py', 'publish_release.py']:
+        for name in ['release_ref.py', 'publish_release.py', 'docs_release.py']:
             shutil.copyfile(ROOT / 'scripts' / name, scripts / name)
+        website = self.repo / 'Website'
+        website.mkdir()
+        (website / 'package.json').write_text('{"private":true}\n')
         self.git('add', '.')
         self.git('commit', '-m', 'Release fixture')
         self.revision = self.git('rev-parse', 'HEAD')
@@ -58,7 +61,9 @@ class ReleaseTests(unittest.TestCase):
 with open(os.environ['TEST_GH_LOG'], 'a') as log: log.write(json.dumps(sys.argv[1:]) + '\\n')
 if sys.argv[1] == 'api':
     mode = os.environ.get('TEST_GH_MODE', 'missing')
-    if mode == 'published': print('{"draft":false}'); sys.exit(0)
+    if mode == 'published': print('{"draft":false,"tag_name":"v0.0.2","published_at":"2026-11-10T00:00:00Z","prerelease":true}'); sys.exit(0)
+    if mode == 'wrong-tag': print('{"draft":false,"tag_name":"v0.0.3","published_at":"2026-11-10T00:00:00Z"}'); sys.exit(0)
+    if mode == 'unpublished': print('{"draft":false,"tag_name":"v0.0.2","published_at":null}'); sys.exit(0)
     if mode == 'draft': print('{"draft":true}'); sys.exit(0)
     print('HTTP 403' if mode == 'denied' else 'HTTP 404', file=sys.stderr); sys.exit(1)
 if sys.argv[1:3] == ['release', 'view']: print('https://example.invalid/release')
@@ -89,6 +94,35 @@ if sys.argv[1:3] == ['release', 'view']: print('https://example.invalid/release'
 
     def test_branch_build_never_requests_publication(self):
         self.assertIn('publish=false', self.command('release_ref.py'))
+
+    def test_docs_branch_checks_never_query_github_or_publish(self):
+        self.assertIn('publish=false', self.command('docs_release.py'))
+        self.assertEqual(self.calls(), [])
+
+    def test_docs_use_published_prerelease_revision_instead_of_main(self):
+        self.env['TEST_GH_MODE'] = 'published'
+        self.git('commit', '--allow-empty', '-m', 'Development after release')
+        self.git('update-ref', 'refs/remotes/origin/main', 'HEAD')
+        result = self.command('docs_release.py', '--tag', 'v0.0.2')
+        self.assertIn('revision=' + self.revision, result)
+        self.assertIn('publish=true', result)
+        self.assertTrue(all(c[0] == 'api' for c in self.calls()))
+
+    def test_docs_refuse_unpublished_or_unverifiable_releases(self):
+        for mode in ['missing', 'draft', 'denied', 'wrong-tag', 'unpublished']:
+            with self.subTest(mode=mode):
+                self.env['TEST_GH_MODE'] = mode
+                result = self.command('docs_release.py', '--tag', 'v0.0.2', success=False)
+                self.assertNotIn('publish=true', result)
+
+    def test_docs_refuse_old_tags_without_site_sources(self):
+        self.env['TEST_GH_MODE'] = 'published'
+        self.git('rm', 'Website/package.json')
+        self.git('commit', '-m', 'Remove site from fixture')
+        self.git('update-ref', 'refs/remotes/origin/main', 'HEAD')
+        self.git('tag', '-f', 'v0.0.2')
+        result = self.command('docs_release.py', '--tag', 'v0.0.2', success=False)
+        self.assertIn('predates the documentation site', result)
 
     def test_rejects_invalid_tags_and_version_mismatch(self):
         for tag in ['--help', 'main', 'v0.0.2;echo nope', 'v0.0.2\ninjected=true', 'v01.0.2']:

@@ -7,7 +7,8 @@ and ask questions with citations. Changes proposed by the agent wait for your ap
 [Getting started](https://lawwu.github.io/holdfast-docs/getting-started/) ·
 [Architecture](https://lawwu.github.io/holdfast-docs/architecture/)
 
-The documentation site updates automatically on every push to `main`.
+The documentation site updates when a release is published, using that release's
+source. Pull requests and pushes to `main` check the docs without deploying them.
 See [site maintenance](Website/README.md) for local preview and publishing instructions.
 
 Installer releases are distributed through [GitHub Releases](https://github.com/lawwu/holdfast/releases).

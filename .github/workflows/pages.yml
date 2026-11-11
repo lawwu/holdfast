@@ -4,7 +4,23 @@ on:
   pull_request:
   push:
     branches: [main]
+  release:
+    types: [published]
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Published vX.Y.Z release to deploy; leave empty to check only'
+        type: string
+        required: false
+  workflow_call:
+    inputs:
+      release_tag:
+        description: 'Published release whose documentation should be deployed'
+        type: string
+        required: true
+    secrets:
+      DOCS_DEPLOY_KEY:
+        required: true
 
 permissions:
   contents: read
@@ -13,19 +29,42 @@ defaults:
   run:
     shell: bash
 
-# Serialize updates so an older build cannot replace a newer deployment.
+# All release deployments share a group; branch checks never publish.
 concurrency:
-  group: docs-${{ github.ref }}
+  group: docs-${{ (inputs.release_tag || github.event_name == 'release') && 'publication' || github.ref }}
   cancel-in-progress: false
 
 jobs:
+  resolve:
+    name: Select documentation source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      revision: ${{ steps.release.outputs.revision }}
+      publish: ${{ steps.release.outputs.publish }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Test publication guards
+        run: python3 -m unittest discover -s Tests -p 'test_release.py' -v
+      - id: release
+        name: Require a published release before deploying
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.event.release.tag_name }}
+        run: python3 scripts/docs_release.py --tag "$RELEASE_TAG"
+
   build:
     name: Build and check documentation
+    needs: resolve
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ needs.resolve.outputs.revision }}
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -63,8 +102,8 @@ jobs:
 
   deploy:
     name: Publish documentation to GitHub Pages
-    needs: build
-    if: github.repository == 'lawwu/holdfast' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: [resolve, build]
+    if: github.repository == 'lawwu/holdfast' && needs.resolve.outputs.publish == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:

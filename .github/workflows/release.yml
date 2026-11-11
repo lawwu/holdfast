@@ -146,3 +146,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ needs.resolve.outputs.tag }}
         run: python3 scripts/publish_release.py --tag "$RELEASE_TAG" --publish --allow-unsigned-preview
+
+  documentation:
+    name: Deploy release documentation
+    needs: [resolve, publish]
+    if: needs.resolve.outputs.publish == 'true' && github.repository == 'lawwu/holdfast'
+    # Publishing with GITHUB_TOKEN doesn't emit a new release-triggered workflow.
+    # Call the same docs workflow explicitly after the release is published.
+    uses: ./.github/workflows/pages.yml
+    with:
+      release_tag: ${{ needs.resolve.outputs.tag }}
+    secrets:
+      DOCS_DEPLOY_KEY: ${{ secrets.DOCS_DEPLOY_KEY }}
