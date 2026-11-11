@@ -9,24 +9,9 @@ enum DemoCapture {
     private static var timer: Timer?
     private static var lastID = ""
     private static var settings: NSWindow?
-    private static var mainWindow: NSWindow?
     private static var modelWindow: NSWindow?
     private static var importingModel = false
     private static var modelImportError = ""
-
-    static func openWindow() {
-        guard ProcessInfo.processInfo.environment["HOLDFAST_DEMO_CONTROL"] != nil else { return }
-        let store = Store()
-        guard (try? String(contentsOf: store.vault.appendingPathComponent(".holdfast-demo"), encoding: .utf8)) == "public sample notes only\n" else { return }
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1280, height: 800),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
-        window.title = "Holdfast"
-        window.contentView = NSHostingView(rootView: RootView().environmentObject(store))
-        window.isReleasedWhenClosed = false
-        window.center(); window.makeKeyAndOrderFront(nil)
-        mainWindow = window
-        install(store)
-    }
 
     static func install(_ store: Store) {
         guard timer == nil,
@@ -59,6 +44,20 @@ enum DemoCapture {
                                     folder: command["action"] == "add-folder" ? URL(fileURLWithPath: command["value"] ?? "") : nil)
                             } catch { modelImportError = error.localizedDescription }
                         }
+                    case "add-files":
+                        store.showQuickOpen = false; store.showPalette = false
+                        store.pane = .ask
+                        store.addToDrop((command["value"] ?? "").split(separator: "\n").map { URL(fileURLWithPath: String($0)) })
+                    case "pause-files": store.pauseFiling(command["value"] == "true")
+                    case "download-audio":
+                        if let model = TranscriptionModel(rawValue: command["value"] ?? "") { AudioModels.shared.start(model) }
+                    case "transcription-settings":
+                        settings?.close()
+                        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 600, height: 540),
+                            styleMask: [.titled, .closable], backing: .buffered, defer: false)
+                        window.title = "Settings"; window.isReleasedWhenClosed = false
+                        window.contentView = NSHostingView(rootView: ScrollView { TranscriptionSettings().environmentObject(store) })
+                        settings = window; window.center(); window.makeKeyAndOrderFront(nil)
                     case "select-model": store.selectMLX(command["value"] ?? "")
                     case "download-model": store.downloadRepo(command["value"] ?? "")
                     case "remove-model":
@@ -75,6 +74,7 @@ enum DemoCapture {
                         })
                         modelWindow = window; window.center(); window.makeKeyAndOrderFront(nil)
                     case "pane":
+                        store.showQuickOpen = false; store.showPalette = false
                         settings?.orderOut(nil)
                         modelWindow?.orderOut(nil)
                         store.tabs = []; store.activeTab = nil
@@ -116,7 +116,11 @@ enum DemoCapture {
                     "inboxCount": store.inboxItems.count, "filingCount": store.filings.count,
                     "noteTitles": store.notes.map { $0.title }, "windows": windows,
                     "importingModel": importingModel, "modelImportError": modelImportError,
-                    "modelDownloads": store.downloads, "modelDownloadErrors": store.downloadErrors,
+                    "modelDownloads": store.downloads.mapValues { $0.summary }, "modelDownloadErrors": store.downloadErrors,
+                    "audioDownloads": AudioModels.shared.progress.mapValues { $0.summary },
+                    "audioErrors": AudioModels.shared.errors,
+                    "audioAvailable": Array(AudioModels.shared.available),
+                    "fileActivity": store.fileActivity.map { ["name": $0.name, "detail": $0.detail, "finished": $0.finished] as [String: Any] },
                     "selectedModel": store.mlxRepo,
                     "customModels": store.customLocalModels.map { ["id": $0.id, "name": $0.name, "source": $0.source.rawValue] },
                 ]

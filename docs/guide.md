@@ -173,11 +173,24 @@ The default is LocalMLX. `HOLDFAST_BACKEND=mlx|ollama|lmstudio|custom` overrides
 provider; `HOLDFAST_MLX_REPO` selects the embedded model. Server configuration is below.
 Audio and URLs also need `ffmpeg` and `yt-dlp`.
 
+### Adding files in the app
+
+Use **Add Files…** on Ask, or drag files onto **Add files to your knowledge base**.
+The card immediately confirms the files, then shows copying, queuing, model preparation,
+and processing. **File details** keeps each filename and its current stage visible;
+a running time shows how long that stage has taken. You can keep using the app.
+
+Results stay visible until dismissed or another batch is added. Proposed changes have a
+**Review in Inbox** button; files that failed or were skipped show why. In an existing
+vault, proposals still wait for approval. **Pause after current file** holds the remaining
+queue, and **Resume processing** starts it again. Large recordings and the first model
+load can take several minutes.
+
 ### Model downloads through a mirror
 
 In **Settings → Downloads**, enter a Hugging Face-compatible **Endpoint URL**, add an
 access token if required, and click **Save**. Then download models from the Answer or
-Search tab as usual. Repository IDs such as `mlx-community/Qwen3.8-27B-4bit` stay the same.
+Search or Transcription tab as usual. Repository IDs such as `mlx-community/Qwen3.8-27B-4bit` stay the same.
 Tokens are stored in macOS Keychain separately for each endpoint and sent as
 `Authorization: Bearer <token>` on metadata and file requests. Paste the token itself,
 without the `Bearer` prefix.
@@ -193,10 +206,21 @@ settings. Blank variables are ignored. A custom mirror without an explicit or sa
 token uses anonymous access; it does not inherit a cached Hugging Face login.
 The default `https://huggingface.co` endpoint retains the usual Hugging Face token discovery.
 
-This setting applies to answer, embedding and reranker downloads. Existing downloads
-remain usable, and new downloads are saved under
-`~/Library/Application Support/Holdfast/models`. Parakeet transcription downloads are
-managed separately by FluidAudio and do not use this setting.
+This setting applies to answer, embedding, reranker and transcription downloads.
+The download display shows the percentage, transfer speed and estimated time remaining.
+If the server does not provide a file size, Holdfast shows an indeterminate download
+instead of inventing a percentage or time estimate. A final “Checking files” stage
+finishes before a model is marked downloaded.
+
+Existing downloads remain usable. Answer and search models are saved under
+`~/Library/Application Support/Holdfast/models`; speech models use the FluidAudio
+model folder in Application Support. In **Settings → Transcription**, choose
+**Download** to prepare a model before your first recording. Parakeet v3 remains the
+tested default, with v2 for English, Ultra as an additional accuracy-oriented option,
+and Redux as a smaller multilingual option. Ultra and Redux have not been benchmarked
+with Holdfast. Core ML is already built into macOS: only speech model files are downloaded,
+and transcription runs locally after that. macOS may still take a few minutes to prepare
+a newly downloaded model on first use.
 
 Run the model-free configuration and cache checks with `scripts/test_model_downloads.sh`.
 After building, run `scripts/test_model_downloads.sh --integration` to also test downloads

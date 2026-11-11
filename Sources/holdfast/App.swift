@@ -14,6 +14,11 @@ struct HoldfastApp: App {
             RootView()
                 .environmentObject(store)
                 .frame(minWidth: 1120, minHeight: 680)
+                .onAppear {
+                    #if HOLDFAST_DEMO_CAPTURE
+                    DemoCapture.install(store)
+                    #endif
+                }
         }
         .windowToolbarStyle(.unified)
 
@@ -70,9 +75,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
         // No window tabs (they'd take ⇧⌘\ "Show All Tabs" from Show File List).
         NSWindow.allowsAutomaticWindowTabbing = false
-        #if HOLDFAST_DEMO_CAPTURE
-        DemoCapture.openWindow()
-        #endif
         // Link clicks in selectable text arrive as a "get URL" Apple event (see Info.plist's URL types).
         NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(getURL(_:reply:)),
                                                      forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
@@ -240,8 +242,8 @@ final class Store: ObservableObject {
     @Published private var retrievalJobs = 0
     @Published var rerankerOn = Prefs.rerankerOn { didSet { Prefs.rerankerOn = rerankerOn } }
     @Published var transcription = Prefs.transcription { didSet { Prefs.transcription = transcription } }
-    /// In-flight model downloads: repo → fraction done.
-    @Published var downloads: [String: Double] = [:]
+    /// In-flight model downloads: repo → byte progress, speed and time remaining.
+    @Published var downloads: [String: ModelDownloadProgress] = [:]
     @Published var downloadErrors: [String: String] = [:]
     @Published var history: [HistoryEntry] = []
     /// The history entry on screen in Ask, if any.
@@ -315,6 +317,11 @@ final class Store: ObservableObject {
         }
     }
     /// Filing queue progress: files handled since the queue was last empty, and pause.
+    @Published var fileActivity: [FileImportActivity] = []
+    @Published private(set) var copyingFiles = false
+    private var filesToCopy: [(UUID, URL)] = []
+    private var activityForPath: [String: UUID] = [:]
+
     @Published var queueDone = 0
     @Published var queueLeft = 0
     @Published var dropPaused = false
@@ -403,7 +410,7 @@ final class Store: ObservableObject {
 
     func download(_ spec: MLXModelSpec) { downloadRepo(spec.repo) }
 
-    var canChangeLocalModel: Bool { busy == nil && !asking && !filing && importProgress == nil }
+    var canChangeLocalModel: Bool { busy == nil && !asking && !filing && !copyingFiles && importProgress == nil }
 
     func refreshLocalModels() {
         customLocalModels = CustomLocalModels.load()
@@ -447,7 +454,7 @@ final class Store: ObservableObject {
     /// When it is the embedder, the index is rebuilt so notes get meaning-search vectors.
     func downloadRepo(_ repo: String, then: (@MainActor () -> Void)? = nil) {
         guard downloads[repo] == nil else { return }
-        downloads[repo] = 0
+        downloads[repo] = ModelDownloadProgress()
         downloadErrors[repo] = nil
         Task {
             defer { if downloadErrors[repo] == nil { then?() } }
@@ -458,7 +465,7 @@ final class Store: ObservableObject {
                     _ = try await CustomModelImport.inspectRepository(custom.location)
                 }
                 try await MLXBackend.download(repo: repo) { f in
-                    Task { @MainActor in if self.downloads[repo] != nil { self.downloads[repo] = f } }
+                    await MainActor.run { self.downloads[repo] = f }
                 }
                 if let custom {
                     guard let dir = MLXBackend.modelDir(repo: custom.id) else { throw HoldfastError("The downloaded model is incomplete. Check the repository and try again.") }
@@ -484,7 +491,7 @@ final class Store: ObservableObject {
     }
 
     var canChangeMeaningSearch: Bool {
-        busy == nil && !asking && !filing && importProgress == nil && indexingJobs == 0 && retrievalJobs == 0
+        busy == nil && !asking && !filing && !copyingFiles && importProgress == nil && indexingJobs == 0 && retrievalJobs == 0
             && ProcessInfo.processInfo.environment["HOLDFAST_EMBED"] != "none"
     }
 
@@ -988,14 +995,56 @@ final class Store: ObservableObject {
 
     /// Files dropped on the window go into the drop folder, then get filed.
     func addToDrop(_ urls: [URL]) {
-        do { try Drop.add(urls) } catch { self.error = "\(error)" }
-        fileDropped()
+        guard !urls.isEmpty else { return }
+        if fileActivity.allSatisfy(\.finished) { fileActivity = []; activityForPath = [:] }
+        for url in urls {
+            let id = UUID()
+            let supported = Drop.supported.contains(url.pathExtension.lowercased())
+                && (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
+            fileActivity.append(FileImportActivity(id: id, name: url.lastPathComponent,
+                detail: supported ? "Waiting to copy…" : "This file type is not supported.",
+                outcome: supported ? .working : .failed))
+            if supported { filesToCopy.append((id, url)) }
+        }
+        guard !copyingFiles, !filesToCopy.isEmpty else { return }
+        copyingFiles = true
+        Task {
+            while !filesToCopy.isEmpty {
+                let (id, url) = filesToCopy.removeFirst()
+                updateFileActivity(id, detail: "Copying into Holdfast…")
+                do {
+                    let copied = try await Task.detached { try Drop.add([url]) }.value
+                    if let destination = copied.first {
+                        activityForPath[destination.path] = id
+                        updateFileActivity(id, detail: dropPaused ? "Queued · processing is paused" : "Queued for processing…")
+                    }
+                } catch {
+                    updateFileActivity(id, detail: error.localizedDescription, outcome: .failed)
+                }
+            }
+            copyingFiles = false
+            queueLeft = Drop.pending(settled: false).count
+            fileDropped()
+        }
+    }
+
+    func updateFileActivity(_ id: UUID, detail: String, outcome: FileImportActivity.Outcome = .working) {
+        guard let index = fileActivity.firstIndex(where: { $0.id == id }) else { return }
+        fileActivity[index].detail = detail
+        fileActivity[index].outcome = outcome
+        fileActivity[index].updated = Date()
+    }
+
+    func clearFileActivity() {
+        fileActivity.removeAll(where: \.finished)
+        let remaining = Set(fileActivity.map(\.id))
+        activityForPath = activityForPath.filter { remaining.contains($0.value) }
     }
 
     /// Files whatever is waiting in the drop folder, one at a time, when the
     /// model is free (an answer in progress goes first).
     func fileDropped() {
-        guard !filing, busy == nil, !dropPaused else { return }
+        guard !filing, !copyingFiles, busy == nil, !dropPaused else { return }
         let files = Drop.pending()
         guard !files.isEmpty else { queueDone = 0; queueLeft = 0; return }
         filing = true
@@ -1003,16 +1052,37 @@ final class Store: ObservableObject {
             for u in files {
                 if dropPaused { break }
                 queueLeft = max(Drop.pending(settled: false).count, 1)
-                dropStatus = "Reading \(u.lastPathComponent)…"
+                let activityID = activityForPath[u.path] ?? UUID()
+                if activityForPath[u.path] == nil {
+                    activityForPath[u.path] = activityID
+                    fileActivity.append(FileImportActivity(id: activityID, name: u.lastPathComponent, detail: "Starting…"))
+                }
+                dropStatus = "Preparing \(u.lastPathComponent)…"
+                updateFileActivity(activityID, detail: "Preparing search…")
                 do {
                     let emb = await getEmbedder()
+                    updateFileActivity(activityID, detail: Config.inPlace ? "Loading the filing model…" : "Importing…")
                     let llm: LLMBackend? = Config.inPlace ? try await getLLM() : nil
                     dropStatus = Config.inPlace ? "Deciding where \(u.lastPathComponent) belongs…" : "Importing \(u.lastPathComponent)…"
                     if !asking { busy = dropStatus }
-                    _ = try await Drop.process(u, embedder: emb, llm: llm, model: modelLabel)
+                    let result = try await Drop.process(u, embedder: emb, llm: llm, model: modelLabel) { stage in
+                        await MainActor.run {
+                            self.dropStatus = "\(u.lastPathComponent) · \(stage)"
+                            self.updateFileActivity(activityID, detail: stage)
+                        }
+                    }
+                    let review = result.hasPrefix("Proposed ")
+                    updateFileActivity(activityID, detail: review ? "Ready for review in Inbox" : result,
+                                       outcome: review ? .review : .added)
+                    if Config.inPlace { inboxItems = inbox() }
                 } catch let e as AlreadyFiled {
+                    updateFileActivity(activityID, detail: "Already in your vault · skipped", outcome: .skipped)
                     dropErrors.append("Skipped \(u.lastPathComponent): \(e)")
                 } catch {
+                    // A failed model load happens before Drop.process archives the file.
+                    // Keep the original, but do not retry it silently every five seconds.
+                    if FileManager.default.fileExists(atPath: u.path) { _ = try? Drop.moveToFiled(u) }
+                    updateFileActivity(activityID, detail: error.localizedDescription, outcome: .failed)
                     dropErrors.append("\(u.lastPathComponent): \(error)")
                 }
                 if !asking { busy = nil }
@@ -1043,7 +1113,7 @@ final class Store: ObservableObject {
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
         panel.message = "Choose a vault folder (Markdown notes; can be an Obsidian vault)"
-        guard busy == nil, !asking, !filing, importProgress == nil, indexingJobs == 0 else {
+        guard busy == nil, !asking, !filing, !copyingFiles, importProgress == nil, indexingJobs == 0 else {
             error = "Wait for the current answer, filing or import to finish before switching vaults."
             return
         }
@@ -1074,6 +1144,8 @@ final class Store: ObservableObject {
         pendingJob = nil
         queueDone = 0
         queueLeft = 0
+        fileActivity = []
+        activityForPath = [:]
         reload()
     }
 
@@ -1200,6 +1272,9 @@ final class Store: ObservableObject {
 
     func pauseFiling(_ paused: Bool) {
         dropPaused = paused
+        for item in fileActivity where !item.finished && item.detail.hasPrefix("Queued") {
+            updateFileActivity(item.id, detail: paused ? "Queued · processing is paused" : "Queued for processing…")
+        }
         if !paused { fileDropped() }
     }
 

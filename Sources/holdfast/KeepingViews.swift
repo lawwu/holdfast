@@ -708,10 +708,7 @@ struct RecommendationRows: View {
 
     @ViewBuilder func action(_ m: ModelScore) -> some View {
         if let f = store.downloads[m.repo] {
-            HStack(spacing: 6) {
-                ProgressView(value: f).frame(width: 70)
-                Text(String(format: "%.0f%%", f * 100)).font(Theme.caption).monospacedDigit().foregroundStyle(.secondary)
-            }
+            ModelDownloadProgressView(progress: f)
         } else if store.isDownloaded(m.repo) {
             if store.backend == .mlx && store.mlxRepo == m.repo {
                 Pill(text: "In use", icon: "checkmark", color: .green)

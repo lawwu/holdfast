@@ -282,6 +282,13 @@ struct VaultCard: View {
                 Button { store.pane = .listen } label: { ListeningBadge() }.buttonStyle(.plain)
                 Divider()
             }
+            if !store.fileActivity.isEmpty {
+                Button { store.pane = .ask } label: {
+                    Label(store.fileActivity.contains { !$0.finished } ? (store.dropPaused ? "File processing paused" : "Files are processing…") : "View file results",
+                          systemImage: "tray.and.arrow.down")
+                        .font(Theme.caption).foregroundStyle(Theme.accent)
+                }.buttonStyle(.plain)
+            }
             if let b = store.busy, store.pane != .ask {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.mini)
@@ -339,6 +346,7 @@ struct AskView: View {
                                 TurnView(entry: t)
                                 Divider()
                             }
+                            if !store.fileActivity.isEmpty { AddFilesCard() }
                             QuestionHeader(text: store.askedQuestion)
                             if let b = store.busy { StatusPill(text: b, since: store.turnStarted) }
                             if let e = store.error { ErrorBanner(text: e) }
@@ -422,6 +430,7 @@ struct AskHero: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 AskNotices()
                 Composer()
+                AddFilesCard()
                 if !store.pins.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("PINNED").font(Theme.caption.weight(.semibold)).tracking(0.6).foregroundStyle(.secondary)
@@ -450,12 +459,11 @@ struct AskHero: View {
                     }
                     .buttonStyle(.plain)
                 }
-                ImportProgressBar()
+                if store.importProgress != nil || store.fileActivity.isEmpty { ImportProgressBar() }
                 HStack(alignment: .top, spacing: 14) {
                     UpcomingCard()
                     RecentCard()
                 }
-                AddFilesCard()
                 Spacer(minLength: 20)
             }
             .frame(maxWidth: 700)
@@ -501,38 +509,117 @@ struct RecentCard: View {
 struct AddFilesCard: View {
     @EnvironmentObject var store: Store
     @State private var targeted = false
-
+    @State private var details = true
     var waiting: Int { store.inboxItems.filter { $0.meta["kind"] == "filing" }.count }
+    var active: Bool { store.fileActivity.contains { !$0.finished } }
+    var done: Int { store.fileActivity.filter(\.finished).count }
+    var failed: Int { store.fileActivity.filter { $0.outcome == .failed }.count }
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: store.dropStatus == nil ? "tray.and.arrow.down.fill" : "gearshape.2.fill")
-                .font(.system(size: 20)).foregroundStyle(Theme.accent)
-                .symbolEffect(.pulse, isActive: store.dropStatus != nil)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(store.dropStatus ?? "Add files to your knowledge base").font(Theme.callout.weight(.semibold))
-                Text(Config.inPlace ? "Drop documents, photos or recordings here; the model proposes where each belongs."
-                                    : "Drop documents or recordings here to import them.")
-                    .font(Theme.caption).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                if active {
+                    if store.dropPaused && store.dropStatus == nil {
+                        Image(systemName: "pause.circle").font(.system(size: 20)).foregroundStyle(Theme.accent)
+                    } else { ProgressView().controlSize(.small) }
+                } else {
+                    Image(systemName: store.fileActivity.isEmpty ? "tray.and.arrow.down.fill" : (failed > 0 ? "exclamationmark.circle.fill" : "checkmark.circle.fill"))
+                        .font(.system(size: 20)).foregroundStyle(failed > 0 ? Color.orange : Theme.accent)
+                }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title).font(Theme.callout.weight(.semibold))
+                    Text(subtitle).font(Theme.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 8)
+                if waiting > 0 {
+                    Button("Review in Inbox (\(waiting))") { store.pane = .inbox }
+                        .buttonStyle(.borderedProminent).controlSize(.small)
+                }
+                Button("Bulk Import…") { store.showBulkImport = true }.buttonStyle(.bordered)
+                Button("Add Files…") { store.chooseFilesToAdd() }.buttonStyle(.bordered)
             }
-            Spacer()
-            if waiting > 0 {
-                Button("\(waiting) to review") { store.pane = .inbox }.buttonStyle(.link).font(Theme.caption)
+            if !store.fileActivity.isEmpty {
+                if active {
+                    ProgressView(value: Double(done), total: Double(max(1, store.fileActivity.count)))
+                        .accessibilityLabel("\(done) of \(store.fileActivity.count) files processed")
+                }
+                DisclosureGroup("File details", isExpanded: $details) {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 10) {
+                            ForEach(store.fileActivity) { item in
+                                HStack(alignment: .top, spacing: 8) {
+                                    Image(systemName: icon(item.outcome))
+                                        .foregroundStyle(item.outcome == .failed ? Color.orange : Theme.accent)
+                                        .frame(width: 16)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(item.name).font(Theme.caption.weight(.semibold)).lineLimit(1).truncationMode(.middle)
+                                        Text(item.detail).font(Theme.caption).foregroundStyle(.secondary)
+                                            .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+                                    }
+                                    Spacer()
+                                    if !item.finished {
+                                        TimelineView(.periodic(from: .now, by: 1)) { context in
+                                            let seconds = max(0, Int(context.date.timeIntervalSince(item.updated)))
+                                            Text(seconds < 60 ? "\(seconds)s" : "\(seconds / 60)m \(seconds % 60)s")
+                                                .font(Theme.caption2).monospacedDigit().foregroundStyle(.secondary)
+                                                .help("Time in this stage; processing is still running.")
+                                        }
+                                    }
+                                }
+                            }
+                        }.padding(.top, 6)
+                    }.frame(maxHeight: 150)
+                }.font(Theme.caption)
+                HStack {
+                    if active {
+                        Button(store.dropPaused ? "Resume processing" : "Pause after current file") { store.pauseFiling(!store.dropPaused) }
+                            .buttonStyle(.link)
+                    } else {
+                        Button("Dismiss results") { store.clearFileActivity() }.buttonStyle(.link)
+                    }
+                    if failed > 0, FileManager.default.fileExists(atPath: Drop.filedDir.path) { Button("Show saved originals") { NSWorkspace.shared.open(Drop.filedDir) }.buttonStyle(.link) }
+                }.font(Theme.caption)
             }
-            Button("Bulk Import…") { store.showBulkImport = true }.buttonStyle(.bordered).controlSize(.regular)
-            Button("Add Files…") { store.chooseFilesToAdd() }.buttonStyle(.borderedProminent).controlSize(.regular)
         }
         .padding(14)
         .background(RoundedRectangle(cornerRadius: 12).fill(Theme.accent.opacity(targeted ? 0.14 : 0.05)))
         .overlay(RoundedRectangle(cornerRadius: 12)
             .strokeBorder(Theme.accent.opacity(targeted ? 0.9 : 0.3), style: StrokeStyle(lineWidth: 1.2, dash: [6, 4])))
         .onDrop(of: [.fileURL], isTargeted: $targeted) { providers in
-            for p in providers {
-                _ = p.loadObject(ofClass: URL.self) { url, _ in
+            for provider in providers {
+                _ = provider.loadObject(ofClass: URL.self) { url, _ in
                     if let url { Task { @MainActor in store.addToDrop([url]) } }
                 }
             }
             return true
+        }
+    }
+    private var title: String {
+        if active { return store.dropPaused ? "File processing paused" : "Adding files · \(done) of \(store.fileActivity.count) processed" }
+        if !store.fileActivity.isEmpty { return failed > 0 ? "Finished · \(failed) file\(failed == 1 ? "" : "s") need attention" : "Files processed" }
+        return "Add files to your knowledge base"
+    }
+    private var subtitle: String {
+        if active {
+            if store.dropPaused { return store.dropStatus == nil ? "Resume to process the queued files." : "The current file will finish. Resume to process the remaining files." }
+            if store.asking { return "Files are queued. Processing continues when your answer finishes." }
+            return "You can keep using Holdfast. Large files and the first model load can take a few minutes."
+        }
+        if !store.fileActivity.isEmpty {
+            if failed > 0 { return "Some files need attention. See the details below; add a file again to retry." }
+            if Config.inPlace { return "Review proposed changes in Inbox before adding them to your vault." }
+            return store.busy == "Indexing…" ? "Preparing imported files for search…" : "Processing finished. See each file’s result below."
+        }
+        return Config.inPlace ? "Drop documents, photos or recordings here; review the proposed changes in Inbox." : "Drop documents or recordings here to import them."
+    }
+    private func icon(_ outcome: FileImportActivity.Outcome) -> String {
+        switch outcome {
+        case .working: return "clock"
+        case .review: return "tray.full"
+        case .added: return "checkmark.circle"
+        case .skipped: return "arrow.uturn.right.circle"
+        case .failed: return "exclamationmark.circle"
         }
     }
 }

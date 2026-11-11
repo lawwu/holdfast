@@ -79,13 +79,17 @@ enum Drop {
     }
 
     /// Copies files the user dropped on the app window into the drop folder.
-    static func add(_ urls: [URL]) throws {
+    @discardableResult
+    static func add(_ urls: [URL]) throws -> [URL] {
         ensure()
+        var copied: [URL] = []
         for u in urls {
             var dest = dir.appendingPathComponent(u.lastPathComponent)
             if FileManager.default.fileExists(atPath: dest.path) { dest = unique(dest) }
             try FileManager.default.copyItem(at: u, to: dest)
+            copied.append(dest)
         }
+        return copied
     }
 
     /// Moves an original out of the drop folder; returns where it went.
@@ -573,7 +577,8 @@ enum Drop {
 
     /// Files one dropped file. Managed vaults import it; in-place vaults get a
     /// proposal in the inbox. The original leaves the drop folder either way.
-    static func process(_ dropped: URL, embedder: Embedder?, llm: LLMBackend?, model: String) async throws -> String {
+    static func process(_ dropped: URL, embedder: Embedder?, llm: LLMBackend?, model: String,
+                        status: @escaping @Sendable (String) async -> Void = { _ in }) async throws -> String {
         // Out of the drop folder first: a file that crashes a reader isn't retried on every launch.
         let url = (try? moveToFiled(dropped)) ?? dropped
         let ext = url.pathExtension.lowercased()
@@ -604,11 +609,13 @@ enum Drop {
             let n = try ingestDocument(url, root: nil, tags: [])
             return done("Imported \(n.title)")
         }
+        await status(audioExtensions.contains(ext) ? "Transcribing audio…" : "Reading the file…")
         let text = try await self.text(of: url)
         guard text.trimmingCharacters(in: .whitespacesAndNewlines).count >= 20 else {
             throw HoldfastError("\(url.lastPathComponent): no readable text")
         }
         guard let llm else { throw HoldfastError("no model loaded to file \(url.lastPathComponent)") }
+        await status("Preparing a filing proposal…")
         var (n, flags, rule) = try await propose(url, text: text, embedder: embedder, llm: llm, model: model)
         if let h = hash { n.meta["original_hash"] = h; try n.write() }
         // An automatic rule files without asking only when nothing in the entry looks personal

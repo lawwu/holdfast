@@ -236,7 +236,7 @@ final class MLXBackend: LLMBackend, @unchecked Sendable {
     }
 
     /// Download an MLX repo into the app's models folder. `progress` gets 0…1.
-    static func download(repo: String, progress: @escaping @Sendable (Double) -> Void) async throws {
+    static func download(repo: String, progress: @escaping @Sendable (ModelDownloadProgress) async -> Void) async throws {
         let source = try ModelDownloadSource.current()
         try await ModelDownloader.download(repo: repo, source: source, to: Prefs.modelsDir, progress: progress)
     }

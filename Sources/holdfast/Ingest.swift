@@ -187,7 +187,7 @@ func ingestFolder(_ root: URL, tags: [String]) throws -> (ok: Int, skipped: Int,
 
 // MARK: - Audio (FluidAudio Parakeet v3 or v2 per Settings, in-process on the Neural Engine)
 
-func transcribeAudio(_ url: URL) async throws -> (segments: [Segment], duration: Double, seconds: Double) {
+func transcribeAudio(_ url: URL, model choice: TranscriptionModel = Prefs.transcription) async throws -> (segments: [Segment], duration: Double, seconds: Double) {
     let wav = Config.mediaDir.appendingPathComponent(UUID().uuidString + ".wav")
     // ffmpeg normalises any container (mp4, webm, m4a) to 16 kHz mono for Parakeet.
     guard let ffmpeg = findTool("ffmpeg") else {
@@ -196,9 +196,8 @@ func transcribeAudio(_ url: URL) async throws -> (segments: [Segment], duration:
     _ = try run(ffmpeg, ["-nostdin", "-loglevel", "error", "-y", "-i", url.path, "-ac", "1", "-ar", "16000", wav.path])
     defer { try? FileManager.default.removeItem(at: wav) }
 
-    let choice = Prefs.transcription
-    log("loading \(choice.name) (first run downloads the CoreML model)…")
-    let models = try await AsrModels.downloadAndLoad(version: choice == .parakeetV2 ? .v2 : .v3)
+    log("Preparing \(choice.name) for on-device transcription…")
+    let models = try await AudioModels.load(choice)
     let asr = AsrManager(config: .default)
     try await asr.loadModels(models)
     var state = TdtDecoderState.make()
@@ -251,9 +250,10 @@ func segmentRanges(_ toks: ArraySlice<TokenTiming>) -> [(segment: Segment, end: 
 }
 
 func ingestAudio(_ url: URL, title: String?, tags: [String]) async throws -> Note {
-    let (segs, dur, secs) = try await transcribeAudio(url)
+    let choice = Prefs.transcription
+    let (segs, dur, secs) = try await transcribeAudio(url, model: choice)
     log(String(format: "transcribed %@ of audio in %.1fs (%.0fx real time)", formatTime(dur), secs, dur / max(secs, 0.01)))
-    var extra: [String: String] = ["transcriber": "parakeet-tdt-0.6b-v3 (FluidAudio)"]
+    var extra: [String: String] = ["transcriber": "\(choice.rawValue) (FluidAudio)"]
     if !tags.isEmpty { extra["tags"] = tags.joined(separator: ", ") }
     return try transcriptNote(title: title ?? url.deletingPathExtension().lastPathComponent,
                               source: url.path, kind: "recording", duration: dur, segments: segs, extra: extra)
@@ -343,7 +343,8 @@ func parseVTT(_ s: String) -> [Segment] {
 
 // MARK: - helpers
 
-struct HoldfastError: Error, CustomStringConvertible {
+struct HoldfastError: LocalizedError, CustomStringConvertible {
+    var errorDescription: String? { description }
     let description: String
     init(_ s: String) { description = s }
 }

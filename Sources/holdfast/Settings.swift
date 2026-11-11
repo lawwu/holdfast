@@ -264,10 +264,7 @@ struct LocalModelBrowser: View {
                       : (store.downloadErrors[spec.repo].map { "Download failed: \($0)" } ?? (fit == .tight ? "Tight on this Mac's memory. " : "") + spec.blurb),
                   action: { store.selectMLX(spec.repo); dismiss() }) {
             if let f = store.downloads[spec.repo] {
-                HStack(spacing: 6) {
-                    ProgressView(value: f).frame(width: 70)
-                    Text(String(format: "%.0f%%", f * 100)).font(Theme.caption).monospacedDigit().foregroundStyle(.secondary)
-                }
+                ModelDownloadProgressView(progress: f)
             } else if downloaded {
                 StatusBadge(status: .ready(MLXBackend.loadedRepo == spec.repo ? "Loaded" : "Downloaded"))
             } else {
@@ -357,24 +354,34 @@ struct SearchSettings: View {
 
 struct TranscriptionSettings: View {
     @EnvironmentObject var store: Store
+    @ObservedObject private var audio = AudioModels.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            SettingsHeader(title: "Transcription model",
-                           subtitle: "Turns recordings and videos without captions into timestamped transcripts, on the Neural Engine. Applies to the next import.")
+            SettingsHeader(title: "Transcription models",
+                           subtitle: "Download a model now to be ready for Listen and recording imports. Speech is transcribed on this Mac. Your selection applies to the next recording.")
             GroupBox2 {
-                ForEach(TranscriptionModel.allCases) { m in
-                    let present = FileManager.default.fileExists(atPath: m.folder.path)
-                    ChoiceRow(selected: store.transcription == m, title: m.name, tag: "0.6B · CoreML",
-                              subtitle: m.blurb, action: { store.transcription = m }) {
-                        StatusBadge(status: present ? .ready("Downloaded") : .missing("Downloads on first use"))
+                ForEach(TranscriptionModel.allCases) { model in
+                    ChoiceRow(selected: store.transcription == model, title: model.name, tag: "On-device",
+                              subtitle: audio.errors[model.id].map { "Download failed: \($0)" } ?? model.blurb,
+                              action: { store.transcription = model }) {
+                        if let progress = audio.progress[model.id] {
+                            ModelDownloadProgressView(progress: progress)
+                        } else if audio.available.contains(model.id) {
+                            StatusBadge(status: .ready("Downloaded"))
+                        } else {
+                            Button("Download") { audio.start(model) }.controlSize(.small)
+                        }
                     }
                 }
             }
-            Text("Measured here: Parakeet v3 transcribes at about 140× real time (an hour of audio in under 30 seconds).")
+            Text("Core ML is built into macOS. These downloads contain speech model files, using the source in Settings → Downloads. Once downloaded, transcription works offline. First use can still take a few minutes while macOS prepares the model.")
+                .font(Theme.caption).foregroundStyle(.secondary)
+            Text("Parakeet v3 is the tested default. Ultra and Redux are additional compatible options; their speed and accuracy have not been benchmarked in Holdfast.")
                 .font(Theme.caption).foregroundStyle(.secondary)
         }
         .padding(24)
+        .onAppear { audio.refresh() }
     }
 }
 
@@ -435,7 +442,7 @@ struct DownloadSettings: View {
                 Text("HF_TOKEN is set for this process and overrides the saved token.")
                     .font(Theme.caption).foregroundStyle(.secondary)
             }
-            Text("Applies to new downloads. Already downloaded models stay available. Parakeet transcription downloads are managed separately by FluidAudio.")
+            Text("Applies to new downloads. Already downloaded models stay available. Applies to LocalMLX, search and transcription models.")
                 .font(Theme.caption).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -529,7 +536,7 @@ struct DownloadButton: View {
     var then: (@MainActor () -> Void)? = nil
     var body: some View {
         if let f = store.downloads[repo] {
-            ProgressView(value: f).frame(width: 80).help("Downloading \(repo)")
+            ModelDownloadProgressView(progress: f)
         } else {
             VStack(alignment: .trailing, spacing: 2) {
                 Button("Download") { store.downloadRepo(repo, then: then) }.controlSize(.small)

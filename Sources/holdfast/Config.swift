@@ -138,22 +138,6 @@ extension CustomLocalModel {
     }
 }
 
-enum TranscriptionModel: String, CaseIterable, Identifiable {
-    case parakeetV3 = "parakeet-v3", parakeetV2 = "parakeet-v2"
-    var id: String { rawValue }
-    var name: String { self == .parakeetV3 ? "Parakeet v3" : "Parakeet v2" }
-    var blurb: String {
-        self == .parakeetV3 ? "Multilingual (25 European languages). Recommended."
-            : "English only. Use it if your recordings are all English."
-    }
-    /// FluidAudio's CoreML model folder, to tell whether it's downloaded.
-    var folder: URL {
-        FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/Application Support/FluidAudio/Models")
-            .appendingPathComponent(self == .parakeetV3 ? "parakeet-tdt-0.6b-v3" : "parakeet-tdt-0.6b-v2")
-    }
-}
-
 /// Choices made in the app's Settings window (UserDefaults). The CLI runs
 /// under its own defaults domain, so it keeps the defaults unless told otherwise.
 enum Prefs {

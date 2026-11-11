@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 from urllib.parse import urlsplit
 
 PREFIX = "/artifactory/api/huggingfaceml/hf-remote"
@@ -15,7 +16,7 @@ REPO = "test/tiny"
 TOKEN = "test-artifactory-token"
 FILES = {
     "config.json": b'{"model_type":"test"}',
-    "model.safetensors": b"fixture weights; not a real model",
+    "model.safetensors": b"fixture weights; not a real model" * 32768,
     "tokenizer.json": b"{}",
     "chat_template.jinja": b"{{ messages }}",
     "vocab.txt": b"hello\nworld\n",
@@ -56,12 +57,19 @@ class Mirror(http.server.BaseHTTPRequestHandler):
             self.send_error(404)
             return
         self.send_response(200)
-        self.send_header("Content-Length", str(len(data)))
+        if not self.server.unknown:
+            self.send_header("Content-Length", str(len(data)))
         self.send_header("ETag", f'"{hashlib.sha256(data).hexdigest()}"')
         self.send_header("X-Repo-Commit", "a" * 40)
         self.end_headers()
         if not head:
-            self.wfile.write(data)
+            if path.endswith("model.safetensors"):
+                for offset in range(0, len(data), 65536):
+                    self.wfile.write(data[offset:offset + 65536])
+                    self.wfile.flush()
+                    time.sleep(0.08)
+            else:
+                self.wfile.write(data)
 
 
 def main():
@@ -76,11 +84,12 @@ def main():
             token_file = Path(temp) / "cached-token"
             token_file.write_text("unrelated-cached-hf-token")
             env["HF_TOKEN_PATH"] = str(token_file)
-            for case in ["authenticated", "anonymous", "unauthorized", "missing-file", "empty-repo"]:
+            for case in ["authenticated", "anonymous", "unauthorized", "missing-file", "empty-repo", "unknown-size"]:
                 server.requests = []
                 server.auth = case != "anonymous"
                 server.fail_file = case == "missing-file"
                 server.empty = case == "empty-repo"
+                server.unknown = case == "unknown-size"
                 if server.auth:
                     env["HF_TOKEN"] = "wrong-token" if case == "unauthorized" else TOKEN
                 else:
@@ -89,7 +98,7 @@ def main():
                 result = subprocess.run([sys.argv[1], str(output)], env=env, text=True,
                                         capture_output=True, timeout=45)
                 model = output / "models" / REPO
-                if case in ("authenticated", "anonymous"):
+                if case in ("authenticated", "anonymous", "unknown-size"):
                     assert result.returncode == 0, (case, result.stderr)
                     assert (model / ".complete").is_file(), case
                     for name, body in FILES.items():
@@ -97,6 +106,18 @@ def main():
                             assert not (model / name).exists(), "unneeded files were downloaded"
                         else:
                             assert (model / name).read_bytes() == body, (case, name)
+                    snapshots = [json.loads(line) for line in result.stdout.splitlines() if line.startswith("{")]
+                    transfers = [s for s in snapshots if s["phase"] == "downloading"]
+                    assert len(transfers) > 2, (case, "missing live progress")
+                    assert any(s.get("bytesPerSecond", 0) > 0 for s in transfers), (case, "missing speed")
+                    assert all(a["completedBytes"] <= b["completedBytes"] for a, b in zip(transfers, transfers[1:])), "progress went backwards"
+                    if not server.unknown:
+                        expected_size = sum(len(v) for k, v in FILES.items() if k != "README.md")
+                        assert all(s["totalBytes"] == expected_size for s in transfers), "total is not actual selected bytes"
+                        assert snapshots[-1]["completedBytes"] == expected_size
+                    else:
+                        assert any("totalBytes" not in s for s in transfers), "unknown size was invented"
+                    assert snapshots[-1]["phase"] == "checking"
                     expected_auth = f"Bearer {TOKEN}" if server.auth else None
                     assert all(auth == expected_auth for _, _, auth in server.requests), case
                     assert any(method == "GET" and "/resolve/main/" in path
@@ -107,6 +128,14 @@ def main():
                     assert TOKEN not in result.stderr and "wrong-token" not in result.stderr, "token in error"
                 assert server.requests and all(path.startswith(PREFIX + "/")
                                                for _, path, _ in server.requests), case
+                if case == "authenticated":
+                    server.requests = []
+                    retry = subprocess.run([sys.argv[1], str(output)], env=env, text=True, capture_output=True, timeout=45)
+                    assert retry.returncode == 0, retry.stderr
+                    assert not any(method == "GET" and "/resolve/main/" in path for method, path, _ in server.requests), "cached files were downloaded again"
+                    server.fail_file = True
+                    failure = subprocess.run([sys.argv[1], str(output)], env=env, text=True, capture_output=True, timeout=45)
+                    assert failure.returncode != 0 and not (model / ".complete").exists(), "failed retry kept a stale completion marker"
                 print(f"PASS: mirror {case}")
     finally:
         server.shutdown()

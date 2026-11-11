@@ -456,7 +456,7 @@ enum Listen {
     struct Handlers {
         var line: (Segment) -> Void
         var pending: (String) -> Void
-        var status: (String) -> Void
+        var status: @Sendable (String) -> Void
         /// The audio is flowing (after the model loaded and any permission prompt).
         var began: () -> Void = {}
     }
@@ -477,8 +477,8 @@ enum Listen {
     static func session(_ input: Input, title: String?, out: URL?, filing: Filing, maxSeconds: Double?, feed: Feed,
                         _ h: Handlers) async throws -> Outcome {
         let choice = Prefs.transcription
-        h.status("loading \(choice.name) for live transcription (first run downloads the CoreML model)…")
-        let models = try await AsrModels.downloadAndLoad(version: choice == .parakeetV2 ? .v2 : .v3)
+        h.status("Preparing \(choice.name) for live transcription…")
+        let models = try await AudioModels.load(choice, status: h.status)
         let config: SlidingWindowAsrConfig = choice == .parakeetV2
             ? SlidingWindowAsrConfig.default.applying(tdtConfig: TdtConfig(blankId: 1024))  // v2's blank token
             : .default
@@ -585,7 +585,7 @@ enum Listen {
         // The whole transcript, kept in the state folder whatever happens to the filing.
         let meta = ["title": name, "source": input.source, "kind": "stream",
                     "recorded": stamp(started, "yyyy-MM-dd HH:mm"), "duration": formatTime(seconds),
-                    "transcriber": "\(choice == .parakeetV2 ? "parakeet-tdt-0.6b-v2" : "parakeet-tdt-0.6b-v3") (FluidAudio, live)"]
+                    "transcriber": "\(choice.rawValue) (FluidAudio, live)"]
         let body = "\n# \(name)\n\nSource: \(input.source)\n\n## Transcript\n\n"
             + lines.map { "[\(formatTime($0.start))] \($0.text)\n" }.joined()
         try Note(path: journal, meta: meta, body: body).write()
@@ -620,7 +620,7 @@ enum Listen {
         defer { signals.forEach { $0.cancel() }; signal(SIGINT, SIG_DFL); signal(SIGTERM, SIG_DFL) }
 
         let tty = !json && isatty(STDERR_FILENO) != 0
-        func clearStatus() { if tty { FileHandle.standardError.write(Data("\r\u{1B}[2K".utf8)) } }
+        @Sendable func clearStatus() { if tty { FileHandle.standardError.write(Data("\r\u{1B}[2K".utf8)) } }
         let h = Handlers(
             line: { s in
                 clearStatus()

@@ -15,7 +15,7 @@ struct CustomLocalModelRow: View {
                       action: { store.selectMLX(model.id); selected() }) {
                 HStack(spacing: 8) {
                     if let fraction = store.downloads[model.id] {
-                        ProgressView(value: fraction).frame(width: 65)
+                        ModelDownloadProgressView(progress: fraction)
                     } else if ready {
                         StatusBadge(status: .ready(MLXBackend.loadedRepo == model.id ? "Loaded" : "Files checked"))
                     } else if model.source == .huggingFace {

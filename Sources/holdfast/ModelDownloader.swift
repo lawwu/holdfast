@@ -6,51 +6,83 @@ enum ModelDownloader {
     private static let patterns = ["*.json", "*.safetensors", "*.jinja", "*.txt", "*.model"]
 
     static func download(repo: String, source: ModelDownloadSource, to modelsDirectory: URL,
-                         progress: @escaping @Sendable (Double) -> Void) async throws {
-        let hub = HubApi(downloadBase: modelsDirectory, cache: nil,
-                         hfToken: source.token, endpoint: source.endpoint)
-        // HubApi's empty-token override suppresses credentials on metadata
-        // requests, but its file client still sends an empty Bearer header.
-        // Use an explicit no-auth client for anonymous mirrors.
-        if source.token == "" {
-            guard let id = HuggingFace.Repo.ID(rawValue: repo), let host = URL(string: source.endpoint) else {
-                throw ModelDownloadSource.Failure("The model repository or endpoint is invalid.")
-            }
-            let client = HubClient(host: host, tokenProvider: .none, cache: nil)
-            let dir = modelsDirectory.appendingPathComponent("models/\(repo)")
-            let files = try await hub.getFilenames(from: Hub.Repo(id: repo), matching: patterns)
-            guard files.contains("config.json") else {
-                throw ModelDownloadSource.Failure("The model repository did not list config.json. Check the endpoint in Settings → Downloads.")
-            }
-            for (index, filename) in files.enumerated() {
-                try Task.checkCancellation()
-                guard !filename.hasPrefix("/"), !filename.contains("\\"),
-                      !filename.components(separatedBy: "/").contains(where: { $0 == ".." || $0 == "." || $0.isEmpty }) else {
-                    throw ModelDownloadSource.Failure("The model repository listed an invalid file path.")
-                }
-                let fileProgress = Progress(totalUnitCount: 1)
-                let observation = fileProgress.observe(\.fractionCompleted) { p, _ in
-                    progress((Double(index) + p.fractionCompleted) / Double(files.count))
-                }
-                defer { observation.invalidate() }
-                _ = try await client.downloadFile(at: filename, from: id,
-                                                   to: dir.appendingPathComponent(filename), progress: fileProgress)
-                progress(Double(index + 1) / Double(files.count))
-            }
-            try finish(dir)
-            return
-        }
-        let dir = try await hub.snapshot(from: repo, matching: patterns) { p in
-            progress(p.fractionCompleted)
-        }
-        try finish(dir)
+                         progress: @escaping @Sendable (ModelDownloadProgress) async -> Void) async throws {
+        let dir = modelsDirectory.appendingPathComponent("models/\(repo)")
+        let marker = dir.appendingPathComponent(".complete")
+        if FileManager.default.fileExists(atPath: marker.path) { try FileManager.default.removeItem(at: marker) }
+        try await files(repo: repo, source: source, to: dir, matching: patterns,
+                        required: ["config.json"], progress: progress)
+        try Task.checkCancellation()
+        try Data().write(to: marker, options: .atomic)
     }
 
-    private static func finish(_ dir: URL) throws {
-        try Task.checkCancellation()
-        guard FileManager.default.fileExists(atPath: dir.appendingPathComponent("config.json").path) else {
-            throw ModelDownloadSource.Failure("The download did not include config.json. Check the endpoint in Settings → Downloads and the model repository.")
+    /// Shared by LocalMLX and Core ML speech models. The same endpoint and
+    /// credential rules apply, and progress counts bytes for the selected files.
+    static func files(repo: String, source: ModelDownloadSource, to directory: URL,
+                      matching patterns: [String], required: [String],
+                      progress: @escaping @Sendable (ModelDownloadProgress) async -> Void) async throws {
+        guard let id = HuggingFace.Repo.ID(rawValue: repo), let host = URL(string: source.endpoint) else {
+            throw ModelDownloadSource.Failure("The model repository or endpoint is invalid.")
         }
-        try Data().write(to: dir.appendingPathComponent(".complete"), options: .atomic)
+        await progress(ModelDownloadProgress())
+        let hub = HubApi(downloadBase: directory, cache: nil, hfToken: source.token, endpoint: source.endpoint)
+        let token: TokenProvider = source.token.map { $0.isEmpty ? .none : .fixed(token: $0) } ?? .environment
+        let client = HubClient(host: host, tokenProvider: token, cache: nil)
+        let files = try await hub.getFilenames(from: Hub.Repo(id: repo), matching: patterns).sorted()
+        guard !files.isEmpty, required.allSatisfy({ item in files.contains { $0 == item || $0.hasPrefix(item + "/") } }) else {
+            throw ModelDownloadSource.Failure("The repository is missing required model files. Check Settings → Downloads and try again.")
+        }
+        guard files.allSatisfy({ !$0.hasPrefix("/") && !$0.contains("\\") && !$0.components(separatedBy: "/").contains(where: { $0 == "." || $0 == ".." || $0.isEmpty }) }) else {
+            throw ModelDownloadSource.Failure("The model repository listed an invalid file path.")
+        }
+        var metadata: [String: HubApi.FileMetadata] = [:]
+        for file in files {
+            try Task.checkCancellation()
+            let url = host.appendingPathComponent(repo).appendingPathComponent("resolve/main").appendingPathComponent(file)
+            metadata[file] = try await hub.getFileMetadata(url: url)
+        }
+        let transfer = DownloadTransfer(sizes: metadata.mapValues { $0.size.map(Int64.init) })
+        await progress(transfer.snapshot())
+        let heartbeat = Task {
+            while !Task.isCancelled {
+                do { try await Task.sleep(for: .milliseconds(250)) } catch { return }
+                await progress(transfer.snapshot())
+            }
+        }
+        do {
+            for file in files {
+                try Task.checkCancellation()
+                let target = directory.appendingPathComponent(file)
+                let meta = directory.appendingPathComponent(".cache/huggingface/download/\(file).metadata")
+                let remote = metadata[file]!
+                let cached = try? hub.readDownloadMetadata(metadataPath: meta)
+                let size = (try? target.resourceValues(forKeys: [.fileSizeKey]))?.fileSize
+                if let size, let expected = remote.size, size == expected,
+                   let etag = remote.etag, !etag.isEmpty, cached?.etag == etag {
+                    transfer.finish(file, bytes: Int64(size), cached: true)
+                    continue
+                }
+                let counter = Progress(totalUnitCount: 0)
+                transfer.start(file, progress: counter)
+                _ = try await client.downloadFile(at: file, from: id, to: target, progress: counter, transport: .lfs)
+                let actual = try target.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
+                if let expected = remote.size, actual != expected {
+                    throw ModelDownloadSource.Failure("The download of \(file) is incomplete. Try downloading again.")
+                }
+                if let etag = remote.etag, !etag.isEmpty {
+                    try hub.writeDownloadMetadata(commitHash: remote.commitHash ?? "", etag: etag, metadataPath: meta)
+                }
+                transfer.finish(file, bytes: Int64(actual), cached: false)
+            }
+        } catch {
+            heartbeat.cancel()
+            await heartbeat.value
+            throw error
+        }
+        heartbeat.cancel()
+        await heartbeat.value
+        var final = transfer.snapshot()
+        final.phase = .checking
+        await progress(final)
     }
 }
