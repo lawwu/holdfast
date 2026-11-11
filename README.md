@@ -1,7 +1,9 @@
 # Holdfast
 
-A local knowledge base for your Mac. Search your notes, ask questions with sources,
-and review proposed edits before they’re saved.
+**Your notes. Your Mac. Your control.**
+
+Search your notes, ask questions with sources, and approve AI edits before they’re
+saved. AI runs on your Mac by default, keeping your notes local.
 
 **[Download](https://github.com/lawwu/holdfast/releases)** ·
 [Documentation](https://lawwu.github.io/holdfast/) ·

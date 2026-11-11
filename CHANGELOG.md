@@ -9,6 +9,8 @@
   in place, and removing a model from the list keeps its files on disk.
 - Validate incomplete checkpoints and unsupported architectures, and show custom
   models as unbenchmarked rather than implying answer quality or tool support.
+- Lead the README and docs homepage with “Your notes. Your Mac. Your control.”
+  and explain the default local setup alongside optional server connections.
 
 ## 0.0.2 — guided tour and documentation
 
