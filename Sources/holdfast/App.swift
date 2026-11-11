@@ -70,6 +70,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
         // No window tabs (they'd take ⇧⌘\ "Show All Tabs" from Show File List).
         NSWindow.allowsAutomaticWindowTabbing = false
+        #if HOLDFAST_DEMO_CAPTURE
+        DemoCapture.openWindow()
+        #endif
         // Link clicks in selectable text arrive as a "get URL" Apple event (see Info.plist's URL types).
         NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(getURL(_:reply:)),
                                                      forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))

@@ -47,3 +47,16 @@ h1, h2, .hero h1 {
   .hero { padding-block: 2rem; gap: 2rem; }
   .hero h1 { max-width: 16ch; }
 }
+
+.app-shot { margin: 2rem 0; }
+.app-shot img, .sl-markdown-content img[src*='/screenshots/'] {
+  display: block; width: 100%; height: auto; border: 1px solid var(--sl-color-gray-5);
+  border-radius: .75rem; box-shadow: 0 12px 32px #132d2014;
+}
+.app-shot figcaption { font-size: .9rem; color: var(--sl-color-gray-2); margin-top: .8rem; line-height: 1.6; }
+.hero-shot { margin-block: 0 3rem; }
+.tour-video { width: 100%; height: auto; aspect-ratio: 4/3; border-radius: .75rem; background: #213e33; }
+.tour-chapters { display: flex; flex-wrap: wrap; gap: .6rem; margin-block: 1rem 2rem; }
+.tour-chapters button { font: inherit; font-size: .9rem; padding: .45rem .75rem; cursor: pointer; border: 1px solid var(--sl-color-gray-4); border-radius: .5rem; background: var(--sl-color-bg-sidebar); color: var(--sl-color-text); }
+.tour-chapters button:hover, .tour-chapters button:focus-visible { border-color: var(--sl-color-accent); outline-offset: 3px; }
+.demo-downloads { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; margin-block: 1rem; }

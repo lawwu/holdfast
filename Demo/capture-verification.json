@@ -1,0 +1,10 @@
+{
+  "model": "mlx-community/Qwen3.8-27B-4bit",
+  "runtime": "regular Pi with embedded LocalMLX",
+  "sampleNotesOnly": true,
+  "proposalLeftNoteUnchanged": true,
+  "applyChangedOnlyRequestedCheckbox": true,
+  "undoRestoredExactBytes": true,
+  "originalChecklistSHA256": "9ac586fe0b169fc7c9d0a3e07b471f87c2e2d6278c76a5b9f95d2dbde71cf6e8",
+  "waitingTimeRemoved": true
+}

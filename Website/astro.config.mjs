@@ -19,10 +19,11 @@ export default defineConfig({
       { label: 'Welcome', slug: '' },
       { label: 'Using Holdfast', items: [
         { label: 'Getting started', slug: 'getting-started' },
+        { label: 'Take the tour', slug: 'tour' },
         { label: 'App and CLI guide', slug: 'guide' },
         { label: 'Reference collections', slug: 'reference-collections' },
       ] },
-      { label: 'How it works', items: [
+      { label: 'For developers', collapsed: true, items: [
         { label: 'Architecture', slug: 'architecture' },
         { label: 'ModelProviders', slug: 'packages/model-providers' },
         { label: 'LocalMLX', slug: 'packages/local-mlx' },

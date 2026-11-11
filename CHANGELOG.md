@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.0.2 — guided tour and documentation
+
+- Narrated, captioned app walkthrough with downloadable fictional sample notes.
+- Real app screenshots and a task-focused getting started guide on GitHub Pages.
+- Shorter README, with the full app and command-line reference in `docs/guide.md`.
+- Reviewed walkthrough assets are checksum-verified and attached to GitHub releases.
 
 - Documentation sources and release deployment stay in the Holdfast repository,
   using GitHub's Pages artifact workflow without a separate hosting repository.

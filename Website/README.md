@@ -12,6 +12,9 @@ explicitly lists the documents included in the public site. The getting-started,
 architecture, and home pages live in `content/`. Versioned release notes under
 `docs/releases/vX.Y.Z.md` are included automatically.
 
+The root `README.md` is a short project introduction. The detailed app and CLI
+reference lives in `docs/guide.md`, published at `/holdfast/guide/`.
+
 `npm run prepare-docs` creates `src/content/docs/` from these sources. Do not edit
 that generated directory. Relative links to included documentation become site
 links; other repository links point to the public source on GitHub.
@@ -65,11 +68,24 @@ site unchanged. [GitHub documents this token behavior](https://docs.github.com/e
 To retry documentation only, run **Actions → Documentation → Run workflow** on
 `main` and enter the published tag as `release_tag`. Leave it empty to check the
 selected branch without deploying. The original `v0.0.1` predates the site and
-cannot build documentation; automatic release deployment starts with a future
-release containing `Website/`. The initial site migration was published from
+cannot build documentation; automatic release deployment starts with
+`v0.0.2`, which contains `Website/`. The initial site migration was published from
 `main`; subsequent updates follow releases. No new app release is created by
 a docs deployment.
 
 `site.mjs` defines the public origin and path prefix. Keep it in sync with the
 deployment destination if the site moves. Source code and installer releases
 are publicly accessible from the Holdfast repository.
+
+## Screenshots and the guided tour
+
+The authored tour is `content/tour.mdx`; `src/components/TourPlayer.astro` provides
+native video controls, English captions, and chapter buttons. All media is served
+from this same Pages site, without an embedded third-party player. Playback never
+autostarts.
+
+`public/screenshots/` contains optimized captures of real app views using fictional
+notes. `public/demo/` contains the reviewed video, captions, poster, and sample vault.
+See `../Demo/README.md` for capture and narration instructions. The release publisher
+uploads the same three downloadable demo files after verifying their hashes.
+Rendering and paid narration stay local; Pages builds do not need an API key.

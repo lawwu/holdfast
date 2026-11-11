@@ -4,9 +4,10 @@ import { fileURLToPath } from 'node:url';
 export const root = fileURLToPath(new URL('../../', import.meta.url));
 export const sources = [
   { source: 'Website/content/index.mdx', route: '', authored: true },
+  { source: 'Website/content/tour.mdx', route: 'tour', authored: true },
   { source: 'Website/content/getting-started.md', route: 'getting-started', authored: true },
   { source: 'Website/content/architecture.md', route: 'architecture', authored: true },
-  { source: 'README.md', route: 'guide', title: 'App and command-line guide', description: 'Search, Ask, imports, model providers, privacy, and approved edits in Holdfast.' },
+  { source: 'docs/guide.md', route: 'guide', title: 'App and command-line guide', description: 'Search, Ask, imports, model providers, privacy, and approved edits in Holdfast.' },
   { source: 'Packages/ModelProviders/README.md', route: 'packages/model-providers', title: 'ModelProviders', description: 'Shared inference types and HTTP providers for Swift apps.' },
   { source: 'Packages/LocalMLX/README.md', route: 'packages/local-mlx', title: 'LocalMLX', description: 'Embed MLX inference in a Swift app or run local-mlx-host.' },
   { source: 'Packages/pi-swift-mlx/README.md', route: 'packages/pi-swift-mlx', title: 'pi-swift-mlx', description: 'Connect a Swift MLX engine to Pi or Pi Durable.' },

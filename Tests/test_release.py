@@ -164,6 +164,49 @@ if sys.argv[1:3] == ['release', 'view']: print('https://example.invalid/release'
             self.publish(success=False)
             self.assertTrue(all(c[0] == 'api' for c in self.calls()))
 
+    def add_demo_assets(self, *, invalid_checksum=False, missing=False):
+        names = ['holdfast-tour.mp4', 'holdfast-tour.vtt', 'holdfast-sample-notes.zip']
+        directory = self.repo / 'Website/public/demo'
+        directory.mkdir(parents=True)
+        hashes = {}
+        for name in names:
+            payload = ('synthetic asset ' + name).encode()
+            (directory / name).write_bytes(payload)
+            hashes[name] = hashlib.sha256(payload).hexdigest()
+        if invalid_checksum:
+            hashes[names[0]] = '0' * 64
+        if missing:
+            del hashes[names[1]]
+        (self.repo / 'Demo').mkdir()
+        (self.repo / 'Demo/release-assets.json').write_text(json.dumps(hashes))
+        self.git('add', 'Demo', 'Website')
+        self.git('commit', '-m', 'Add reviewed walkthrough assets')
+        self.revision = self.git('rev-parse', 'HEAD')
+        self.git('update-ref', 'refs/remotes/origin/main', self.revision)
+        self.git('tag', '-f', 'v0.0.2')
+        self.manifest['sourceRevision'] = self.revision
+        self.save('release-manifest.json', self.manifest)
+        return names
+
+    def test_walkthrough_upload_precedes_publication(self):
+        names = self.add_demo_assets()
+        self.publish()
+        calls = self.calls()
+        upload = next(i for i, c in enumerate(calls) if c[:2] == ['release', 'upload'])
+        publish = next(i for i, c in enumerate(calls) if '--draft=false' in c)
+        self.assertEqual([Path(p).name for p in calls[upload][-3:]], names)
+        self.assertLess(upload, publish)
+
+    def test_bad_walkthrough_checksum_never_reaches_github(self):
+        self.add_demo_assets(invalid_checksum=True)
+        self.assertIn('Demo asset checksum mismatch', self.publish(success=False))
+        self.assertEqual(self.calls(), [])
+
+    def test_incomplete_walkthrough_never_reaches_github(self):
+        self.add_demo_assets(missing=True)
+        self.assertIn('video, captions, and sample notes', self.publish(success=False))
+        self.assertEqual(self.calls(), [])
+
     def test_rejects_changed_payload_checksum_or_failed_checks(self):
         (self.folder / self.installer).write_bytes(b'changed')
         self.assertIn('checksum mismatch', self.publish(success=False))

@@ -1,0 +1,25 @@
+---
+import chapters from '../../content/tour-chapters.json';
+---
+<video id="holdfast-tour" class="tour-video" controls playsinline preload="metadata" poster="/holdfast/demo/poster.webp" aria-label="A guided tour of Holdfast using fictional sample notes">
+  <source src="/holdfast/demo/holdfast-tour.mp4" type="video/mp4" />
+  <track label="English" kind="captions" srclang="en" src="/holdfast/demo/holdfast-tour.vtt" default />
+  <p>Your browser cannot play this video. <a href="/holdfast/demo/holdfast-tour.mp4">Download the walkthrough</a> or read the transcript below.</p>
+</video>
+<div class="tour-chapters" role="group" aria-label="Video chapters">
+  {chapters.map(chapter => <button type="button" data-tour-seek={chapter.seconds} aria-controls="holdfast-tour">{chapter.time} · {chapter.title}</button>)}
+</div>
+<script>
+  function setupTour() {
+    const video = document.querySelector<HTMLVideoElement>('#holdfast-tour');
+    if (!video) return;
+    for (const button of document.querySelectorAll<HTMLButtonElement>('[data-tour-seek]')) {
+      button.onclick = () => {
+        video.currentTime = Number(button.dataset.tourSeek);
+        video.play().catch(() => { video.focus(); });
+      };
+    }
+  }
+  setupTour();
+  document.addEventListener('astro:page-load', setupTour);
+</script>

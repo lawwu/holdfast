@@ -70,6 +70,7 @@ try:
         assert info['CFBundleIdentifier'] == 'app.holdfast'
         assert info['CFBundleShortVersionString'] == metadata['version']
         assert run(binary, '--version').stdout.strip() == 'Holdfast ' + metadata['version']
+        assert b'HOLDFAST_DEMO_CONTROL' not in binary.read_bytes(), 'Documentation capture driver must not ship'
         assert run(node, '--version').stdout.strip() == metadata['node']
         assert not (runtime / 'node_modules/@earendil-works/pi-durable').exists()
         assert not list(app.rglob('*.safetensors'))

@@ -11,6 +11,25 @@ from release_ref import resolve
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def demo_assets():
+    """Attach only the reviewed, committed walkthrough files for this tag."""
+    manifest_path = ROOT / 'Demo/release-assets.json'
+    if not manifest_path.exists():
+        return []
+    assets = []
+    for name, digest in json.loads(manifest_path.read_text()).items():
+        if name not in {'holdfast-tour.mp4', 'holdfast-tour.vtt', 'holdfast-sample-notes.zip'}:
+            raise RuntimeError('Unexpected demo asset: ' + name)
+        path = ROOT / 'Website/public/demo' / name
+        output('git', 'ls-files', '--error-unmatch', str(path.relative_to(ROOT)))
+        if hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+            raise RuntimeError('Demo asset checksum mismatch: ' + name)
+        assets.append(path)
+    if len(assets) != 3:
+        raise RuntimeError('The walkthrough requires video, captions, and sample notes')
+    return assets
+
+
 def output(*args):
     return subprocess.check_output(args, cwd=ROOT, text=True).strip()
 
@@ -69,6 +88,7 @@ def main():
                'hardware inference tests remain a separate local check.\n'
                if not test_result.get('realEmbeddedMLXTested') else '')
     body.write_text(status + notes + testing)
+    walkthrough = demo_assets()
     repository = 'lawwu/holdfast'
     current = subprocess.run(['gh', 'api', f'repos/{repository}/releases/tags/{tag}'],
                              cwd=ROOT, capture_output=True, text=True)
@@ -82,7 +102,7 @@ def main():
     else:
         raise RuntimeError('Could not check the existing release: ' + current.stderr.strip())
     run('gh', 'release', 'upload', tag, '--repo', repository, '--clobber',
-        installer, folder / 'SHA256SUMS', folder / 'release-manifest.json', folder / 'verification.json')
+        installer, folder / 'SHA256SUMS', folder / 'release-manifest.json', folder / 'verification.json', *walkthrough)
     if args.publish:
         run('gh', 'release', 'edit', tag, '--repo', repository, '--draft=false', '--prerelease', '--latest=false')
     print(output('gh', 'release', 'view', tag, '--repo', repository, '--json', 'url', '--jq', '.url'))

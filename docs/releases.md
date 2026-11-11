@@ -141,3 +141,12 @@ state that clearly. Publishing this preview requires the explicit
 - Verify first install and upgrade on a separate clean Mac before treating a preview
   as a stable release. Signing cannot be fully verified until real certificates and
   notarization credentials are configured.
+
+### Walkthrough downloads
+
+Releases from v0.0.2 include the reviewed walkthrough MP4, English WebVTT captions,
+and a ZIP of fictional sample notes. `Demo/release-assets.json` pins their SHA-256
+hashes. Publication verifies all three committed files and uploads them before
+publishing the release; a missing or changed asset stops publication. The website
+serves the same files. Narration and video rendering run locally, without API keys
+in GitHub Actions. See [the demo workflow](../Demo/README.md).

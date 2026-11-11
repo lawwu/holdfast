@@ -12,12 +12,19 @@ hero:
     - text: Get started
       link: /holdfast/getting-started/
       icon: right-arrow
-    - text: Explore the architecture
-      link: /holdfast/architecture/
+    - text: Watch the tour
+      link: /holdfast/tour/
       variant: minimal
 ---
 
 import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+<figure className="app-shot hero-shot">
+  <a href="/holdfast/tour/" aria-label="Take the guided tour of Holdfast">
+    <img src="/holdfast/screenshots/ask.webp" alt="Holdfast answering a question about a kitchen repair, with numbered citations and source notes." width="2560" height="1760" fetchPriority="high" />
+  </a>
+  <figcaption>Ask your notes a question. Follow a citation back to the source. <a href="/holdfast/tour/">Take the guided tour →</a></figcaption>
+</figure>
 
 ## A home for what you know
 
@@ -29,7 +36,7 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
     Ask for an edit and review the proposal in your Inbox. Apply it when you’re ready, with a saved copy available for Undo.
   </Card>
   <Card title="Choose where answers run" icon="laptop">
-    Use LocalMLX inside the app, or connect Ollama, LM Studio, or a compatible server. Private notes stay on this Mac.
+    Use LocalMLX inside the app, or connect Ollama, LM Studio, or a compatible server. Protected notes stay on this Mac; server providers receive the other context they need.
   </Card>
 </CardGrid>
 
@@ -38,7 +45,7 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
 <CardGrid>
   <LinkCard title="Use Holdfast" description="Installation, your first vault, search, Ask, and the Inbox." href="/holdfast/getting-started/" />
   <LinkCard title="App and command-line guide" description="Imports, recordings, model settings, privacy, and commands." href="/holdfast/guide/" />
-  <LinkCard title="Build with the packages" description="Reuse LocalMLX, ModelProviders, and the Pi adapter in another app." href="/holdfast/architecture/" />
+  <LinkCard title="Take the guided tour" description="A narrated walkthrough with captions, real app screenshots, and sample notes to try yourself." href="/holdfast/tour/" />
   <LinkCard title="Follow the releases" description="Installer builds, checks, preview limitations, and what changed." href="/holdfast/changelog/" />
 </CardGrid>
 
