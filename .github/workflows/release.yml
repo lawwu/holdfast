@@ -195,7 +195,9 @@ jobs:
     name: Publish signed release
     needs: [resolve, build]
     if: needs.resolve.outputs.publish == 'true' && github.repository == 'lawwu/holdfast'
-    runs-on: ubuntu-latest
+    # macOS: before uploading, the publisher checks the signed installer and disk image with
+    # pkgutil, stapler and spctl, which exist only on macOS (v0.0.4's publish failed on Linux).
+    runs-on: macos-15
     timeout-minutes: 15
     permissions:
       contents: write
