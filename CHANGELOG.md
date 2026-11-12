@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.0.5 — listen to video links
 
 - GitHub Actions are locked to commits with `gh actions-lock` and linted with zizmor on every pull request.
 - Listen to a YouTube or other video link: yt-dlp fetches its audio, and the transcript is named for the video. A link or stream that can't be opened now says why instead of reporting no speech.

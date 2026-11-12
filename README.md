@@ -10,9 +10,9 @@ saved. AI runs on your Mac by default, keeping your notes local.
 [Watch the tour](https://lawwu.github.io/holdfast/tour/) ·
 [Changelog](CHANGELOG.md)
 
-**Current release: [v0.0.4](https://github.com/lawwu/holdfast/releases/tag/v0.0.4)** —
-[Download DMG](https://github.com/lawwu/holdfast/releases/download/v0.0.4/Holdfast-0.0.4-macos-arm64.dmg) ·
-[PKG installer](https://github.com/lawwu/holdfast/releases/download/v0.0.4/Holdfast-0.0.4-macos-arm64.pkg)
+**Current release: [v0.0.5](https://github.com/lawwu/holdfast/releases/tag/v0.0.5)** —
+[Download DMG](https://github.com/lawwu/holdfast/releases/download/v0.0.5/Holdfast-0.0.5-macos-arm64.dmg) ·
+[PKG installer](https://github.com/lawwu/holdfast/releases/download/v0.0.5/Holdfast-0.0.5-macos-arm64.pkg)
 (Apple Silicon, macOS 15+, signed and notarized by Apple).
 
 ## What you can do
