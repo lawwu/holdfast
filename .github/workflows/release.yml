@@ -48,11 +48,16 @@ jobs:
     needs: resolve
     # MLX's pinned dependencies require Swift 6.3, newer than macos-15's Xcode.
     runs-on: xcode-27
-    timeout-minutes: 60
+    timeout-minutes: 90
+    # A release build signs and notarizes with secrets kept in the protected `release` environment
+    # (required reviewer: the owner). Pull requests and main pushes get no environment and no secrets,
+    # and build the unsigned preview as before.
+    environment: ${{ needs.resolve.outputs.publish == 'true' && 'release' || '' }}
     env:
       DEVELOPER_DIR: /Applications/Xcode_27.2.app/Contents/Developer
       HOLDFAST_BUILD_JOBS: '2'
       RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
+      SIGNED_RELEASE: ${{ needs.resolve.outputs.publish }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -97,16 +102,68 @@ jobs:
           bash scripts/test_custom_models.sh
           bash scripts/test_model_downloads.sh
           python3 Tests/model_provider_transport.py
-      - name: Build the unsigned installer
+      - name: Load the Developer ID certificates and notary key
+        if: env.SIGNED_RELEASE == 'true'
+        env:
+          DEVELOPER_ID_P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
+          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+          NOTARY_KEY_BASE64: ${{ secrets.NOTARY_KEY_BASE64 }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          for name in DEVELOPER_ID_P12_BASE64 DEVELOPER_ID_P12_PASSWORD NOTARY_KEY_BASE64 NOTARY_KEY_ID NOTARY_ISSUER_ID; do
+            if [ -z "${!name}" ]; then echo "::error::The release environment is missing the $name secret (docs/releases.md)"; exit 1; fi
+          done
+          keychain="$RUNNER_TEMP/holdfast-signing.keychain-db"
+          keychain_password="$(uuidgen)"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          printf '%s' "$DEVELOPER_ID_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/developer-id.p12"
+          security import "$RUNNER_TEMP/developer-id.p12" -k "$keychain" -P "$DEVELOPER_ID_P12_PASSWORD" \
+            -T /usr/bin/codesign -T /usr/bin/productbuild -T /usr/bin/productsign
+          rm -f "$RUNNER_TEMP/developer-id.p12"
+          # Apple's Developer ID intermediate, pinned, so the chain builds on any runner image.
+          curl -fsSL https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer -o "$RUNNER_TEMP/DeveloperIDG2CA.cer"
+          echo "f16cd3c54c7f83cea4bf1a3e6a0819c8aaa8e4a1528fd144715f350643d2df3a  $RUNNER_TEMP/DeveloperIDG2CA.cer" | shasum -a 256 -c -
+          security import "$RUNNER_TEMP/DeveloperIDG2CA.cer" -k "$keychain"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain" > /dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          application="$(security find-identity -v -p codesigning "$keychain" | sed -n 's/.*"\(Developer ID Application: .*\)"/\1/p' | head -1)"
+          installer="$(security find-identity -v "$keychain" | sed -n 's/.*"\(Developer ID Installer: .*\)"/\1/p' | head -1)"
+          if [ -z "$application" ] || [ -z "$installer" ]; then
+            echo "::error::The .p12 must hold both Developer ID Application and Developer ID Installer identities"; exit 1
+          fi
+          printf '%s' "$NOTARY_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/notary.p8"
+          {
+            echo "HOLDFAST_SIGNING_KEYCHAIN=$keychain"
+            echo "HOLDFAST_SIGNING_IDENTITY=$application"
+            echo "HOLDFAST_INSTALLER_IDENTITY=$installer"
+            echo "HOLDFAST_NOTARY_KEY=$RUNNER_TEMP/notary.p8"
+            echo "HOLDFAST_NOTARY_KEY_ID=$NOTARY_KEY_ID"
+            echo "HOLDFAST_NOTARY_ISSUER=$NOTARY_ISSUER_ID"
+          } >> "$GITHUB_ENV"
+          echo "Signing as: $application / $installer"
+      - name: Build the installer
         run: |
           mkdir -p build/logs
-          python3 scripts/build_release.py --unsigned-preview 2>&1 | tee build/logs/installer-build.log
+          if [ "$SIGNED_RELEASE" = true ]; then
+            python3 scripts/build_release.py 2>&1 | tee build/logs/installer-build.log
+          else
+            python3 scripts/build_release.py --unsigned-preview 2>&1 | tee build/logs/installer-build.log
+          fi
       - name: Test the exact installer without running MLX inference
         run: |
           python3 Tests/installer_integration.py "build/releases/$RELEASE_VERSION" 2>&1 | tee build/logs/installer-test.log
           python3 -c 'import json, os; v=json.load(open("build/releases/"+os.environ["RELEASE_VERSION"]+"/verification.json")); assert v["passed"] and not v["realEmbeddedMLXTested"]'
       - name: Package and verify the same app in a disk image
         run: python3 scripts/package_release_dmg.py "build/releases/$RELEASE_VERSION" 2>&1 | tee build/logs/dmg-test.log
+      - name: Remove the signing keychain and notary key
+        if: always() && env.SIGNED_RELEASE == 'true'
+        run: |
+          if [ -n "${HOLDFAST_SIGNING_KEYCHAIN:-}" ]; then security delete-keychain "$HOLDFAST_SIGNING_KEYCHAIN" || true; fi
+          rm -f "$RUNNER_TEMP/notary.p8" "$RUNNER_TEMP/developer-id.p12"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: macos-installer
@@ -121,6 +178,7 @@ jobs:
             build/releases/${{ needs.resolve.outputs.version }}/SHA256SUMS
             build/releases/${{ needs.resolve.outputs.version }}/release-manifest.json
             build/releases/${{ needs.resolve.outputs.version }}/verification.json
+            build/releases/${{ needs.resolve.outputs.version }}/*notarization*.json
       - name: Save build and test logs
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -131,7 +189,7 @@ jobs:
           retention-days: 14
 
   publish:
-    name: Publish unsigned prerelease
+    name: Publish signed release
     needs: [resolve, build]
     if: needs.resolve.outputs.publish == 'true' && github.repository == 'lawwu/holdfast'
     runs-on: ubuntu-latest
@@ -152,7 +210,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ needs.resolve.outputs.tag }}
-        run: python3 scripts/publish_release.py --tag "$RELEASE_TAG" --publish --allow-unsigned-preview --include-dmg
+        # No --allow-unsigned-preview: a version tag publishes only a signed, notarized build.
+        run: python3 scripts/publish_release.py --tag "$RELEASE_TAG" --publish --include-dmg
 
   documentation:
     name: Deploy release documentation

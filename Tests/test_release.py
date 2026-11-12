@@ -263,6 +263,56 @@ if sys.argv[1:3] == ['release', 'view']: print('https://example.invalid/release'
         self.git('commit', '--allow-empty', '-m', 'Newer commit')
         self.assertIn('Check out the release tag', self.publish(success=False))
 
+    # Signed releases: Apple's tools are faked; the gates and GitHub calls are real.
+    def make_signed(self, dmg_signed=True):
+        bin_dir = Path(self.env['PATH'].split(os.pathsep)[0])
+        for tool in ['pkgutil', 'xcrun', 'spctl']:
+            fake = bin_dir / tool
+            fake.write_text('#!/bin/sh\nexit 0\n')
+            fake.chmod(0o755)
+        self.installer = 'Holdfast-0.0.2-macos-arm64.pkg'
+        (self.folder / 'Holdfast-0.0.2-macos-arm64-unsigned.pkg').rename(self.folder / self.installer)
+        (self.folder / 'SHA256SUMS').write_text(f'{self.digest}  {self.installer}\n')
+        self.manifest.update(installer=self.installer, developerIDSigned=True, notarized=True)
+        self.save('release-manifest.json', self.manifest)
+        name = 'Holdfast-0.0.2-macos-arm64' + ('' if dmg_signed else '-unsigned') + '.dmg'
+        payload = b'synthetic signed disk image'
+        digest = hashlib.sha256(payload).hexdigest()
+        (self.folder / name).write_bytes(payload)
+        (self.folder / (name + '.sha256')).write_text(f'{digest}  {name}\n')
+        self.save('dmg-verification.json', dict(
+            version='0.0.2', sourceRevision=self.revision, installerSHA256=self.digest, diskImage=name,
+            diskImageSHA256=digest, passed=True, mountedReadOnly=True, appMatchesInstaller=True,
+            signatureIntegrityValidated=True, bundledRuntimeValidated=True,
+            developerIDSigned=dmg_signed, notarized=dmg_signed))
+        return name
+
+    def publish_signed(self, success=True):
+        return self.command('publish_release.py', '--tag', 'v0.0.2', '--publish', '--include-dmg', success=success)
+
+    def test_signed_release_publishes_as_latest_not_prerelease(self):
+        name = self.make_signed()
+        self.publish_signed()
+        calls = self.calls()
+        create = next(c for c in calls if c[:2] == ['release', 'create'])
+        self.assertIn('--prerelease=false', create)
+        self.assertNotIn('--prerelease', create)
+        final = next(c for c in calls if '--draft=false' in c)
+        self.assertIn('--latest', final)
+        self.assertNotIn('--latest=false', final)
+        upload = next(c for c in calls if c[:2] == ['release', 'upload'])
+        self.assertIn(name, [Path(p).name for p in upload])
+        self.assertIn('Developer ID signed and notarized', (self.folder / 'release-notes.md').read_text())
+
+    def test_signed_installer_never_ships_with_an_unsigned_disk_image(self):
+        self.make_signed(dmg_signed=False)
+        self.assertIn('signed and notarized exactly when', self.publish_signed(success=False))
+        self.assertTrue(all(c[0] == 'api' for c in self.calls()))
+
+    def test_unsigned_installer_never_publishes_without_the_preview_flag(self):
+        self.assertIn('--allow-unsigned-preview', self.command('publish_release.py', '--tag', 'v0.0.2', '--publish', success=False))
+        self.assertEqual(self.calls(), [])
+
 
 if __name__ == '__main__':
     unittest.main()

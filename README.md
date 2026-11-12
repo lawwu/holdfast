@@ -10,10 +10,10 @@ saved. AI runs on your Mac by default, keeping your notes local.
 [Watch the tour](https://lawwu.github.io/holdfast/tour/) ·
 [Changelog](CHANGELOG.md)
 
-**Current preview: [v0.0.3](https://github.com/lawwu/holdfast/releases/tag/v0.0.3)** —
-[Download DMG](https://github.com/lawwu/holdfast/releases/download/v0.0.3/Holdfast-0.0.3-macos-arm64-unsigned.dmg) ·
-[PKG installer](https://github.com/lawwu/holdfast/releases/download/v0.0.3/Holdfast-0.0.3-macos-arm64-unsigned.pkg)
-(Apple Silicon, macOS 15+, unsigned).
+**Current release: [v0.0.4](https://github.com/lawwu/holdfast/releases/tag/v0.0.4)** —
+[Download DMG](https://github.com/lawwu/holdfast/releases/download/v0.0.4/Holdfast-0.0.4-macos-arm64.dmg) ·
+[PKG installer](https://github.com/lawwu/holdfast/releases/download/v0.0.4/Holdfast-0.0.4-macos-arm64.pkg)
+(Apple Silicon, macOS 15+, signed and notarized by Apple).
 
 ## What you can do
 
@@ -36,9 +36,9 @@ Requires an **Apple Silicon Mac running macOS 15 or later**.
 Try asking “What did I decide about the kitchen repair?” or
 “Mark ‘Book the inspection’ as done.” Proposed edits wait in your Inbox.
 
-Holdfast is an early preview. Installers are **unsigned and not notarized by Apple**;
-see the [installation guide](https://lawwu.github.io/holdfast/getting-started/) if
-macOS blocks them. The installer includes the core runtime; models download separately.
+Holdfast is an early release. Installers are **signed with Developer ID and notarized
+by Apple**, so macOS opens them without a security warning. The installer includes the
+core runtime; models download separately.
 
 ## Models and privacy
 

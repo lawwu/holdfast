@@ -1,7 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.0.4 — signed and notarized
 
+- Installers and disk images are signed with Apple Developer ID and notarized by
+  Apple, so macOS opens them without a security warning. Releases are built, signed
+  and published by GitHub Actions after the owner approves each one.
 - Reranker choices in Search settings: Qwen3 0.6B (default), 4B and 8B, with
   independent downloads, remembered selection and safe model switching.
 

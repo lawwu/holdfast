@@ -8,6 +8,8 @@ from pathlib import Path
 import re
 import subprocess
 
+import notary
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -23,9 +25,10 @@ def main():
     if not re.fullmatch(r'\d+\.\d+\.\d+', version):
         raise RuntimeError('VERSION must contain a three-part numeric version')
     if not args.unsigned_preview:
-        for name in ['HOLDFAST_SIGNING_IDENTITY', 'HOLDFAST_INSTALLER_IDENTITY', 'HOLDFAST_NOTARY_PROFILE']:
+        for name in ['HOLDFAST_SIGNING_IDENTITY', 'HOLDFAST_INSTALLER_IDENTITY']:
             if not os.environ.get(name) or os.environ.get(name) == '-':
                 raise RuntimeError('A trusted release needs ' + name + '; see docs/releases.md')
+        notary.credentials()  # fail before a long build when nothing can notarize it
     out = ROOT / 'build/releases' / version
     out.mkdir(parents=True, exist_ok=True)
     app = out / 'Holdfast.app'
@@ -47,15 +50,7 @@ def main():
     run('python3', 'scripts/make_installer.py', app, package,
         *(['--unsigned-preview'] if args.unsigned_preview else []), env=env)
     if not args.unsigned_preview:
-        result = run('xcrun', 'notarytool', 'submit', package, '--keychain-profile', env['HOLDFAST_NOTARY_PROFILE'],
-                     '--wait', '--output-format', 'json', capture_output=True, text=True)
-        notarization = json.loads(result.stdout)
-        (out / 'notarization.json').write_text(json.dumps(notarization, indent=2) + '\n')
-        run('xcrun', 'notarytool', 'log', notarization['id'], '--keychain-profile', env['HOLDFAST_NOTARY_PROFILE'], out / 'notarization-log.json')
-        if notarization.get('status') != 'Accepted':
-            raise RuntimeError('Apple did not accept this installer; review the notarization log')
-        run('xcrun', 'stapler', 'staple', package)
-        run('xcrun', 'stapler', 'validate', package)
+        notary.notarize(package, 'notarization')
         run('spctl', '--assess', '--type', 'install', '--verbose=2', package)
     checksum = hashlib.sha256(package.read_bytes()).hexdigest()
     (out / 'SHA256SUMS').write_text(f'{checksum}  {name}\n')
