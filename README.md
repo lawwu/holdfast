@@ -69,6 +69,11 @@ Three reusable packages live in this repository:
 
 Holdfast keeps its tools, privacy rules, Inbox approvals, and Undo in the app.
 
+GitHub Actions are locked to commits in `.github/workflows/actions.lock`. After changing
+a workflow, relock with [`gh actions-lock`](https://github.com/github/gh-actions-lock)
+and lint with `uvx zizmor .github/`; both run as required checks. Keep comments off
+`uses:` lines, since relocking rewrites those lines and drops them.
+
 [App and CLI reference](docs/guide.md) ·
 [Architecture](https://lawwu.github.io/holdfast/architecture/) ·
 [Builds and releases](docs/releases.md)

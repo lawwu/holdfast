@@ -71,7 +71,7 @@ are not repackaged with newer scripts. Concurrent runs for the same tag are seri
 The build job has read-only repository access. Only the publication job receives
 `contents: write`, using GitHub's built-in token. Apple credentials live only in the
 protected `release` environment (below); pull requests and `main` pushes never see them
-and build the unsigned preview. Actions are pinned to commits; Node follows `packaging/node-runtime.json`.
+and build the unsigned preview. Actions are locked to commits in `.github/workflows/actions.lock`; Node follows `packaging/node-runtime.json`.
 
 ### Signing secrets
 

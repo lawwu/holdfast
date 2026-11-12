@@ -1,0 +1,40 @@
+# Checks the workflows themselves, on every pull request and on pushes to main
+# (this repository's default branch). Both jobs are required to merge into main.
+#
+# - Actions lock: `gh actions-lock --verify` fails when a workflow uses an action
+#   that .github/workflows/actions.lock doesn't pin to a commit, or when the lock
+#   file no longer matches the workflows. Relock with `gh actions-lock`.
+# - zizmor: lints every workflow for security problems (template injection,
+#   credential persistence, excessive permissions, cache poisoning, unpinned
+#   actions). Findings fail the job and appear as annotations on the pull request.
+name: actions
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  lockfile:
+    name: Actions lock
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - run: gh extension install github/gh-actions-lock --pin v0.4.1
+      - run: gh actions-lock --verify
+  zizmor:
+    name: zizmor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: zizmorcore/zizmor-action@v0.8.1
+        with:
+          version: 1.32.0
+          advanced-security: false # findings fail the job, as annotations on the PR
+          annotations: true

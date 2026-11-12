@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- GitHub Actions are locked to commits with `gh actions-lock` and linted with zizmor on every pull request.
+
 ## 0.0.4 — signed and notarized
 
 - Installers and disk images are signed with Apple Developer ID and notarized by
