@@ -211,7 +211,7 @@ struct ListenView: View {
             case .mic:
                 Text("The Mac's microphone: a room, a lesson, your own notes.").font(Theme.callout).foregroundStyle(.secondary)
             case .url:
-                TextField("https://…/live.m3u8, or a file path", text: $url).textFieldStyle(.roundedBorder).font(Theme.body)
+                TextField("A YouTube or other video link, a stream (…/live.m3u8) or a file path", text: $url).textFieldStyle(.roundedBorder).font(Theme.body)
             }
 
             TextField("Title (optional)", text: $title).textFieldStyle(.roundedBorder).font(Theme.body)
