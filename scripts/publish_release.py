@@ -13,11 +13,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def dmg_assets(folder, manifest):
     """Only upload a disk image verified against this exact installer."""
-    if manifest.get('developerIDSigned') or manifest.get('notarized'):
-        raise RuntimeError('Signed releases need a separately signed and notarized disk image')
+    signed = bool(manifest.get('developerIDSigned') and manifest.get('notarized'))
     report_path = folder / 'dmg-verification.json'
     report = json.loads(report_path.read_text())
-    image = folder / f"Holdfast-{manifest['version']}-macos-arm64-unsigned.dmg"
+    if bool(report.get('developerIDSigned')) != signed or bool(report.get('notarized')) != signed:
+        raise RuntimeError('The disk image must be signed and notarized exactly when the installer is')
+    image = folder / (f"Holdfast-{manifest['version']}-macos-arm64" + ('' if signed else '-unsigned') + '.dmg')
     checksum = image.with_suffix('.dmg.sha256')
     checks = ['passed', 'mountedReadOnly', 'appMatchesInstaller',
               'signatureIntegrityValidated', 'bundledRuntimeValidated']
@@ -31,6 +32,9 @@ def dmg_assets(folder, manifest):
     if (digest != report.get('diskImageSHA256')
             or checksum.read_text() != f'{digest}  {image.name}\n'):
         raise RuntimeError('DMG checksum mismatch')
+    if signed:
+        run('xcrun', 'stapler', 'validate', image)
+        run('spctl', '--assess', '--type', 'open', '--context', 'context:primary-signature', image)
     return [image, checksum, report_path]
 
 
@@ -117,19 +121,22 @@ def main():
     repository = 'lawwu/holdfast'
     current = subprocess.run(['gh', 'api', f'repos/{repository}/releases/tags/{tag}'],
                              cwd=ROOT, capture_output=True, text=True)
+    # Signed, notarized releases are ordinary releases; unsigned ones stay prereleases.
+    kind = '--prerelease=false' if trusted else '--prerelease'
     if current.returncode == 0:
         if not json.loads(current.stdout)['draft']:
             raise RuntimeError('This release is already published; published assets are never replaced')
-        run('gh', 'release', 'edit', tag, '--repo', repository, '--notes-file', body, '--prerelease')
+        run('gh', 'release', 'edit', tag, '--repo', repository, '--notes-file', body, kind)
     elif 'HTTP 404' in current.stderr:
-        run('gh', 'release', 'create', tag, '--repo', repository, '--verify-tag', '--draft', '--prerelease',
+        run('gh', 'release', 'create', tag, '--repo', repository, '--verify-tag', '--draft', kind,
             '--title', 'Holdfast ' + tag, '--notes-file', body)
     else:
         raise RuntimeError('Could not check the existing release: ' + current.stderr.strip())
     run('gh', 'release', 'upload', tag, '--repo', repository, '--clobber',
         installer, folder / 'SHA256SUMS', folder / 'release-manifest.json', folder / 'verification.json', *disk_image, *walkthrough)
     if args.publish:
-        run('gh', 'release', 'edit', tag, '--repo', repository, '--draft=false', '--prerelease', '--latest=false')
+        run('gh', 'release', 'edit', tag, '--repo', repository, '--draft=false', kind,
+            '--latest' if trusted else '--latest=false')
     print(output('gh', 'release', 'view', tag, '--repo', repository, '--json', 'url', '--jq', '.url'))
 
 

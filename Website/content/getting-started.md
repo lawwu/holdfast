@@ -16,8 +16,8 @@ You need an **Apple Silicon Mac running macOS 15 or later**.
 2. Open the installer and follow its instructions. It places **Holdfast** in **Applications**.
 3. Open Holdfast from Applications.
 
-:::caution[This is an unsigned preview]
-The installer is not signed with Developer ID or notarized by Apple. macOS may block it. If you trust the download, follow [Apple's instructions for opening a trusted app](https://support.apple.com/en-us/102445), including **System Settings → Privacy & Security → Open Anyway** when available. Do not disable macOS security protections globally.
+:::note[Signed and notarized]
+From v0.0.4, the installer and disk image are signed with Apple Developer ID and notarized by Apple, so macOS opens them without a security warning. Releases up to v0.0.3 were unsigned previews.
 :::
 
 The installer includes the app's runtime. You do not need developer tools for the core app. Models download separately and need additional disk space.

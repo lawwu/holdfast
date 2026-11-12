@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Wrap the exact tested unsigned installer app in a verified, read-only DMG."""
+"""Wrap the exact tested installer app in a verified, read-only DMG; signed and notarized for a signed release."""
 import argparse
 import hashlib
 import json
@@ -10,6 +10,8 @@ import re
 import subprocess
 import tempfile
 import time
+
+import notary
 
 # hdiutil on hosted macOS runners: its own size estimate from -srcfolder can come up short as the
 # app grows, and it sometimes fails with "Resource busy" while the system scans new files.
@@ -81,8 +83,12 @@ def main():
     version = metadata['version']
     if not re.fullmatch(r'\d+\.\d+\.\d+', version) or metadata['sourceDirty']:
         raise RuntimeError('Use a versioned installer built from committed source')
-    if metadata['developerIDSigned'] or metadata['notarized']:
-        raise RuntimeError('This helper supports unsigned previews; signed DMGs need their own notarization workflow')
+    signed = bool(metadata['developerIDSigned'] and metadata['notarized'])
+    if signed != bool(metadata['developerIDSigned'] or metadata['notarized']):
+        raise RuntimeError('A release is either signed and notarized, or neither')
+    identity = os.environ.get('HOLDFAST_SIGNING_IDENTITY', '')
+    if signed and (not identity or identity == '-'):
+        raise RuntimeError('A signed release needs HOLDFAST_SIGNING_IDENTITY to sign its disk image')
     installer = metadata['installer']
     if Path(installer).name != installer:
         raise RuntimeError('Installer must be a file in the release directory')
@@ -93,7 +99,7 @@ def main():
             or verification.get('version') != version
             or not all(verification.get(key) is True for key in checks)):
         raise RuntimeError('The exact installer must pass its integration tests before DMG packaging')
-    image = folder / f'Holdfast-{version}-macos-arm64-unsigned.dmg'
+    image = folder / (f'Holdfast-{version}-macos-arm64' + ('' if signed else '-unsigned') + '.dmg')
     if image.exists():
         raise RuntimeError('Refusing to overwrite an existing disk image: ' + str(image))
     with tempfile.TemporaryDirectory(prefix='holdfast-dmg-') as temporary:
@@ -114,17 +120,24 @@ def main():
         run('ditto', app, staging / 'Holdfast.app')
         (staging / 'Applications').symlink_to('/Applications')
         (staging / 'Install Holdfast.txt').write_text(
-            f'Holdfast {version} — unsigned preview\n\n'
+            f'Holdfast {version}' + ('' if signed else ' — unsigned preview') + '\n\n'
+            'Copy Holdfast.app into Applications. To install for your own account, '
+            'use the Applications folder inside your home folder.\n\n'
             'On a managed Mac, right-click Holdfast.app and choose Install with Privilege Management '
             'if your organization provides that option. Your organization must allow the app; '
             'the disk image does not grant permission or change security policies.\n\n'
-            'Otherwise, copy Holdfast.app into Applications. To install for your own account, '
-            'use the Applications folder inside your home folder.\n\n'
-            'This preview is not signed with Apple Developer ID or notarized by Apple. '
-            'Gatekeeper and your organization\'s approval requirements still apply.\n\n'
-            'Requires Apple Silicon and macOS 15 or later.\n'
+            + ('Holdfast is signed with Apple Developer ID and notarized by Apple.\n\n' if signed else
+               'This preview is not signed with Apple Developer ID or notarized by Apple. '
+               'Gatekeeper and your organization\'s approval requirements still apply.\n\n')
+            + 'Requires Apple Silicon and macOS 15 or later.\n'
             'https://lawwu.github.io/holdfast/getting-started/\n')
         create_image(staging, f'Holdfast {version}', image)
+        if signed:
+            # Sign the image itself, have Apple notarize it, and staple the ticket, so a downloaded
+            # DMG opens without a Gatekeeper warning even offline.
+            run('codesign', '--sign', identity, '--timestamp', image)
+            notary.notarize(image, 'dmg-notarization')
+            run('spctl', '--assess', '--type', 'open', '--context', 'context:primary-signature', '--verbose=2', image)
         run('hdiutil', 'verify', image)
         mount = work / 'mounted'
         mount.mkdir()
@@ -132,6 +145,8 @@ def main():
         try:
             mounted = mount / 'Holdfast.app'
             run('codesign', '--verify', '--deep', '--strict', mounted)
+            if signed:
+                run('spctl', '--assess', '--type', 'exec', '--verbose=2', mounted)
             if bundle_hash(mounted) != original_hash:
                 raise RuntimeError('Mounted app differs from the tested installer payload')
             for executable in ['holdfast', 'node']:
@@ -151,7 +166,7 @@ def main():
         'appBundleSHA256': original_hash, 'passed': True, 'mountedReadOnly': True,
         'appMatchesInstaller': True, 'signatureIntegrityValidated': True,
         'bundledRuntimeValidated': True, 'privilegeManagementPolicyTested': False,
-        'developerIDSigned': False, 'notarized': False,
+        'developerIDSigned': signed, 'notarized': signed,
     }, indent=2) + '\n')
     print('PASS: mounted DMG contains the exact tested app, with valid signatures and bundled runtime.')
     print(image)
