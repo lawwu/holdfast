@@ -1,0 +1,42 @@
+# Weekly dependency updates, held back until a release is at least 7 days old.
+# GitHub Actions updates also update .github/workflows/actions.lock; if one doesn't,
+# relock with `gh actions-lock` before merging (the "Actions lock" check fails otherwise).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns: ['*']
+
+  - package-ecosystem: npm
+    directories:
+      - /Website
+      - /Packages/pi-swift-mlx
+      - /Runtime/pi
+      - /Runtime/pi-durable
+      - /Demo
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      npm:
+        patterns: ['*']
+
+  - package-ecosystem: swift
+    directories:
+      - /
+      - /Packages/LocalMLX
+      - /Packages/ModelProviders
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      swift:
+        patterns: ['*']

@@ -40,7 +40,7 @@ jobs:
       revision: ${{ steps.release.outputs.revision }}
       publish: ${{ steps.release.outputs.publish }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -59,15 +59,15 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ needs.resolve.outputs.revision }}
           persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/setup-node@v7.1.0
         with:
           node-version: '24.22.2'
-          cache: npm
-          cache-dependency-path: Website/package-lock.json
+          # This job builds the artifact Pages deploys, so it doesn't restore cached state.
+          package-manager-cache: false
       - name: Install documentation dependencies
         working-directory: Website
         run: npm ci --ignore-scripts --no-audit --no-fund
@@ -81,13 +81,13 @@ jobs:
         run: |
           npx playwright install --with-deps chromium
           npm run test:browser
-      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+      - uses: actions/upload-pages-artifact@v5.0.0
         with:
           path: Website/dist
           retention-days: 7
       - name: Save browser failure screenshots
         if: failure()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: documentation-test-results
           path: Website/test-results
@@ -109,7 +109,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Check this repository's Pages configuration
-        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+        uses: actions/configure-pages@v6.0.0
       - name: Deploy the tested documentation artifact
         id: deployment
-        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+        uses: actions/deploy-pages@v5.0.1
