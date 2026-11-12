@@ -42,7 +42,7 @@
     "@earendil-works/pi-ai": "1.5.1",
     "@earendil-works/pi-coding-agent": "1.5.1",
     "@earendil-works/pi-durable": "1.5.1",
-    "typescript": "5.9.3"
+    "typescript": "7.0.2"
   },
   "scripts": {
     "prepack": "node scripts/stage-native.mjs",
