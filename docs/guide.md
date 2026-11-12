@@ -297,7 +297,7 @@ ffmpeg -i <anything> -f s16le -ar 16000 -ac 1 - | holdfast listen - --json
     needs for your side. Core Audio process taps (macOS 14.2+) in a private aggregate device
     (`SystemAudio.swift`); no screen recording. `--apps` lists apps that have opened audio. `--mute`
     keeps the tapped audio off the speakers while it is transcribed.
-  - `--url` takes anything ffmpeg opens (HLS, RTMP, Icecast, a file; `--realtime` plays a file at speed).
+  - `--url` takes anything ffmpeg opens (HLS, RTMP, Icecast, a file; `--realtime` plays a file at speed), or a video page on YouTube, Vimeo, Twitch, SoundCloud and similar sites, whose audio yt-dlp fetches (`brew install yt-dlp`). A video is transcribed as fast as it downloads, and the transcript is named for it.
   - `-` reads raw 16 kHz mono s16le from stdin, so any program that makes audio can feed it.
   - `--mic` alone uses the default input through AVAudioEngine.
 - **In the app:** the Listen page (sidebar, or Vault › Listen…, ⇧⌘R) picks the same sources, shows

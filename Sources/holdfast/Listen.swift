@@ -184,56 +184,115 @@ enum Listen {
         return b
     }
 
-    /// An ffmpeg run: its last error lines, to say why a stream gave nothing.
+    /// An ffmpeg run (with yt-dlp in front of it for a video page): the last error lines of each,
+    /// to say why a stream gave nothing.
     final class FFmpegRun: @unchecked Sendable {
         let process: Process
+        /// yt-dlp fetching a page's audio into ffmpeg, for a YouTube or similar link.
+        let fetcher: Process?
         let source: String
         private let lock = NSLock()
         private var err = ""
+        private var fetchErr = ""
         private var stoppedByUs = false
-        init(_ p: Process, source: String) { process = p; self.source = source }
-        /// Stop asked for it (ffmpeg exits 255 on SIGTERM, which isn't a failure).
+        init(_ p: Process, fetcher: Process? = nil, source: String) { process = p; self.fetcher = fetcher; self.source = source }
+        /// Stop asked for it (ffmpeg exits 255 on SIGTERM, which isn't a failure). A run that already
+        /// ended on its own keeps its failure: the end of every session calls this too.
         func terminate() {
-            lock.lock(); stoppedByUs = true; lock.unlock()
+            lock.lock()
+            if process.isRunning || fetcher?.isRunning == true { stoppedByUs = true }
+            lock.unlock()
+            if let f = fetcher, f.isRunning { f.terminate() }
             if process.isRunning { process.terminate() }
         }
         func append(_ s: String) { lock.lock(); err = String((err + s).suffix(1500)); lock.unlock() }
+        func appendFetch(_ s: String) { lock.lock(); fetchErr = String((fetchErr + s).suffix(1500)); lock.unlock() }
         var errors: String { lock.lock(); defer { lock.unlock() }; return err.trimmingCharacters(in: .whitespacesAndNewlines) }
+        var fetchErrors: String { lock.lock(); defer { lock.unlock() }; return fetchErr.trimmingCharacters(in: .whitespacesAndNewlines) }
 
-        /// Why ffmpeg failed, once it has ended; nil when it finished or was stopped by us.
+        /// Why the stream failed, once it has ended; nil when it finished or was stopped by us.
         func failure() -> String? {
             process.waitUntilExit()
+            fetcher?.waitUntilExit()
             lock.lock(); let ours = stoppedByUs; lock.unlock()
-            guard !ours, process.terminationReason == .exit, process.terminationStatus != 0 else { return nil }
+            guard !ours else { return nil }
+            // yt-dlp failing explains ffmpeg's empty input better than ffmpeg does.
+            if let f = fetcher, f.terminationReason == .exit, f.terminationStatus != 0 {
+                let e = fetchErrors.split(separator: "\n").last(where: { $0.contains("ERROR") }) ?? fetchErrors.split(separator: "\n").last
+                return "yt-dlp couldn't get the audio of \(source): " + (e.map(String.init) ?? "exit status \(f.terminationStatus)")
+            }
+            guard process.terminationReason == .exit, process.terminationStatus != 0 else { return nil }
             let e = errors.split(separator: "\n").last.map(String.init) ?? "exit status \(process.terminationStatus)"
             return "ffmpeg couldn't read \(source): \(e)"
         }
     }
 
+    /// Video and audio sites whose links are web pages, not streams: yt-dlp finds the audio in them.
+    /// Anything else (a radio stream, an .m3u8, a file) goes to ffmpeg directly.
+    static let pageHosts = ["youtube.com", "youtu.be", "youtube-nocookie.com", "vimeo.com", "twitch.tv", "soundcloud.com",
+                            "x.com", "twitter.com", "facebook.com", "fb.watch", "instagram.com", "tiktok.com",
+                            "dailymotion.com", "rumble.com", "bilibili.com", "bandcamp.com", "podbean.com",
+                            "podcasts.apple.com", "open.spotify.com", "archive.org", "ted.com", "kick.com"]
+
+    /// A link to a page on one of `pageHosts` (or a subdomain of one).
+    static func isPage(_ src: String) -> Bool {
+        guard src.hasPrefix("http://") || src.hasPrefix("https://"), let host = URL(string: src)?.host?.lowercased() else { return false }
+        return pageHosts.contains { host == $0 || host.hasSuffix("." + $0) }
+    }
+
     /// ffmpeg turns a stream URL or file into raw audio on a pipe; its errors are kept (and shown on stderr).
+    /// For a video page (YouTube and the like), yt-dlp fetches the audio and pipes it into ffmpeg.
     static func startFFmpeg(_ src: String, realtime: Bool, into feed: Feed) throws -> FFmpegRun {
         guard let ffmpeg = findTool("ffmpeg") else {
             throw HoldfastError("Listening to a stream needs ffmpeg. Install it with Homebrew (brew install ffmpeg), then try again.")
         }
+        var fetcher: Process?
+        if isPage(src) {
+            guard let ytdlp = findTool("yt-dlp") else {
+                throw HoldfastError("Listening to a YouTube or other video link needs yt-dlp. Install it with Homebrew (brew install yt-dlp), then try again.")
+            }
+            let f = Process()
+            f.executableURL = URL(fileURLWithPath: ytdlp)
+            // The app has no shell PATH; yt-dlp finds ffmpeg (for live streams) through these.
+            var env = ProcessInfo.processInfo.environment
+            env["PATH"] = [(ffmpeg as NSString).deletingLastPathComponent, "/opt/homebrew/bin", "/usr/local/bin", "/usr/bin", "/bin"].joined(separator: ":")
+            f.environment = env
+            f.arguments = ["--no-playlist", "--quiet", "--no-warnings", "--ffmpeg-location", ffmpeg,
+                           "-f", "bestaudio/best", "-o", "-", src]
+            fetcher = f
+        }
         let p = Process()
         p.executableURL = URL(fileURLWithPath: ffmpeg)
-        var a = ["-nostdin", "-loglevel", "error"]
-        if src.hasPrefix("http://") || src.hasPrefix("https://") {
+        var a = fetcher == nil ? ["-nostdin", "-loglevel", "error"] : ["-loglevel", "error"]
+        if fetcher == nil, src.hasPrefix("http://") || src.hasPrefix("https://") {
             a += ["-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", String(reconnectSeconds)]
         }
         if realtime { a.append("-re") }
-        p.arguments = a + ["-i", src, "-vn", "-ac", "1", "-ar", String(Int(sampleRate)), "-f", "s16le", "-"]
+        p.arguments = a + ["-i", fetcher == nil ? src : "pipe:0", "-vn", "-ac", "1", "-ar", String(Int(sampleRate)), "-f", "s16le", "-"]
         let out = Pipe(), err = Pipe()
         p.standardOutput = out
         p.standardError = err
-        let run = FFmpegRun(p, source: src)
+        let run = FFmpegRun(p, fetcher: fetcher, source: src)
         err.fileHandleForReading.readabilityHandler = { h in
             let d = h.availableData
             guard !d.isEmpty else { h.readabilityHandler = nil; return }
             run.append(String(decoding: d, as: UTF8.self))
             if !launchedAsApp { FileHandle.standardError.write(d) }
         }
-        try p.run()
+        if let f = fetcher {
+            let audio = Pipe(), fetchErr = Pipe()
+            f.standardOutput = audio
+            f.standardError = fetchErr
+            p.standardInput = audio
+            fetchErr.fileHandleForReading.readabilityHandler = { h in
+                let d = h.availableData
+                guard !d.isEmpty else { h.readabilityHandler = nil; return }
+                run.appendFetch(String(decoding: d, as: UTF8.self))
+                if !launchedAsApp { FileHandle.standardError.write(d) }
+            }
+            try f.run()
+        }
+        do { try p.run() } catch { fetcher?.terminate(); throw error }
         feed.whenStopped { run.terminate() }
         readPCM(out.fileHandleForReading, into: feed)
         return run
@@ -686,6 +745,12 @@ enum Listen {
             if let app { return "\(SystemAudio.label(app)) \(mic ? "call" : "audio") \(when)" }
             return "\(mic ? "Meeting" : "Mac audio") \(when)"
         case .url(let s, _):
+            // A video page is named for its video ("Me at the zoo"), from yt-dlp, when that answers quickly.
+            if isPage(s), let tool = findTool("yt-dlp"),
+               let t = try? holdfast.run(tool, ["--no-playlist", "--no-warnings", "--skip-download", "--print", "%(title)s", s])
+                .trimmingCharacters(in: .whitespacesAndNewlines), !t.isEmpty, !t.contains("\n") {
+                return "\(t) \(when)"
+            }
             if let u = URL(string: s), let host = u.host, !host.isEmpty { return "\(host) livestream \(when)" }
             return URL(fileURLWithPath: s).deletingPathExtension().lastPathComponent
         }
