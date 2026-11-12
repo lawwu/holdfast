@@ -36,6 +36,43 @@ def run(*args, **kwargs):
     return result
 
 
+MACHO = {b'\xcf\xfa\xed\xfe', b'\xce\xfa\xed\xfe', b'\xfe\xed\xfa\xcf',
+         b'\xca\xfe\xba\xbe', b'\xca\xfe\xba\xbf', b'\xbe\xba\xfe\xca'}
+
+
+def unsigned_copy(source, target, work):
+    """Copy an app bundle with every code signature removed.
+
+    macOS (App Management) refuses edits to an app signed with Developer ID, so the runtime tests
+    below, which give the app a private identity and re-sign it, work on a copy that was never
+    signed: signatures are stripped from each executable outside the bundle before it goes in.
+    """
+    for directory, folders, files in os.walk(source, followlinks=False):
+        folders[:] = [f for f in folders if f != '_CodeSignature']
+        here = Path(directory)
+        destination = target / here.relative_to(source)
+        destination.mkdir(parents=True, exist_ok=True)
+        for name in folders:
+            if (here / name).is_symlink():
+                os.symlink(os.readlink(here / name), destination / name)
+        folders[:] = [f for f in folders if not (here / f).is_symlink()]
+        for name in files:
+            path = here / name
+            if path.is_symlink():
+                os.symlink(os.readlink(path), destination / name)
+                continue
+            with path.open('rb') as handle:
+                macho = handle.read(4) in MACHO
+            if not macho:
+                shutil.copy2(path, destination / name)
+                continue
+            loose = work / ('unsigned-' + uuid.uuid4().hex)
+            shutil.copy2(path, loose)
+            run('codesign', '--remove-signature', loose)
+            shutil.move(loose, destination / name)
+    return target
+
+
 def reply(text='', calls=()):
     return dict(text=text, reasoning='', calls=list(calls),
                 usage=dict(promptTokens=10, promptSeconds=.1, outputTokens=5, outputSeconds=.1), truncated=False)
@@ -83,6 +120,17 @@ try:
         assert node_entitlements.get('com.apple.security.cs.allow-jit')
         assert not node_entitlements.get('com.apple.security.get-task-allow')
         print('PASS installer payload, version, architecture, signature integrity, licenses, and system-only linking', flush=True)
+
+        # The checks above ran on the installer's own signed app. The runtime checks below edit and
+        # re-sign it, which macOS forbids for a Developer ID app, so they use an unsigned copy.
+        if metadata.get('developerIDSigned'):
+            loose = scratch / 'loose'
+            loose.mkdir()
+            app = unsigned_copy(app, scratch / 'tested/Holdfast.app', loose)
+            binary = app / 'Contents/MacOS/holdfast'
+            node = app / 'Contents/MacOS/node'
+            runtime = app / 'Contents/Resources/pi'
+            info_path = app / 'Contents/Info.plist'
 
         # Use a unique preferences identity so test commands cannot alter the installed app's settings.
         info['CFBundleIdentifier'] = domain
