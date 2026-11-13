@@ -31,6 +31,9 @@ test -x "$P/holdfast"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$P/holdfast" "$APP/Contents/MacOS/holdfast"
+# Sparkle is dynamic; SwiftPM does not embed frameworks in this hand-built app bundle.
+mkdir -p "$APP/Contents/Frameworks"
+ditto .build/xcode/SourcePackages/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework "$APP/Contents/Frameworks/Sparkle.framework"
 # SwiftPM resource bundles (MLX's Metal shaders, tokenizer resources). MLX looks
 # next to the binary, SwiftPM's Bundle.module in Resources: put them in both.
 for b in "$P"/*.bundle; do
@@ -77,6 +80,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>NSHumanReadableCopyright</key><string>“Prove all things; hold fast that which is good.” 1 Thessalonians 5:21</string>
 </dict></plist>
 PLIST
+python3 scripts/configure_updates.py "$APP"
 # Quick Look preview for Markdown (Space in Finder shows a note rendered): a
 # data-based preview extension, built from QuickLook/ with swiftc, sandboxed as
 # extensions must be. Signed before the app, so the app's signature covers it.

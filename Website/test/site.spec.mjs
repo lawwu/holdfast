@@ -6,10 +6,14 @@ test('read the docs and navigate without horizontal overflow', async ({ page }, 
   page.on('pageerror', error => failures.push(error.message));
   await page.goto('./');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Your notes. Your Mac. Your control.');
+  await expect(page.getByRole('link', { name: 'Download for Mac', exact: true })).toHaveAttribute(
+    'href', 'https://github.com/lawwu/holdfast/releases/latest/download/Holdfast-macos-arm64.dmg');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBeTruthy();
   await page.screenshot({ path: `test-results/${info.project.name}-home.png`, fullPage: true });
   await page.getByRole('link', { name: 'Get started', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Getting started');
+  await expect(page.getByRole('link', { name: 'Download Holdfast for Mac', exact: true })).toHaveAttribute(
+    'href', 'https://github.com/lawwu/holdfast/releases/latest/download/Holdfast-macos-arm64.dmg');
   for (const path of ['guide/', 'packages/local-mlx/', 'development/releases/', 'architecture/']) {
     await page.goto(path);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();

@@ -216,6 +216,7 @@ struct RootView: View {
         .tint(Theme.accent)
         .onChange(of: store.pane) { _, _ in store.showList = true }
         .toolbar {
+            ToolbarItem { AppUpdateButton() }
             ToolbarItem {
                 Menu {
                     Button("Files or Folder…", systemImage: "square.and.arrow.down") { store.importFiles() }

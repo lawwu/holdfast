@@ -22,6 +22,10 @@ def main():
             'node': {'com.apple.security.cs.allow-jit': True},
             'preview': {'com.apple.security.app-sandbox': True},
         }.items():
+            # Hardened ad-hoc previews have no Team ID, so macOS otherwise refuses
+            # to load Sparkle. Developer ID releases retain library validation.
+            if role == 'app' and identity == '-' and hardened:
+                values['com.apple.security.cs.disable-library-validation'] = True
             path = Path(temporary) / (role + '.plist')
             path.write_bytes(plistlib.dumps(values))
             entitlements[role] = path
@@ -38,8 +42,11 @@ def main():
         main_binary = app / 'Contents/MacOS/holdfast'
         preview = app / 'Contents/PlugIns/HoldfastPreview.appex'
         preview_binary = preview / 'Contents/MacOS/HoldfastPreview'
+        sparkle = app / 'Contents/Frameworks/Sparkle.framework'
         for path in sorted(app.rglob('*'), key=lambda p: len(p.parts), reverse=True):
             if not path.is_file() or path.is_symlink() or path in [main_binary, preview_binary]:
+                continue
+            if sparkle in path.parents:
                 continue
             with path.open('rb') as source:
                 magic = source.read(4)
@@ -47,6 +54,17 @@ def main():
                 sign(path, 'node' if path == app / 'Contents/MacOS/node' else None)
         for path in sorted(app.rglob('*.bundle'), key=lambda p: len(p.parts), reverse=True):
             sign(path)
+        if sparkle.exists():
+            # Sign containers inside-out, retaining Sparkle's helper entitlements.
+            version = sparkle / 'Versions/B'
+            for relative in ['XPCServices/Downloader.xpc', 'XPCServices/Installer.xpc',
+                             'Autoupdate', 'Updater.app']:
+                path = version / relative
+                args = ['codesign', '--force', '--sign', identity, '--options', 'runtime',
+                        '--preserve-metadata=entitlements',
+                        '--timestamp' if identity != '-' else '--timestamp=none', str(path)]
+                subprocess.run(args, check=True)
+            sign(sparkle)
         if preview.exists():
             sign(preview, 'preview')
         sign(app, 'app' if hardened else None)

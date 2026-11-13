@@ -6,6 +6,7 @@ let package = Package(
     platforms: [.macOS(.v15)],
     products: [.executable(name: "holdfast", targets: ["holdfast"])],
     dependencies: [
+        .package(url: "https://github.com/sparkle-project/Sparkle.git", exact: "2.10.1"),
         .package(path: "Packages/LocalMLX"),
         .package(path: "Packages/ModelProviders"),
         .package(url: "https://github.com/FluidInference/FluidAudio.git", from: "0.18.0"),
@@ -17,6 +18,7 @@ let package = Package(
         .executableTarget(
             name: "holdfast",
             dependencies: [
+                .product(name: "Sparkle", package: "Sparkle"),
                 .product(name: "LocalMLX", package: "localmlx"),
                 .product(name: "ModelProviders", package: "modelproviders"),
                 .product(name: "FluidAudio", package: "FluidAudio"),
@@ -29,7 +31,10 @@ let package = Package(
                 .product(name: "HuggingFace", package: "swift-huggingface"),
             ],
             swiftSettings: [.swiftLanguageMode(.v5)],
-            linkerSettings: [.linkedLibrary("sqlite3")]
+            linkerSettings: [
+                .linkedLibrary("sqlite3"),
+                .unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"]),
+            ]
         ),
     ]
 )

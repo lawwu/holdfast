@@ -9,13 +9,23 @@ import ModelProviders
 struct HoldfastApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var store = Store()
+    @StateObject private var updates = AppUpdates()
 
     var body: some Scene {
         WindowGroup("Holdfast") {
             RootView()
                 .environmentObject(store)
+                .environmentObject(updates)
                 .frame(minWidth: 1120, minHeight: 680)
-                .onAppear {
+                .onAppear { [store] in
+                    updates.restartBlocker = { [weak store] in
+                        if store?.editing == true { return "Switch to reading view to save your note before restarting." }
+                        if store?.asking == true || store?.busy != nil || store?.comparing == true {
+                            return "Wait for the current work to finish before restarting."
+                        }
+                        if Listener.shared.active { return "Stop your recording before restarting." }
+                        return nil
+                    }
                     #if HOLDFAST_DEMO_CAPTURE
                     DemoCapture.install(store)
                     #endif
@@ -27,9 +37,12 @@ struct HoldfastApp: App {
         Window("Compare models", id: "compare-models") { ModelComparisonView().environmentObject(store) }
 
         Settings {
-            SettingsView().environmentObject(store)
+            SettingsView().environmentObject(store).environmentObject(updates)
         }
         .commands {
+            CommandGroup(after: .appInfo) {
+                CheckForAppUpdates().environmentObject(updates)
+            }
             CommandGroup(replacing: .newItem) {}
             CommandGroup(replacing: .saveItem) {}   // File › Close also wanted ⌘W; Close Tab handles both
             CommandMenu("Vault") {

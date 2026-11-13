@@ -146,7 +146,7 @@ enum DemoCapture {
                                 styleMask: [.titled, .closable], backing: .buffered, defer: false)
                             window.title = "Settings"
                             window.isReleasedWhenClosed = false
-                            window.contentView = NSHostingView(rootView: SettingsView().environmentObject(store))
+                            window.contentView = NSHostingView(rootView: SettingsView().environmentObject(store).environmentObject(AppUpdates()))
                             settings = window
                         }
                         settings?.center(); settings?.makeKeyAndOrderFront(nil)

@@ -5,15 +5,14 @@
 Search your notes, ask questions with sources, and approve AI edits before they’re
 saved. AI runs on your Mac by default, keeping your notes local.
 
-**[Download](https://github.com/lawwu/holdfast/releases)** ·
+**[Download for Mac](https://github.com/lawwu/holdfast/releases/latest/download/Holdfast-macos-arm64.dmg)** ·
 [Documentation](https://lawwu.github.io/holdfast/) ·
 [Watch the tour](https://lawwu.github.io/holdfast/tour/) ·
 [Changelog](CHANGELOG.md)
 
-**Current release: [v0.0.5](https://github.com/lawwu/holdfast/releases/tag/v0.0.5)** —
-[Download DMG](https://github.com/lawwu/holdfast/releases/download/v0.0.5/Holdfast-0.0.5-macos-arm64.dmg) ·
-[PKG installer](https://github.com/lawwu/holdfast/releases/download/v0.0.5/Holdfast-0.0.5-macos-arm64.pkg)
-(Apple Silicon, macOS 15+, signed and notarized by Apple).
+Apple Silicon · macOS 15+ · Signed and notarized by Apple.
+[Release notes](https://github.com/lawwu/holdfast/releases/latest) ·
+[PKG installer](https://github.com/lawwu/holdfast/releases/latest/download/Holdfast-macos-arm64.pkg)
 
 ## What you can do
 
@@ -27,7 +26,7 @@ saved. AI runs on your Mac by default, keeping your notes local.
 
 Requires an **Apple Silicon Mac running macOS 15 or later**.
 
-1. Download the `.dmg` or `.pkg` from [Releases](https://github.com/lawwu/holdfast/releases).
+1. [Download the latest DMG](https://github.com/lawwu/holdfast/releases/latest/download/Holdfast-macos-arm64.dmg).
 2. Open the DMG and copy Holdfast to Applications, or run the PKG installer.
    On a managed Mac, right-click `Holdfast.app` inside the DMG and use **Install with Privilege Management** if your organization permits it.
 3. Open Holdfast from Applications and choose your notes folder.
@@ -35,6 +34,9 @@ Requires an **Apple Silicon Mac running macOS 15 or later**.
 
 Try asking “What did I decide about the kitchen repair?” or
 “Mark ‘Book the inspection’ as done.” Proposed edits wait in your Inbox.
+
+Use **Holdfast → Check for Updates…** or **Settings → Updates** to get new versions.
+Older versions without these controls need one manual update first.
 
 Holdfast is an early release. Installers are **signed with Developer ID and notarized
 by Apple**, so macOS opens them without a security warning. The installer includes the

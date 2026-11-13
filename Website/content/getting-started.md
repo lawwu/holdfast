@@ -12,15 +12,26 @@ In a few steps, you'll have a folder of notes you can browse, search, and ask qu
 
 You need an **Apple Silicon Mac running macOS 15 or later**.
 
-1. Download the `.pkg` from [Holdfast Releases](https://github.com/lawwu/holdfast/releases).
-2. Open the installer and follow its instructions. It places **Holdfast** in **Applications**.
+1. [Download Holdfast for Mac](https://github.com/lawwu/holdfast/releases/latest/download/Holdfast-macos-arm64.dmg).
+2. Open the DMG and drag **Holdfast** into **Applications**.
 3. Open Holdfast from Applications.
+
+Need a package installer? [Download the PKG](https://github.com/lawwu/holdfast/releases/latest/download/Holdfast-macos-arm64.pkg).
 
 :::note[Signed and notarized]
 From v0.0.4, the installer and disk image are signed with Apple Developer ID and notarized by Apple, so macOS opens them without a security warning. Releases up to v0.0.3 were unsigned previews.
 :::
 
 The installer includes the app's runtime. You do not need developer tools for the core app. Models download separately and need additional disk space.
+
+### Keep Holdfast up to date
+
+Choose **Holdfast → Check for Updates…**, or enable automatic checks in
+**Settings → Updates**. When a new version is available, an **Update available**
+button appears in the window. Click it to read what's new and install when you're ready.
+Your notes, settings and downloaded models stay in place.
+
+If your version has no update controls, download the latest DMG once to get them.
 
 ## 2. Choose a folder of notes
 

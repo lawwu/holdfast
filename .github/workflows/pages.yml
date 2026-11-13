@@ -45,7 +45,9 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Test publication guards
-        run: python3 -m unittest discover -s Tests -p 'test_release.py' -v
+        run: |
+          python3 -m unittest discover -s Tests -p 'test_release.py' -v
+          python3 -m unittest discover -s Tests -p 'test_updates.py' -v
       - id: release
         name: Require a published release before deploying
         env:
@@ -81,6 +83,12 @@ jobs:
         run: |
           npx playwright install --with-deps chromium
           npm run test:browser
+      - name: Include the latest published update feed
+        if: needs.resolve.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # Always fetch latest, even when retrying an older documentation deployment.
+        run: python3 scripts/deploy_update_feed.py Website/dist
       - uses: actions/upload-pages-artifact@v5.0.0
         with:
           path: Website/dist

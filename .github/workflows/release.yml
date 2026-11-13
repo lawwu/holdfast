@@ -98,6 +98,7 @@ jobs:
         run: |
           python3 -m unittest discover -s Tests -p 'test_release.py' -v
           python3 -m unittest discover -s Tests -p 'test_verified_release.py' -v
+          python3 -m unittest discover -s Tests -p 'test_updates.py' -v
           npm ci --prefix Packages/pi-swift-mlx --ignore-scripts --no-audit --no-fund
           npm test --prefix Packages/pi-swift-mlx
           npm ci --prefix Runtime/pi --ignore-scripts --no-audit --no-fund
@@ -115,9 +116,10 @@ jobs:
           NOTARY_KEY_BASE64: ${{ secrets.NOTARY_KEY_BASE64 }}
           NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
           NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-          for name in DEVELOPER_ID_P12_BASE64 DEVELOPER_ID_P12_PASSWORD NOTARY_KEY_BASE64 NOTARY_KEY_ID NOTARY_ISSUER_ID; do
+          for name in DEVELOPER_ID_P12_BASE64 DEVELOPER_ID_P12_PASSWORD NOTARY_KEY_BASE64 NOTARY_KEY_ID NOTARY_ISSUER_ID SPARKLE_PRIVATE_KEY; do
             if [ -z "${!name}" ]; then echo "::error::The release environment is missing the $name secret (docs/releases.md)"; exit 1; fi
           done
           keychain="$RUNNER_TEMP/holdfast-signing.keychain-db"
@@ -160,10 +162,16 @@ jobs:
           fi
       - name: Test the exact installer without running MLX inference
         run: |
+          python3 -m unittest discover -s Tests -p 'test_updates.py' -v
           python3 Tests/installer_integration.py "build/releases/$RELEASE_VERSION" 2>&1 | tee build/logs/installer-test.log
           python3 -c 'import json, os; v=json.load(open("build/releases/"+os.environ["RELEASE_VERSION"]+"/verification.json")); assert v["passed"] and not v["realEmbeddedMLXTested"]'
       - name: Package and verify the same app in a disk image
         run: python3 scripts/package_release_dmg.py "build/releases/$RELEASE_VERSION" 2>&1 | tee build/logs/dmg-test.log
+      - name: Sign and verify the Sparkle update feed
+        if: env.SIGNED_RELEASE == 'true'
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: python3 scripts/sparkle_release.py "build/releases/$RELEASE_VERSION" 2>&1 | tee build/logs/sparkle-test.log
       - name: Remove the signing keychain and notary key
         if: always() && env.SIGNED_RELEASE == 'true'
         run: |
@@ -183,6 +191,8 @@ jobs:
             build/releases/${{ needs.resolve.outputs.version }}/SHA256SUMS
             build/releases/${{ needs.resolve.outputs.version }}/release-manifest.json
             build/releases/${{ needs.resolve.outputs.version }}/verification.json
+            build/releases/${{ needs.resolve.outputs.version }}/appcast.xml
+            build/releases/${{ needs.resolve.outputs.version }}/sparkle-verification.json
             build/releases/${{ needs.resolve.outputs.version }}/*notarization*.json
       - name: Save build and test logs
         if: always()

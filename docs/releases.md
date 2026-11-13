@@ -46,13 +46,13 @@ To publish a new version:
    ```
 
 3. The workflow builds and tests the tagged source, packages the same app in a DMG,
-   uploads the verified `.pkg`, `.dmg`, DMG checksum and verification report,
-   `SHA256SUMS`, `release-manifest.json`, and `verification.json` to a draft, then publishes
-   it as the **latest release**. Before it starts, GitHub asks the owner to approve the
+   generates and signs the Sparkle update feed, then uploads only the DMG, optional
+   PKG, and `appcast.xml` to a draft and publishes it as the **latest release**.
+   Checksums, manifests, and verification reports stay in the Actions build artifact. Before it starts, GitHub asks the owner to approve the
    `release` environment; only then does the build receive the signing secrets, sign
    with Developer ID, and notarize the installer and the DMG.
 4. After publication, it builds and tests the documentation from the same tag and
-   deploys it to GitHub Pages. A failed docs deployment leaves the existing site up;
+   deploys it to GitHub Pages with the latest stable release’s signed update feed. A failed docs deployment leaves the existing site up;
    retry it through **Actions → Documentation** with that published `release_tag`.
 
 Documentation sources live in this repository. Main-branch pushes and pull requests
@@ -76,7 +76,7 @@ and build the unsigned preview. Actions are locked to commits in `.github/workfl
 ### Signing secrets
 
 The `release` environment (**Settings → Environments → release**) has the owner as a
-required reviewer, deployment limited to `v*` tags, and five secrets:
+required reviewer, deployment limited to `v*` tags, and six secrets:
 
 | Secret | What it holds |
 | --- | --- |
@@ -85,6 +85,7 @@ required reviewer, deployment limited to `v*` tags, and five secrets:
 | `NOTARY_KEY_BASE64` | Base64 of an App Store Connect API key (`AuthKey_….p8`; Users and Access → Integrations → Team Keys, Developer access) |
 | `NOTARY_KEY_ID` | That key's ID |
 | `NOTARY_ISSUER_ID` | The issuer ID shown above the keys list |
+| `SPARKLE_PRIVATE_KEY` | The private Ed25519 key exported by Sparkle; passed to its tools through standard input |
 
 The workflow loads them into a temporary keychain on the runner, adds Apple's pinned
 Developer ID G2 intermediate, finds the two identities by name, and deletes the keychain
@@ -115,8 +116,8 @@ python3 Tests/installer_integration.py "build/releases/$(cat VERSION)" \
   --live-mlx /path/to/an/installed/MLX/model --model-id mlx-community/Qwen3.5-2B-4bit
 ```
 
-To test the exact CI-built installer instead, download its Actions artifact, extract all
-four files into `build/releases/<version>/`, and run the same test against that directory.
+To test the exact CI-built installer instead, download its Actions artifact, extract the
+files into `build/releases/<version>/`, and run the same test against that directory.
 The test records the installer checksum and whether real MLX inference ran. This local
 result is separate from the cloud verification uploaded with the release.
 
@@ -140,6 +141,7 @@ python3 scripts/build_release.py
 python3 Tests/installer_integration.py "build/releases/$(cat VERSION)"
 # Optional: add --live-mlx /path/to/an/installed/MLX/model --model-id its/model-id
 python3 scripts/package_release_dmg.py "build/releases/$(cat VERSION)"
+python3 scripts/sparkle_release.py "build/releases/$(cat VERSION)"
 ```
 
 The build requires committed release inputs. It bundles a checksum-pinned official
@@ -189,11 +191,65 @@ state that clearly. Publishing this preview requires the explicit
   download the release in a browser (so it is quarantined) and confirm it opens
   without a Gatekeeper prompt.
 
-### Walkthrough downloads
+## In-app updates
 
-Releases from v0.0.2 include the reviewed walkthrough MP4, English WebVTT captions,
-and a ZIP of fictional sample notes. `Demo/release-assets.json` pins their SHA-256
-hashes. Publication verifies all three committed files and uploads them before
-publishing the release; a missing or changed asset stops publication. The website
-serves the same files. Narration and video rendering run locally, without API keys
-in GitHub Actions. See [the demo workflow](../Demo/README.md).
+Sparkle 2 supplies **Holdfast → Check for Updates…**, **Settings → Updates**, and
+an **Update available** toolbar button. Automatic checks are opt-in through
+Sparkle's second-launch prompt or Settings. Updates download and install only
+when requested. Restart waits if a note is being edited, an answer or other work
+is running, or a recording is active. Finish that work and click **Restart to update**.
+Unsigned, CLI, and demo builds never start the production updater.
+
+`packaging/sparkle.json` contains the public verification key and feed URL, not the
+private key. The app requires signed feeds and verifies downloads before extraction.
+The private key is saved in the macOS login Keychain under Sparkle account
+`app.holdfast`, and in the protected `release` environment as `SPARKLE_PRIVATE_KEY`.
+Keep a secure backup of this key. Do not replace the public key without following
+[Sparkle's key rotation procedure](https://sparkle-project.org/documentation/#rotating-signing-keys).
+
+To provision a different signing machine, resolve Swift packages, then use Sparkle's
+`generate_keys --account app.holdfast -f /secure/path/to/exported-key` tool. To set
+up the CI secret from that export without printing it:
+
+```sh
+gh secret set SPARKLE_PRIVATE_KEY --repo lawwu/holdfast --env release < /secure/path/to/exported-key
+```
+
+The tools are in `.build/xcode/SourcePackages/artifacts/sparkle/Sparkle/bin/`.
+`scripts/sparkle_release.py` uses the local Keychain by default; CI passes
+`SPARKLE_PRIVATE_KEY`. It runs after DMG notarization and stapling, invokes
+`generate_appcast`, verifies the archive and feed signatures, and records their
+checksums in `sparkle-verification.json`. The publisher requires this verification
+against the exact tested DMG before uploading anything.
+
+The feed is published at `https://lawwu.github.io/holdfast/appcast.xml`. The docs
+workflow downloads it from the latest stable release after publication and copies
+it without modification. A failed deployment leaves the previous feed intact;
+retry the Documentation workflow to make the new version discoverable. Do not
+redeploy legacy tags whose workflows predate feed preservation.
+
+The public assets are **Holdfast-macos-arm64.dmg**, **Holdfast-macos-arm64.pkg**,
+and **appcast.xml**. Stable filenames let docs use GitHub's direct
+`/releases/latest/download/Holdfast-macos-arm64.dmg` URL. The appcast uses a
+version-tag URL so its signature always matches the downloaded bytes. GitHub also
+adds its own source-code archives. Reports and checksums remain in the Actions
+artifact for 14 days; archive that artifact if longer retention is needed.
+
+Before shipping the first updater release, test a signed older build against a
+signed newer build through a private test feed. Check discovery, Skip This Version,
+Later, installation, relaunch, and preservation of notes/settings/models. Test on
+a managed Mac separately if applicable. Users on old versions without Sparkle need
+one manual update. The next published release enables the direct latest-download
+links; existing historical assets are not renamed or deleted.
+
+### Release notes and tour files
+
+Keep `docs/releases/vX.Y.Z.md` short: a one-sentence introduction, a few user-visible
+changes, and any limitation that affects use. The publisher adds the primary DMG
+link, secondary PKG link, and system requirements. Avoid repeating installation
+instructions or internal validation details in each release.
+
+The narrated tour, captions and sample notes remain at
+[the tour page](https://lawwu.github.io/holdfast/tour/). They are no longer attached
+to every app release. `Demo/release-assets.json` records the reviewed website assets'
+checksums; the website build validates them before deployment.

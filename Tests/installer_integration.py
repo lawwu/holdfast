@@ -106,6 +106,20 @@ try:
         info = plistlib.loads(info_path.read_bytes())
         assert info['CFBundleIdentifier'] == 'app.holdfast'
         assert info['CFBundleShortVersionString'] == metadata['version']
+        assert info['CFBundleVersion'] == metadata['buildNumber']
+        updates = json.loads((ROOT / 'packaging/sparkle.json').read_text())
+        assert info['SUFeedURL'] == updates['feedURL']
+        assert info['SUPublicEDKey'] == updates['publicKey']
+        assert info['HoldfastUpdatesEnabled'] == metadata['developerIDSigned']
+        assert info['SURequireSignedFeed'] and info['SUVerifyUpdateBeforeExtraction']
+        assert info['SUAllowsAutomaticUpdates'] is False
+        framework = app / 'Contents/Frameworks/Sparkle.framework'
+        assert (framework / 'Sparkle').is_file()
+        assert (framework / 'Versions/Current').is_symlink()
+        run('codesign', '--verify', '--deep', '--strict', framework)
+        assert '@rpath/Sparkle.framework/' in run('otool', '-L', binary).stdout
+        app_entitlements = plistlib.loads(run('codesign', '-d', '--entitlements', ':-', app).stdout.encode())
+        assert bool(app_entitlements.get('com.apple.security.cs.disable-library-validation')) == (not metadata['developerIDSigned'])
         assert run(binary, '--version').stdout.strip() == 'Holdfast ' + metadata['version']
         assert b'HOLDFAST_DEMO_CONTROL' not in binary.read_bytes(), 'Documentation capture driver must not ship'
         assert run(node, '--version').stdout.strip() == metadata['node']

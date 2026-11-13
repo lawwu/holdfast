@@ -5,9 +5,11 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import shutil
 
 from release_ref import resolve
 from verified_release import verify_installer
+from sparkle_release import DMG_NAME, PKG_NAME, validated_feed
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -39,25 +41,6 @@ def dmg_assets(folder, manifest):
     return [image, checksum, report_path]
 
 
-def demo_assets():
-    """Attach only the reviewed, committed walkthrough files for this tag."""
-    manifest_path = ROOT / 'Demo/release-assets.json'
-    if not manifest_path.exists():
-        return []
-    assets = []
-    for name, digest in json.loads(manifest_path.read_text()).items():
-        if name not in {'holdfast-tour.mp4', 'holdfast-tour.vtt', 'holdfast-sample-notes.zip'}:
-            raise RuntimeError('Unexpected demo asset: ' + name)
-        path = ROOT / 'Website/public/demo' / name
-        output('git', 'ls-files', '--error-unmatch', str(path.relative_to(ROOT)))
-        if hashlib.sha256(path.read_bytes()).hexdigest() != digest:
-            raise RuntimeError('Demo asset checksum mismatch: ' + name)
-        assets.append(path)
-    if len(assets) != 3:
-        raise RuntimeError('The walkthrough requires video, captions, and sample notes')
-    return assets
-
-
 def output(*args):
     return subprocess.check_output(args, cwd=ROOT, text=True).strip()
 
@@ -71,7 +54,7 @@ def main():
     parser.add_argument('--tag', required=True, help='Existing version tag to publish; never creates or pushes tags')
     parser.add_argument('--publish', action='store_true')
     parser.add_argument('--allow-unsigned-preview', action='store_true')
-    parser.add_argument('--include-dmg', action='store_true', help='Require and upload a verified unsigned disk image')
+    parser.add_argument('--include-dmg', action='store_true', help='Require and upload the verified disk image')
     args = parser.parse_args()
     release = resolve(args.tag, root=ROOT)
     version, tag = release['version'], release['tag']
@@ -79,7 +62,7 @@ def main():
         raise RuntimeError('Check out the release tag before uploading its artifacts')
     folder = ROOT / 'build/releases' / version
     verified = verify_installer(folder, version=version, revision=output('git', 'rev-parse', 'HEAD'))
-    manifest, test_result = verified.manifest, verified.verification
+    manifest = verified.manifest
     installer, trusted = verified.installer, verified.signed
     if output('git', 'status', '--porcelain', '--untracked-files=no'):
         raise RuntimeError('Commit tracked changes before publishing')
@@ -93,17 +76,28 @@ def main():
     notes = notes_path.read_text() if notes_path.is_file() else ''
     if not notes:
         raise RuntimeError('Add release notes for this version before uploading')
-    status = ('**Developer ID signed and notarized by Apple.**\n\n' if trusted else
-              '**Unsigned preview — not notarized by Apple.** macOS may block this installer or require '
-              'an explicit security exception. For a routine installation, use a future signed release.\n\n')
+    status = '' if trusted else '**Unsigned preview — not notarized by Apple.**\n\n'
     body = folder / 'release-notes.md'
-    testing = ('\n\nAutomated checks cover the installer, bundled Pi runtime, Inbox approvals, Undo, '
-               'and stale-edit refusal. Real MLX inference was not run for this artifact; '
-               'hardware inference tests remain a separate local check.\n'
-               if not test_result.get('realEmbeddedMLXTested') else '')
-    body.write_text(status + notes + testing)
     disk_image = dmg_assets(folder, manifest) if args.include_dmg else []
-    walkthrough = demo_assets()
+    if trusted and not disk_image:
+        raise RuntimeError('Signed releases require the DMG and verified Sparkle feed')
+    assets = [installer]
+    if trusted:
+        feed = validated_feed(folder, manifest)
+        # One stable asset name per format enables GitHub's direct /latest/download/ URLs.
+        # The feed still uses the immutable version-tag URL, never a moving latest URL.
+        image_download, package_download = folder / DMG_NAME, folder / PKG_NAME
+        shutil.copyfile(disk_image[0], image_download)
+        shutil.copyfile(installer, package_download)
+        assets = [image_download, package_download, feed]
+        prefix = f'https://github.com/lawwu/holdfast/releases/download/{tag}/'
+        download = (f'**[Download for Mac]({prefix}{DMG_NAME})** · '
+                    f'[PKG installer]({prefix}{PKG_NAME})\n\n'
+                    'Apple Silicon · macOS 15+ · Signed and notarized\n\n')
+    else:
+        assets += disk_image[:1]
+        download = ''
+    body.write_text(download + status + notes)
     repository = 'lawwu/holdfast'
     current = subprocess.run(['gh', 'api', f'repos/{repository}/releases/tags/{tag}'],
                              cwd=ROOT, capture_output=True, text=True)
@@ -119,7 +113,7 @@ def main():
     else:
         raise RuntimeError('Could not check the existing release: ' + current.stderr.strip())
     run('gh', 'release', 'upload', tag, '--repo', repository, '--clobber',
-        installer, folder / 'SHA256SUMS', folder / 'release-manifest.json', folder / 'verification.json', *disk_image, *walkthrough)
+        *assets)
     if args.publish:
         run('gh', 'release', 'edit', tag, '--repo', repository, '--draft=false', kind,
             '--latest' if trusted else '--latest=false')
