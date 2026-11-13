@@ -1,6 +1,7 @@
 import AppKit
 import AVFoundation
 import SwiftUI
+import Combine
 import ModelProviders
 
 // MARK: - App
@@ -250,8 +251,9 @@ final class Store: ObservableObject {
     @Published private(set) var rerankerModel = RerankerPreferences.saved()
     @Published var transcription = Prefs.transcription { didSet { Prefs.transcription = transcription } }
     /// In-flight model downloads: repo → byte progress, speed and time remaining.
-    @Published var downloads: [String: ModelDownloadProgress] = [:]
-    @Published var downloadErrors: [String: String] = [:]
+    var downloads: [String: ModelDownloadProgress] { ModelDownloads.shared.progress }
+    var downloadErrors: [String: String] { ModelDownloads.shared.errors }
+    private var downloadObservation: AnyCancellable?
     @Published var history: [HistoryEntry] = []
     /// The history entry on screen in Ask, if any.
     @Published var currentHistoryId: UUID?
@@ -353,9 +355,13 @@ final class Store: ObservableObject {
             vault = Config.vault
         }
         backend = ProviderSettings.selected
+        downloadObservation = ModelDownloads.shared.$items.sink { [weak self] _ in
+            self?.downloaded = [:]
+            self?.objectWillChange.send()
+        }
         reload()
         dropTimer = Timer.scheduledTimer(withTimeInterval: Drop.pollSeconds, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.fileDropped() }
+            Task { @MainActor in self?.fileDropped(); self?.finishModelDownloads() }
         }
     }
 
@@ -499,37 +505,28 @@ final class Store: ObservableObject {
         } catch { self.error = error.localizedDescription }
     }
 
-    /// Downloads a model into the app's model folder using the configured source.
-    /// When it is the embedder, the index is rebuilt so notes get meaning-search vectors.
-    func downloadRepo(_ repo: String, then: (@MainActor () -> Void)? = nil) {
-        guard ModelDownloads.shared.item(repo)?.state != .queued,
-              ModelDownloads.shared.item(repo)?.state != .downloading else { return }
+    /// The queue persists the follow-up intent along with the download.
+    func downloadRepo(_ repo: String, followUp: ModelDownloads.FollowUp? = nil) {
         Task {
-            try? await ModelDownloads.shared.run(id: repo, name: MLXModelSpec.find(repo)?.name ?? RerankerModel(rawValue: repo)?.name ?? repo) { update in
-                self.downloads[repo] = ModelDownloadProgress(); self.downloadErrors[repo] = nil
-                defer { self.downloads[repo] = nil; self.downloaded = [:] }
-                do {
-                    let custom = CustomLocalModels.find(repo)
-                    if let custom {
-                        guard custom.source == .huggingFace else { throw HoldfastError("Local folders are used in place.") }
-                        _ = try await CustomModelImport.inspectRepository(custom.location)
-                    }
-                    try await MLXBackend.download(repo: repo) { progress in
-                        await update(progress)
-                        await MainActor.run { self.downloads[repo] = progress }
-                    }
-                    if let custom {
-                        guard let directory = MLXBackend.modelDir(repo: custom.id) else { throw HoldfastError("The downloaded model is incomplete.") }
-                        _ = try await CustomModelImport.inspectFolder(directory)
-                    }
-                    self.downloaded = [:]
-                    if repo == Reranker.repo { Reranker.unload() }
-                    then?()
-                } catch {
-                    if !(error is CancellationError) && !Task.isCancelled { self.downloadErrors[repo] = error.localizedDescription }
-                    throw error
-                }
+            try? await ModelInstallations.download(repo,
+                name: MLXModelSpec.find(repo)?.name ?? RerankerModel(rawValue: repo)?.name ?? repo,
+                followUp: followUp)
+            finishModelDownloads()
+        }
+    }
+
+    private func finishModelDownloads() {
+        ModelDownloads.shared.deliverFollowUps { repo, action in
+            guard canChangeLocalModel else { return false }
+            switch action {
+            case .selectAnswer:
+                guard isDownloaded(repo) else { return false }
+                selectMLX(repo)
+            case .prepareMeaningSearch:
+                guard canChangeMeaningSearch, repo == Config.embedSpec.repo, Embedder.isEnabled else { return false }
+                prepareMeaningSearch()
             }
+            return true
         }
     }
 

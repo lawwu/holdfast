@@ -7,12 +7,14 @@ import ModelProviders
 final class MLXAgentModel: AgentRuntime.Model, @unchecked Sendable {
     let name: String
     let isLocal = true
+    private let backend: MLXBackend
     private let engine: MLXSession
     private let allowsRebase: Bool
     let profile: ModelProviders.ModelProfile
     private var prefix: [AgentRuntime.Message] = []
 
     init(backend: MLXBackend, allowsRebase: Bool = false) {
+        self.backend = backend
         name = backend.repo; self.allowsRebase = allowsRebase
         profile = backend.profile
         engine = MLXSession(container: backend.container, additionalContext: profile.templateContext, contextLimit: profile.contextTokens)

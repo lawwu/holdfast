@@ -6,12 +6,12 @@ import json
 import os
 from pathlib import Path
 import plistlib
-import re
 import subprocess
 import tempfile
 import time
 
 import notary
+from verified_release import verify_installer
 
 # hdiutil on hosted macOS runners: its own size estimate from -srcfolder can come up short as the
 # app grows, and it sometimes fails with "Resource busy" while the system scans new files.
@@ -78,27 +78,13 @@ def main():
     parser.add_argument('release_directory', type=Path)
     args = parser.parse_args()
     folder = args.release_directory.resolve()
-    metadata = json.loads((folder / 'release-manifest.json').read_text())
-    verification = json.loads((folder / 'verification.json').read_text())
-    version = metadata['version']
-    if not re.fullmatch(r'\d+\.\d+\.\d+', version) or metadata['sourceDirty']:
-        raise RuntimeError('Use a versioned installer built from committed source')
-    signed = bool(metadata['developerIDSigned'] and metadata['notarized'])
-    if signed != bool(metadata['developerIDSigned'] or metadata['notarized']):
-        raise RuntimeError('A release is either signed and notarized, or neither')
+    verified = verify_installer(folder)
+    metadata = verified.manifest
+    version, signed = metadata['version'], verified.signed
+    installer, digest = verified.installer.name, verified.digest
     identity = os.environ.get('HOLDFAST_SIGNING_IDENTITY', '')
     if signed and (not identity or identity == '-'):
         raise RuntimeError('A signed release needs HOLDFAST_SIGNING_IDENTITY to sign its disk image')
-    installer = metadata['installer']
-    if Path(installer).name != installer:
-        raise RuntimeError('Installer must be a file in the release directory')
-    digest = sha256(folder / installer)
-    checks = ['passed', 'payloadAndBundleValidated', 'bundledRuntimeValidated',
-              'approvalUndoStaleEditValidated', 'developerFallbacksDisabled']
-    if (digest != metadata['sha256'] or digest != verification.get('installerSHA256')
-            or verification.get('version') != version
-            or not all(verification.get(key) is True for key in checks)):
-        raise RuntimeError('The exact installer must pass its integration tests before DMG packaging')
     image = folder / (f'Holdfast-{version}-macos-arm64' + ('' if signed else '-unsigned') + '.dmg')
     if image.exists():
         raise RuntimeError('Refusing to overwrite an existing disk image: ' + str(image))

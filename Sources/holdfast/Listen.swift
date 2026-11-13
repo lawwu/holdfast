@@ -157,7 +157,7 @@ enum Listen {
     }
 
     /// Reads raw 16 kHz mono s16le from a file handle on its own thread.
-    static func readPCM(_ fh: FileHandle, into feed: Feed) {
+    static func readPCM(_ fh: FileHandle, into feed: Feed, finished: (() -> Void)? = nil) {
         let t = Thread {
             var carry = Data()
             while !feed.isStopped {
@@ -168,6 +168,7 @@ enum Listen {
                 if let b = buffer(fromS16LE: carry.prefix(whole)), !feed.yieldWaiting(b) { break }
                 carry = Data(carry.dropFirst(whole))
             }
+            finished?()
             feed.finish()
         }
         t.start()
@@ -182,49 +183,6 @@ enum Listen {
             for i in 0..<n { out[i] = Float(Int16(littleEndian: raw.loadUnaligned(fromByteOffset: i * 2, as: Int16.self))) / 32768 }
         }
         return b
-    }
-
-    /// An ffmpeg run (with yt-dlp in front of it for a video page): the last error lines of each,
-    /// to say why a stream gave nothing.
-    final class FFmpegRun: @unchecked Sendable {
-        let process: Process
-        /// yt-dlp fetching a page's audio into ffmpeg, for a YouTube or similar link.
-        let fetcher: Process?
-        let source: String
-        private let lock = NSLock()
-        private var err = ""
-        private var fetchErr = ""
-        private var stoppedByUs = false
-        init(_ p: Process, fetcher: Process? = nil, source: String) { process = p; self.fetcher = fetcher; self.source = source }
-        /// Stop asked for it (ffmpeg exits 255 on SIGTERM, which isn't a failure). A run that already
-        /// ended on its own keeps its failure: the end of every session calls this too.
-        func terminate() {
-            lock.lock()
-            if process.isRunning || fetcher?.isRunning == true { stoppedByUs = true }
-            lock.unlock()
-            if let f = fetcher, f.isRunning { f.terminate() }
-            if process.isRunning { process.terminate() }
-        }
-        func append(_ s: String) { lock.lock(); err = String((err + s).suffix(1500)); lock.unlock() }
-        func appendFetch(_ s: String) { lock.lock(); fetchErr = String((fetchErr + s).suffix(1500)); lock.unlock() }
-        var errors: String { lock.lock(); defer { lock.unlock() }; return err.trimmingCharacters(in: .whitespacesAndNewlines) }
-        var fetchErrors: String { lock.lock(); defer { lock.unlock() }; return fetchErr.trimmingCharacters(in: .whitespacesAndNewlines) }
-
-        /// Why the stream failed, once it has ended; nil when it finished or was stopped by us.
-        func failure() -> String? {
-            process.waitUntilExit()
-            fetcher?.waitUntilExit()
-            lock.lock(); let ours = stoppedByUs; lock.unlock()
-            guard !ours else { return nil }
-            // yt-dlp failing explains ffmpeg's empty input better than ffmpeg does.
-            if let f = fetcher, f.terminationReason == .exit, f.terminationStatus != 0 {
-                let e = fetchErrors.split(separator: "\n").last(where: { $0.contains("ERROR") }) ?? fetchErrors.split(separator: "\n").last
-                return "yt-dlp couldn't get the audio of \(source): " + (e.map(String.init) ?? "exit status \(f.terminationStatus)")
-            }
-            guard process.terminationReason == .exit, process.terminationStatus != 0 else { return nil }
-            let e = errors.split(separator: "\n").last.map(String.init) ?? "exit status \(process.terminationStatus)"
-            return "ffmpeg couldn't read \(source): \(e)"
-        }
     }
 
     /// Video and audio sites whose links are web pages, not streams: yt-dlp finds the audio in them.
@@ -242,7 +200,7 @@ enum Listen {
 
     /// ffmpeg turns a stream URL or file into raw audio on a pipe; its errors are kept (and shown on stderr).
     /// For a video page (YouTube and the like), yt-dlp fetches the audio and pipes it into ffmpeg.
-    static func startFFmpeg(_ src: String, realtime: Bool, into feed: Feed) throws -> FFmpegRun {
+    static func startFFmpeg(_ src: String, realtime: Bool, into feed: Feed) throws -> AudioSourceProcess {
         guard let ffmpeg = findTool("ffmpeg") else {
             throw HoldfastError("Listening to a stream needs ffmpeg. Install it with Homebrew (brew install ffmpeg), then try again.")
         }
@@ -269,32 +227,12 @@ enum Listen {
         }
         if realtime { a.append("-re") }
         p.arguments = a + ["-i", fetcher == nil ? src : "pipe:0", "-vn", "-ac", "1", "-ar", String(Int(sampleRate)), "-f", "s16le", "-"]
-        let out = Pipe(), err = Pipe()
-        p.standardOutput = out
-        p.standardError = err
-        let run = FFmpegRun(p, fetcher: fetcher, source: src)
-        err.fileHandleForReading.readabilityHandler = { h in
-            let d = h.availableData
-            guard !d.isEmpty else { h.readabilityHandler = nil; return }
-            run.append(String(decoding: d, as: UTF8.self))
-            if !launchedAsApp { FileHandle.standardError.write(d) }
-        }
-        if let f = fetcher {
-            let audio = Pipe(), fetchErr = Pipe()
-            f.standardOutput = audio
-            f.standardError = fetchErr
-            p.standardInput = audio
-            fetchErr.fileHandleForReading.readabilityHandler = { h in
-                let d = h.availableData
-                guard !d.isEmpty else { h.readabilityHandler = nil; return }
-                run.appendFetch(String(decoding: d, as: UTF8.self))
-                if !launchedAsApp { FileHandle.standardError.write(d) }
-            }
-            try f.run()
-        }
-        do { try p.run() } catch { fetcher?.terminate(); throw error }
-        feed.whenStopped { run.terminate() }
-        readPCM(out.fileHandleForReading, into: feed)
+        let run = AudioSourceProcess(p, fetcher: fetcher, source: src, echo: !launchedAsApp)
+        let output = try run.start()
+        feed.whenStopped { run.stop() }
+        // Report EOF only after source completion is stable, so generic feed
+        // cleanup cannot turn a natural failure into an intentional stop.
+        readPCM(output, into: feed, finished: { _ = run.finish() })
         return run
     }
 
@@ -559,7 +497,8 @@ enum Listen {
         try ("# \(name)\n\nSource: \(input.source)\n\n## Transcript (still listening)\n\n").write(to: journal, atomically: true, encoding: .utf8)
 
         var capture: SystemAudio.Capture?
-        var ffmpeg: FFmpegRun?
+        var ffmpeg: AudioSourceProcess?
+        defer { ffmpeg?.stop(); feed.stop() }
         do {
             switch input {
             case .stdin: readPCM(.standardInput, into: feed)
@@ -610,7 +549,7 @@ enum Listen {
             feed.took()
             seconds += Double(buf.frameLength) / buf.format.sampleRate
             await asr.streamAudio(buf)
-            if let m = maxSeconds, seconds >= m { break }
+            if let m = maxSeconds, seconds >= m { feed.stop(); break }
             // A tap without permission delivers silence, not an error.
             if let capture, !warnedSilence, seconds > silenceWarningSeconds, capture.peak == 0 {
                 warnedSilence = true
@@ -630,7 +569,7 @@ enum Listen {
         await asr.cleanup()
         if let e = streamError ?? finishError { h.status("transcription stopped early: \(e). Keeping what was heard.") }
         // A stream that failed to open (or broke) says why, instead of looking like silence.
-        if let f = ffmpeg?.failure() {
+        if let f = ffmpeg?.finish() {
             if lines.isEmpty { try? FileManager.default.removeItem(at: journal); throw HoldfastError(f) }
             h.status(f + ". Keeping what was heard.")
         }

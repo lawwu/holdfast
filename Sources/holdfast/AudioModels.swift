@@ -52,38 +52,29 @@ enum TranscriptionModel: String, CaseIterable, Identifiable, Sendable {
 @MainActor
 final class AudioModels: ObservableObject {
     static let shared = AudioModels()
-    @Published private(set) var progress: [String: ModelDownloadProgress] = [:]
-    @Published private(set) var errors: [String: String] = [:]
+    var progress: [String: ModelDownloadProgress] {
+        Dictionary(uniqueKeysWithValues: ModelDownloads.shared.progress.filter { $0.key.hasPrefix("audio:") }.map { (String($0.key.dropFirst(6)), $0.value) })
+    }
+    var errors: [String: String] {
+        Dictionary(uniqueKeysWithValues: ModelDownloads.shared.errors.filter { $0.key.hasPrefix("audio:") }.map { (String($0.key.dropFirst(6)), $0.value) })
+    }
+    private var observation: AnyCancellable?
     @Published private(set) var available: Set<String> = []
     @Published var preparing: Set<String> = []
-    private var tasks: [String: Task<Void, Error>] = [:]
-    init() { refresh() }
+    init() {
+        refresh()
+        observation = ModelDownloads.shared.$items.sink { [weak self] _ in
+            self?.refresh(); self?.objectWillChange.send()
+        }
+    }
     func refresh() { available = Set(TranscriptionModel.allCases.filter(\.isDownloaded).map(\.id)) }
     func start(_ model: TranscriptionModel) { Task { try? await download(model) } }
 
     func download(_ model: TranscriptionModel) async throws {
-        if let task = tasks[model.id] { return try await task.value }
-        if model.isDownloaded { refresh(); return }
-        progress[model.id] = ModelDownloadProgress()
-        errors[model.id] = nil
-        let task = Task {
-            try await ModelDownloads.shared.run(id: "audio:" + model.id, name: model.name) { update in
-                self.errors[model.id] = nil
-                defer { self.progress[model.id] = nil; self.refresh() }
-                let source = try ModelDownloadSource.current()
-                let patterns = model.required.map { $0.hasSuffix(".mlmodelc") ? $0 + "/*" : $0 }
-                try await ModelDownloader.files(repo: model.repository.rawValue, source: source, to: model.folder,
-                                                matching: patterns, required: model.required) { value in
-                    await update(value)
-                    await MainActor.run { self.progress[model.id] = value }
-                }
-                guard model.isDownloaded else { throw ModelDownloadSource.Failure("The speech model download is incomplete. Try downloading again.") }
-            }
-        }
-        tasks[model.id] = task
-        defer { tasks[model.id] = nil; progress[model.id] = nil; refresh() }
-        do { try await task.value }
-        catch { if !(error is CancellationError) { errors[model.id] = error.localizedDescription }; throw error }
+        let state = ModelDownloads.shared.item("audio:" + model.id)?.state
+        if model.isDownloaded && state != .queued && state != .downloading { refresh(); return }
+        defer { refresh() }
+        try await ModelInstallations.download("audio:" + model.id, name: model.name)
     }
 
     nonisolated static func load(_ model: TranscriptionModel,

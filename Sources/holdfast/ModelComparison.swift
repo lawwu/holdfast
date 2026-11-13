@@ -142,7 +142,6 @@ final class ModelComparison: ObservableObject {
                     try Task.checkCancellation()
                     status = "Running \(index + 1) of 2: \(choices[index].title)"
                     store.busy = status
-                    MLXBackend.unload()
                     do { try await runOne(index: index, snapshot: frozen) }
                     catch {
                         if Task.isCancelled { throw CancellationError() }

@@ -7,6 +7,7 @@ from pathlib import Path
 import subprocess
 
 from release_ref import resolve
+from verified_release import verify_installer
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -77,26 +78,11 @@ def main():
     if release['revision'] != output('git', 'rev-parse', 'HEAD'):
         raise RuntimeError('Check out the release tag before uploading its artifacts')
     folder = ROOT / 'build/releases' / version
-    manifest = json.loads((folder / 'release-manifest.json').read_text())
-    installer = folder / manifest['installer']
-    if manifest['sourceDirty'] or manifest['sourceRevision'] != output('git', 'rev-parse', 'HEAD'):
-        raise RuntimeError('Build the release from the current committed source before uploading')
+    verified = verify_installer(folder, version=version, revision=output('git', 'rev-parse', 'HEAD'))
+    manifest, test_result = verified.manifest, verified.verification
+    installer, trusted = verified.installer, verified.signed
     if output('git', 'status', '--porcelain', '--untracked-files=no'):
         raise RuntimeError('Commit tracked changes before publishing')
-    if manifest['version'] != version:
-        raise RuntimeError('Manifest version does not match the release tag')
-    if hashlib.sha256(installer.read_bytes()).hexdigest() != manifest['sha256']:
-        raise RuntimeError('Installer checksum mismatch')
-    if (folder / 'SHA256SUMS').read_text() != f"{manifest['sha256']}  {manifest['installer']}\n":
-        raise RuntimeError('SHA256SUMS does not match the verified installer')
-    test_result = json.loads((folder / 'verification.json').read_text())
-    required_checks = ['passed', 'payloadAndBundleValidated', 'bundledRuntimeValidated',
-                       'approvalUndoStaleEditValidated', 'developerFallbacksDisabled']
-    if (test_result.get('installerSHA256') != manifest['sha256']
-            or test_result.get('version') != version
-            or not all(test_result.get(key) is True for key in required_checks)):
-        raise RuntimeError('Run Tests/installer_integration.py against this exact installer first')
-    trusted = manifest['developerIDSigned'] and manifest['notarized']
     if args.publish and not trusted and not args.allow_unsigned_preview:
         raise RuntimeError('Unsigned publication requires --allow-unsigned-preview; it remains a prerelease')
     if trusted:

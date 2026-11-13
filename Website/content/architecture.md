@@ -37,3 +37,14 @@ Holdfast owns tools, local-only data rules, Inbox approval, snapshots, and Undo.
 Holdfast uses **regular Pi**. The reusable adapter also supports Pi Durable, but Durable is not selected or bundled in Holdfast. Interrupted work waits for a new request rather than automatically replaying uncertain actions.
 
 Read the [Pi bridge guide](../../Runtime/pi/README.md) for the integration details, and the [release guide](../../docs/releases.md) for packaging and verification.
+
+## Model and source lifecycles
+
+Holdfast keeps installation and inference lifetime decisions in the app:
+
+- `ModelDownloads` owns recoverable jobs, progress, errors, and pending follow-up actions. `ModelInstallations` supplies the same validation and transfer behavior for new and explicitly resumed jobs. Model selection and meaning-search preparation wait until the app can accept them.
+- `LoadedModel` shares an in-flight answer-model load, rejects obsolete completions after unload, and prevents replacement while an existing caller still holds the model. Inference adapters retain that ownership for their full use.
+- `AudioSourceProcess` owns the processes behind a Listen URL, drains their diagnostics, and distinguishes process failure from requested termination. Listen retains partial audio and transcript handling.
+- `verified_release.verify_installer` checks fresh installer bytes and recorded evidence for both DMG packaging and publication. Each caller still performs its own macOS signature checks.
+
+Run `bash scripts/test_architecture_lifecycles.sh` for the model and source lifecycle checks without model weights, and `python3 -m unittest discover -s Tests -p 'test_verified_release.py'` for shared release evidence checks. The existing installer, transfer, and hardware inference checks remain separate.
