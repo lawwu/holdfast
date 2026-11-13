@@ -12,6 +12,7 @@ struct SettingsView: View {
             ScrollView { TranscriptionSettings() }.tabItem { Label("Transcription", systemImage: "waveform") }
             ScrollView { DownloadSettings() }.tabItem { Label("Downloads", systemImage: "arrow.down.circle") }
             ScrollView { VaultSettings() }.tabItem { Label("Vault", systemImage: "folder") }
+            ScrollView { AppUpdateSettings() }.tabItem { Label("Updates", systemImage: "arrow.triangle.2.circlepath") }
         }
         .frame(width: 600, height: 520)
         .tint(Theme.accent)

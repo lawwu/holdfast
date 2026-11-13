@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import plistlib
 import subprocess
 
 import notary
@@ -54,7 +55,9 @@ def main():
         run('spctl', '--assess', '--type', 'install', '--verbose=2', package)
     checksum = hashlib.sha256(package.read_bytes()).hexdigest()
     (out / 'SHA256SUMS').write_text(f'{checksum}  {name}\n')
-    metadata = {'version': version, 'sourceRevision': revision, 'sourceDirty': dirty,
+    info = plistlib.loads((app / 'Contents/Info.plist').read_bytes())
+    metadata = {'version': version, 'buildNumber': info['CFBundleVersion'],
+                'sourceRevision': revision, 'sourceDirty': dirty,
                 'architecture': 'arm64', 'minimumMacOS': '15.0', 'installer': name,
                 'sha256': checksum, 'developerIDSigned': not args.unsigned_preview,
                 'notarized': not args.unsigned_preview,

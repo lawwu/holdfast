@@ -6,8 +6,8 @@ It is not a performance benchmark. Narration uses ElevenLabs' premade River voic
 
 Published files live in `Website/public/demo/`; screenshots live in
 `Website/public/screenshots/`. `release-assets.json` records the three downloadable
-assets' SHA-256 hashes. The release publisher verifies these before uploading them.
-The website and release use the same video, captions, and sample-notes archive.
+assets' SHA-256 hashes. The website build verifies these before deployment.
+The tour files are served on the website rather than attached to each app release.
 
 ## Capture real app views locally
 

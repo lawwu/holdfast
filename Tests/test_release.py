@@ -1,4 +1,5 @@
 """Exercise release selection and publication gates with real Git and a fake GitHub CLI."""
+import base64
 import hashlib
 import json
 import os
@@ -29,7 +30,7 @@ class ReleaseTests(unittest.TestCase):
         (notes / 'v0.0.2.md').write_text('Preview release notes.\n')
         scripts = self.repo / 'scripts'
         scripts.mkdir()
-        for name in ['verified_release.py', 'release_ref.py', 'publish_release.py', 'docs_release.py']:
+        for name in ['verified_release.py', 'release_ref.py', 'publish_release.py', 'docs_release.py', 'sparkle_release.py', 'deploy_update_feed.py']:
             shutil.copyfile(ROOT / 'scripts' / name, scripts / name)
         website = self.repo / 'Website'
         website.mkdir()
@@ -45,7 +46,7 @@ class ReleaseTests(unittest.TestCase):
         payload = b'synthetic installer for publication guard tests'
         (self.folder / self.installer).write_bytes(payload)
         self.digest = hashlib.sha256(payload).hexdigest()
-        self.manifest = dict(version='0.0.2', sourceRevision=self.revision, sourceDirty=False,
+        self.manifest = dict(version='0.0.2', buildNumber='123', sourceRevision=self.revision, sourceDirty=False,
                              installer=self.installer, sha256=self.digest, developerIDSigned=False, notarized=False)
         self.save('release-manifest.json', self.manifest)
         (self.folder / 'SHA256SUMS').write_text(f'{self.digest}  {self.installer}\n')
@@ -153,9 +154,9 @@ if sys.argv[1:3] == ['release', 'view']: print('https://example.invalid/release'
         self.assertTrue(any(c[:2] == ['release', 'create'] and '--draft' in c and '--prerelease' in c for c in calls))
         self.assertTrue(any(c[:2] == ['release', 'edit'] and '--draft=false' in c and '--latest=false' in c for c in calls))
         upload = next(c for c in calls if c[:2] == ['release', 'upload'])
-        self.assertEqual([Path(p).name for p in upload[-4:]],
-                         [self.installer, 'SHA256SUMS', 'release-manifest.json', 'verification.json'])
-        self.assertIn('Real MLX inference was not run', (self.folder / 'release-notes.md').read_text())
+        self.assertEqual(Path(upload[-1]).name, self.installer)
+        self.assertNotIn('SHA256SUMS', [Path(p).name for p in upload])
+        self.assertNotIn('Automated checks', (self.folder / 'release-notes.md').read_text())
 
     def test_published_release_and_api_failure_never_write(self):
         for mode in ['published', 'denied']:
@@ -176,11 +177,11 @@ if sys.argv[1:3] == ['release', 'view']: print('https://example.invalid/release'
         self.save('dmg-verification.json', report)
         return name, report
 
-    def test_verified_dmg_uploaded_with_its_checksum_and_report(self):
+    def test_verified_preview_uploads_only_the_installers(self):
         name, _ = self.add_dmg()
         self.publish(include_dmg=True)
         upload = next(c for c in self.calls() if c[:2] == ['release', 'upload'])
-        self.assertEqual([Path(p).name for p in upload[-3:]], [name, name + '.sha256', 'dmg-verification.json'])
+        self.assertEqual([Path(p).name for p in upload[-2:]], [self.installer, name])
 
     def test_missing_or_changed_dmg_never_reaches_github(self):
         self.publish(success=False, include_dmg=True)
@@ -197,49 +198,6 @@ if sys.argv[1:3] == ['release', 'view']: print('https://example.invalid/release'
             self.save('dmg-verification.json', {**report, field: value})
             self.publish(success=False, include_dmg=True)
             self.assertEqual(self.calls(), [])
-
-    def add_demo_assets(self, *, invalid_checksum=False, missing=False):
-        names = ['holdfast-tour.mp4', 'holdfast-tour.vtt', 'holdfast-sample-notes.zip']
-        directory = self.repo / 'Website/public/demo'
-        directory.mkdir(parents=True)
-        hashes = {}
-        for name in names:
-            payload = ('synthetic asset ' + name).encode()
-            (directory / name).write_bytes(payload)
-            hashes[name] = hashlib.sha256(payload).hexdigest()
-        if invalid_checksum:
-            hashes[names[0]] = '0' * 64
-        if missing:
-            del hashes[names[1]]
-        (self.repo / 'Demo').mkdir()
-        (self.repo / 'Demo/release-assets.json').write_text(json.dumps(hashes))
-        self.git('add', 'Demo', 'Website')
-        self.git('commit', '-m', 'Add reviewed walkthrough assets')
-        self.revision = self.git('rev-parse', 'HEAD')
-        self.git('update-ref', 'refs/remotes/origin/main', self.revision)
-        self.git('tag', '-f', 'v0.0.2')
-        self.manifest['sourceRevision'] = self.revision
-        self.save('release-manifest.json', self.manifest)
-        return names
-
-    def test_walkthrough_upload_precedes_publication(self):
-        names = self.add_demo_assets()
-        self.publish()
-        calls = self.calls()
-        upload = next(i for i, c in enumerate(calls) if c[:2] == ['release', 'upload'])
-        publish = next(i for i, c in enumerate(calls) if '--draft=false' in c)
-        self.assertEqual([Path(p).name for p in calls[upload][-3:]], names)
-        self.assertLess(upload, publish)
-
-    def test_bad_walkthrough_checksum_never_reaches_github(self):
-        self.add_demo_assets(invalid_checksum=True)
-        self.assertIn('Demo asset checksum mismatch', self.publish(success=False))
-        self.assertEqual(self.calls(), [])
-
-    def test_incomplete_walkthrough_never_reaches_github(self):
-        self.add_demo_assets(missing=True)
-        self.assertIn('video, captions, and sample notes', self.publish(success=False))
-        self.assertEqual(self.calls(), [])
 
     def test_rejects_changed_payload_checksum_or_failed_checks(self):
         (self.folder / self.installer).write_bytes(b'changed')
@@ -285,6 +243,15 @@ if sys.argv[1:3] == ['release', 'view']: print('https://example.invalid/release'
             diskImageSHA256=digest, passed=True, mountedReadOnly=True, appMatchesInstaller=True,
             signatureIntegrityValidated=True, bundledRuntimeValidated=True,
             developerIDSigned=dmg_signed, notarized=dmg_signed))
+        signature = base64.b64encode(b's' * 64).decode()
+        feed = self.folder / 'appcast.xml'
+        feed.write_text(f"""<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"><channel><item>
+          <sparkle:version>123</sparkle:version><sparkle:shortVersionString>0.0.2</sparkle:shortVersionString>
+          <enclosure url="https://github.com/lawwu/holdfast/releases/download/v0.0.2/Holdfast-macos-arm64.dmg"
+            length="{len(payload)}" sparkle:edSignature="{signature}" />
+        </item></channel></rss>""")
+        self.save('sparkle-verification.json', dict(passed=True, sourceRevision=self.revision,
+            diskImageSHA256=digest, appcastSHA256=hashlib.sha256(feed.read_bytes()).hexdigest()))
         return name
 
     def publish_signed(self, success=True):
@@ -301,8 +268,14 @@ if sys.argv[1:3] == ['release', 'view']: print('https://example.invalid/release'
         self.assertIn('--latest', final)
         self.assertNotIn('--latest=false', final)
         upload = next(c for c in calls if c[:2] == ['release', 'upload'])
-        self.assertIn(name, [Path(p).name for p in upload])
-        self.assertIn('Developer ID signed and notarized', (self.folder / 'release-notes.md').read_text())
+        self.assertEqual([Path(p).name for p in upload[-3:]],
+                         ['Holdfast-macos-arm64.dmg', 'Holdfast-macos-arm64.pkg', 'appcast.xml'])
+        self.assertEqual((self.folder / 'Holdfast-macos-arm64.dmg').read_bytes(), (self.folder / name).read_bytes())
+        self.assertEqual((self.folder / 'Holdfast-macos-arm64.pkg').read_bytes(), (self.folder / self.installer).read_bytes())
+        notes = (self.folder / 'release-notes.md').read_text()
+        self.assertIn('**[Download for Mac]', notes)
+        self.assertIn('Signed and notarized', notes)
+        self.assertNotIn('Automated checks', notes)
 
     def test_signed_installer_never_ships_with_an_unsigned_disk_image(self):
         self.make_signed(dmg_signed=False)
@@ -311,6 +284,28 @@ if sys.argv[1:3] == ['release', 'view']: print('https://example.invalid/release'
 
     def test_unsigned_installer_never_publishes_without_the_preview_flag(self):
         self.assertIn('--allow-unsigned-preview', self.command('publish_release.py', '--tag', 'v0.0.2', '--publish', success=False))
+        self.assertEqual(self.calls(), [])
+
+    def test_missing_or_changed_feed_never_reaches_github(self):
+        self.make_signed()
+        feed = self.folder / 'appcast.xml'
+        feed.write_text(feed.read_text().replace('123', '124'))
+        self.assertIn('exact signed release', self.publish_signed(success=False))
+        self.assertEqual(self.calls(), [])
+        feed.unlink()
+        self.publish_signed(success=False)
+        self.assertEqual(self.calls(), [])
+
+    def test_stale_feed_build_or_download_url_is_rejected_even_with_matching_checksum(self):
+        self.make_signed()
+        feed = self.folder / 'appcast.xml'
+        original = feed.read_text()
+        for old, new in [('123', '122'), ('v0.0.2/', 'latest/'), ('0.0.2</sparkle:short', '0.0.3</sparkle:short')]:
+            feed.write_text(original.replace(old, new))
+            report = json.loads((self.folder / 'sparkle-verification.json').read_text())
+            report['appcastSHA256'] = hashlib.sha256(feed.read_bytes()).hexdigest()
+            self.save('sparkle-verification.json', report)
+            self.assertIn('does not match', self.publish_signed(success=False))
         self.assertEqual(self.calls(), [])
 
 

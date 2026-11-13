@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- In-app updates with an update button, update settings, and signed Sparkle feeds.
+- Direct downloads of the latest DMG from the docs.
+- Shorter release notes and fewer release downloads; technical reports stay in build artifacts.
+
 ## 0.0.5 — listen to video links
 
 - GitHub Actions are locked to commits with `gh actions-lock` and linted with zizmor on every pull request.

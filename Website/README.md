@@ -86,6 +86,20 @@ autostarts.
 
 `public/screenshots/` contains optimized captures of real app views using fictional
 notes. `public/demo/` contains the reviewed video, captions, poster, and sample vault.
-See `../Demo/README.md` for capture and narration instructions. The release publisher
-uploads the same three downloadable demo files after verifying their hashes.
+See `../Demo/README.md` for capture and narration instructions. Tour files are served
+on the site; new app releases only attach the DMG, optional PKG, and Sparkle feed.
 Rendering and paid narration stay local; Pages builds do not need an API key.
+
+## Downloads and app updates
+
+Download buttons use GitHub's `/releases/latest/download/Holdfast-macos-arm64.dmg`
+URL. The publisher uploads the exact verified DMG under this stable filename in
+each release; the optional PKG follows the same convention. No version edits are
+needed in the site. These links become available with the first release using the
+new publisher.
+
+Before deployment, `scripts/deploy_update_feed.py` fetches `appcast.xml` from the
+latest stable release and copies it byte-for-byte into the site. Never edit the
+feed after signing. A missing or mismatched feed stops deployment, preserving the
+existing site. Retrying an older documentation deployment still uses the latest
+feed. Branch checks build the docs without contacting the update service.
