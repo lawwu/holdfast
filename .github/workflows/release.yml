@@ -97,6 +97,7 @@ jobs:
       - name: Test release guards, reusable packages, and Pi
         run: |
           python3 -m unittest discover -s Tests -p 'test_release.py' -v
+          python3 -m unittest discover -s Tests -p 'test_verified_release.py' -v
           npm ci --prefix Packages/pi-swift-mlx --ignore-scripts --no-audit --no-fund
           npm test --prefix Packages/pi-swift-mlx
           npm ci --prefix Runtime/pi --ignore-scripts --no-audit --no-fund
@@ -104,6 +105,7 @@ jobs:
           bash scripts/test_agent_runtime.sh
           bash scripts/test_custom_models.sh
           bash scripts/test_model_downloads.sh
+          bash scripts/test_architecture_lifecycles.sh
           python3 Tests/model_provider_transport.py
       - name: Load the Developer ID certificates and notary key
         if: env.SIGNED_RELEASE == 'true'

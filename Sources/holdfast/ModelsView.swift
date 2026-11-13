@@ -118,7 +118,7 @@ struct ModelsView: View {
                 } else if item.state == .queued {
                     Button("Cancel") { downloads.pause(item.id) }
                 } else if item.state == .paused || item.state == .failed {
-                    Button(item.state == .failed ? "Retry" : "Resume") { downloads.resume(item.id, store: store) }
+                    Button(item.state == .failed ? "Retry" : "Resume") { downloads.resume(item.id) }
                     Button("Dismiss") { downloads.forget(item.id) }
                 } else { Button("Dismiss") { downloads.forget(item.id) } }
                 if ![.queued, .downloading].contains(item.state) {

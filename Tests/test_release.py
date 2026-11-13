@@ -29,7 +29,7 @@ class ReleaseTests(unittest.TestCase):
         (notes / 'v0.0.2.md').write_text('Preview release notes.\n')
         scripts = self.repo / 'scripts'
         scripts.mkdir()
-        for name in ['release_ref.py', 'publish_release.py', 'docs_release.py']:
+        for name in ['verified_release.py', 'release_ref.py', 'publish_release.py', 'docs_release.py']:
             shutil.copyfile(ROOT / 'scripts' / name, scripts / name)
         website = self.repo / 'Website'
         website.mkdir()

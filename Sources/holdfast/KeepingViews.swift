@@ -716,7 +716,7 @@ struct RecommendationRows: View {
                 Button("Use") { store.selectMLX(m.repo) }.controlSize(.small)
             }
         } else {
-            Button(String(format: "Download %.0f GB", m.sizeGB)) { store.downloadRepo(m.repo) { store.selectMLX(m.repo) } }
+            Button(String(format: "Download %.0f GB", m.sizeGB)) { store.downloadRepo(m.repo, followUp: .selectAnswer) }
                 .controlSize(.small)
                 .help("Download \(m.repo) using the source in Settings → Downloads.")
         }

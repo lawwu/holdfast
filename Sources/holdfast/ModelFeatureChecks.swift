@@ -45,7 +45,7 @@ import ModelProviders
                 if attempts == 1 { throw HoldfastError("Temporary test failure") }
             }
         } catch {}
-        queue.resume("retry", store: store)
+        queue.resume("retry")
         for _ in 0..<50 { if queue.item("retry")?.state == .ready { break }; try await Task.sleep(for: .milliseconds(20)) }
         try check(attempts == 2 && queue.item("retry")?.state == .ready, "Retry did not reuse the operation")
         passed.append("Failed downloads retry")

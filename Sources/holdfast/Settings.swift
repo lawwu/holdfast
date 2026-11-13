@@ -223,7 +223,7 @@ struct SearchSettings: View {
                         Text("\(Config.embedSpec.label) · on this Mac").font(Theme.caption)
                         Spacer()
                         if Config.embedModelDir == nil {
-                            DownloadButton(repo: Config.embedSpec.repo) { store.prepareMeaningSearch() }
+                            DownloadButton(repo: Config.embedSpec.repo, followUp: .prepareMeaningSearch)
                                 .disabled(!store.canChangeMeaningSearch)
                         } else if store.preparingMeaningSearch {
                             ProgressView().controlSize(.small)
@@ -435,17 +435,17 @@ struct VaultSettings: View {
 }
 
 
-/// "Download" for a search model, with progress; `then` runs when it finishes.
+/// "Download" for a search model, with progress; the follow-up survives an explicit resume.
 struct DownloadButton: View {
     @EnvironmentObject var store: Store
     var repo: String
-    var then: (@MainActor () -> Void)? = nil
+    var followUp: ModelDownloads.FollowUp? = nil
     var body: some View {
         if let f = store.downloads[repo] {
             ModelDownloadProgressView(progress: f)
         } else {
             VStack(alignment: .trailing, spacing: 2) {
-                Button("Download") { store.downloadRepo(repo, then: then) }.controlSize(.small)
+                Button("Download") { store.downloadRepo(repo, followUp: followUp) }.controlSize(.small)
                 if let e = store.downloadErrors[repo] { Text(e).font(Theme.caption2).foregroundStyle(.red).lineLimit(2) }
             }
         }

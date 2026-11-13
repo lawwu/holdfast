@@ -5,14 +5,15 @@ import Combine
 /// partial files survive relaunch; interrupted jobs are offered for explicit resume.
 @MainActor
 final class ModelDownloads: ObservableObject {
-    static let shared = ModelDownloads()
     enum State: String, Codable { case queued = "Queued", downloading = "Downloading", paused = "Paused", failed = "Failed", ready = "Ready" }
+    enum FollowUp: String, Codable { case selectAnswer, prepareMeaningSearch }
     struct Item: Identifiable, Codable {
         var id: String
         var name: String
         var state: State = .queued
         var progress = ModelDownloadProgress()
         var error: String?
+        var followUps: [FollowUp]?
     }
     typealias Operation = @MainActor (@escaping @Sendable (ModelDownloadProgress) async -> Void) async throws -> Void
     @Published private(set) var items: [Item] = []
@@ -22,7 +23,9 @@ final class ModelDownloads: ObservableObject {
     private var worker: Task<Void, Never>?
     private var cancelled: Set<String> = []
     private let defaults: UserDefaults
-    init(defaults: UserDefaults = .standard) {
+    private let resolve: ((String) -> Operation)?
+    init(defaults: UserDefaults = .standard, resolve: ((String) -> Operation)? = nil) {
+        self.resolve = resolve
         self.defaults = defaults
         if let data = defaults.data(forKey: "modelDownloads.v1"), let saved = try? JSONDecoder().decode([Item].self, from: data) {
             items = saved.map { value in
@@ -33,13 +36,17 @@ final class ModelDownloads: ObservableObject {
         }
     }
     func item(_ id: String) -> Item? { items.first { $0.id == id } }
-    func run(id: String, name: String, operation: @escaping Operation) async throws {
+    func run(id: String, name: String, followUp: FollowUp? = nil, operation: @escaping Operation) async throws {
         try await withCheckedThrowingContinuation { continuation in
             waiters[id, default: []].append(continuation)
-            if active == id || item(id)?.state == .queued { return }
+            var actions = item(id)?.followUps ?? []
+            if let followUp, !actions.contains(followUp) { actions.append(followUp) }
+            if active == id || item(id)?.state == .queued {
+                update(id) { $0.followUps = actions }; persist(); return
+            }
             operations[id] = operation
-            if let index = items.firstIndex(where: { $0.id == id }) { items[index] = Item(id: id, name: name) }
-            else { items.append(Item(id: id, name: name)) }
+            if let index = items.firstIndex(where: { $0.id == id }) { items[index] = Item(id: id, name: name, followUps: actions) }
+            else { items.append(Item(id: id, name: name, followUps: actions)) }
             persist(); startNext()
         }
     }
@@ -51,13 +58,27 @@ final class ModelDownloads: ObservableObject {
             finishWaiters(id, result: .failure(CancellationError())); persist()
         }
     }
-    func resume(_ id: String, store: Store) {
-        guard active != id, item(id)?.state != .queued else { return }
-        if let operation = operations[id] {
-            let name = item(id)?.name ?? id
-            Task { try? await run(id: id, name: name, operation: operation) }
-        } else if let audio = TranscriptionModel.allCases.first(where: { "audio:" + $0.id == id }) { AudioModels.shared.start(audio) }
-        else { store.downloadRepo(id) }
+    func resume(_ id: String) {
+        guard active != id, let item = item(id), [.paused, .failed].contains(item.state),
+              let operation = operations[id] ?? resolve?(id) else { return }
+        Task { try? await run(id: id, name: item.name, operation: operation) }
+    }
+    var progress: [String: ModelDownloadProgress] {
+        Dictionary(uniqueKeysWithValues: items.filter { [.queued, .downloading].contains($0.state) }.map { ($0.id, $0.progress) })
+    }
+    var errors: [String: String] {
+        Dictionary(uniqueKeysWithValues: items.compactMap { item in item.error.map { (item.id, $0) } })
+    }
+    /// Deliver only validated installations. An unavailable caller leaves intent
+    /// pending; accepting an action acknowledges it durably. Selection and index
+    /// preparation are idempotent if a crash occurs before acknowledgement.
+    func deliverFollowUps(accept: (String, FollowUp) -> Bool) {
+        for item in items where item.state == .ready {
+            for action in item.followUps ?? [] where accept(item.id, action) {
+                update(item.id) { $0.followUps?.removeAll { $0 == action } }
+                persist()
+            }
+        }
     }
     func forget(_ id: String) {
         guard active != id, item(id)?.state != .queued else { return }
@@ -96,28 +117,4 @@ final class ModelDownloads: ObservableObject {
         if let index = items.firstIndex(where: { $0.id == id }) { change(&items[index]) }
     }
     private func persist() { if let data = try? JSONEncoder().encode(items) { defaults.set(data, forKey: "modelDownloads.v1") } }
-}
-
-/// A user-added folder and shared HF caches are never deleted by Holdfast.
-enum ModelStorage {
-    static func bytes(at directory: URL) -> Int64 {
-        guard let files = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey], options: [.skipsHiddenFiles]) else { return 0 }
-        return files.reduce(Int64(0)) { total, item in
-            guard let file = item as? URL, let info = try? file.resolvingSymlinksInPath().resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey]), info.isRegularFile == true else { return total }
-            return total + Int64(info.fileSize ?? 0)
-        }
-    }
-    static func ownedDirectory(_ repo: String) -> URL? {
-        guard CustomLocalModels.find(repo)?.source != .folder else { return nil }
-        let components = repo.components(separatedBy: "/")
-        guard components.count == 2, components.allSatisfy({ !$0.isEmpty && $0 != "." && $0 != ".." && !$0.contains("\\") }) else { return nil }
-        let root = Prefs.modelsDir.appendingPathComponent("models").standardizedFileURL.resolvingSymlinksInPath()
-        let directory = root.appendingPathComponent(repo).standardizedFileURL
-        guard directory.resolvingSymlinksInPath().path == directory.path else { return nil }
-        return directory
-    }
-    static func delete(_ repo: String) throws {
-        guard let directory = ownedDirectory(repo) else { throw HoldfastError("This folder is managed outside Holdfast. Use Finder to manage its files.") }
-        if FileManager.default.fileExists(atPath: directory.path) { try FileManager.default.removeItem(at: directory) }
-    }
 }

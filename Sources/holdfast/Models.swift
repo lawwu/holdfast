@@ -238,11 +238,11 @@ struct GeminiBackend: LLMBackend {
 final class MLXBackend: LLMBackend, @unchecked Sendable {
     let container: ModelContainer
     let loadSeconds: Double
-    nonisolated(unsafe) private static var cached: MLXBackend?
+    private static let lifetime = LoadedModel<MLXBackend>(releaseUnused: { Memory.clearCache() })
 
     /// Which repo to run: HOLDFAST_MLX_REPO, else the Settings choice.
     static var currentRepo: String { ProcessInfo.processInfo.environment["HOLDFAST_MLX_REPO"] ?? Prefs.mlxRepo }
-    nonisolated(unsafe) private(set) static var loadedRepo: String?
+    static var loadedRepo: String? { lifetime.loadedID }
 
     /// HOLDFAST_MLX_DIR wins; then the Hugging Face cache; then the app's own downloads.
     static func modelDir(repo: String = currentRepo) -> URL? {
@@ -257,13 +257,11 @@ final class MLXBackend: LLMBackend, @unchecked Sendable {
         return ModelFiles.directory(repo: repo, modelsDirectory: Prefs.modelsDir)
     }
 
-    static var isLoaded: Bool { cached != nil }
+    static var isLoaded: Bool { lifetime.loadedID != nil }
 
     /// Drop the model so its memory can be reclaimed (reloads on next use).
     static func unload() {
-        cached = nil
-        loadedRepo = nil
-        Memory.clearCache()
+        lifetime.unload()
     }
 
     /// Download an MLX repo into the app's models folder. `progress` gets 0…1.
@@ -273,8 +271,10 @@ final class MLXBackend: LLMBackend, @unchecked Sendable {
     }
 
     static func shared(repo: String = currentRepo) async throws -> MLXBackend {
-        if let c = cached, loadedRepo == repo { return c }
-        if cached != nil { unload() }  // switching models: free the old one first
+        try await lifetime.value(for: repo) { try await load(repo: repo) }
+    }
+
+    private static func load(repo: String) async throws -> MLXBackend {
         let custom = CustomLocalModels.find(repo)
         let override = ProcessInfo.processInfo.environment["HOLDFAST_MLX_DIR"].map { URL(fileURLWithPath: $0) }
         guard let dir = override ?? custom?.folder ?? modelDir(repo: repo) else { throw HoldfastError("\(repo) is not downloaded; download it in Settings") }
@@ -289,8 +289,6 @@ final class MLXBackend: LLMBackend, @unchecked Sendable {
         let c = try await LLMModelFactory.shared.loadContainer(from: dir, using: #huggingFaceTokenizerLoader())
         let b = MLXBackend(repo: repo, container: c, loadSeconds: Date().timeIntervalSince(t0))
         log(String(format: "loaded in %.1fs", b.loadSeconds))
-        cached = b
-        loadedRepo = repo
         return b
     }
 
