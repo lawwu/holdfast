@@ -1,0 +1,10 @@
+{"candidateCount":1,"pass":true,"test":"private and confidential excluded from candidates"}
+{"pass":true,"test":"private vault excludes all notes"}
+{"pass":true,"positiveVerdicts":0,"proposals":0,"sourceFilesUnchanged":true,"test":"backend error","verdictCount":1}
+{"pass":true,"positiveVerdicts":0,"proposals":0,"sourceFilesUnchanged":true,"test":"empty response","verdictCount":1}
+{"pass":true,"positiveVerdicts":0,"proposals":0,"sourceFilesUnchanged":true,"test":"refusal prose","verdictCount":1}
+{"pass":false,"positiveVerdicts":1,"proposals":1,"sourceFilesUnchanged":true,"test":"malformed positive JSON","verdictCount":1}
+{"pass":false,"positiveVerdicts":1,"proposals":1,"sourceFilesUnchanged":true,"test":"string Boolean","verdictCount":1}
+{"pass":true,"positiveVerdicts":0,"proposals":0,"sourceFilesUnchanged":true,"test":"valid negative","verdictCount":1}
+{"pass":true,"positiveVerdicts":1,"proposals":1,"sourceFilesUnchanged":true,"test":"valid positive","verdictCount":1}
+{"pass":true,"test":"explicit Apply changes note; Undo restores bytes"}
