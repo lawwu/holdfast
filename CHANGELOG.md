@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.0.6 — updates inside Holdfast
 
 - In-app updates with an update button, update settings, and signed Sparkle feeds.
 - Direct downloads of the latest DMG from the docs.
