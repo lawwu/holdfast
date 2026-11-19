@@ -1,5 +1,5 @@
 {
-  "originHash" : "1bede02738df4fd3675c8c24e10fb8d522eaa537d55b58dee446500d522e5281",
+  "originHash" : "78f5710c8daa0118ed8c0f05215191dcdce599f65cab71fa9bd07a94a9edda25",
   "pins" : [
     {
       "identity" : "eventsource",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/FluidInference/FluidAudio.git",
       "state" : {
-        "revision" : "e396cf780c4abf8e395087467c0585d3b0d17f68",
-        "version" : "0.18.2"
+        "revision" : "c8b41f98eae668794dd0083bbe028fe7e6585051",
+        "version" : "0.18.3"
       }
     },
     {
@@ -44,6 +44,15 @@
       "state" : {
         "revision" : "ab7d71291238df6e0492143b120c9b696a35f603",
         "version" : "2.10.1"
+      }
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser",
+      "state" : {
+        "revision" : "6a52f3251125d74daf04fcbd5e6f08a75d074382",
+        "version" : "1.8.2"
       }
     },
     {
