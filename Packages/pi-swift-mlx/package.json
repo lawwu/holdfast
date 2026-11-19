@@ -38,10 +38,10 @@
     "@earendil-works/pi-ai": "^1.5.1"
   },
   "devDependencies": {
-    "@earendil-works/chord": "1.5.1",
-    "@earendil-works/pi-ai": "1.5.1",
-    "@earendil-works/pi-coding-agent": "1.5.1",
-    "@earendil-works/pi-durable": "1.5.1",
+    "@earendil-works/chord": "1.5.2",
+    "@earendil-works/pi-ai": "1.5.2",
+    "@earendil-works/pi-coding-agent": "1.5.2",
+    "@earendil-works/pi-durable": "1.5.2",
     "typescript": "7.0.2"
   },
   "scripts": {
