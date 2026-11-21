@@ -1,0 +1,224 @@
+[
+  {
+    "a": "private/cases/rs/rs-session-02.md",
+    "b": "private/cases/rs/rs-session-03.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/rs/rs-session-01.md",
+    "b": "private/cases/rs/rs-session-03.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-05.md",
+    "b": "private/cases/dm/dm-session-04.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/rs/rs-session-02.md",
+    "b": "private/cases/rs/rs-session-01.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-07.md",
+    "b": "private/cases/dm/dm-session-03.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-07.md",
+    "b": "private/cases/dm/dm-session-06.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-08.md",
+    "b": "private/cases/dm/dm-session-01.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-02.md",
+    "b": "private/cases/dm/dm-session-01.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-07.md",
+    "b": "private/cases/dm/dm-session-01.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-04.md",
+    "b": "private/cases/dm/dm-session-01.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-03.md",
+    "b": "private/cases/dm/dm-session-01.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-05.md",
+    "b": "private/cases/dm/dm-session-08.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-04.md",
+    "b": "private/cases/dm/dm-session-03.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-05.md",
+    "b": "private/cases/dm/dm-session-01.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-05.md",
+    "b": "private/cases/dm/dm-session-06.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-07.md",
+    "b": "private/cases/dm/dm-session-02.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-02.md",
+    "b": "private/cases/dm/dm-session-08.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-04.md",
+    "b": "private/cases/dm/dm-session-08.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-06.md",
+    "b": "private/cases/dm/dm-session-01.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-03.md",
+    "b": "private/cases/dm/dm-session-02.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-07.md",
+    "b": "private/cases/dm/dm-session-08.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-04.md",
+    "b": "private/cases/dm/dm-session-02.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-06.md",
+    "b": "private/cases/dm/dm-session-08.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-08.md",
+    "b": "private/cases/dm/dm-session-03.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-05.md",
+    "b": "private/cases/dm/dm-session-02.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-03.md",
+    "b": "private/cases/dm/dm-session-06.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/dm/dm-session-06.md",
+    "b": "private/cases/dm/dm-session-02.md",
+    "link": true,
+    "why": "same participant's sessions"
+  },
+  {
+    "a": "private/cases/rs/rs-session-03.md",
+    "b": "private/cases/dm/dm-session-03.md",
+    "link": false,
+    "why": "different participants: never link"
+  },
+  {
+    "a": "private/cases/rs/rs-session-03.md",
+    "b": "private/cases/dm/dm-session-07.md",
+    "link": false,
+    "why": "different participants: never link"
+  },
+  {
+    "a": "private/cases/rs/rs-session-02.md",
+    "b": "private/cases/dm/dm-session-07.md",
+    "link": false,
+    "why": "different participants: never link"
+  },
+  {
+    "a": "private/cases/rs/rs-session-02.md",
+    "b": "private/cases/dm/dm-session-02.md",
+    "link": false,
+    "why": "different participants: never link"
+  },
+  {
+    "a": "private/cases/rs/rs-session-03.md",
+    "b": "private/cases/dm/dm-session-02.md",
+    "link": false,
+    "why": "different participants: never link"
+  },
+  {
+    "a": "private/cases/rs/rs-session-01.md",
+    "b": "private/cases/dm/dm-session-01.md",
+    "link": false,
+    "why": "different participants: never link"
+  },
+  {
+    "a": "private/cases/rs/rs-session-01.md",
+    "b": "private/cases/dm/dm-session-07.md",
+    "link": false,
+    "why": "different participants: never link"
+  },
+  {
+    "a": "private/cases/rs/rs-session-02.md",
+    "b": "private/cases/dm/dm-session-03.md",
+    "link": false,
+    "why": "different participants: never link"
+  },
+  {
+    "a": "private/cases/rs/rs-session-01.md",
+    "b": "private/cases/dm/dm-session-02.md",
+    "link": false,
+    "why": "different participants: never link"
+  },
+  {
+    "a": "career/notes.md",
+    "b": "private/cases/dm/dm-session-02.md",
+    "link": false,
+    "why": "same category or shared word only"
+  }
+]

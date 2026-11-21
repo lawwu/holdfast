@@ -1,0 +1,130 @@
+[
+  {
+    "a": "finance/profile.md",
+    "b": "finance/net-worth.md",
+    "link": true,
+    "why": "one follows up or explains the other",
+    "labelSource": "existing repository label; human review unconfirmed",
+    "id": "c01"
+  },
+  {
+    "a": "home/refrigerator.md",
+    "b": "home/dishwasher.md",
+    "link": false,
+    "why": "same category or shared word only",
+    "labelSource": "existing repository label; human review unconfirmed",
+    "id": "c02"
+  },
+  {
+    "a": "life/calendar.md",
+    "b": "finance/giving.md",
+    "link": false,
+    "why": "same category or shared word only",
+    "labelSource": "existing repository label; human review unconfirmed",
+    "id": "c03"
+  },
+  {
+    "a": "life/calendar.md",
+    "b": "health/visits/2026-06-04_erik_ridgeview-family-medicine.md",
+    "link": true,
+    "why": "one follows up or explains the other",
+    "labelSource": "existing repository label; human review unconfirmed",
+    "id": "c04"
+  },
+  {
+    "a": "home/refrigerator.md",
+    "b": "home/hvac.md",
+    "link": false,
+    "why": "same category or shared word only",
+    "labelSource": "existing repository label; human review unconfirmed",
+    "id": "c05"
+  },
+  {
+    "a": "health/goals.md",
+    "b": "career/notes.md",
+    "link": false,
+    "why": "same category or shared word only",
+    "labelSource": "existing repository label; human review unconfirmed",
+    "id": "c06"
+  },
+  {
+    "a": "life/calendar.md",
+    "b": "career/notes.md",
+    "link": false,
+    "why": "same category or shared word only",
+    "labelSource": "existing repository label; human review unconfirmed",
+    "id": "c07"
+  },
+  {
+    "a": "health/visits/2026-08-21_soren_alder-creek-pediatrics.md",
+    "b": "health/visits/2026-03-18_greta_alder-creek-pediatrics.md",
+    "link": false,
+    "why": "same category or shared word only",
+    "labelSource": "existing repository label; human review unconfirmed",
+    "id": "c08"
+  },
+  {
+    "a": "health/visits/2026-09-30_anna_bright-smile-dental.md",
+    "b": "life/calendar.md",
+    "link": true,
+    "why": "one follows up or explains the other",
+    "labelSource": "existing repository label; human review unconfirmed",
+    "id": "c09"
+  },
+  {
+    "a": "home/sump-pump.md",
+    "b": "home/sump-pump-service.md",
+    "link": true,
+    "why": "same appliance and repair follow-up",
+    "labelSource": "assistant-authored provisional label; awaits human review",
+    "id": "c10"
+  },
+  {
+    "a": "life/cove-trip-plan.md",
+    "b": "life/cove-trip-booking.md",
+    "link": true,
+    "why": "booking for the specific planned trip",
+    "labelSource": "assistant-authored provisional label; awaits human review",
+    "id": "c11"
+  },
+  {
+    "a": "finance/roof-policy.md",
+    "b": "finance/roof-claim.md",
+    "link": true,
+    "why": "same policy and active claim",
+    "labelSource": "assistant-authored provisional label; awaits human review",
+    "id": "c12"
+  },
+  {
+    "a": "career/office-decision.md",
+    "b": "career/office-followup.md",
+    "link": true,
+    "why": "follow-up resolves a specific decision prerequisite",
+    "labelSource": "assistant-authored provisional label; awaits human review",
+    "id": "c13"
+  },
+  {
+    "a": "life/lentil-recipe.md",
+    "b": "life/lentil-recipe-test.md",
+    "link": true,
+    "why": "test adjusts the specific recipe",
+    "labelSource": "assistant-authored provisional label; awaits human review",
+    "id": "c14"
+  },
+  {
+    "a": "finance/personal-savings.md",
+    "b": "finance/business-card.md",
+    "link": false,
+    "why": "same provider but unrelated accounts",
+    "labelSource": "assistant-authored provisional label; awaits human review",
+    "id": "c15"
+  },
+  {
+    "a": "life/cove-summer.md",
+    "b": "life/cove-winter.md",
+    "link": false,
+    "why": "same place but different trips",
+    "labelSource": "assistant-authored provisional label; awaits human review",
+    "id": "c16"
+  }
+]

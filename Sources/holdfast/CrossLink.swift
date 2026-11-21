@@ -77,18 +77,11 @@ enum CrossLink {
         do {
             _ = try await llm.chat(system: instructions, user: "Note A\n\(excerpt(a))\n\n---\nNote B\n\(excerpt(b))",
                                    temperature: Config.filingTemperature) { out.append($0) }
-            let reply = stripThoughts(out.text)
-            var link = false, reason = ""
-            if let s = reply.firstIndex(of: "{"), let e = Drop.firstObjectEnd(reply, from: s),
-               let obj = try? JSONSerialization.jsonObject(with: Data(reply[s...e].utf8)) as? [String: Any] {
-                link = (obj["link"] as? Bool) ?? ((obj["link"] as? String)?.lowercased() == "true")
-                reason = obj["reason"] as? String ?? ""
-            } else {
-                link = reply.range(of: #""link"\s*:\s*true"#, options: .regularExpression) != nil
-            }
+            let reply = try CrossLinkReply.parse(stripThoughts(out.text))
+            var reason = reply.reason
             // The reason is saved into the note: if it carries a name, email or number, save the link without it.
             if !privacyFlags(reason, names: true).isEmpty { reason = "" }
-            return Verdict(a: p.a, b: p.b, score: p.score, link: link, reason: reason, seconds: Date().timeIntervalSince(t0))
+            return Verdict(a: p.a, b: p.b, score: p.score, link: reply.link, reason: reason, seconds: Date().timeIntervalSince(t0))
         } catch {
             return Verdict(a: p.a, b: p.b, score: p.score, link: false, reason: "", seconds: Date().timeIntervalSince(t0), error: "\(error)")
         }
