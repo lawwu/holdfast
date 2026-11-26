@@ -7,9 +7,9 @@
     "still": "remotion still src/index.jsx HoldfastTour out/poster.png --frame=45"
   },
   "dependencies": {
-    "@remotion/cli": "4.0.543",
-    "@remotion/media": "4.0.543",
-    "remotion": "4.0.543",
+    "@remotion/cli": "4.0.545",
+    "@remotion/media": "4.0.545",
+    "remotion": "4.0.545",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   }
